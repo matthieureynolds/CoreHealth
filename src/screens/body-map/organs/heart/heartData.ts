@@ -1,0 +1,25 @@
+import { Organ } from '../types';
+
+export const heartOrgan: Organ = {
+  id: 'heart',
+  label: 'Heart',
+  position: { x: 0.5, y: 0.29 },
+  data: {
+    name: 'Heart / Circulatory',
+    description: 'Pumps blood around the body.',
+    biomarkers: [
+      { name: 'Resting HR', value: 58, unit: 'bpm', range: '60-100', status: 'normal' },
+      { name: 'VO₂ max', value: 48, unit: 'ml/kg/min', range: '>45', status: 'normal' },
+      { name: 'Blood Pressure', value: 118, unit: 'mmHg', range: '<120/80', status: 'normal' },
+      { name: 'LDL-C', value: 95, unit: 'mg/dL', range: '<100', status: 'normal' },
+      { name: 'HDL-C', value: 58, unit: 'mg/dL', range: '>40', status: 'normal' },
+      { name: 'Total Cholesterol', value: 185, unit: 'mg/dL', range: '<200', status: 'normal' },
+      { name: 'Triglycerides', value: 120, unit: 'mg/dL', range: '<150', status: 'normal' },
+      { name: 'ApoB', value: 85, unit: 'mg/dL', range: '<90', status: 'normal' },
+      { name: 'Lp(a)', value: 15, unit: 'mg/dL', range: '<30', status: 'normal' },
+      { name: 'hs-CRP', value: 0.8, unit: 'mg/L', range: '<1.0', status: 'normal' },
+      { name: 'Homocysteine', value: 8.5, unit: 'μmol/L', range: '4-15', status: 'normal' },
+      { name: 'NT-proBNP', value: 45, unit: 'pg/mL', range: '<125', status: 'normal' },
+    ],
+  },
+}; 
