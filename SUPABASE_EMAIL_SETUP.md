@@ -16,18 +16,26 @@ Follow these steps to configure email verification for CoreHealth with Supabase:
 
 ```html
 <h2>Welcome to CoreHealth!</h2>
-<p>Thanks for signing up! Please click the link below to verify your email address and activate your account:</p>
+<p>
+  Thanks for signing up! Please click the link below to verify your email
+  address and activate your account:
+</p>
 
 <p><a href="{{ .ConfirmationURL }}">Verify Your Account</a></p>
 
-<p>If the button above doesn't work, copy and paste this link into your browser:</p>
+<p>
+  If the button above doesn't work, copy and paste this link into your browser:
+</p>
 <p>{{ .ConfirmationURL }}</p>
 
 <p>This link will expire in 24 hours for security reasons.</p>
 
-<p>If you didn't create an account with CoreHealth, you can safely ignore this email.</p>
+<p>
+  If you didn't create an account with CoreHealth, you can safely ignore this
+  email.
+</p>
 
-<p>Best regards,<br>The CoreHealth Team</p>
+<p>Best regards,<br />The CoreHealth Team</p>
 ```
 
 ## 3. Configure Site URL
@@ -39,16 +47,19 @@ Follow these steps to configure email verification for CoreHealth with Supabase:
 ## 4. Email Provider Configuration
 
 ### Option A: Use Supabase's Built-in Email (Development)
+
 - Supabase provides email sending for development
 - Limited to 3 emails per hour for free tier
 - Emails may go to spam folder
 
 ### Option B: Configure Custom SMTP (Recommended for Production)
+
 1. Go to **Settings** > **Authentication**
 2. Scroll down to **SMTP Settings**
 3. Configure with your email provider:
 
 **Gmail Example:**
+
 - SMTP Host: `smtp.gmail.com`
 - SMTP Port: `587`
 - SMTP User: `your-email@gmail.com`
@@ -57,6 +68,7 @@ Follow these steps to configure email verification for CoreHealth with Supabase:
 - Sender Email: `your-email@gmail.com`
 
 **SendGrid Example:**
+
 - SMTP Host: `smtp.sendgrid.net`
 - SMTP Port: `587`
 - SMTP User: `apikey`
@@ -83,16 +95,19 @@ Follow these steps to configure email verification for CoreHealth with Supabase:
 ## 7. Troubleshooting
 
 **Emails not sending:**
+
 - Check your SMTP configuration
 - Verify sender email is authenticated with your provider
 - Check Supabase logs in Dashboard > Logs
 
 **Verification link doesn't work:**
+
 - Ensure Site URL is correctly configured
 - Check that the link hasn't expired (24 hours)
 - Verify the app is running and accessible
 
 **Users can't login after verification:**
+
 - Check that `email_confirmed_at` field is populated in Supabase auth.users table
 - Verify the login flow checks for email verification
 
@@ -108,9 +123,10 @@ Follow these steps to configure email verification for CoreHealth with Supabase:
 ## 9. Next Steps
 
 After email verification is working, consider adding:
+
 - Welcome email after successful verification
 - Password reset emails with custom templates
 - Account notification emails
 - Email preferences in user profile
 
-The email verification system is now fully functional with Supabase! 
+The email verification system is now fully functional with Supabase!

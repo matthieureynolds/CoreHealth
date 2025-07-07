@@ -1,1 +1,1 @@
-export { default } from './BodyMapScreen'; 
+export { default } from './BodyMapScreen';

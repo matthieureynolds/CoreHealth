@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -9,14 +16,10 @@ const ProfileScreen: React.FC = () => {
   const { profile } = useHealthData();
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
-      ]
-    );
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: signOut },
+    ]);
   };
 
   const ProfileItem = ({ icon, title, value, onPress }: any) => (
@@ -57,19 +60,31 @@ const ProfileScreen: React.FC = () => {
         <ProfileItem
           icon="medical-outline"
           title="Medical History"
-          value={profile?.medicalHistory.length ? `${profile.medicalHistory.length} conditions` : 'Not set'}
+          value={
+            profile?.medicalHistory.length
+              ? `${profile.medicalHistory.length} conditions`
+              : 'Not set'
+          }
           onPress={() => {}}
         />
         <ProfileItem
           icon="shield-checkmark-outline"
           title="Vaccinations"
-          value={profile?.vaccinations.length ? `${profile.vaccinations.length} vaccines` : 'Not set'}
+          value={
+            profile?.vaccinations.length
+              ? `${profile.vaccinations.length} vaccines`
+              : 'Not set'
+          }
           onPress={() => {}}
         />
         <ProfileItem
           icon="people-outline"
           title="Family History"
-          value={profile?.familyHistory.length ? `${profile.familyHistory.length} conditions` : 'Not set'}
+          value={
+            profile?.familyHistory.length
+              ? `${profile.familyHistory.length} conditions`
+              : 'Not set'
+          }
           onPress={() => {}}
         />
       </View>
@@ -217,4 +232,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen; 
+export default ProfileScreen;

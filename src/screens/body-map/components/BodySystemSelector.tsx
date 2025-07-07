@@ -46,37 +46,35 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Body Systems</Text>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
-        {systems.map((system) => (
+        {systems.map(system => (
           <TouchableOpacity
             key={system.id}
             style={[
               styles.systemCard,
               selectedSystem === system.id && styles.selectedCard,
-              { borderColor: system.color }
+              { borderColor: system.color },
             ]}
             onPress={() => onSystemChange(system.id)}
           >
-            <View style={[styles.iconContainer, { backgroundColor: system.color }]}>
-              <Ionicons 
-                name={system.icon} 
-                size={24} 
-                color="#fff" 
-              />
+            <View
+              style={[styles.iconContainer, { backgroundColor: system.color }]}
+            >
+              <Ionicons name={system.icon} size={24} color="#fff" />
             </View>
-            <Text style={[
-              styles.systemName,
-              selectedSystem === system.id && styles.selectedText
-            ]}>
+            <Text
+              style={[
+                styles.systemName,
+                selectedSystem === system.id && styles.selectedText,
+              ]}
+            >
               {system.name}
             </Text>
-            <Text style={styles.systemDescription}>
-              {system.description}
-            </Text>
+            <Text style={styles.systemDescription}>{system.description}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -145,4 +143,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BodySystemSelector; 
+export default BodySystemSelector;

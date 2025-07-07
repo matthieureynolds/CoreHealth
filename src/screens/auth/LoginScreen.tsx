@@ -15,7 +15,10 @@ import { useAuth } from '../../context/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types';
 
-type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
+type LoginScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'Login'
+>;
 
 interface Props {
   navigation: LoginScreenNavigationProp;
@@ -26,7 +29,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { signIn, signUp } = useAuth();
 
   const handleLogin = async () => {
@@ -46,11 +49,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-
-
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -62,7 +63,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -75,7 +81,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -88,10 +99,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                size={20} 
-                color="#666" 
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={20}
+                color="#666"
               />
             </TouchableOpacity>
           </View>
@@ -112,8 +123,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Text>
           </TouchableOpacity>
-
-
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
@@ -247,4 +256,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen; 
+export default LoginScreen;

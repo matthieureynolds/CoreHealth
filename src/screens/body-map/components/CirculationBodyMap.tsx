@@ -29,7 +29,9 @@ interface CirculationBodyMapProps {
   onPointPress: (pointId: string) => void;
 }
 
-const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({ onPointPress }) => {
+const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
+  onPointPress,
+}) => {
   const circulationPoints: CirculationPoint[] = [
     {
       id: 'heart',
@@ -163,11 +165,16 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({ onPointPress })
 
   const getPointSize = (type: string) => {
     switch (type) {
-      case 'heart': return 40;
-      case 'artery': return 28;
-      case 'vein': return 24;
-      case 'capillary': return 20;
-      default: return 28;
+      case 'heart':
+        return 40;
+      case 'artery':
+        return 28;
+      case 'vein':
+        return 24;
+      case 'capillary':
+        return 20;
+      default:
+        return 28;
     }
   };
 
@@ -175,14 +182,14 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({ onPointPress })
     <View style={styles.container}>
       {/* Real circulation body image */}
       <View style={styles.bodyOutline}>
-        <Image 
-          source={require('../../../../assets/circulation body.png')} 
+        <Image
+          source={require('../../../../assets/circulation body.png')}
           style={styles.circulationImage}
           resizeMode="contain"
         />
-        
+
         {/* Interactive circulation points */}
-        {circulationPoints.map((point) => (
+        {circulationPoints.map(point => (
           <TouchableOpacity
             key={point.id}
             style={[
@@ -198,10 +205,10 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({ onPointPress })
             ]}
             onPress={() => onPointPress(point.id)}
           >
-            <Ionicons 
-              name={point.type === 'heart' ? 'heart' : 'radio-button-on'} 
-              size={point.type === 'heart' ? 24 : 16} 
-              color="#fff" 
+            <Ionicons
+              name={point.type === 'heart' ? 'heart' : 'radio-button-on'}
+              size={point.type === 'heart' ? 24 : 16}
+              color="#fff"
             />
           </TouchableOpacity>
         ))}
@@ -212,15 +219,21 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({ onPointPress })
         <Text style={styles.legendTitle}>Cardiovascular Health</Text>
         <View style={styles.legendItems}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#34C759' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#34C759' }]}
+            />
             <Text style={styles.legendText}>Healthy</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#FF9500' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#FF9500' }]}
+            />
             <Text style={styles.legendText}>Moderate</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#FF3B30' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#FF3B30' }]}
+            />
             <Text style={styles.legendText}>Needs Attention</Text>
           </View>
         </View>
@@ -309,4 +322,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CirculationBodyMap; 
+export default CirculationBodyMap;

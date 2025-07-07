@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types';
 import { supabase } from '../../config/supabase';
 
-type EmailVerificationScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'EmailVerification'>;
+type EmailVerificationScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'EmailVerification'
+>;
 
 interface Props {
   navigation: EmailVerificationScreenNavigationProp;
@@ -25,7 +22,9 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation }) => {
     // Check if email verification was successful
     const checkVerificationStatus = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.user?.email_confirmed_at) {
           setIsVerified(true);
         }
@@ -49,7 +48,9 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.content}>
           <Ionicons name="time-outline" size={80} color="#007AFF" />
           <Text style={styles.title}>Checking Verification...</Text>
-          <Text style={styles.subtitle}>Please wait while we verify your email.</Text>
+          <Text style={styles.subtitle}>
+            Please wait while we verify your email.
+          </Text>
         </View>
       </View>
     );
@@ -63,12 +64,10 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons name="checkmark-circle" size={80} color="#34C759" />
             <Text style={styles.title}>Account Confirmed!</Text>
             <Text style={styles.subtitle}>
-              Your email has been successfully verified. You can now sign in to your CoreHealth account.
+              Your email has been successfully verified. You can now sign in to
+              your CoreHealth account.
             </Text>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleContinue}
-            >
+            <TouchableOpacity style={styles.button} onPress={handleContinue}>
               <Text style={styles.buttonText}>Continue to Sign In</Text>
             </TouchableOpacity>
           </>
@@ -77,13 +76,16 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons name="alert-circle-outline" size={80} color="#FF3B30" />
             <Text style={styles.title}>Verification Failed</Text>
             <Text style={styles.subtitle}>
-              We couldn't verify your email. The link may have expired or already been used.
+              We couldn't verify your email. The link may have expired or
+              already been used.
             </Text>
             <TouchableOpacity
               style={[styles.button, styles.secondaryButton]}
               onPress={handleContinue}
             >
-              <Text style={[styles.buttonText, styles.secondaryButtonText]}>Back to Sign In</Text>
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+                Back to Sign In
+              </Text>
             </TouchableOpacity>
           </>
         )}
@@ -142,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EmailVerificationScreen; 
+export default EmailVerificationScreen;

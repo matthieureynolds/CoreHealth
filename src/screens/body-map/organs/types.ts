@@ -22,4 +22,4 @@ export interface Organ {
   label: string;
   position: OrganPosition;
   data: OrganData;
-} 
+}

@@ -11,7 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHealthData } from '../../context/HealthDataContext';
 import { useAuth } from '../../context/AuthContext';
-import BiomarkerModal, { BiomarkerInfo } from '../../components/common/BiomarkerModal';
+import BiomarkerModal, {
+  BiomarkerInfo,
+} from '../../components/common/BiomarkerModal';
 import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
 
 const { width } = Dimensions.get('window');
@@ -19,25 +21,29 @@ const { width } = Dimensions.get('window');
 const DashboardScreen: React.FC = () => {
   const { user } = useAuth();
   const { healthScore, dailyInsights, biomarkers } = useHealthData();
-  const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
+  const [selectedBiomarker, setSelectedBiomarker] =
+    useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleBiomarkerPress = (biomarkerName: string, value: number) => {
     // Determine status based on biomarker name and value (simplified logic)
-    const getStatus = (name: string, val: number): 'normal' | 'low' | 'high' | 'critical' => {
+    const getStatus = (
+      name: string,
+      val: number,
+    ): 'normal' | 'low' | 'high' | 'critical' => {
       // This is simplified - in a real app you'd have more sophisticated logic
       const normalRanges: { [key: string]: { min: number; max: number } } = {
         'Heart Rate Variability': { min: 30, max: 60 },
         'Resting Heart Rate': { min: 50, max: 100 },
         'Blood Glucose': { min: 70, max: 99 },
-        'Creatinine': { min: 0.6, max: 1.2 },
-        'ALT': { min: 7, max: 56 },
-        'AST': { min: 10, max: 40 },
+        Creatinine: { min: 0.6, max: 1.2 },
+        ALT: { min: 7, max: 56 },
+        AST: { min: 10, max: 40 },
       };
-      
+
       const range = normalRanges[name];
       if (!range) return 'normal';
-      
+
       if (val < range.min) return 'low';
       if (val > range.max) return 'high';
       return 'normal';
@@ -45,7 +51,7 @@ const DashboardScreen: React.FC = () => {
 
     const status = getStatus(biomarkerName, value);
     const biomarkerInfo = getBiomarkerInfo(biomarkerName, value, status);
-    
+
     if (biomarkerInfo) {
       setSelectedBiomarker(biomarkerInfo);
       setModalVisible(true);
@@ -65,7 +71,12 @@ const DashboardScreen: React.FC = () => {
     </View>
   );
 
-  const renderMetricCard = (title: string, value: number, icon: string, color: string) => (
+  const renderMetricCard = (
+    title: string,
+    value: number,
+    icon: string,
+    color: string,
+  ) => (
     <View style={[styles.metricCard, { borderLeftColor: color }]}>
       <View style={styles.metricHeader}>
         <Ionicons name={icon as any} size={20} color={color} />
@@ -78,10 +89,10 @@ const DashboardScreen: React.FC = () => {
   const renderInsightCard = (insight: any) => (
     <TouchableOpacity key={insight.id} style={styles.insightCard}>
       <View style={styles.insightHeader}>
-        <Ionicons 
-          name={insight.priority === 'high' ? 'warning' : 'information-circle'} 
-          size={24} 
-          color={insight.priority === 'high' ? '#FF3B30' : '#007AFF'} 
+        <Ionicons
+          name={insight.priority === 'high' ? 'warning' : 'information-circle'}
+          size={24}
+          color={insight.priority === 'high' ? '#FF3B30' : '#007AFF'}
         />
         <View style={styles.insightContent}>
           <Text style={styles.insightTitle}>{insight.title}</Text>
@@ -101,11 +112,11 @@ const DashboardScreen: React.FC = () => {
           Good morning, {user?.displayName || 'User'}!
         </Text>
         <Text style={styles.date}>
-          {new Date().toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          {new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
           })}
         </Text>
       </View>
@@ -114,9 +125,24 @@ const DashboardScreen: React.FC = () => {
 
       <View style={styles.metricsGrid}>
         {renderMetricCard('Sleep', healthScore?.sleep || 0, 'moon', '#9013FE')}
-        {renderMetricCard('Activity', healthScore?.activity || 0, 'fitness', '#FF6B35')}
-        {renderMetricCard('Stress', healthScore?.stress || 0, 'heart', '#FF3B30')}
-        {renderMetricCard('Recovery', healthScore?.recovery || 0, 'refresh', '#30D158')}
+        {renderMetricCard(
+          'Activity',
+          healthScore?.activity || 0,
+          'fitness',
+          '#FF6B35',
+        )}
+        {renderMetricCard(
+          'Stress',
+          healthScore?.stress || 0,
+          'heart',
+          '#FF3B30',
+        )}
+        {renderMetricCard(
+          'Recovery',
+          healthScore?.recovery || 0,
+          'refresh',
+          '#30D158',
+        )}
       </View>
 
       <View style={styles.section}>
@@ -126,12 +152,14 @@ const DashboardScreen: React.FC = () => {
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-        
-        {biomarkers.slice(0, 3).map((biomarker) => (
-          <TouchableOpacity 
-            key={biomarker.id} 
+
+        {biomarkers.slice(0, 3).map(biomarker => (
+          <TouchableOpacity
+            key={biomarker.id}
             style={styles.biomarkerCard}
-            onPress={() => handleBiomarkerPress(biomarker.name, biomarker.value)}
+            onPress={() =>
+              handleBiomarkerPress(biomarker.name, biomarker.value)
+            }
           >
             <View style={styles.biomarkerInfo}>
               <Text style={styles.biomarkerName}>{biomarker.name}</Text>
@@ -140,24 +168,48 @@ const DashboardScreen: React.FC = () => {
               </Text>
             </View>
             <View style={styles.biomarkerIndicators}>
-              <View style={[
-                styles.statusIndicator,
-                { backgroundColor: biomarker.riskLevel === 'low' ? '#30D158' : biomarker.riskLevel === 'medium' ? '#FF9500' : '#FF3B30' }
-              ]}>
-                <Ionicons 
-                  name={biomarker.riskLevel === 'low' ? 'checkmark' : biomarker.riskLevel === 'medium' ? 'warning' : 'alert'} 
-                  size={12} 
-                  color="#fff" 
+              <View
+                style={[
+                  styles.statusIndicator,
+                  {
+                    backgroundColor:
+                      biomarker.riskLevel === 'low'
+                        ? '#30D158'
+                        : biomarker.riskLevel === 'medium'
+                          ? '#FF9500'
+                          : '#FF3B30',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    biomarker.riskLevel === 'low'
+                      ? 'checkmark'
+                      : biomarker.riskLevel === 'medium'
+                        ? 'warning'
+                        : 'alert'
+                  }
+                  size={12}
+                  color="#fff"
                 />
               </View>
-              <View style={[
-                styles.trendIndicator, 
-                { backgroundColor: biomarker.trend === 'improving' ? '#30D158' : '#FF9500' }
-              ]}>
-                <Ionicons 
-                  name={biomarker.trend === 'improving' ? 'trending-up' : 'trending-down'} 
-                  size={16} 
-                  color="#fff" 
+              <View
+                style={[
+                  styles.trendIndicator,
+                  {
+                    backgroundColor:
+                      biomarker.trend === 'improving' ? '#30D158' : '#FF9500',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    biomarker.trend === 'improving'
+                      ? 'trending-up'
+                      : 'trending-down'
+                  }
+                  size={16}
+                  color="#fff"
                 />
               </View>
             </View>
@@ -413,4 +465,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DashboardScreen; 
+export default DashboardScreen;

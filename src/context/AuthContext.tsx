@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
 import { supabase } from '../config/supabase';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { DataService } from '../services/dataService';
@@ -9,7 +15,11 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
@@ -32,10 +42,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('📡 AuthContext: Connecting to Supabase auth...');
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔍 AuthContext: Checking for existing session...', session ? '✅ Found' : '❌ None');
+      console.log(
+        '🔍 AuthContext: Checking for existing session...',
+        session ? '✅ Found' : '❌ None',
+      );
       setSession(session);
       if (session?.user) {
-        console.log('👤 AuthContext: User found in session:', session.user.email);
+        console.log(
+          '👤 AuthContext: User found in session:',
+          session.user.email,
+        );
         setUser(transformSupabaseUser(session.user));
       }
       setIsLoading(false);
@@ -55,7 +71,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           //   session.user.email!,
           //   session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
           // );
-          console.log('⚡ Skipping database profile creation - using mock data');
+          console.log(
+            '⚡ Skipping database profile creation - using mock data',
+          );
           setUser(transformSupabaseUser(session.user));
         } catch (error) {
           console.error('Error initializing user data:', error);
@@ -75,7 +93,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return {
       id: supabaseUser.id,
       email: supabaseUser.email!,
-      displayName: supabaseUser.user_metadata?.display_name || supabaseUser.user_metadata?.full_name,
+      displayName:
+        supabaseUser.user_metadata?.display_name ||
+        supabaseUser.user_metadata?.full_name,
       photoURL: supabaseUser.user_metadata?.avatar_url,
       emailVerified: supabaseUser.email_confirmed_at ? true : false,
       createdAt: new Date(supabaseUser.created_at),
@@ -83,7 +103,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   };
 
-  const signUp = async (email: string, password: string, displayName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -168,7 +192,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const handleEmailVerification = async (): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user?.email_confirmed_at) {
         console.log('✅ Email verification successful');
         return true;
@@ -201,4 +227,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

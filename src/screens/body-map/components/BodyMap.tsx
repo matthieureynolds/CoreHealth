@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text, ImageBackground } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+  ImageBackground,
+} from 'react-native';
 import { organsList } from '../organs';
 
 interface BodyMapProps {
@@ -17,10 +24,13 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress }) => {
     <View style={styles.container}>
       <ImageBackground
         source={BODY_IMAGE}
-        style={[styles.imageBackground, { width: imageWidth, height: imageHeight }]}
+        style={[
+          styles.imageBackground,
+          { width: imageWidth, height: imageHeight },
+        ]}
         imageStyle={styles.image}
       >
-        {organsList.map((organ) => (
+        {organsList.map(organ => (
           <TouchableOpacity
             key={organ.id}
             style={[
@@ -74,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BodyMap; 
+export default BodyMap;

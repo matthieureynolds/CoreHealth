@@ -9,6 +9,7 @@ To enable real document processing with OCR and AI biomarker extraction, you nee
 **Purpose:** Extract text from medical documents (PDFs, images)
 
 **Setup Steps:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing one
 3. Enable the Vision API
@@ -20,6 +21,7 @@ To enable real document processing with OCR and AI biomarker extraction, you nee
 **Purpose:** Structure extracted text into biomarker data using GPT-4
 
 **Setup Steps:**
+
 1. Go to [OpenAI Platform](https://platform.openai.com/)
 2. Create an account or sign in
 3. Go to API Keys section
@@ -40,6 +42,7 @@ EXPO_PUBLIC_OPENAI_API_KEY=your-actual-openai-api-key
 ## Fallback Behavior
 
 If API keys are not configured, the app will:
+
 - Use mock OCR text for development
 - Use regex-based biomarker parsing instead of GPT
 - Still provide a functional experience for testing
@@ -55,4 +58,4 @@ If API keys are not configured, the app will:
 - API keys should be kept secure and not shared
 - Consider using environment-specific keys (dev/prod)
 - Monitor API usage to prevent unexpected charges
-- Implement rate limiting in production 
+- Implement rate limiting in production

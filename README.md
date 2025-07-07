@@ -15,6 +15,7 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 ## ✨ Features
 
 ### 🔐 Authentication (Supabase Auth)
+
 - **Email/Password Registration** with separate first name & surname fields
 - **Email Verification Required** - users must verify before login
 - **Password Reset** functionality
@@ -23,6 +24,7 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 - Persistent sessions with automatic token refresh
 
 ### 📊 Health Dashboard
+
 - Personalized health score (82/100)
 - Key biomarker tracking (HRV, heart rate, blood glucose)
 - Daily health insights with actionable recommendations
@@ -30,24 +32,28 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 - Quick action buttons for common tasks
 
 ### 🫀 Interactive Body Map
+
 - Body systems overview with risk assessment
 - Color-coded health status indicators
 - Biomarker integration per body system
 - Real-time health status updates
 
 ### 📱 Device Integration
+
 - WHOOP, Apple Watch, Eight Sleep support
 - Smart toothbrush and smart toilet integration
 - Device connection status and sync management
 - Auto-sync settings with manual sync options
 
 ### ✈️ Travel Health
+
 - Location-based health insights
 - Air quality monitoring
 - Vaccination recommendations
 - Travel health tips and alerts
 
 ### 👤 User Profile
+
 - Comprehensive profile management
 - Medical history and vaccination tracking
 - Privacy settings and data export options
@@ -55,6 +61,7 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 ## 🗄️ Database Schema (Supabase)
 
 ### Core Tables
+
 - **profiles** - User information linked to Supabase Auth UID
 - **medical_conditions** - User medical history
 - **vaccinations** - Vaccination records
@@ -63,6 +70,7 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 - **lab_results** - Laboratory test results
 
 ### Security
+
 - **Row Level Security (RLS)** enabled on all tables
 - **User isolation** using `auth.uid()` policies
 - **Automatic data filtering** per authenticated user
@@ -70,6 +78,7 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm/yarn
 - Expo CLI: `npm install -g @expo/cli`
 - Supabase account: [supabase.com](https://supabase.com)
@@ -77,12 +86,14 @@ CoreHealth is a comprehensive React Native application that aggregates and analy
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd CoreHealth
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
@@ -97,6 +108,7 @@ npm install
    - Configure email templates and SMTP settings
 
 5. **Start the development server**
+
 ```bash
 npx expo start
 ```
@@ -107,9 +119,9 @@ npx expo start
 CoreHealth/
 ├── src/
 │   ├── components/          # Reusable UI components
-│   ├── config/             
+│   ├── config/
 │   │   └── supabase.ts     # Supabase configuration
-│   ├── context/            
+│   ├── context/
 │   │   └── AuthContext.tsx # Authentication state management
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
@@ -119,7 +131,7 @@ CoreHealth/
 │   │   ├── devices/        # Device management
 │   │   ├── travel/         # Travel health
 │   │   └── profile/        # User profile
-│   ├── services/           
+│   ├── services/
 │   │   └── dataService.ts  # Supabase data operations
 │   └── types/              # TypeScript type definitions
 ├── supabase_schema.sql     # Database schema
@@ -155,12 +167,14 @@ CoreHealth/
 ## 🚀 Production Deployment
 
 ### Supabase Configuration
+
 - Configure production SMTP provider (SendGrid, Gmail, etc.)
 - Set production Site URL for proper email redirects
 - Enable and configure custom domain if needed
 - Set up monitoring and logging
 
 ### App Deployment
+
 - Build with `expo build`
 - Deploy to App Store / Google Play
 - Configure deep linking for email verification
@@ -181,6 +195,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For issues and questions:
+
 - Check the `SUPABASE_EMAIL_SETUP.md` for email configuration
 - Review Supabase documentation for backend issues
 - Open an issue in this repository
@@ -224,6 +239,7 @@ CoreHealth now includes advanced document processing capabilities:
 ## ⚙️ Setup Instructions
 
 ### 1. Install Dependencies
+
 ```bash
 cd CoreHealth
 npm install
@@ -235,6 +251,7 @@ For real document processing, set up API keys:
 
 1. Create `.env` file in CoreHealth directory
 2. Add your API keys:
+
 ```
 EXPO_PUBLIC_GOOGLE_VISION_API_KEY=your-google-vision-api-key
 EXPO_PUBLIC_OPENAI_API_KEY=your-openai-api-key
@@ -245,6 +262,7 @@ See `API_SETUP.md` for detailed instructions.
 **Note:** Without API keys, the app uses mock data for development.
 
 ### 3. Run the App
+
 ```bash
 npx expo start
 ```
@@ -284,7 +302,7 @@ npx expo start
 ### Fallback Mechanisms
 
 - Mock OCR text if Vision API unavailable
-- Regex-based parsing if GPT API unavailable  
+- Regex-based parsing if GPT API unavailable
 - Graceful error handling with user feedback
 - Development-friendly with or without API keys
 
@@ -317,4 +335,4 @@ Built with React Native, TypeScript, Expo, Firebase, and Supabase.
 
 ---
 
-**Built with ❤️ using Supabase and React Native** 
+**Built with ❤️ using Supabase and React Native**

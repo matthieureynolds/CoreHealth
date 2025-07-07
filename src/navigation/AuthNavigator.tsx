@@ -23,9 +23,12 @@ const AuthNavigator: React.FC = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
+      <Stack.Screen
+        name="EmailVerification"
+        component={EmailVerificationScreen}
+      />
     </Stack.Navigator>
   );
 };
 
-export default AuthNavigator; 
+export default AuthNavigator;

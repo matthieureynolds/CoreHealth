@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import BodyMap from './components/BodyMap';
 import { organs } from './organs';
-import { DocumentProcessor, ProcessedDocument, ExtractedBiomarker } from '../../services/documentProcessor';
-import BiomarkerModal, { BiomarkerInfo } from '../../components/common/BiomarkerModal';
+import {
+  DocumentProcessor,
+  ProcessedDocument,
+  ExtractedBiomarker,
+} from '../../services/documentProcessor';
+import BiomarkerModal, {
+  BiomarkerInfo,
+} from '../../components/common/BiomarkerModal';
 import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
-import BodySystemSelector, { BodySystemType } from './components/BodySystemSelector';
+import BodySystemSelector, {
+  BodySystemType,
+} from './components/BodySystemSelector';
 import SkeletonBodyMap from './components/SkeletonBodyMap';
 import CirculationBodyMap from './components/CirculationBodyMap';
 
@@ -16,13 +34,19 @@ const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
   const [panelAnim] = useState(new Animated.Value(0));
   const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
-  const [processedDocuments, setProcessedDocuments] = useState<ProcessedDocument[]>([]);
+  const [processedDocuments, setProcessedDocuments] = useState<
+    ProcessedDocument[]
+  >([]);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<string>('');
-  const [extractedBiomarkers, setExtractedBiomarkers] = useState<ExtractedBiomarker[]>([]);
-  const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
+  const [extractedBiomarkers, setExtractedBiomarkers] = useState<
+    ExtractedBiomarker[]
+  >([]);
+  const [selectedBiomarker, setSelectedBiomarker] =
+    useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSystem, setSelectedSystem] = useState<BodySystemType>('organs');
+  const [selectedSystem, setSelectedSystem] =
+    useState<BodySystemType>('organs');
   const { height, width } = Dimensions.get('window');
 
   const handleOrganPress = (organId: string) => {
@@ -44,9 +68,12 @@ const BodyMapScreen: React.FC = () => {
 
   const handleCameraPress = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Camera permission is required to scan documents.');
+      Alert.alert(
+        'Permission Required',
+        'Camera permission is required to scan documents.',
+      );
       return;
     }
 
@@ -59,23 +86,23 @@ const BodyMapScreen: React.FC = () => {
 
     if (!result.canceled) {
       const docId = Date.now().toString();
-      const newDoc = { 
+      const newDoc = {
         id: docId,
-        type: 'camera', 
-        uri: result.assets[0].uri, 
+        type: 'camera',
+        uri: result.assets[0].uri,
         name: `Scanned Document ${uploadedDocuments.length + 1}`,
         timestamp: new Date(),
-        size: result.assets[0].fileSize || 0
+        size: result.assets[0].fileSize || 0,
       };
-      
+
       setUploadedDocuments(prev => [...prev, newDoc]);
       Alert.alert(
-        'Document Scanned Successfully! 📱', 
+        'Document Scanned Successfully! 📱',
         'Your document is ready for processing. Tap "Scan My Results" to extract biomarkers using AI.',
         [
           { text: 'Later', style: 'cancel' },
-          { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) }
-        ]
+          { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) },
+        ],
       );
     }
   };
@@ -89,64 +116,80 @@ const BodyMapScreen: React.FC = () => {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        
+
         // Check file size (10MB limit)
         if (asset.size && asset.size > 10 * 1024 * 1024) {
-          Alert.alert('File Too Large', 'Please select a file smaller than 10MB for optimal processing.');
+          Alert.alert(
+            'File Too Large',
+            'Please select a file smaller than 10MB for optimal processing.',
+          );
           return;
         }
 
         const docId = Date.now().toString();
-        const newDoc = { 
+        const newDoc = {
           id: docId,
-          type: 'upload', 
+          type: 'upload',
           uri: asset.uri,
           name: asset.name || `Document ${uploadedDocuments.length + 1}`,
           timestamp: new Date(),
-          size: asset.size || 0
+          size: asset.size || 0,
         };
-        
+
         setUploadedDocuments(prev => [...prev, newDoc]);
         Alert.alert(
-          'Document Uploaded Successfully! 📄', 
+          'Document Uploaded Successfully! 📄',
           'Your document is ready for processing. Tap "Scan My Results" to extract biomarkers using AI.',
           [
             { text: 'Later', style: 'cancel' },
-            { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) }
-          ]
+            { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) },
+          ],
         );
       }
     } catch (error) {
-      Alert.alert('Upload Error', 'Failed to upload document. Please try again.');
+      Alert.alert(
+        'Upload Error',
+        'Failed to upload document. Please try again.',
+      );
     }
   };
 
   const handleProcessDocument = async (document: any) => {
     setIsProcessing(document.id);
     setProcessingStep('Preparing document...');
-    
+
     try {
       // Step-by-step processing with user feedback
       setProcessingStep('📷 Scanning document with AI...');
       await new Promise(resolve => setTimeout(resolve, 1000)); // Show progress
-      
+
       setProcessingStep('🧠 Extracting biomarkers with GPT...');
-      const processedDoc = await DocumentProcessor.processDocument(document.uri, document.name);
-      
+      const processedDoc = await DocumentProcessor.processDocument(
+        document.uri,
+        document.name,
+      );
+
       setProcessingStep('✅ Processing complete!');
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setProcessedDocuments(prev => [...prev, processedDoc]);
-      setExtractedBiomarkers(prev => [...prev, ...processedDoc.extractedBiomarkers]);
-      
+      setExtractedBiomarkers(prev => [
+        ...prev,
+        ...processedDoc.extractedBiomarkers,
+      ]);
+
       // Update organ biomarkers with extracted data
-      const updatedBiomarkers = DocumentProcessor.updateOrganBiomarkers(processedDoc.extractedBiomarkers);
-      
+      const updatedBiomarkers = DocumentProcessor.updateOrganBiomarkers(
+        processedDoc.extractedBiomarkers,
+      );
+
       const biomarkerCount = processedDoc.extractedBiomarkers.length;
-      const processingTime = processedDoc.processingTimeMs ? Math.round(processedDoc.processingTimeMs / 1000) : 0;
-      
+      const processingTime = processedDoc.processingTimeMs
+        ? Math.round(processedDoc.processingTimeMs / 1000)
+        : 0;
+
       Alert.alert(
-        '🎉 Success!', 
+        '🎉 Success!',
         `Found ${biomarkerCount} biomarkers in ${processingTime}s!\n\nYour body map has been updated with the latest lab results.`,
         [
           {
@@ -157,21 +200,20 @@ const BodyMapScreen: React.FC = () => {
               if (firstOrgan) {
                 handleOrganPress(firstOrgan);
               }
-            }
+            },
           },
-          { text: 'Great!' }
-        ]
+          { text: 'Great!' },
+        ],
       );
-      
     } catch (error) {
       console.error('Processing error:', error);
       Alert.alert(
-        'Processing Error', 
-        'Unable to process this document. Please ensure it\'s a clear medical report and try again.',
+        'Processing Error',
+        "Unable to process this document. Please ensure it's a clear medical report and try again.",
         [
           { text: 'Try Again', onPress: () => handleProcessDocument(document) },
-          { text: 'Cancel', style: 'cancel' }
-        ]
+          { text: 'Cancel', style: 'cancel' },
+        ],
       );
     } finally {
       setIsProcessing(null);
@@ -218,10 +260,19 @@ const BodyMapScreen: React.FC = () => {
     return grouped;
   };
 
-  const handleBiomarkerPress = (biomarkerName: string, value: number, status?: string) => {
-    const normalizedStatus = status as 'normal' | 'low' | 'high' | 'critical' || 'normal';
-    const biomarkerInfo = getBiomarkerInfo(biomarkerName, value, normalizedStatus);
-    
+  const handleBiomarkerPress = (
+    biomarkerName: string,
+    value: number,
+    status?: string,
+  ) => {
+    const normalizedStatus =
+      (status as 'normal' | 'low' | 'high' | 'critical') || 'normal';
+    const biomarkerInfo = getBiomarkerInfo(
+      biomarkerName,
+      value,
+      normalizedStatus,
+    );
+
     if (biomarkerInfo) {
       setSelectedBiomarker(biomarkerInfo);
       setModalVisible(true);
@@ -240,16 +291,20 @@ const BodyMapScreen: React.FC = () => {
     // Handle skeleton part selection - could open a detailed view
     console.log('Skeleton part pressed:', partId);
     // For now, just show an alert with mock data
-    Alert.alert('Skeleton Health', `Selected: ${partId}\nClick to view detailed bone and joint health information.`);
+    Alert.alert(
+      'Skeleton Health',
+      `Selected: ${partId}\nClick to view detailed bone and joint health information.`,
+    );
   };
 
   const handleCirculationPointPress = (pointId: string) => {
     // Handle circulation point selection
     console.log('Circulation point pressed:', pointId);
-    Alert.alert('Cardiovascular Health', `Selected: ${pointId}\nClick to view detailed cardiovascular information.`);
+    Alert.alert(
+      'Cardiovascular Health',
+      `Selected: ${pointId}\nClick to view detailed cardiovascular information.`,
+    );
   };
-
-
 
   const renderBodyMap = () => {
     switch (selectedSystem) {
@@ -258,7 +313,9 @@ const BodyMapScreen: React.FC = () => {
       case 'skeleton':
         return <SkeletonBodyMap onPartPress={handleSkeletonPartPress} />;
       case 'circulation':
-        return <CirculationBodyMap onPointPress={handleCirculationPointPress} />;
+        return (
+          <CirculationBodyMap onPointPress={handleCirculationPointPress} />
+        );
       default:
         return <BodyMap onOrganPress={handleOrganPress} />;
     }
@@ -273,52 +330,76 @@ const BodyMapScreen: React.FC = () => {
       <View style={styles.biomarkerResults}>
         <Text style={styles.biomarkerResultsTitle}>📊 Your Latest Results</Text>
         <Text style={styles.biomarkerResultsSubtitle}>
-          {extractedBiomarkers.length} biomarkers extracted from your lab reports
+          {extractedBiomarkers.length} biomarkers extracted from your lab
+          reports
         </Text>
 
         {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
           <View key={organ} style={styles.organGroup}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.organGroupHeader}
               onPress={() => handleOrganPress(organ)}
             >
               <Text style={styles.organGroupTitle}>
-                {organ.charAt(0).toUpperCase() + organ.slice(1)} ({biomarkers.length})
+                {organ.charAt(0).toUpperCase() + organ.slice(1)} (
+                {biomarkers.length})
               </Text>
               <Ionicons name="chevron-forward" size={20} color="#007AFF" />
             </TouchableOpacity>
-            
+
             <View style={styles.biomarkersList}>
               {biomarkers.slice(0, 3).map((biomarker, index) => (
-                <TouchableOpacity 
-                  key={index} 
+                <TouchableOpacity
+                  key={index}
                   style={styles.biomarkerResultItem}
-                  onPress={() => handleBiomarkerPress(biomarker.name, biomarker.value, biomarker.status)}
+                  onPress={() =>
+                    handleBiomarkerPress(
+                      biomarker.name,
+                      biomarker.value,
+                      biomarker.status,
+                    )
+                  }
                 >
                   <View style={styles.biomarkerResultInfo}>
-                    <Text style={styles.biomarkerResultName}>{biomarker.name}</Text>
+                    <Text style={styles.biomarkerResultName}>
+                      {biomarker.name}
+                    </Text>
                     <Text style={styles.biomarkerResultValue}>
                       {biomarker.value} {biomarker.unit}
                       {biomarker.referenceRange && (
-                        <Text style={styles.biomarkerResultRange}> ({biomarker.referenceRange})</Text>
+                        <Text style={styles.biomarkerResultRange}>
+                          {' '}
+                          ({biomarker.referenceRange})
+                        </Text>
                       )}
                     </Text>
                   </View>
-                  <View style={[styles.statusIndicator, { backgroundColor: getBiomarkerStatusColor(biomarker.status) }]}>
-                    <Ionicons 
-                      name={getBiomarkerStatusIcon(biomarker.status)} 
-                      size={16} 
-                      color="#FFFFFF" 
+                  <View
+                    style={[
+                      styles.statusIndicator,
+                      {
+                        backgroundColor: getBiomarkerStatusColor(
+                          biomarker.status,
+                        ),
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getBiomarkerStatusIcon(biomarker.status)}
+                      size={16}
+                      color="#FFFFFF"
                     />
                   </View>
                 </TouchableOpacity>
               ))}
               {biomarkers.length > 3 && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.viewMoreButton}
                   onPress={() => handleOrganPress(organ)}
                 >
-                  <Text style={styles.viewMoreText}>View {biomarkers.length - 3} more</Text>
+                  <Text style={styles.viewMoreText}>
+                    View {biomarkers.length - 3} more
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -332,34 +413,69 @@ const BodyMapScreen: React.FC = () => {
     <View style={styles.documentSection}>
       <Text style={styles.sectionTitle}>Upload Your Lab Results</Text>
       <Text style={styles.sectionDescription}>
-        Scan or upload your blood test, urine test, or any lab report to automatically update your biomarkers using AI
+        Scan or upload your blood test, urine test, or any lab report to
+        automatically update your biomarkers using AI
       </Text>
 
       <View style={styles.uploadOptions}>
-        <TouchableOpacity 
-          style={[styles.uploadButton, isProcessing && styles.uploadButtonDisabled]} 
+        <TouchableOpacity
+          style={[
+            styles.uploadButton,
+            isProcessing && styles.uploadButtonDisabled,
+          ]}
           onPress={handleCameraPress}
           disabled={!!isProcessing}
         >
-          <Ionicons name="camera" size={32} color={isProcessing ? "#8E8E93" : "#34C759"} />
-          <Text style={[styles.uploadButtonText, isProcessing && styles.uploadButtonTextDisabled]}>
+          <Ionicons
+            name="camera"
+            size={32}
+            color={isProcessing ? '#8E8E93' : '#34C759'}
+          />
+          <Text
+            style={[
+              styles.uploadButtonText,
+              isProcessing && styles.uploadButtonTextDisabled,
+            ]}
+          >
             Scan Document
           </Text>
-          <Text style={[styles.uploadButtonSubtext, isProcessing && styles.uploadButtonTextDisabled]}>
+          <Text
+            style={[
+              styles.uploadButtonSubtext,
+              isProcessing && styles.uploadButtonTextDisabled,
+            ]}
+          >
             Use camera to scan
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.uploadButton, isProcessing && styles.uploadButtonDisabled]} 
+        <TouchableOpacity
+          style={[
+            styles.uploadButton,
+            isProcessing && styles.uploadButtonDisabled,
+          ]}
           onPress={handleDocumentPicker}
           disabled={!!isProcessing}
         >
-          <Ionicons name="document" size={32} color={isProcessing ? "#8E8E93" : "#007AFF"} />
-          <Text style={[styles.uploadButtonText, isProcessing && styles.uploadButtonTextDisabled]}>
+          <Ionicons
+            name="document"
+            size={32}
+            color={isProcessing ? '#8E8E93' : '#007AFF'}
+          />
+          <Text
+            style={[
+              styles.uploadButtonText,
+              isProcessing && styles.uploadButtonTextDisabled,
+            ]}
+          >
             Upload File
           </Text>
-          <Text style={[styles.uploadButtonSubtext, isProcessing && styles.uploadButtonTextDisabled]}>
+          <Text
+            style={[
+              styles.uploadButtonSubtext,
+              isProcessing && styles.uploadButtonTextDisabled,
+            ]}
+          >
             Choose from gallery
           </Text>
         </TouchableOpacity>
@@ -370,7 +486,9 @@ const BodyMapScreen: React.FC = () => {
         <View style={styles.processingStatus}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.processingText}>{processingStep}</Text>
-          <Text style={styles.processingSubtext}>This may take 10-30 seconds</Text>
+          <Text style={styles.processingSubtext}>
+            This may take 10-30 seconds
+          </Text>
         </View>
       )}
 
@@ -380,35 +498,50 @@ const BodyMapScreen: React.FC = () => {
           {uploadedDocuments.slice(-3).map((doc, index) => (
             <View key={doc.id} style={styles.documentItem}>
               <View style={styles.documentIcon}>
-                <Ionicons 
-                  name={doc.type === 'camera' ? 'camera' : 'document'} 
-                  size={20} 
-                  color="#007AFF" 
+                <Ionicons
+                  name={doc.type === 'camera' ? 'camera' : 'document'}
+                  size={20}
+                  color="#007AFF"
                 />
               </View>
               <View style={styles.documentInfo}>
                 <Text style={styles.documentName}>
-                  {doc.name.length > 25 ? `${doc.name.substring(0, 25)}...` : doc.name}
+                  {doc.name.length > 25
+                    ? `${doc.name.substring(0, 25)}...`
+                    : doc.name}
                 </Text>
                 <Text style={styles.documentDate}>
-                  {doc.timestamp.toLocaleDateString()} • {doc.size ? `${Math.round(doc.size / 1024)}KB` : 'Unknown size'}
+                  {doc.timestamp.toLocaleDateString()} •{' '}
+                  {doc.size
+                    ? `${Math.round(doc.size / 1024)}KB`
+                    : 'Unknown size'}
                 </Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.processButton,
                   isProcessing === doc.id && styles.processingButton,
-                  processedDocuments.some(pd => pd.name === doc.name) && styles.processedButton
+                  processedDocuments.some(pd => pd.name === doc.name) &&
+                    styles.processedButton,
                 ]}
                 onPress={() => handleProcessDocument(doc)}
-                disabled={isProcessing === doc.id || processedDocuments.some(pd => pd.name === doc.name)}
+                disabled={
+                  isProcessing === doc.id ||
+                  processedDocuments.some(pd => pd.name === doc.name)
+                }
               >
-                <Text style={[
-                  styles.processButtonText,
-                  processedDocuments.some(pd => pd.name === doc.name) && styles.processedButtonText
-                ]}>
-                  {isProcessing === doc.id ? 'Scanning...' : 
-                   processedDocuments.some(pd => pd.name === doc.name) ? 'Processed ✓' : 'Scan My Results'}
+                <Text
+                  style={[
+                    styles.processButtonText,
+                    processedDocuments.some(pd => pd.name === doc.name) &&
+                      styles.processedButtonText,
+                  ]}
+                >
+                  {isProcessing === doc.id
+                    ? 'Scanning...'
+                    : processedDocuments.some(pd => pd.name === doc.name)
+                      ? 'Processed ✓'
+                      : 'Scan My Results'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -421,11 +554,17 @@ const BodyMapScreen: React.FC = () => {
 
       <View style={styles.supportedFormats}>
         <Text style={styles.supportedTitle}>✅ Supported formats:</Text>
-        <Text style={styles.supportedText}>• Blood test reports (PDF, JPG, PNG)</Text>
+        <Text style={styles.supportedText}>
+          • Blood test reports (PDF, JPG, PNG)
+        </Text>
         <Text style={styles.supportedText}>• Urine analysis reports</Text>
-        <Text style={styles.supportedText}>• Lipid panels, metabolic panels</Text>
+        <Text style={styles.supportedText}>
+          • Lipid panels, metabolic panels
+        </Text>
         <Text style={styles.supportedText}>• Thyroid function tests</Text>
-        <Text style={styles.supportedNote}>Files must be under 10MB for optimal processing</Text>
+        <Text style={styles.supportedNote}>
+          Files must be under 10MB for optimal processing
+        </Text>
       </View>
     </View>
   );
@@ -451,24 +590,33 @@ const BodyMapScreen: React.FC = () => {
       >
         <View style={styles.panelHeader}>
           <Text style={styles.organTitle}>{data.name}</Text>
-          <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
+          <TouchableOpacity
+            onPress={handleClosePanel}
+            style={styles.closeButton}
+          >
             <Ionicons name="close" size={24} color="#666" />
           </TouchableOpacity>
         </View>
-        
+
         <Text style={styles.organDescription}>{data.description}</Text>
-        
-        <ScrollView 
+
+        <ScrollView
           style={styles.biomarkerScrollView}
           showsVerticalScrollIndicator={true}
           bounces={true}
         >
           <View style={styles.biomarkerList}>
             {data.biomarkers.map((biomarker, index) => (
-              <TouchableOpacity 
-                key={index} 
+              <TouchableOpacity
+                key={index}
                 style={styles.biomarkerItem}
-                onPress={() => handleBiomarkerPress(biomarker.name, biomarker.value, biomarker.status)}
+                onPress={() =>
+                  handleBiomarkerPress(
+                    biomarker.name,
+                    biomarker.value,
+                    biomarker.status,
+                  )
+                }
               >
                 <Text style={styles.biomarkerName}>{biomarker.name}</Text>
                 <Text style={styles.biomarkerValue}>
@@ -485,7 +633,7 @@ const BodyMapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         bounces={true}
@@ -493,19 +641,17 @@ const BodyMapScreen: React.FC = () => {
         <View style={styles.header}>
           <Text style={styles.title}>My Body</Text>
         </View>
-        
-        <BodySystemSelector 
+
+        <BodySystemSelector
           selectedSystem={selectedSystem}
           onSystemChange={handleSystemChange}
         />
-        
-        <View style={styles.bodyMapContainer}>
-          {renderBodyMap()}
-        </View>
+
+        <View style={styles.bodyMapContainer}>{renderBodyMap()}</View>
 
         {selectedSystem === 'organs' && renderDocumentUploadSection()}
       </ScrollView>
-      
+
       {renderInfoPanel()}
 
       <BiomarkerModal
@@ -829,4 +975,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BodyMapScreen; 
+export default BodyMapScreen;

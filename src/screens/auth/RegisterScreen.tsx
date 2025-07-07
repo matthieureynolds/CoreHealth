@@ -15,7 +15,10 @@ import { useAuth } from '../../context/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types';
 
-type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
+type RegisterScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'Register'
+>;
 
 interface Props {
   navigation: RegisterScreenNavigationProp;
@@ -29,7 +32,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const { signUp } = useAuth();
 
   const handleSignUp = async () => {
@@ -57,7 +60,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert(
         'Account Created!',
         'Your account has been created successfully. You can now sign in.',
-        [{ text: 'Sign In', onPress: () => navigation.navigate('Login') }]
+        [{ text: 'Sign In', onPress: () => navigation.navigate('Login') }],
       );
     } catch (error: any) {
       Alert.alert('Registration Failed', error.message || 'Please try again');
@@ -67,25 +70,32 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join CoreHealth for personalized health insights</Text>
+          <Text style={styles.subtitle}>
+            Join CoreHealth for personalized health insights
+          </Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="First Name"
@@ -96,7 +106,12 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Surname"
@@ -107,7 +122,12 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -120,7 +140,12 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -133,16 +158,21 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                size={20} 
-                color="#666" 
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={20}
+                color="#666"
               />
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#666"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Confirm Password"
@@ -264,4 +294,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen; 
+export default RegisterScreen;

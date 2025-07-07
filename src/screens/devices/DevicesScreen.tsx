@@ -1,22 +1,58 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const DevicesScreen: React.FC = () => {
   const mockDevices = [
-    { id: '1', name: 'WHOOP 4.0', type: 'whoop', connected: true, lastSync: '2 hours ago' },
-    { id: '2', name: 'Apple Watch Series 9', type: 'apple_watch', connected: true, lastSync: '1 hour ago' },
-    { id: '3', name: 'Eight Sleep Pod', type: 'eight_sleep', connected: false, lastSync: 'Never' },
-    { id: '4', name: 'Oral-B Smart Toothbrush', type: 'smart_toothbrush', connected: false, lastSync: 'Never' },
+    {
+      id: '1',
+      name: 'WHOOP 4.0',
+      type: 'whoop',
+      connected: true,
+      lastSync: '2 hours ago',
+    },
+    {
+      id: '2',
+      name: 'Apple Watch Series 9',
+      type: 'apple_watch',
+      connected: true,
+      lastSync: '1 hour ago',
+    },
+    {
+      id: '3',
+      name: 'Eight Sleep Pod',
+      type: 'eight_sleep',
+      connected: false,
+      lastSync: 'Never',
+    },
+    {
+      id: '4',
+      name: 'Oral-B Smart Toothbrush',
+      type: 'smart_toothbrush',
+      connected: false,
+      lastSync: 'Never',
+    },
   ];
 
   const getDeviceIcon = (type: string) => {
     switch (type) {
-      case 'whoop': return 'fitness';
-      case 'apple_watch': return 'watch';
-      case 'eight_sleep': return 'bed';
-      case 'smart_toothbrush': return 'medical';
-      default: return 'hardware-chip';
+      case 'whoop':
+        return 'fitness';
+      case 'apple_watch':
+        return 'watch';
+      case 'eight_sleep':
+        return 'bed';
+      case 'smart_toothbrush':
+        return 'medical';
+      default:
+        return 'hardware-chip';
     }
   };
 
@@ -31,23 +67,27 @@ const DevicesScreen: React.FC = () => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Your Devices</Text>
-        {mockDevices.map((device) => (
+        {mockDevices.map(device => (
           <View key={device.id} style={styles.deviceCard}>
             <View style={styles.deviceInfo}>
-              <View style={[
-                styles.deviceIcon,
-                { backgroundColor: device.connected ? '#30D158' : '#E5E5EA' }
-              ]}>
-                <Ionicons 
-                  name={getDeviceIcon(device.type) as any} 
-                  size={24} 
-                  color={device.connected ? '#fff' : '#666'} 
+              <View
+                style={[
+                  styles.deviceIcon,
+                  { backgroundColor: device.connected ? '#30D158' : '#E5E5EA' },
+                ]}
+              >
+                <Ionicons
+                  name={getDeviceIcon(device.type) as any}
+                  size={24}
+                  color={device.connected ? '#fff' : '#666'}
                 />
               </View>
               <View style={styles.deviceDetails}>
                 <Text style={styles.deviceName}>{device.name}</Text>
                 <Text style={styles.deviceStatus}>
-                  {device.connected ? `Last sync: ${device.lastSync}` : 'Not connected'}
+                  {device.connected
+                    ? `Last sync: ${device.lastSync}`
+                    : 'Not connected'}
                 </Text>
               </View>
             </View>
@@ -256,4 +296,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DevicesScreen; 
+export default DevicesScreen;

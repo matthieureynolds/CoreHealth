@@ -13,7 +13,7 @@ export default function App() {
     console.log('🚀 CoreHealth App is starting up!');
     console.log('📱 App.tsx: Main App component has loaded');
     console.log('⚡ Setting up providers: Auth, HealthData, Navigation');
-    
+
     return () => {
       console.log('👋 App is shutting down');
     };
@@ -25,7 +25,7 @@ export default function App() {
         <HealthDataProvider>
           <NavigationContainer>
             <RootNavigator />
-      <StatusBar style="auto" />
+            <StatusBar style="auto" />
           </NavigationContainer>
         </HealthDataProvider>
       </AuthProvider>

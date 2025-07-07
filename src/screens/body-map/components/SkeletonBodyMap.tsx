@@ -175,12 +175,12 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
   ];
 
   const getHealthColor = (part: SkeletonPart) => {
-    const avgScore = (
-      (part.healthData.boneDensity || 0) +
-      (part.healthData.flexibility || 0) +
-      (part.healthData.mobility || 0) +
-      (100 - (part.healthData.painLevel || 0) * 10)
-    ) / 4;
+    const avgScore =
+      ((part.healthData.boneDensity || 0) +
+        (part.healthData.flexibility || 0) +
+        (part.healthData.mobility || 0) +
+        (100 - (part.healthData.painLevel || 0) * 10)) /
+      4;
 
     if (avgScore >= 85) return '#34C759'; // Green - Healthy
     if (avgScore >= 70) return '#FF9500'; // Orange - Moderate
@@ -191,14 +191,14 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
     <View style={styles.container}>
       {/* Real skeleton body image */}
       <View style={styles.bodyOutline}>
-        <Image 
-          source={require('../../../../assets/skeleton page.png')} 
+        <Image
+          source={require('../../../../assets/skeleton page.png')}
           style={styles.skeletonImage}
           resizeMode="contain"
         />
-        
+
         {/* Interactive points for skeleton parts */}
-        {skeletonParts.map((part) => (
+        {skeletonParts.map(part => (
           <TouchableOpacity
             key={part.id}
             style={[
@@ -221,15 +221,21 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
         <Text style={styles.legendTitle}>Bone & Joint Health</Text>
         <View style={styles.legendItems}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#34C759' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#34C759' }]}
+            />
             <Text style={styles.legendText}>Healthy</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#FF9500' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#FF9500' }]}
+            />
             <Text style={styles.legendText}>Moderate</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#FF3B30' }]} />
+            <View
+              style={[styles.legendColor, { backgroundColor: '#FF3B30' }]}
+            />
             <Text style={styles.legendText}>Needs Attention</Text>
           </View>
         </View>
@@ -306,4 +312,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SkeletonBodyMap; 
+export default SkeletonBodyMap;

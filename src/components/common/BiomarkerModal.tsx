@@ -103,14 +103,17 @@ const BiomarkerModal: React.FC<BiomarkerModalProps> = ({
           {/* Status Card */}
           <View style={styles.statusCard}>
             <LinearGradient
-              colors={[getStatusColor(biomarker.status), `${getStatusColor(biomarker.status)}80`]}
+              colors={[
+                getStatusColor(biomarker.status),
+                `${getStatusColor(biomarker.status)}80`,
+              ]}
               style={styles.statusGradient}
             >
               <View style={styles.statusHeader}>
-                <Ionicons 
-                  name={getStatusIcon(biomarker.status)} 
-                  size={32} 
-                  color="#fff" 
+                <Ionicons
+                  name={getStatusIcon(biomarker.status)}
+                  size={32}
+                  color="#fff"
                 />
                 <View style={styles.statusInfo}>
                   <Text style={styles.statusValue}>
@@ -132,11 +135,11 @@ const BiomarkerModal: React.FC<BiomarkerModalProps> = ({
             <Text style={styles.sectionTitle}>Your Level vs Normal Range</Text>
             <View style={styles.rangeBar}>
               <View style={styles.rangeBackground}>
-                <View 
+                <View
                   style={[
                     styles.rangeFill,
-                    { backgroundColor: getStatusColor(biomarker.status) }
-                  ]} 
+                    { backgroundColor: getStatusColor(biomarker.status) },
+                  ]}
                 />
               </View>
               <View style={styles.rangeLabels}>
@@ -317,4 +320,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BiomarkerModal; 
+export default BiomarkerModal;

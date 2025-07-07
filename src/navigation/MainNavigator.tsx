@@ -53,28 +53,28 @@ const MainNavigator: React.FC = () => {
         },
       })}
     >
-      <Tab.Screen 
-        name="Dashboard" 
+      <Tab.Screen
+        name="Dashboard"
         component={DashboardScreen}
         options={{ title: 'Health Dashboard' }}
       />
-      <Tab.Screen 
-        name="BodyMap" 
+      <Tab.Screen
+        name="BodyMap"
         component={BodyMapScreen}
         options={{ title: 'Body Map' }}
       />
-      <Tab.Screen 
-        name="Devices" 
+      <Tab.Screen
+        name="Devices"
         component={DevicesScreen}
         options={{ title: 'Connected Devices' }}
       />
-      <Tab.Screen 
-        name="Travel" 
+      <Tab.Screen
+        name="Travel"
         component={TravelScreen}
         options={{ title: 'Travel Health' }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{ title: 'My Profile' }}
       />
@@ -82,4 +82,4 @@ const MainNavigator: React.FC = () => {
   );
 };
 
-export default MainNavigator; 
+export default MainNavigator;

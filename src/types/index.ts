@@ -60,7 +60,12 @@ export interface LabResult {
 
 export interface DeviceData {
   id: string;
-  deviceType: 'whoop' | 'apple_watch' | 'eight_sleep' | 'smart_toothbrush' | 'smart_toilet';
+  deviceType:
+    | 'whoop'
+    | 'apple_watch'
+    | 'eight_sleep'
+    | 'smart_toothbrush'
+    | 'smart_toilet';
   timestamp: Date;
   metrics: Record<string, any>;
 }
@@ -70,7 +75,12 @@ export interface Biomarker {
   name: string;
   value: number;
   unit: string;
-  category: 'cardiovascular' | 'metabolic' | 'hormonal' | 'inflammatory' | 'nutritional';
+  category:
+    | 'cardiovascular'
+    | 'metabolic'
+    | 'hormonal'
+    | 'inflammatory'
+    | 'nutritional';
   trend: 'improving' | 'stable' | 'declining';
   riskLevel: 'low' | 'medium' | 'high';
   lastUpdated: Date;
@@ -89,11 +99,108 @@ export interface BodySystem {
 // Travel and Location Types
 export interface TravelHealth {
   location: string;
-  airQualityIndex: number;
-  waterQuality: 'excellent' | 'good' | 'fair' | 'poor';
-  localOutbreaks: string[];
-  vaccinations: string[];
-  healthAlerts: string[];
+  coordinates?: { latitude: number; longitude: number };
+  lastUpdated: Date;
+  airQuality: HealthMetric;
+  pollenLevels: HealthMetric;
+  waterSafety: HealthMetric;
+  diseaseRisk: HealthMetric;
+  vaccinations: VaccinationInfo;
+  uvIndex: HealthMetric;
+  altitudeRisk: HealthMetric;
+  foodSafety: HealthMetric;
+  healthcareFacilities?: HealthcareFacilities;
+  emergencyContacts?: EmergencyContacts;
+  timeZoneInfo?: TimeZoneInfo;
+  jetLagData?: JetLagData;
+  // New weather and health safety features
+  weatherData?: WeatherData;
+  heatWarning?: ExtremeHeatWarning;
+  hydrationRecommendation?: HydrationRecommendation;
+  activitySafety?: ActivitySafetyData;
+  overallRiskLevel: RiskLevel;
+}
+
+export interface HealthcareFacilities {
+  hospitals: HealthcareFacility[];
+  pharmacies: HealthcareFacility[];
+  clinics: HealthcareFacility[];
+  dentists: HealthcareFacility[];
+  total: number;
+  nearestHospital?: HealthcareFacility;
+  nearestPharmacy?: HealthcareFacility;
+}
+
+export interface HealthcareFacility {
+  id: string;
+  name: string;
+  type: 'HOSPITAL' | 'PHARMACY' | 'DOCTOR' | 'DENTIST' | 'PHYSIOTHERAPIST' | 'VETERINARY_CARE';
+  address: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  rating?: number;
+  userRatingsTotal?: number;
+  priceLevel?: number;
+  openingHours?: {
+    openNow: boolean;
+    periods?: Array<{
+      open: { day: number; time: string };
+      close: { day: number; time: string };
+    }>;
+    weekdayText?: string[];
+  };
+  phoneNumber?: string;
+  website?: string;
+  photos?: string[];
+  distance?: number; // in meters
+  emergencyServices?: boolean;
+  acceptsInsurance?: string[];
+  specialties?: string[];
+}
+
+export interface EmergencyContacts {
+  countryCode: string;
+  country: string;
+  emergency: string;
+  police: string;
+  fire: string;
+  ambulance: string;
+  poisonControl?: string;
+  mentalHealth?: string;
+  nonEmergencyMedical?: string;
+  touristHotline?: string;
+}
+
+export interface HealthMetric {
+  value: number | string;
+  unit?: string;
+  riskLevel: RiskLevel;
+  status: string;
+  recommendation: string;
+  icon: string;
+  description: string;
+  additionalInfo?: string;
+}
+
+export interface VaccinationInfo {
+  required: string[];
+  recommended: string[];
+  riskLevel: RiskLevel;
+  recommendation: string;
+  icon: string;
+  description: string;
+}
+
+export type RiskLevel = 'low' | 'moderate' | 'high' | 'severe';
+
+export interface LocationData {
+  name: string;
+  country: string;
+  coordinates: { latitude: number; longitude: number };
+  timezone: string;
+  elevation?: number;
 }
 
 // Navigation Types
@@ -135,4 +242,118 @@ export interface HealthScore {
   stress: number;
   recovery: number;
   nutrition: number;
-} 
+}
+
+// Jet Lag and Time Zone Types
+export type JetLagSeverity = 'minimal' | 'mild' | 'moderate' | 'severe';
+
+export interface SleepScheduleAdjustment {
+  totalTimeZoneDifference: number;
+  direction: 'eastward' | 'westward';
+  daysToAdjust: number;
+  maxDailyAdjustment: number;
+  dailySchedule: Array<{
+    day: number;
+    bedtime: string;
+    wakeTime: string;
+    adjustment: number;
+  }>;
+  strategy: string;
+  recommendations: string[];
+}
+
+export interface LightExposureSchedule {
+  direction: 'eastward' | 'westward';
+  strategy: string;
+  schedule: Array<{
+    day: number;
+    morningLight: string;
+    eveningAvoidance: string;
+    duration: number;
+    notes: string;
+  }>;
+  generalTips: string[];
+}
+
+export interface JetLagData {
+  originTimezone: string;
+  destinationTimezone: string;
+  originLocation: string;
+  destinationLocation: string;
+  timeZoneDifference: number;
+  severity: JetLagSeverity;
+  estimatedRecoveryDays: number;
+  sleepAdjustment: SleepScheduleAdjustment;
+  lightExposureSchedule: LightExposureSchedule;
+  destinationTime: {
+    time: string;
+    date: string;
+    timezone: string;
+  };
+  recommendations: string[];
+}
+
+export interface TimeZoneInfo {
+  currentTime: string;
+  currentDate: string;
+  timezone: string;
+  offsetFromUTC: number;
+}
+
+// Weather and Heat Safety Types
+export interface WeatherData {
+  temperature: number; // Celsius
+  feelsLike: number; // Celsius
+  humidity: number; // Percentage
+  pressure: number; // hPa
+  windSpeed: number; // m/s
+  windDirection: number; // degrees
+  visibility: number; // meters
+  cloudCover: number; // percentage
+  description: string;
+  icon: string;
+}
+
+export interface HeatIndexData {
+  heatIndex: number; // Celsius
+  heatIndexFahrenheit: number; // Fahrenheit
+  dangerLevel: 'safe' | 'caution' | 'extreme_caution' | 'danger' | 'extreme_danger';
+  warnings: string[];
+  recommendations: string[];
+}
+
+export interface ExtremeHeatWarning {
+  isActive: boolean;
+  severity: 'moderate' | 'high' | 'extreme';
+  temperature: number;
+  heatIndex: number;
+  uvIndex?: number;
+  combinedRisk: 'low' | 'moderate' | 'high' | 'severe';
+  warnings: string[];
+  recommendations: string[];
+  timeOfDay: 'morning' | 'midday' | 'afternoon' | 'evening';
+}
+
+export interface HydrationRecommendation {
+  dailyIntake: number; // liters
+  hourlyIntake: number; // ml
+  adjustments: {
+    temperature: number; // ml adjustment
+    altitude: number; // ml adjustment
+    humidity: number; // ml adjustment
+    activity: number; // ml adjustment
+  };
+  warnings: string[];
+  recommendations: string[];
+  dehydrationRisk: 'low' | 'moderate' | 'high' | 'severe';
+}
+
+export interface ActivitySafetyData {
+  outdoorSafety: 'safe' | 'caution' | 'avoid';
+  bestTimes: string[];
+  recommendations: string[];
+  warnings: string[];
+  airQualityImpact: string;
+  weatherImpact: string;
+  combinedRisk: 'low' | 'moderate' | 'high' | 'severe';
+}

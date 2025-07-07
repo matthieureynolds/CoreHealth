@@ -12,7 +12,10 @@ import { useAuth } from '../../context/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types';
 
-type ForgotPasswordScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
+type ForgotPasswordScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'ForgotPassword'
+>;
 
 interface Props {
   navigation: ForgotPasswordScreenNavigationProp;
@@ -35,7 +38,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert(
         'Reset Link Sent',
         'Check your email for password reset instructions',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }],
       );
     } catch (error) {
       Alert.alert('Error', 'Failed to send reset email');
@@ -46,7 +49,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
@@ -56,11 +59,17 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.title}>Reset Password</Text>
         <Text style={styles.subtitle}>
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we'll send you a link to reset your
+          password.
         </Text>
 
         <View style={styles.inputContainer}>
-          <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+          <Ionicons
+            name="mail-outline"
+            size={20}
+            color="#666"
+            style={styles.inputIcon}
+          />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -149,4 +158,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ForgotPasswordScreen; 
+export default ForgotPasswordScreen;

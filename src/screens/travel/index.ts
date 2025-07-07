@@ -1,1 +1,1 @@
-export { default } from './TravelScreen'; 
+export { default } from './TravelScreen';

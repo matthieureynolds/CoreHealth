@@ -117,7 +117,12 @@ export interface Database {
           name: string;
           value: number;
           unit: string;
-          category: 'cardiovascular' | 'metabolic' | 'hormonal' | 'inflammatory' | 'nutritional';
+          category:
+            | 'cardiovascular'
+            | 'metabolic'
+            | 'hormonal'
+            | 'inflammatory'
+            | 'nutritional';
           trend: 'improving' | 'stable' | 'declining';
           risk_level: 'low' | 'medium' | 'high';
           recorded_at: string;
@@ -130,7 +135,12 @@ export interface Database {
           name: string;
           value: number;
           unit: string;
-          category: 'cardiovascular' | 'metabolic' | 'hormonal' | 'inflammatory' | 'nutritional';
+          category:
+            | 'cardiovascular'
+            | 'metabolic'
+            | 'hormonal'
+            | 'inflammatory'
+            | 'nutritional';
           trend?: 'improving' | 'stable' | 'declining';
           risk_level?: 'low' | 'medium' | 'high';
           recorded_at: string;
@@ -143,7 +153,12 @@ export interface Database {
           name?: string;
           value?: number;
           unit?: string;
-          category?: 'cardiovascular' | 'metabolic' | 'hormonal' | 'inflammatory' | 'nutritional';
+          category?:
+            | 'cardiovascular'
+            | 'metabolic'
+            | 'hormonal'
+            | 'inflammatory'
+            | 'nutritional';
           trend?: 'improving' | 'stable' | 'declining';
           risk_level?: 'low' | 'medium' | 'high';
           recorded_at?: string;
@@ -155,7 +170,12 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          device_type: 'whoop' | 'apple_watch' | 'eight_sleep' | 'smart_toothbrush' | 'smart_toilet';
+          device_type:
+            | 'whoop'
+            | 'apple_watch'
+            | 'eight_sleep'
+            | 'smart_toothbrush'
+            | 'smart_toilet';
           device_name: string;
           metrics: any; // JSON object
           timestamp: string;
@@ -164,7 +184,12 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          device_type: 'whoop' | 'apple_watch' | 'eight_sleep' | 'smart_toothbrush' | 'smart_toilet';
+          device_type:
+            | 'whoop'
+            | 'apple_watch'
+            | 'eight_sleep'
+            | 'smart_toothbrush'
+            | 'smart_toilet';
           device_name: string;
           metrics: any;
           timestamp: string;
@@ -173,7 +198,12 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
-          device_type?: 'whoop' | 'apple_watch' | 'eight_sleep' | 'smart_toothbrush' | 'smart_toilet';
+          device_type?:
+            | 'whoop'
+            | 'apple_watch'
+            | 'eight_sleep'
+            | 'smart_toothbrush'
+            | 'smart_toilet';
           device_name?: string;
           metrics?: any;
           timestamp?: string;
@@ -232,4 +262,4 @@ export interface Database {
       [_ in never]: never;
     };
   };
-} 
+}

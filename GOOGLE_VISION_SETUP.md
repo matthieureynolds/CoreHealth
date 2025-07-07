@@ -1,6 +1,7 @@
 # Google Vision OCR Setup Guide
 
 ## Current Status
+
 ✅ You have a Google Cloud project: `corehealth-app-dev`
 ✅ You have a service account: `corehealth2-ocr-service@corehealth-app-dev.iam.gserviceaccount.com`
 ✅ API Key created: `AIzaSyAPV0pl1cmA44s-3CJ441vVxPMMpB_HEIk`
@@ -10,6 +11,7 @@
 If you're getting a **403 Forbidden error**, here are the most common causes and fixes:
 
 ### Fix 1: Enable Cloud Vision API
+
 1. **Go to**: [Google Cloud Console](https://console.cloud.google.com/)
 2. **Select your project**: `corehealth-app-dev`
 3. **Navigate to**: APIs & Services → Library
@@ -19,6 +21,7 @@ If you're getting a **403 Forbidden error**, here are the most common causes and
 7. **Wait 2-3 minutes** for the API to be fully enabled
 
 ### Fix 2: Verify API Key Restrictions
+
 1. **Go to**: [Google Cloud Console](https://console.cloud.google.com/)
 2. **Navigate to**: APIs & Services → Credentials
 3. **Find your API key**: ending in `...HEIk`
@@ -31,6 +34,7 @@ If you're getting a **403 Forbidden error**, here are the most common causes and
    - For production: Set to **"HTTP referrers"**
 
 ### Fix 3: Check Billing Account
+
 1. **Go to**: [Google Cloud Console](https://console.cloud.google.com/)
 2. **Navigate to**: Billing
 3. **Verify**: Your project `corehealth-app-dev` has billing enabled
@@ -79,13 +83,15 @@ The model name has changed from `gpt-4-turbo` to `gpt-4o`. This will be automati
 ## Expected Success Logs
 
 When working correctly, you should see:
+
 ```
 LOG  OCR completed in XXXms
-LOG  GPT structuring completed in XXXms  
+LOG  GPT structuring completed in XXXms
 LOG  Biomarkers extracted: X
 ```
 
 Instead of:
+
 ```
 ERROR  OCR Error: [Error: Vision API error: 403]
 ERROR  GPT Error: [Error: OpenAI API error: 404]
@@ -96,6 +102,7 @@ ERROR  GPT Error: [Error: OpenAI API error: 404]
 For React Native/Expo apps, we need an **API Key** rather than the service account JSON (for security).
 
 ### Step 1: Create API Key
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Select your project: `corehealth-app-dev`
 3. Navigate to **APIs & Services** > **Credentials**
@@ -103,12 +110,14 @@ For React Native/Expo apps, we need an **API Key** rather than the service accou
 5. Copy the generated API key
 
 ### Step 2: Restrict API Key (Security)
+
 1. Click on your new API key to edit it
 2. Under **API restrictions**, select **Restrict key**
 3. Choose **Cloud Vision API**
 4. Under **Application restrictions**, choose **HTTP referrers** or **None** for development
 
 ### Step 3: Add to CoreHealth App
+
 Create a `.env` file in the `CoreHealth/` directory:
 
 ```bash
@@ -120,12 +129,14 @@ EXPO_PUBLIC_OPENAI_API_KEY=your-openai-key-here
 ```
 
 ### Step 4: Test the Integration
+
 ```bash
 cd CoreHealth
 npx expo start
 ```
 
 Then test by:
+
 1. Opening Body Map screen
 2. Scrolling to "Upload Your Lab Results"
 3. Taking a photo of any document with text
@@ -134,22 +145,26 @@ Then test by:
 ## Why API Key vs Service Account JSON?
 
 **API Key (Recommended for React Native):**
+
 - ✅ Secure for client-side apps
 - ✅ Can be restricted to specific APIs
 - ✅ No private keys exposed in app bundle
 - ✅ Easier to manage and rotate
 
 **Service Account JSON (Server-Side Only):**
+
 - ❌ Contains private key - security risk in client apps
 - ❌ Visible in React Native bundle
 - ✅ Good for backend servers only
 
 ## Cost Estimate
+
 - Google Vision API: ~$1.50 per 1000 documents
 - Typical usage: ~$0.0015 per lab report scan
 - Very cost-effective for personal health tracking
 
 ## Troubleshooting
+
 - If you get authentication errors, check the API key is correct
 - If you get quota errors, check your Google Cloud billing is enabled
-- If OCR doesn't work, the app will fall back to mock data for development 
+- If OCR doesn't work, the app will fall back to mock data for development

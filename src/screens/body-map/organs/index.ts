@@ -16,4 +16,4 @@ export const organs: Record<string, Organ> = {
 export const organsList: Organ[] = Object.values(organs);
 
 export * from './types';
-export { heartOrgan, liverOrgan, kidneysOrgan, pancreasOrgan, thyroidOrgan }; 
+export { heartOrgan, liverOrgan, kidneysOrgan, pancreasOrgan, thyroidOrgan };

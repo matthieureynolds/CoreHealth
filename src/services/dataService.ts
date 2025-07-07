@@ -1,12 +1,23 @@
 import { supabase } from '../config/supabase';
 import { Database } from '../types/database';
-import { UserProfile, Biomarker, LabResult, DeviceData, MedicalCondition, Vaccination } from '../types';
+import {
+  UserProfile,
+  Biomarker,
+  LabResult,
+  DeviceData,
+  MedicalCondition,
+  Vaccination,
+} from '../types';
 
 type Tables = Database['public']['Tables'];
 
 export class DataService {
   // Profile operations
-  static async createProfile(userId: string, email: string, displayName?: string) {
+  static async createProfile(
+    userId: string,
+    email: string,
+    displayName?: string,
+  ) {
     const { data, error } = await supabase
       .from('profiles')
       .insert({
@@ -21,7 +32,9 @@ export class DataService {
     return data;
   }
 
-  static async getProfile(userId: string): Promise<Tables['profiles']['Row'] | null> {
+  static async getProfile(
+    userId: string,
+  ): Promise<Tables['profiles']['Row'] | null> {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -32,7 +45,10 @@ export class DataService {
     return data;
   }
 
-  static async updateProfile(userId: string, updates: Partial<Tables['profiles']['Update']>) {
+  static async updateProfile(
+    userId: string,
+    updates: Partial<Tables['profiles']['Update']>,
+  ) {
     const { data, error } = await supabase
       .from('profiles')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -45,7 +61,9 @@ export class DataService {
   }
 
   // Biomarkers operations
-  static async getBiomarkers(userId: string): Promise<Tables['biomarkers']['Row'][]> {
+  static async getBiomarkers(
+    userId: string,
+  ): Promise<Tables['biomarkers']['Row'][]> {
     const { data, error } = await supabase
       .from('biomarkers')
       .select('*')
@@ -56,7 +74,10 @@ export class DataService {
     return data || [];
   }
 
-  static async addBiomarker(userId: string, biomarker: Omit<Tables['biomarkers']['Insert'], 'user_id'>) {
+  static async addBiomarker(
+    userId: string,
+    biomarker: Omit<Tables['biomarkers']['Insert'], 'user_id'>,
+  ) {
     const { data, error } = await supabase
       .from('biomarkers')
       .insert({
@@ -70,7 +91,10 @@ export class DataService {
     return data;
   }
 
-  static async updateBiomarker(id: string, updates: Tables['biomarkers']['Update']) {
+  static async updateBiomarker(
+    id: string,
+    updates: Tables['biomarkers']['Update'],
+  ) {
     const { data, error } = await supabase
       .from('biomarkers')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -83,7 +107,9 @@ export class DataService {
   }
 
   // Medical conditions operations
-  static async getMedicalConditions(userId: string): Promise<Tables['medical_conditions']['Row'][]> {
+  static async getMedicalConditions(
+    userId: string,
+  ): Promise<Tables['medical_conditions']['Row'][]> {
     const { data, error } = await supabase
       .from('medical_conditions')
       .select('*')
@@ -94,7 +120,10 @@ export class DataService {
     return data || [];
   }
 
-  static async addMedicalCondition(userId: string, condition: Omit<Tables['medical_conditions']['Insert'], 'user_id'>) {
+  static async addMedicalCondition(
+    userId: string,
+    condition: Omit<Tables['medical_conditions']['Insert'], 'user_id'>,
+  ) {
     const { data, error } = await supabase
       .from('medical_conditions')
       .insert({
@@ -109,7 +138,9 @@ export class DataService {
   }
 
   // Vaccinations operations
-  static async getVaccinations(userId: string): Promise<Tables['vaccinations']['Row'][]> {
+  static async getVaccinations(
+    userId: string,
+  ): Promise<Tables['vaccinations']['Row'][]> {
     const { data, error } = await supabase
       .from('vaccinations')
       .select('*')
@@ -120,7 +151,10 @@ export class DataService {
     return data || [];
   }
 
-  static async addVaccination(userId: string, vaccination: Omit<Tables['vaccinations']['Insert'], 'user_id'>) {
+  static async addVaccination(
+    userId: string,
+    vaccination: Omit<Tables['vaccinations']['Insert'], 'user_id'>,
+  ) {
     const { data, error } = await supabase
       .from('vaccinations')
       .insert({
@@ -135,7 +169,9 @@ export class DataService {
   }
 
   // Lab results operations
-  static async getLabResults(userId: string): Promise<Tables['lab_results']['Row'][]> {
+  static async getLabResults(
+    userId: string,
+  ): Promise<Tables['lab_results']['Row'][]> {
     const { data, error } = await supabase
       .from('lab_results')
       .select('*')
@@ -146,7 +182,10 @@ export class DataService {
     return data || [];
   }
 
-  static async addLabResult(userId: string, labResult: Omit<Tables['lab_results']['Insert'], 'user_id'>) {
+  static async addLabResult(
+    userId: string,
+    labResult: Omit<Tables['lab_results']['Insert'], 'user_id'>,
+  ) {
     const { data, error } = await supabase
       .from('lab_results')
       .insert({
@@ -161,23 +200,28 @@ export class DataService {
   }
 
   // Device data operations
-  static async getDeviceData(userId: string, deviceType?: string): Promise<Tables['device_data']['Row'][]> {
-    let query = supabase
-      .from('device_data')
-      .select('*')
-      .eq('user_id', userId);
+  static async getDeviceData(
+    userId: string,
+    deviceType?: string,
+  ): Promise<Tables['device_data']['Row'][]> {
+    let query = supabase.from('device_data').select('*').eq('user_id', userId);
 
     if (deviceType) {
       query = query.eq('device_type', deviceType);
     }
 
-    const { data, error } = await query.order('timestamp', { ascending: false });
+    const { data, error } = await query.order('timestamp', {
+      ascending: false,
+    });
 
     if (error) throw error;
     return data || [];
   }
 
-  static async addDeviceData(userId: string, deviceData: Omit<Tables['device_data']['Insert'], 'user_id'>) {
+  static async addDeviceData(
+    userId: string,
+    deviceData: Omit<Tables['device_data']['Insert'], 'user_id'>,
+  ) {
     const { data, error } = await supabase
       .from('device_data')
       .insert({
@@ -192,10 +236,14 @@ export class DataService {
   }
 
   // Utility functions
-  static async initializeUserData(userId: string, email: string, displayName?: string) {
+  static async initializeUserData(
+    userId: string,
+    email: string,
+    displayName?: string,
+  ) {
     // Create profile if it doesn't exist
     let profile = await this.getProfile(userId);
-    
+
     if (!profile) {
       profile = await this.createProfile(userId, email, displayName);
     }
@@ -204,7 +252,10 @@ export class DataService {
   }
 
   // Real-time subscriptions
-  static subscribeToBiomarkers(userId: string, callback: (payload: any) => void) {
+  static subscribeToBiomarkers(
+    userId: string,
+    callback: (payload: any) => void,
+  ) {
     return supabase
       .channel('biomarkers_changes')
       .on(
@@ -215,7 +266,7 @@ export class DataService {
           table: 'biomarkers',
           filter: `user_id=eq.${userId}`,
         },
-        callback
+        callback,
       )
       .subscribe();
   }
@@ -231,8 +282,8 @@ export class DataService {
           table: 'profiles',
           filter: `supabase_uid=eq.${userId}`,
         },
-        callback
+        callback,
       )
       .subscribe();
   }
-} 
+}
