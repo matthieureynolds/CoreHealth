@@ -1,5 +1,5 @@
-import { ActivitySafetyData, WeatherData, AirQualityData } from '../types';
-import { ExtremeHeatWarning } from './weatherService';
+import { ActivitySafetyData, WeatherData, ExtremeHeatWarning } from '../types';
+import { GoogleAirQualityData } from './googleAirQualityService';
 
 // Activity safety thresholds
 const SAFE_TEMPERATURE_MAX = 30; // Celsius
@@ -13,7 +13,7 @@ const UNHEALTHY_AQI_MAX = 150;
  */
 export const generateActivitySafetyData = (
   weatherData: WeatherData,
-  airQualityData: AirQualityData | null,
+  airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
   uvIndex: number = 5
 ): ActivitySafetyData => {
@@ -129,48 +129,44 @@ const assessWeatherSafety = (
 };
 
 /**
- * Assess air quality safety for outdoor activities
+ * Assess air quality safety for activities
  */
 const assessAirQualitySafety = (
-  airQualityData: AirQualityData | null
+  airQualityData: GoogleAirQualityData | null
 ): { risk: number; description: string } => {
   if (!airQualityData) {
-    return { risk: 1, description: 'Air quality data unavailable' };
+    return { risk: 0, description: 'Air quality data unavailable' };
   }
 
-  const aqi = airQualityData.overall.aqi;
-  let riskScore = 0;
-  let description = '';
-
-  if (aqi <= SAFE_AQI_MAX) {
-    riskScore = 0;
-    description = 'Good air quality';
-  } else if (aqi <= MODERATE_AQI_MAX) {
-    riskScore = 1;
-    description = 'Moderate air quality - sensitive individuals should limit prolonged outdoor exertion';
-  } else if (aqi <= UNHEALTHY_AQI_MAX) {
-    riskScore = 3;
-    description = 'Unhealthy for sensitive groups - limit outdoor activities';
+  const aqi = airQualityData.universalAqi;
+  
+  if (aqi <= 50) {
+    return { risk: 0, description: 'Good air quality' };
+  } else if (aqi <= 100) {
+    return { risk: 1, description: 'Moderate air quality' };
+  } else if (aqi <= 150) {
+    return { risk: 2, description: 'Unhealthy for sensitive groups' };
   } else if (aqi <= 200) {
-    riskScore = 4;
-    description = 'Unhealthy air quality - avoid outdoor activities';
+    return { risk: 3, description: 'Unhealthy air quality' };
   } else {
-    riskScore = 5;
-    description = 'Very unhealthy air quality - avoid all outdoor exposure';
+    return { risk: 4, description: 'Very unhealthy air quality' };
+  }
+};
+
+/**
+ * Get detailed air quality breakdown
+ */
+const getAirQualityBreakdown = (airQualityData: GoogleAirQualityData): string => {
+  if (!airQualityData.pollutants || airQualityData.pollutants.length === 0) {
+    return `AQI: ${airQualityData.universalAqi}`;
   }
 
-  // Add specific pollutant warnings
-  const pollutantWarnings: string[] = [];
-  if (airQualityData.pm2_5?.level === 'Very High') pollutantWarnings.push('PM2.5');
-  if (airQualityData.pm10?.level === 'Very High') pollutantWarnings.push('PM10');
-  if (airQualityData.no2?.level === 'Very High') pollutantWarnings.push('NO2');
-  if (airQualityData.o3?.level === 'Very High') pollutantWarnings.push('Ozone');
+  const pollutantDetails = airQualityData.pollutants
+    .filter(p => ['pm2_5', 'pm10', 'no2', 'o3'].includes(p.code))
+    .map(p => `${p.displayName}: ${p.concentration.value}${p.concentration.units}`)
+    .join(', ');
 
-  if (pollutantWarnings.length > 0) {
-    description += ` (High: ${pollutantWarnings.join(', ')})`;
-  }
-
-  return { risk: riskScore, description };
+  return `AQI: ${airQualityData.universalAqi}` + (pollutantDetails ? `, ${pollutantDetails}` : '');
 };
 
 /**
@@ -242,7 +238,7 @@ const determineOverallSafety = (
  */
 const generateActivityRecommendations = (
   weatherData: WeatherData,
-  airQualityData: AirQualityData | null,
+  airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
   combinedRisk: 'low' | 'moderate' | 'high' | 'severe',
   outdoorSafety: 'safe' | 'caution' | 'avoid'
@@ -282,7 +278,7 @@ const generateActivityRecommendations = (
   }
 
   // Air quality recommendations
-  if (airQualityData && airQualityData.overall.aqi > MODERATE_AQI_MAX) {
+  if (airQualityData && airQualityData.universalAqi > MODERATE_AQI_MAX) {
     recommendations.push('Wear an N95 mask if outdoors');
     recommendations.push('Avoid strenuous outdoor exercise');
     recommendations.push('Keep windows closed and use air purifiers indoors');
@@ -313,7 +309,7 @@ const generateActivityRecommendations = (
  */
 const generateActivityWarnings = (
   weatherData: WeatherData,
-  airQualityData: AirQualityData | null,
+  airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
   combinedRisk: 'low' | 'moderate' | 'high' | 'severe'
 ): string[] => {
@@ -337,7 +333,7 @@ const generateActivityWarnings = (
 
   // Air quality warnings
   if (airQualityData) {
-    const aqi = airQualityData.overall.aqi;
+    const aqi = airQualityData.universalAqi;
     if (aqi > 200) {
       warnings.push('Very unhealthy air quality - respiratory distress possible');
     } else if (aqi > UNHEALTHY_AQI_MAX) {

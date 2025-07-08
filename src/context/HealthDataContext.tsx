@@ -61,6 +61,11 @@ import {
 import { 
   generateActivitySafetyData
 } from '../services/activitySafetyService';
+import {
+  getMedicationAvailability,
+  getMultipleMedicationsAvailability,
+  generateTravelMedicationKit
+} from '../services/medicationAvailabilityService';
 
 interface HealthDataContextType {
   profile: UserProfile | null;
@@ -530,11 +535,20 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       );
 
       // Fetch nearby healthcare facilities
+      console.log('🏥 Fetching healthcare facilities for:', locationData.name);
       const healthcareFacilities = await getAllHealthcareFacilities(
         locationData.coordinates.latitude,
         locationData.coordinates.longitude,
         5000 // 5km radius
       );
+      console.log('🏥 Healthcare facilities found:', {
+        hospitals: healthcareFacilities.hospitals.length,
+        pharmacies: healthcareFacilities.pharmacies.length,
+        clinics: healthcareFacilities.clinics.length,
+        dentists: healthcareFacilities.dentists.length,
+        total: healthcareFacilities.total,
+        nearestHospital: healthcareFacilities.hospitals[0]?.name || 'None found'
+      });
 
       // Get emergency contacts for the country
       const countryCode = locationData.country === 'France' ? 'FR' :
@@ -734,6 +748,27 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       mockTravelHealth.heatWarning = weatherHealthAssessment.extremeHeatWarning || undefined;
       mockTravelHealth.hydrationRecommendation = hydrationRecommendation;
       mockTravelHealth.activitySafety = activitySafety;
+
+      // Generate medication availability data
+      const commonMedications = ['ibuprofen', 'amoxicillin', 'lorazepam', 'insulin'];
+      const medicationAvailabilityData = await getMultipleMedicationsAvailability(
+        commonMedications,
+        locationData.country,
+        locationData.coordinates.latitude,
+        locationData.coordinates.longitude
+      );
+
+      // Generate travel medication kit recommendations
+      const travelMedicationKit = generateTravelMedicationKit(
+        locationData.country,
+        7, // Default 7-day trip
+        [], // No specific medical conditions (would come from user profile)
+        ['general travel'] // Default activities
+      );
+
+      // Add medication data to travel health
+      mockTravelHealth.medicationAvailability = medicationAvailabilityData.length > 0 ? medicationAvailabilityData : undefined;
+      mockTravelHealth.travelMedicationKit = travelMedicationKit;
 
       setTravelHealth(mockTravelHealth);
     } catch (error) {

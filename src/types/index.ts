@@ -118,6 +118,9 @@ export interface TravelHealth {
   heatWarning?: ExtremeHeatWarning;
   hydrationRecommendation?: HydrationRecommendation;
   activitySafety?: ActivitySafetyData;
+  // Medication availability
+  medicationAvailability?: MedicationAvailability[];
+  travelMedicationKit?: TravelMedicationKit;
   overallRiskLevel: RiskLevel;
 }
 
@@ -222,6 +225,16 @@ export type MainTabParamList = {
   Profile: undefined;
   Devices: undefined;
   Travel: undefined;
+};
+
+export type ProfileTabParamList = {
+  ProfileTabs: undefined;
+  ProfileDetails: undefined;
+  Settings: undefined;
+  HelpSupport: undefined;
+  TermsOfService: undefined;
+  PrivacyPolicy: undefined;
+  About: undefined;
 };
 
 // Dashboard Types
@@ -356,4 +369,96 @@ export interface ActivitySafetyData {
   airQualityImpact: string;
   weatherImpact: string;
   combinedRisk: 'low' | 'moderate' | 'high' | 'severe';
+}
+
+// Medication Availability Types
+export interface MedicationInfo {
+  id: string;
+  name: string;
+  genericName: string;
+  brandNames: string[];
+  category: 'prescription' | 'over_the_counter' | 'controlled_substance' | 'restricted';
+  description: string;
+  commonUses: string[];
+}
+
+export interface CountryMedicationStatus {
+  country: string;
+  countryCode: string;
+  availability: 'available' | 'prescription_required' | 'restricted' | 'banned' | 'unknown';
+  alternativeNames: string[];
+  localEquivalents: string[];
+  prescriptionRequired: boolean;
+  restrictions: string[];
+  notes?: string;
+  pharmacyAvailability: 'widely_available' | 'limited' | 'specialty_only' | 'unavailable' | 'unknown';
+}
+
+export interface MedicationAvailability {
+  medication: MedicationInfo;
+  currentCountry: CountryMedicationStatus;
+  nearbyPharmacies: MedicationPharmacy[];
+  importRegulations: ImportRegulations;
+  recommendations: string[];
+  warnings: string[];
+  alternatives: AlternativeMedication[];
+}
+
+export interface MedicationPharmacy {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  distance: number; // meters
+  isOpen: boolean;
+  hasStock: boolean | null; // null if unknown
+  requiresPrescription: boolean;
+  phoneNumber?: string;
+  website?: string;
+  rating?: number;
+  totalRatings?: number;
+  priceLevel?: number; // 1-4 scale
+  specialties: string[];
+  openingHours?: {
+    weekdayText: string[];
+    currentStatus: 'open' | 'closed' | 'closing_soon' | 'unknown';
+    nextOpenClose?: {
+      time: string;
+      day: string;
+    };
+  };
+  photos?: string[];
+  services?: string[];
+  accessibility?: string[];
+  paymentMethods?: string[];
+  pharmacyType: 'chain' | 'independent' | 'hospital' | 'clinic' | 'supermarket' | 'unknown';
+  languages?: string[];
+}
+
+export interface ImportRegulations {
+  allowedQuantity: string;
+  declarationRequired: boolean;
+  prescriptionRequired: boolean;
+  restrictions: string[];
+  penalties: string[];
+  contactInfo: string[];
+}
+
+export interface AlternativeMedication {
+  name: string;
+  activeIngredient: string;
+  availability: 'available' | 'prescription_required' | 'restricted';
+  similarity: 'exact_equivalent' | 'similar_effect' | 'alternative_treatment';
+  notes: string;
+}
+
+export interface TravelMedicationKit {
+  essentialMedications: string[];
+  recommendedMedications: string[];
+  prescriptionBackups: string[];
+  countrySpecificNeeds: string[];
+  emergencyContacts: string[];
 }

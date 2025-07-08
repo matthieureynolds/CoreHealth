@@ -7,6 +7,7 @@ import { StyleSheet } from 'react-native';
 import RootNavigator from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/context/AuthContext';
 import { HealthDataProvider } from './src/context/HealthDataContext';
+import { SettingsProvider } from './src/context/SettingsContext';
 
 export default function App() {
   useEffect(() => {
@@ -21,14 +22,16 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <HealthDataProvider>
-          <NavigationContainer>
-            <RootNavigator />
-            <StatusBar style="auto" />
-          </NavigationContainer>
-        </HealthDataProvider>
-      </AuthProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <HealthDataProvider>
+            <NavigationContainer>
+              <RootNavigator />
+              <StatusBar style="auto" />
+            </NavigationContainer>
+          </HealthDataProvider>
+        </AuthProvider>
+      </SettingsProvider>
     </SafeAreaProvider>
   );
 }

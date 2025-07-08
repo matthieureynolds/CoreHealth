@@ -99,23 +99,31 @@ export const searchNearbyHealthcareFacilities = async (
 ): Promise<HealthcareFacility[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn('Google Maps API key not found, cannot search healthcare facilities');
+      console.warn('🚨 Google Maps API key not found, cannot search healthcare facilities');
       return [];
     }
 
     const searchType = HEALTHCARE_TYPES[type];
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${searchType}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
+    console.log(`🔍 Searching for ${type} near ${latitude},${longitude} within ${radius}m`);
+    
     const response = await fetch(url);
     
     if (!response.ok) {
+      console.error(`🚨 Places API HTTP error: ${response.status}`);
       throw new Error(`Places API error: ${response.status}`);
     }
 
     const data: GooglePlacesResponse = await response.json();
     
+    console.log(`📡 Google Places API response for ${type}:`, {
+      status: data.status,
+      results: data.results?.length || 0
+    });
+    
     if (data.status !== 'OK') {
-      console.warn('No healthcare facilities found:', data.status);
+      console.warn(`🚨 Google Places API error for ${type}:`, data.status);
       return [];
     }
 

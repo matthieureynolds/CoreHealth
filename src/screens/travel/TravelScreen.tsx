@@ -24,11 +24,15 @@ import {
   WeatherData,
   ExtremeHeatWarning,
   HydrationRecommendation,
-  ActivitySafetyData
+  ActivitySafetyData,
+  MedicationAvailability,
+  TravelMedicationKit,
+  MedicationPharmacy
 } from '../../types';
 import { formatDistance, getFacilityIcon } from '../../services/healthcarePlacesService';
 import { getActivitySafetyColor } from '../../services/activitySafetyService';
 import { getHydrationRiskColor } from '../../services/hydrationService';
+import { getAvailabilityColor, formatAvailabilityStatus } from '../../services/medicationAvailabilityService';
 
 const TravelScreen: React.FC = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -422,11 +426,11 @@ const TravelScreen: React.FC = () => {
   const renderWeatherCard = (weatherData: WeatherData) => (
     <View style={styles.healthCard}>
               <View style={styles.cardHeader}>
-        <Ionicons
+                <Ionicons
           name="partly-sunny"
-          size={24}
+                  size={24}
           color="#007AFF"
-        />
+                />
         <Text style={styles.cardTitle}>Current Weather</Text>
               </View>
       <View style={styles.cardContent}>
@@ -446,9 +450,9 @@ const TravelScreen: React.FC = () => {
         </View>
         <Text style={styles.metricDescription}>
           {weatherData.description} • Wind: {weatherData.windSpeed} m/s
-        </Text>
-      </View>
-    </View>
+              </Text>
+            </View>
+          </View>
   );
 
   const renderHeatWarningCard = (heatWarning: ExtremeHeatWarning) => {
@@ -465,7 +469,7 @@ const TravelScreen: React.FC = () => {
 
     return (
       <View style={[styles.healthCard, { borderLeftWidth: 4, borderLeftColor: getSeverityColor(heatWarning.severity) }]}>
-        <View style={styles.cardHeader}>
+            <View style={styles.cardHeader}>
           <Ionicons
             name="thermometer"
             size={24}
@@ -474,8 +478,8 @@ const TravelScreen: React.FC = () => {
           <Text style={styles.cardTitle}>Heat Warning</Text>
           <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(heatWarning.severity) }]}>
             <Text style={styles.severityBadgeText}>{heatWarning.severity.toUpperCase()}</Text>
-          </View>
-        </View>
+            </View>
+                </View>
         <View style={styles.cardContent}>
           <View style={styles.heatMetrics}>
             <View style={styles.heatMetric}>
@@ -499,8 +503,8 @@ const TravelScreen: React.FC = () => {
               <Text style={styles.warningsTitle}>⚠️ Warnings:</Text>
               {heatWarning.warnings.map((warning, index) => (
                 <Text key={index} style={styles.warningText}>• {warning}</Text>
-                ))}
-              </View>
+              ))}
+            </View>
           )}
           
           {heatWarning.recommendations.length > 0 && (
@@ -509,7 +513,7 @@ const TravelScreen: React.FC = () => {
               {heatWarning.recommendations.slice(0, 3).map((rec, index) => (
                 <Text key={index} style={styles.recommendationText}>• {rec}</Text>
               ))}
-            </View>
+          </View>
           )}
         </View>
       </View>
@@ -624,6 +628,345 @@ const TravelScreen: React.FC = () => {
     </View>
   );
 
+  // Medication availability render functions
+  const renderMedicationAvailabilityCard = (availability: MedicationAvailability) => (
+    <View style={[styles.healthCard, { borderLeftWidth: 4, borderLeftColor: getAvailabilityColor(availability.currentCountry.availability) }]}>
+              <View style={styles.cardHeader}>
+        <Ionicons
+          name="medical"
+          size={24}
+          color={getAvailabilityColor(availability.currentCountry.availability)}
+        />
+        <Text style={styles.cardTitle}>{availability.medication.name}</Text>
+        <View style={[styles.severityBadge, { backgroundColor: getAvailabilityColor(availability.currentCountry.availability) }]}>
+          <Text style={styles.severityBadgeText}>{formatAvailabilityStatus(availability.currentCountry)}</Text>
+              </View>
+                  </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.metricValue}>{availability.medication.genericName}</Text>
+        <Text style={[styles.metricStatus, { color: getAvailabilityColor(availability.currentCountry.availability) }]}>
+          {formatAvailabilityStatus(availability.currentCountry)}
+        </Text>
+        <Text style={styles.metricDescription}>
+          {availability.medication.description}
+          {availability.currentCountry.alternativeNames.length > 0 && 
+            `\nLocal names: ${availability.currentCountry.alternativeNames.join(', ')}`}
+        </Text>
+        
+        {availability.warnings.length > 0 && (
+          <View style={styles.warningsSection}>
+            <Text style={styles.warningsTitle}>⚠️ Warnings:</Text>
+            {availability.warnings.slice(0, 2).map((warning, index) => (
+              <Text key={index} style={styles.warningText}>• {warning}</Text>
+                ))}
+              </View>
+        )}
+        
+        <View style={styles.recommendationsSection}>
+          <Text style={styles.recommendationsTitle}>💡 Recommendations:</Text>
+          {availability.recommendations.slice(0, 3).map((rec, index) => (
+            <Text key={index} style={styles.recommendationText}>• {rec}</Text>
+          ))}
+        </View>
+
+        {availability.alternatives.length > 0 && (
+          <View style={styles.alternativesSection}>
+            <Text style={styles.alternativesTitle}>🔄 Alternatives:</Text>
+            {availability.alternatives.slice(0, 2).map((alt, index) => (
+              <Text key={index} style={styles.alternativeText}>• {alt.name} ({alt.similarity.replace('_', ' ')})</Text>
+            ))}
+            </View>
+          )}
+      </View>
+    </View>
+  );
+
+  const renderTravelMedicationKitCard = (kit: TravelMedicationKit) => (
+    <View style={styles.healthCard}>
+      <View style={styles.cardHeader}>
+        <Ionicons
+          name="medical-outline"
+          size={24}
+          color="#007AFF"
+        />
+        <Text style={styles.cardTitle}>Travel Medication Kit</Text>
+      </View>
+      <View style={styles.cardContent}>
+        {kit.essentialMedications.length > 0 && (
+          <View style={styles.medicationSection}>
+            <Text style={styles.medicationSectionTitle}>Essential Medications:</Text>
+            {kit.essentialMedications.slice(0, 4).map((med, index) => (
+              <View key={index} style={styles.medicationItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#30D158" />
+                <Text style={styles.medicationText}>{med}</Text>
+              </View>
+            ))}
+        </View>
+      )}
+
+        {kit.countrySpecificNeeds.length > 0 && (
+          <View style={styles.medicationSection}>
+            <Text style={styles.medicationSectionTitle}>Country-Specific Needs:</Text>
+            {kit.countrySpecificNeeds.map((need, index) => (
+              <View key={index} style={styles.medicationItem}>
+                <Ionicons name="alert-circle" size={16} color="#FF9500" />
+                <Text style={styles.medicationText}>{need}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {kit.prescriptionBackups.length > 0 && (
+          <View style={styles.medicationSection}>
+            <Text style={styles.medicationSectionTitle}>Prescription Backup:</Text>
+            {kit.prescriptionBackups.slice(0, 2).map((backup, index) => (
+              <View key={index} style={styles.medicationItem}>
+                <Ionicons name="document-text" size={16} color="#007AFF" />
+                <Text style={styles.medicationText}>{backup}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderMedicationPharmaciesCard = (pharmacies: MedicationPharmacy[]) => {
+    if (!pharmacies || pharmacies.length === 0) return null;
+    
+    return (
+      <View style={styles.healthCard}>
+        <View style={styles.cardHeader}>
+          <Ionicons name="storefront" size={24} color="#30D158" />
+          <Text style={styles.cardTitle}>Nearby Pharmacies ({pharmacies.length})</Text>
+        </View>
+        <View style={styles.cardContent}>
+          {pharmacies.slice(0, 3).map((pharmacy, index) => (
+            <View key={index} style={styles.enhancedPharmacyItem}>
+              {/* Pharmacy Header */}
+              <View style={styles.pharmacyHeaderRow}>
+                <View style={styles.pharmacyMainInfo}>
+                  <Text style={styles.enhancedPharmacyName}>{pharmacy.name}</Text>
+                  <View style={styles.pharmacyTypeRow}>
+                    <View style={[styles.pharmacyTypeBadge, { backgroundColor: getPharmacyTypeColor(pharmacy.pharmacyType) }]}>
+                      <Text style={styles.pharmacyTypeBadgeText}>{formatPharmacyType(pharmacy.pharmacyType)}</Text>
+                    </View>
+                    {pharmacy.priceLevel && (
+                      <Text style={styles.priceLevel}>
+                        {'$'.repeat(pharmacy.priceLevel)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.pharmacyRatingInfo}>
+                  {pharmacy.rating && (
+                    <View style={styles.ratingContainer}>
+                      <Text style={styles.ratingText}>{pharmacy.rating.toFixed(1)}</Text>
+                      <Ionicons name="star" size={14} color="#FFD700" />
+                      {pharmacy.totalRatings && (
+                        <Text style={styles.totalRatingsText}>({pharmacy.totalRatings})</Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* Distance and Status */}
+              <View style={styles.pharmacyStatusRow}>
+                <Text style={styles.pharmacyDistance}>
+                  {formatDistance(pharmacy.distance)} away
+                </Text>
+                <View style={styles.statusIndicator}>
+                  <Ionicons 
+                    name={getStatusIcon(pharmacy.openingHours?.currentStatus || 'unknown')} 
+                    size={16} 
+                    color={getStatusColor(pharmacy.openingHours?.currentStatus || 'unknown')} 
+                  />
+                  <Text style={[styles.statusText, { color: getStatusColor(pharmacy.openingHours?.currentStatus || 'unknown') }]}>
+                    {formatStatus(pharmacy.openingHours?.currentStatus || 'unknown')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Opening Hours */}
+              {pharmacy.openingHours && (
+                <View style={styles.openingHoursSection}>
+                  {pharmacy.openingHours.nextOpenClose && (
+                    <Text style={styles.nextOpenCloseText}>
+                      {pharmacy.openingHours.currentStatus === 'open' ? 'Closes' : 'Opens'} {pharmacy.openingHours.nextOpenClose.time} {pharmacy.openingHours.nextOpenClose.day !== 'today' ? pharmacy.openingHours.nextOpenClose.day : ''}
+                    </Text>
+                  )}
+                  {pharmacy.openingHours.weekdayText.length > 0 && (
+                    <TouchableOpacity 
+                      style={styles.viewHoursButton}
+                      onPress={() => Alert.alert('Opening Hours', pharmacy.openingHours?.weekdayText.join('\n') || 'Hours not available')}
+                    >
+                      <Text style={styles.viewHoursText}>View all hours</Text>
+                      <Ionicons name="chevron-forward" size={14} color="#007AFF" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
+              {/* Address */}
+              <Text style={styles.enhancedPharmacyAddress}>{pharmacy.address}</Text>
+
+              {/* Services and Specialties */}
+              {pharmacy.services && pharmacy.services.length > 0 && (
+                <View style={styles.servicesSection}>
+                  <Text style={styles.sectionTitle}>Services:</Text>
+                  <View style={styles.servicesContainer}>
+                    {pharmacy.services.slice(0, 3).map((service, serviceIndex) => (
+                      <View key={serviceIndex} style={styles.serviceTag}>
+                        <Text style={styles.serviceTagText}>{service}</Text>
+                      </View>
+                    ))}
+                    {pharmacy.services.length > 3 && (
+                      <Text style={styles.moreServicesText}>+{pharmacy.services.length - 3} more</Text>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* Specialties */}
+              {pharmacy.specialties.length > 0 && (
+                <View style={styles.specialtiesSection}>
+                  <Text style={styles.sectionTitle}>Specialties:</Text>
+                  <Text style={styles.specialtiesText}>
+                    {pharmacy.specialties.slice(0, 2).join(', ')}
+                    {pharmacy.specialties.length > 2 && ` +${pharmacy.specialties.length - 2} more`}
+                  </Text>
+                </View>
+              )}
+
+              {/* Payment Methods */}
+              {pharmacy.paymentMethods && pharmacy.paymentMethods.length > 0 && (
+                <View style={styles.paymentSection}>
+                  <Text style={styles.sectionTitle}>Payment:</Text>
+                  <Text style={styles.paymentText}>
+                    {pharmacy.paymentMethods.slice(0, 3).join(', ')}
+                    {pharmacy.paymentMethods.length > 3 && ` +${pharmacy.paymentMethods.length - 3} more`}
+                  </Text>
+                </View>
+              )}
+
+              {/* Languages */}
+              {pharmacy.languages && pharmacy.languages.length > 1 && (
+                <View style={styles.languagesSection}>
+                  <Ionicons name="language" size={14} color="#666" />
+                  <Text style={styles.languagesText}>
+                    {pharmacy.languages.slice(0, 2).join(', ')}
+                  </Text>
+                </View>
+              )}
+
+              {/* Contact Information */}
+              <View style={styles.contactSection}>
+                {pharmacy.phoneNumber && (
+                  <TouchableOpacity 
+                    style={styles.contactButton}
+                    onPress={() => Linking.openURL(`tel:${pharmacy.phoneNumber}`)}
+                  >
+                    <Ionicons name="call" size={16} color="#007AFF" />
+                    <Text style={styles.contactButtonText}>Call</Text>
+                  </TouchableOpacity>
+                )}
+                
+                {pharmacy.website && (
+                  <TouchableOpacity 
+                    style={styles.contactButton}
+                    onPress={() => Linking.openURL(pharmacy.website!)}
+                  >
+                    <Ionicons name="globe" size={16} color="#007AFF" />
+                    <Text style={styles.contactButtonText}>Website</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity 
+                  style={styles.contactButton}
+                  onPress={() => Linking.openURL(`https://maps.google.com/maps?daddr=${pharmacy.coordinates.latitude},${pharmacy.coordinates.longitude}`)}
+                >
+                  <Ionicons name="navigate" size={16} color="#007AFF" />
+                  <Text style={styles.contactButtonText}>Directions</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Accessibility Info */}
+              {pharmacy.accessibility && pharmacy.accessibility.length > 0 && (
+                <View style={styles.accessibilitySection}>
+                  <Ionicons name="accessibility" size={14} color="#666" />
+                  <Text style={styles.accessibilityText}>
+                    {pharmacy.accessibility[0]}
+                    {pharmacy.accessibility.length > 1 && ` +${pharmacy.accessibility.length - 1} more`}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
+          
+          {pharmacies.length > 3 && (
+            <TouchableOpacity style={styles.viewMorePharmacies}>
+              <Text style={styles.viewMorePharmaciesText}>
+                View {pharmacies.length - 3} more pharmacies
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  // Helper functions for pharmacy display
+  const getPharmacyTypeColor = (type: string): string => {
+    switch (type) {
+      case 'hospital': return '#FF3B30';
+      case 'chain': return '#007AFF'; 
+      case 'independent': return '#30D158';
+      case 'clinic': return '#FF9500';
+      case 'supermarket': return '#8E8E93';
+      default: return '#666';
+    }
+  };
+
+  const formatPharmacyType = (type: string): string => {
+    switch (type) {
+      case 'chain': return 'Chain';
+      case 'independent': return 'Independent';
+      case 'hospital': return 'Hospital';
+      case 'clinic': return 'Clinic';
+      case 'supermarket': return 'Supermarket';
+      default: return 'Pharmacy';
+    }
+  };
+
+  const getStatusIcon = (status: string): "checkmark-circle" | "close-circle" | "time" | "help-circle" => {
+    switch (status) {
+      case 'open': return 'checkmark-circle';
+      case 'closed': return 'close-circle';
+      case 'closing_soon': return 'time';
+      default: return 'help-circle';
+    }
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'open': return '#30D158';
+      case 'closed': return '#FF3B30';
+      case 'closing_soon': return '#FF9500';
+      default: return '#8E8E93';
+    }
+  };
+
+  const formatStatus = (status: string): string => {
+    switch (status) {
+      case 'open': return 'Open';
+      case 'closed': return 'Closed';
+      case 'closing_soon': return 'Closing Soon';
+      default: return 'Hours Unknown';
+    }
+  };
+
   return (
     <ScrollView 
       style={styles.container}
@@ -705,6 +1048,17 @@ const TravelScreen: React.FC = () => {
           {travelHealth.heatWarning && renderHeatWarningCard(travelHealth.heatWarning)}
           {travelHealth.hydrationRecommendation && renderHydrationCard(travelHealth.hydrationRecommendation)}
           {travelHealth.activitySafety && renderActivitySafetyCard(travelHealth.activitySafety)}
+          
+          {/* Add medication availability components */}
+          {travelHealth.medicationAvailability && travelHealth.medicationAvailability.length > 0 && 
+            travelHealth.medicationAvailability.map((availability, index) => (
+              <React.Fragment key={availability.medication.id}>
+                {renderMedicationAvailabilityCard(availability)}
+                {availability.nearbyPharmacies.length > 0 && renderMedicationPharmaciesCard(availability.nearbyPharmacies)}
+              </React.Fragment>
+            ))
+          }
+          {travelHealth.travelMedicationKit && renderTravelMedicationKitCard(travelHealth.travelMedicationKit)}
 
           {renderHealthCard(travelHealth.airQuality, 'Air Quality')}
           {renderHealthCard(travelHealth.pollenLevels, 'Pollen Levels')}
@@ -717,9 +1071,9 @@ const TravelScreen: React.FC = () => {
           {travelHealth.healthcareFacilities && renderHealthcareFacilities(travelHealth.healthcareFacilities)}
           {travelHealth.emergencyContacts && renderEmergencyContacts(travelHealth.emergencyContacts)}
           {travelHealth.weatherData && renderWeatherCard(travelHealth.weatherData)}
-          {travelHealth.extremeHeatWarning && renderHeatWarningCard(travelHealth.extremeHeatWarning)}
+          {travelHealth.heatWarning && renderHeatWarningCard(travelHealth.heatWarning)}
           {travelHealth.hydrationRecommendation && renderHydrationCard(travelHealth.hydrationRecommendation)}
-          {travelHealth.activitySafetyData && renderActivitySafetyCard(travelHealth.activitySafetyData)}
+          {travelHealth.activitySafety && renderActivitySafetyCard(travelHealth.activitySafety)}
         </View>
       )}
 
@@ -1359,6 +1713,253 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  medicationSection: {
+    marginBottom: 16,
+  },
+  medicationSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  medicationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  medicationText: {
+    fontSize: 14,
+    color: '#1C1C1E',
+    marginLeft: 8,
+  },
+  alternativesSection: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  alternativesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  alternativeText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  pharmacyItem: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  enhancedPharmacyItem: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  pharmacyHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  pharmacyMainInfo: {
+    flex: 1,
+  },
+  enhancedPharmacyName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 4,
+  },
+  pharmacyTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pharmacyTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  pharmacyTypeBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  priceLevel: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  pharmacyRatingInfo: {
+    alignItems: 'flex-end',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginRight: 4,
+  },
+  totalRatingsText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  pharmacyStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  openingHoursSection: {
+    marginBottom: 12,
+  },
+  nextOpenCloseText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  viewHoursButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewHoursText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  enhancedPharmacyAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  servicesSection: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 8,
+  },
+  servicesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  serviceTag: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  serviceTagText: {
+    fontSize: 12,
+    color: '#1C1C1E',
+    fontWeight: '500',
+  },
+  moreServicesText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+  specialtiesSection: {
+    marginBottom: 12,
+  },
+  specialtiesText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  paymentSection: {
+    marginBottom: 12,
+  },
+  paymentText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  languagesSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  languagesText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+  },
+  contactSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 12,
+  },
+  contactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0E0E0',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  contactButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  accessibilitySection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  accessibilityText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+  },
+  viewMorePharmacies: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 10,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
+  },
+  viewMorePharmaciesText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  pharmacyDistance: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
 });
 

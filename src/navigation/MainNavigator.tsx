@@ -6,10 +6,11 @@ import { MainTabParamList } from '../types';
 import {
   DashboardScreen,
   BodyMapScreen,
-  ProfileScreen,
   DevicesScreen,
   TravelScreen,
 } from '../screens';
+
+import ProfileTabNavigator from './ProfileTabNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -75,7 +76,7 @@ const MainNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileTabNavigator}
         options={{ title: 'My Profile' }}
       />
     </Tab.Navigator>
