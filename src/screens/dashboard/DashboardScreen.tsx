@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,15 +16,38 @@ import BiomarkerModal, {
   BiomarkerInfo,
 } from '../../components/common/BiomarkerModal';
 import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
+import HealthInsightsCard from '../../components/dashboard/HealthInsightsCard';
+import HealthMetricsDashboard from '../../components/dashboard/HealthMetricsDashboard';
+import HealthChatModal from '../../components/dashboard/HealthChatModal';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen: React.FC = () => {
   const { user } = useAuth();
-  const { healthScore, dailyInsights, biomarkers } = useHealthData();
+  const { healthScore, dailyInsights, biomarkers, generateDailyInsights } = useHealthData();
   const [selectedBiomarker, setSelectedBiomarker] =
     useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const getTimeOfDay = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    return 'evening';
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await generateDailyInsights();
+    } catch (error) {
+      console.error('Failed to refresh insights:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleBiomarkerPress = (biomarkerName: string, value: number) => {
     // Determine status based on biomarker name and value (simplified logic)
@@ -106,121 +130,55 @@ const DashboardScreen: React.FC = () => {
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Good morning, {user?.displayName || 'User'}!
-        </Text>
-        <Text style={styles.date}>
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </Text>
-      </View>
-
-      {renderHealthScore()}
-
-      <View style={styles.metricsGrid}>
-        {renderMetricCard('Sleep', healthScore?.sleep || 0, 'moon', '#9013FE')}
-        {renderMetricCard(
-          'Activity',
-          healthScore?.activity || 0,
-          'fitness',
-          '#FF6B35',
-        )}
-        {renderMetricCard(
-          'Stress',
-          healthScore?.stress || 0,
-          'heart',
-          '#FF3B30',
-        )}
-        {renderMetricCard(
-          'Recovery',
-          healthScore?.recovery || 0,
-          'refresh',
-          '#30D158',
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Key Biomarkers</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>See All</Text>
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#007AFF"
+            colors={['#007AFF']}
+          />
+        }
+      >
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.greeting}>
+              Good {getTimeOfDay()}, {user?.displayName || 'User'}!
+            </Text>
+            <Text style={styles.date}>
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.aiButton}
+            onPress={() => setChatModalVisible(true)}
+          >
+            <Ionicons name="sparkles" size={20} color="#007AFF" />
           </TouchableOpacity>
         </View>
 
-        {biomarkers.slice(0, 3).map(biomarker => (
-          <TouchableOpacity
-            key={biomarker.id}
-            style={styles.biomarkerCard}
-            onPress={() =>
-              handleBiomarkerPress(biomarker.name, biomarker.value)
-            }
-          >
-            <View style={styles.biomarkerInfo}>
-              <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-              <Text style={styles.biomarkerValue}>
-                {biomarker.value} {biomarker.unit}
-              </Text>
-            </View>
-            <View style={styles.biomarkerIndicators}>
-              <View
-                style={[
-                  styles.statusIndicator,
-                  {
-                    backgroundColor:
-                      biomarker.riskLevel === 'low'
-                        ? '#30D158'
-                        : biomarker.riskLevel === 'medium'
-                          ? '#FF9500'
-                          : '#FF3B30',
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={
-                    biomarker.riskLevel === 'low'
-                      ? 'checkmark'
-                      : biomarker.riskLevel === 'medium'
-                        ? 'warning'
-                        : 'alert'
-                  }
-                  size={12}
-                  color="#fff"
-                />
-              </View>
-              <View
-                style={[
-                  styles.trendIndicator,
-                  {
-                    backgroundColor:
-                      biomarker.trend === 'improving' ? '#30D158' : '#FF9500',
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={
-                    biomarker.trend === 'improving'
-                      ? 'trending-up'
-                      : 'trending-down'
-                  }
-                  size={16}
-                  color="#fff"
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <HealthMetricsDashboard 
+          onMetricPress={(metric) => console.log('Metric pressed:', metric)}
+          onBiomarkerPress={(biomarker) => handleBiomarkerPress(biomarker.name, biomarker.value)}
+        />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today's Insights</Text>
-        {dailyInsights.map(renderInsightCard)}
-      </View>
+        <HealthInsightsCard 
+          onChatPress={() => setChatModalVisible(true)}
+        />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Insights</Text>
+          {dailyInsights.map(renderInsightCard)}
+        </View>
+      </ScrollView>
 
       <View style={styles.quickActions}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -252,7 +210,12 @@ const DashboardScreen: React.FC = () => {
           setSelectedBiomarker(null);
         }}
       />
-    </ScrollView>
+
+      <HealthChatModal
+        visible={chatModalVisible}
+        onClose={() => setChatModalVisible(false)}
+      />
+    </View>
   );
 };
 
@@ -261,9 +224,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
+  scrollContainer: {
+    flex: 1,
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     paddingTop: 10,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  aiButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E3F2FD',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   greeting: {
     fontSize: 24,

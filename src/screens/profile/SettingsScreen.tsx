@@ -22,7 +22,7 @@ type SettingsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const {
     settings,
     isLoading,
@@ -32,6 +32,7 @@ const SettingsScreen: React.FC = () => {
     updateDataSyncSettings,
     updateTravelSettings,
     updateAccessibilitySettings,
+    updateBiomarkerSettings,
     updateAppSettings,
     toggleTheme,
     setupBiometricAuth,
@@ -91,6 +92,37 @@ const SettingsScreen: React.FC = () => {
     { value: 'medium', label: 'Medium' },
     { value: 'large', label: 'Large' },
     { value: 'extra-large', label: 'Extra Large' },
+  ];
+
+  const healthGoalOptions = [
+    { value: 'general_wellness', label: 'General Wellness', description: 'Balanced health monitoring for everyday life' },
+    { value: 'longevity', label: 'Longevity', description: 'Focus on long-term health optimization' },
+    { value: 'athletic', label: 'Athletic Performance', description: 'Optimized for athletes and active individuals' },
+    { value: 'disease_monitoring', label: 'Disease Monitoring', description: 'Enhanced tracking for specific health conditions' },
+    { value: 'custom', label: 'Custom Goals', description: 'Create your own personalized health targets' },
+  ];
+
+  const biomarkerUnitsOptions = {
+    glucose: [
+      { value: 'mg/dL', label: 'mg/dL (US standard)' },
+      { value: 'mmol/L', label: 'mmol/L (International)' },
+    ],
+    cholesterol: [
+      { value: 'mg/dL', label: 'mg/dL (US standard)' },
+      { value: 'mmol/L', label: 'mmol/L (International)' },
+    ],
+    creatinine: [
+      { value: 'mg/dL', label: 'mg/dL (US standard)' },
+      { value: 'µmol/L', label: 'µmol/L (International)' },
+    ],
+  };
+
+  const biomarkerSortOptions = [
+    { value: 'category', label: 'By Category', description: 'Group biomarkers by health system' },
+    { value: 'alphabetical', label: 'Alphabetical', description: 'Sort A to Z' },
+    { value: 'last_updated', label: 'Last Updated', description: 'Most recently updated first' },
+    { value: 'risk_level', label: 'Risk Level', description: 'Highest risk first' },
+    { value: 'custom', label: 'Custom Order', description: 'Drag to reorder manually' },
   ];
 
   const handleSignOut = () => {
@@ -160,6 +192,32 @@ const SettingsScreen: React.FC = () => {
       case 'fontSize':
         updateAccessibilitySettings({ fontSize: value as any });
         break;
+      case 'healthGoalPreset':
+        updateBiomarkerSettings({ healthGoalPreset: value as any });
+        break;
+      case 'biomarkerSort':
+        updateBiomarkerSettings({ 
+          displaySettings: { 
+            ...settings.biomarkers.displaySettings, 
+            sortBy: value as any 
+          } 
+        });
+        break;
+      case 'glucoseUnits':
+        updateBiomarkerSettings({
+          units: { ...settings.biomarkers.units, glucose: value as any }
+        });
+        break;
+      case 'cholesterolUnits':
+        updateBiomarkerSettings({
+          units: { ...settings.biomarkers.units, cholesterol: value as any }
+        });
+        break;
+      case 'creatinineUnits':
+        updateBiomarkerSettings({
+          units: { ...settings.biomarkers.units, creatinine: value as any }
+        });
+        break;
     }
     setActivePicker(null);
   };
@@ -173,6 +231,11 @@ const SettingsScreen: React.FC = () => {
       case 'sessionTimeout': return sessionTimeoutOptions;
       case 'syncFrequency': return syncFrequencyOptions;
       case 'fontSize': return fontSizeOptions;
+      case 'healthGoalPreset': return healthGoalOptions;
+      case 'biomarkerSort': return biomarkerSortOptions;
+      case 'glucoseUnits': return biomarkerUnitsOptions.glucose;
+      case 'cholesterolUnits': return biomarkerUnitsOptions.cholesterol;
+      case 'creatinineUnits': return biomarkerUnitsOptions.creatinine;
       default: return [];
     }
   };
@@ -186,6 +249,11 @@ const SettingsScreen: React.FC = () => {
       case 'sessionTimeout': return settings.privacy.sessionTimeout;
       case 'syncFrequency': return settings.dataSync.syncFrequency;
       case 'fontSize': return settings.accessibility.fontSize;
+      case 'healthGoalPreset': return settings.biomarkers.healthGoalPreset;
+      case 'biomarkerSort': return settings.biomarkers.displaySettings.sortBy;
+      case 'glucoseUnits': return settings.biomarkers.units.glucose;
+      case 'cholesterolUnits': return settings.biomarkers.units.cholesterol;
+      case 'creatinineUnits': return settings.biomarkers.units.creatinine;
       default: return '';
     }
   };
@@ -199,6 +267,11 @@ const SettingsScreen: React.FC = () => {
       case 'sessionTimeout': return 'Session Timeout';
       case 'syncFrequency': return 'Sync Frequency';
       case 'fontSize': return 'Font Size';
+      case 'healthGoalPreset': return 'Health Goal Preset';
+      case 'biomarkerSort': return 'Biomarker Sort Order';
+      case 'glucoseUnits': return 'Glucose Units';
+      case 'cholesterolUnits': return 'Cholesterol Units';
+      case 'creatinineUnits': return 'Creatinine Units';
       default: return '';
     }
   };
@@ -286,6 +359,195 @@ const SettingsScreen: React.FC = () => {
           title="Time Format"
           value={settings.general.timeFormat === '24h' ? '24-Hour' : '12-Hour'}
           onPress={() => setActivePicker('timeFormat')}
+        />
+      </View>
+
+      {/* Contact & Account */}
+      <View style={styles.section}>
+        <SectionHeader title="Contact & Account" />
+        
+        <SettingsItem
+          icon="mail-outline"
+          title="Email Address"
+          value={user?.email || 'Not set'}
+          onPress={() => {
+            Alert.alert('Email Address', 'Email management coming soon!');
+          }}
+        />
+        
+        <SettingsItem
+          icon="call-outline"
+          title="Phone Number"
+          value="Not set"
+          onPress={() => {
+            Alert.alert('Phone Number', 'Phone number management coming soon!');
+          }}
+        />
+        
+        <SettingsItem
+          icon="key-outline"
+          title="Change Password"
+          onPress={() => {
+            Alert.alert('Change Password', 'Password change coming soon!');
+          }}
+        />
+        
+        <SettingsItem
+          icon="logo-google"
+          title="Linked Accounts"
+          value="Google, Apple"
+          subtitle="Manage connected login providers"
+          onPress={() => {
+            Alert.alert('Linked Accounts', 'Account linking management coming soon!');
+          }}
+        />
+        
+        <SettingsItem
+          icon="shield-checkmark-outline"
+          title="Two-Factor Authentication"
+          subtitle={settings.privacy.twoFactorAuth ? 'Enabled for enhanced security' : 'Recommended for health data protection'}
+          showChevron={false}
+          rightElement={
+            <Switch
+              value={settings.privacy.twoFactorAuth}
+              onValueChange={(value) => updatePrivacySettings({ twoFactorAuth: value })}
+              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+              thumbColor="#fff"
+            />
+          }
+        />
+      </View>
+
+      {/* Biomarker Preferences */}
+      <View style={styles.section}>
+        <SectionHeader title="Biomarker Preferences" />
+        
+        <SettingsItem
+          icon="analytics-outline"
+          title="Health Goal Preset"
+          value={healthGoalOptions.find(opt => opt.value === settings.biomarkers.healthGoalPreset)?.label || 'General Wellness'}
+          subtitle="Optimizes biomarker tracking for your health goals"
+          onPress={() => setActivePicker('healthGoalPreset')}
+        />
+        
+        <SettingsItem
+          icon="list-outline"
+          title="Display Order"
+          value={biomarkerSortOptions.find(opt => opt.value === settings.biomarkers.displaySettings.sortBy)?.label || 'By Category'}
+          subtitle="How biomarkers are organized in your dashboard"
+          onPress={() => setActivePicker('biomarkerSort')}
+        />
+        
+        <SettingsItem
+          icon="eye-outline"
+          title="Biomarker Visibility"
+          subtitle="Choose which biomarkers to track or hide"
+          onPress={() => navigation.navigate('BiomarkerVisibility')}
+        />
+        
+        <SettingsItem
+          icon="trending-up-outline"
+          title="Show Trends"
+          subtitle="Display trend arrows and historical data"
+          showChevron={false}
+          rightElement={
+            <Switch
+              value={settings.biomarkers.displaySettings.showTrends}
+              onValueChange={(value) => updateBiomarkerSettings({ 
+                displaySettings: { 
+                  ...settings.biomarkers.displaySettings, 
+                  showTrends: value 
+                } 
+              })}
+              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+              thumbColor="#fff"
+            />
+          }
+        />
+        
+        <SettingsItem
+          icon="stats-chart-outline"
+          title="Show Percentiles"
+          subtitle="Compare your values to population ranges"
+          showChevron={false}
+          rightElement={
+            <Switch
+              value={settings.biomarkers.displaySettings.showPercentiles}
+              onValueChange={(value) => updateBiomarkerSettings({ 
+                displaySettings: { 
+                  ...settings.biomarkers.displaySettings, 
+                  showPercentiles: value 
+                } 
+              })}
+              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+              thumbColor="#fff"
+            />
+          }
+        />
+        
+        <SettingsItem
+          icon="folder-outline"
+          title="Group by Category"
+          subtitle="Organize biomarkers by health system"
+          showChevron={false}
+          rightElement={
+            <Switch
+              value={settings.biomarkers.displaySettings.groupByCategory}
+              onValueChange={(value) => updateBiomarkerSettings({ 
+                displaySettings: { 
+                  ...settings.biomarkers.displaySettings, 
+                  groupByCategory: value 
+                } 
+              })}
+              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+              thumbColor="#fff"
+            />
+          }
+        />
+      </View>
+
+      {/* Biomarker Units */}
+      <View style={styles.section}>
+        <SectionHeader title="Biomarker Units" />
+        
+        <SettingsItem
+          icon="water-outline"
+          title="Glucose"
+          value={settings.biomarkers.units.glucose}
+          subtitle="Blood sugar measurement units"
+          onPress={() => setActivePicker('glucoseUnits')}
+        />
+        
+        <SettingsItem
+          icon="heart-circle-outline"
+          title="Cholesterol"
+          value={settings.biomarkers.units.cholesterol}
+          subtitle="Cholesterol and lipid measurement units"
+          onPress={() => setActivePicker('cholesterolUnits')}
+        />
+        
+        <SettingsItem
+          icon="fitness-outline"
+          title="Creatinine"
+          value={settings.biomarkers.units.creatinine}
+          subtitle="Kidney function measurement units"
+          onPress={() => setActivePicker('creatinineUnits')}
+        />
+        
+        <SettingsItem
+          icon="thermometer-outline"
+          title="Blood Pressure"
+          value={settings.biomarkers.units.bloodPressure}
+          subtitle="Currently using mmHg (standard)"
+          showChevron={false}
+        />
+        
+        <SettingsItem
+          icon="scale-outline"
+          title="Weight"
+          value={settings.biomarkers.units.weight}
+          subtitle="Body weight measurement units"
+          showChevron={false}
         />
       </View>
 

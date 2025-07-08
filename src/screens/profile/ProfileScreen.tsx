@@ -8,10 +8,16 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
+import { ProfileTabParamList } from '../../types';
+
+type ProfileScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { user, signOut } = useAuth();
   const { profile } = useHealthData();
 
@@ -55,7 +61,7 @@ const ProfileScreen: React.FC = () => {
           icon="person-outline"
           title="Personal Information"
           value={profile ? `${profile.age} years old` : 'Not set'}
-          onPress={() => {}}
+          onPress={() => navigation.navigate('EditProfile')}
         />
         <ProfileItem
           icon="medical-outline"
@@ -65,7 +71,7 @@ const ProfileScreen: React.FC = () => {
               ? `${profile.medicalHistory.length} conditions`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
         <ProfileItem
           icon="shield-checkmark-outline"
@@ -75,7 +81,7 @@ const ProfileScreen: React.FC = () => {
               ? `${profile.vaccinations.length} vaccines`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
         <ProfileItem
           icon="people-outline"
@@ -85,7 +91,13 @@ const ProfileScreen: React.FC = () => {
               ? `${profile.familyHistory.length} conditions`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
+        />
+        <ProfileItem
+          icon="call-outline"
+          title="Emergency Contacts"
+          value="Manage contacts"
+          onPress={() => navigation.navigate('EmergencyContacts')}
         />
       </View>
 

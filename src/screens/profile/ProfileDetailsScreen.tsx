@@ -8,10 +8,16 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
+import { ProfileTabParamList } from '../../types';
+
+type ProfileDetailsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 const ProfileDetailsScreen: React.FC = () => {
+  const navigation = useNavigation<ProfileDetailsScreenNavigationProp>();
   const { user } = useAuth();
   const { profile } = useHealthData();
 
@@ -39,7 +45,10 @@ const ProfileDetailsScreen: React.FC = () => {
           </TouchableOpacity>
           <Text style={styles.name}>{user?.displayName || 'User'}</Text>
           <Text style={styles.email}>{user?.email}</Text>
-          <TouchableOpacity style={styles.editProfileButton}>
+          <TouchableOpacity 
+            style={styles.editProfileButton}
+            onPress={() => navigation.navigate('EditProfile')}
+          >
             <Ionicons name="create-outline" size={16} color="#007AFF" />
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
@@ -52,19 +61,19 @@ const ProfileDetailsScreen: React.FC = () => {
           icon="person-outline"
           title="Basic Details"
           value={profile ? `${profile.age} years old, ${profile.gender}` : 'Not set'}
-          onPress={() => {}}
+          onPress={() => navigation.navigate('EditProfile')}
         />
         <ProfileItem
           icon="fitness-outline"
           title="Physical Stats"
           value={profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}
-          onPress={() => {}}
+          onPress={() => navigation.navigate('EditProfile')}
         />
         <ProfileItem
           icon="location-outline"
           title="Ethnicity"
           value={profile?.ethnicity || 'Not set'}
-          onPress={() => {}}
+          onPress={() => navigation.navigate('EditProfile')}
         />
       </View>
 
@@ -78,7 +87,7 @@ const ProfileDetailsScreen: React.FC = () => {
               ? `${profile.medicalHistory.length} conditions`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
         <ProfileItem
           icon="shield-checkmark-outline"
@@ -88,7 +97,7 @@ const ProfileDetailsScreen: React.FC = () => {
               ? `${profile.vaccinations.length} vaccines`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
         <ProfileItem
           icon="warning-outline"
@@ -98,7 +107,7 @@ const ProfileDetailsScreen: React.FC = () => {
               ? `${profile.allergies.length} allergies`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
         <ProfileItem
           icon="people-outline"
@@ -108,35 +117,118 @@ const ProfileDetailsScreen: React.FC = () => {
               ? `${profile.familyHistory.length} conditions`
               : 'Not set'
           }
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MedicalHistory')}
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Health Summary</Text>
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryItem}>
-            <Ionicons name="heart" size={24} color="#FF3B30" />
-            <View style={styles.summaryContent}>
-              <Text style={styles.summaryTitle}>Overall Health Score</Text>
-              <Text style={styles.summaryValue}>85/100</Text>
-            </View>
-          </View>
-          <View style={styles.summaryItem}>
-            <Ionicons name="pulse" size={24} color="#30D158" />
-            <View style={styles.summaryContent}>
-              <Text style={styles.summaryTitle}>Active Biomarkers</Text>
-              <Text style={styles.summaryValue}>12 tracked</Text>
-            </View>
-          </View>
-          <View style={styles.summaryItem}>
-            <Ionicons name="calendar" size={24} color="#007AFF" />
-            <View style={styles.summaryContent}>
-              <Text style={styles.summaryTitle}>Last Check-up</Text>
-              <Text style={styles.summaryValue}>2 months ago</Text>
-            </View>
-          </View>
-        </View>
+        <Text style={styles.sectionTitle}>Connected Devices</Text>
+        
+        {/* Fitness Trackers */}
+        <ProfileItem
+          icon="watch-outline"
+          title="Apple Watch"
+          value="Connected"
+          onPress={() => {
+            Alert.alert('Apple Watch', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="fitness-outline"
+          title="Whoop 4.0"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Whoop 4.0', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="ellipse-outline"
+          title="Oura Ring"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Oura Ring', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="speedometer-outline"
+          title="Garmin"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Garmin', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="walk-outline"
+          title="Fitbit"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Fitbit', 'Device management coming soon!');
+          }}
+        />
+        
+        {/* Health Monitoring */}
+        <ProfileItem
+          icon="scale-outline"
+          title="Withings Body+"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Withings Body+', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="thermometer-outline"
+          title="Withings Thermo"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Withings Thermo', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="heart-outline"
+          title="KardiaMobile"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('KardiaMobile', 'Device management coming soon!');
+          }}
+        />
+        
+        {/* Sleep & Recovery */}
+        <ProfileItem
+          icon="bed-outline"
+          title="Eight Sleep Pod"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Eight Sleep Pod', 'Device management coming soon!');
+          }}
+        />
+        
+        {/* Oral Health */}
+        <ProfileItem
+          icon="medical-outline"
+          title="Oral-B iO"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Oral-B iO', 'Device management coming soon!');
+          }}
+        />
+        
+        {/* Health Apps */}
+        <ProfileItem
+          icon="phone-portrait-outline"
+          title="Apple Health"
+          value="Connected"
+          onPress={() => {
+            Alert.alert('Apple Health', 'Device management coming soon!');
+          }}
+        />
+        <ProfileItem
+          icon="phone-portrait-outline"
+          title="Samsung Health"
+          value="Not connected"
+          onPress={() => {
+            Alert.alert('Samsung Health', 'Device management coming soon!');
+          }}
+        />
       </View>
 
       <View style={styles.section}>

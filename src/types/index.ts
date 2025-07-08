@@ -16,17 +16,22 @@ export interface UserProfile {
   height: number; // in cm
   weight: number; // in kg
   ethnicity?: string;
+  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown';
   medicalHistory: MedicalCondition[];
   familyHistory: FamilyCondition[];
+  surgeries: Surgery[];
   vaccinations: Vaccination[];
   allergies: string[];
+  lifestyle: LifestyleInfo;
+  organSpecificConditions: OrganCondition[];
 }
 
 // Health Data Types
 export interface MedicalCondition {
   id: string;
-  name: string;
-  diagnosedDate: Date;
+  condition: string;
+  diagnosedDate: string;
+  severity: 'mild' | 'moderate' | 'severe';
   status: 'active' | 'resolved' | 'managed';
   notes?: string;
 }
@@ -231,6 +236,10 @@ export type ProfileTabParamList = {
   ProfileTabs: undefined;
   ProfileDetails: undefined;
   Settings: undefined;
+  EditProfile: undefined;
+  MedicalHistory: undefined;
+  EmergencyContacts: undefined;
+  BiomarkerVisibility: undefined;
   HelpSupport: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
@@ -461,4 +470,57 @@ export interface TravelMedicationKit {
   prescriptionBackups: string[];
   countrySpecificNeeds: string[];
   emergencyContacts: string[];
+}
+
+// New interfaces for enhanced medical history
+export interface Surgery {
+  id: string;
+  procedure: string;
+  date: string;
+  hospital?: string;
+  surgeon?: string;
+  complications?: string;
+  notes?: string;
+}
+
+export interface LifestyleInfo {
+  smoking: {
+    status: 'never' | 'former' | 'current';
+    packYears?: number;
+    quitDate?: string;
+  };
+  alcohol: {
+    frequency: 'never' | 'rarely' | 'monthly' | 'weekly' | 'daily';
+    unitsPerWeek?: number;
+  };
+  diet: {
+    type: 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'mediterranean' | 'other';
+    restrictions?: string[];
+    supplements?: string[];
+  };
+  exercise: {
+    frequency: 'never' | 'rarely' | '1-2_times_week' | '3-4_times_week' | '5+_times_week' | 'daily';
+    type?: string[];
+    intensity?: 'low' | 'moderate' | 'high';
+    hoursPerWeek?: number;
+  };
+  sleep: {
+    averageHoursPerNight?: number;
+    sleepQuality?: 'poor' | 'fair' | 'good' | 'excellent';
+    sleepDisorders?: string[];
+  };
+  stress: {
+    level: 'low' | 'moderate' | 'high' | 'severe';
+    managementTechniques?: string[];
+  };
+}
+
+export interface OrganCondition {
+  id: string;
+  organSystem: 'cardiovascular' | 'respiratory' | 'digestive' | 'nervous' | 'endocrine' | 'immune' | 'urinary' | 'reproductive' | 'musculoskeletal' | 'integumentary';
+  condition: string;
+  diagnosedDate?: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  status: 'active' | 'resolved' | 'managed';
+  notes?: string;
 }

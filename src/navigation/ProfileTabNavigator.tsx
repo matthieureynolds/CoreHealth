@@ -6,6 +6,10 @@ import { ProfileTabParamList } from '../types';
 
 import ProfileDetailsScreen from '../screens/profile/ProfileDetailsScreen';
 import SettingsScreen from '../screens/profile/SettingsScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import MedicalHistoryScreen from '../screens/profile/MedicalHistoryScreen';
+import EmergencyContactsScreen from '../screens/profile/EmergencyContactsScreen';
+import BiomarkerVisibilityScreen from '../screens/profile/BiomarkerVisibilityScreen';
 import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 import TermsOfServiceScreen from '../screens/profile/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '../screens/profile/PrivacyPolicyScreen';
@@ -76,6 +80,37 @@ const ProfileTabNavigator: React.FC = () => {
         name="ProfileTabs"
         component={ProfileTabsNavigator}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          title: 'Edit Profile',
+        }}
+      />
+      <Stack.Screen
+        name="MedicalHistory"
+        component={MedicalHistoryScreen}
+        options={{
+          title: 'Medical History',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EmergencyContacts"
+        component={EmergencyContactsScreen}
+        options={{
+          title: 'Emergency Contacts',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="BiomarkerVisibility"
+        component={BiomarkerVisibilityScreen}
+        options={{
+          title: 'Biomarker Visibility',
+          headerShown: false,
+        }}
       />
       <Stack.Screen
         name="HelpSupport"

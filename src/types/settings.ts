@@ -90,6 +90,37 @@ export interface AccessibilitySettings {
   hapticFeedback: boolean;
 }
 
+export interface BiomarkerSettings {
+  units: {
+    glucose: 'mg/dL' | 'mmol/L';
+    cholesterol: 'mg/dL' | 'mmol/L';
+    creatinine: 'mg/dL' | 'µmol/L';
+    bloodPressure: 'mmHg' | 'kPa';
+    weight: 'kg' | 'lbs';
+    temperature: 'celsius' | 'fahrenheit';
+  };
+  visibility: {
+    [biomarkerId: string]: boolean;
+  };
+  healthGoalPreset: 'longevity' | 'athletic' | 'disease_monitoring' | 'general_wellness' | 'custom';
+  customGoals: {
+    targetRanges: {
+      [biomarkerId: string]: {
+        min: number;
+        max: number;
+        unit: string;
+      };
+    };
+    priorities: string[];
+  };
+  displaySettings: {
+    showTrends: boolean;
+    showPercentiles: boolean;
+    groupByCategory: boolean;
+    sortBy: 'alphabetical' | 'category' | 'last_updated' | 'risk_level' | 'custom';
+  };
+}
+
 export interface AppSettings {
   firstLaunch: boolean;
   onboardingCompleted: boolean;
@@ -108,6 +139,7 @@ export interface UserSettings {
   healthEmergency: HealthEmergencySettings;
   travel: TravelSettings;
   accessibility: AccessibilitySettings;
+  biomarkers: BiomarkerSettings;
   app: AppSettings;
 }
 
@@ -120,6 +152,7 @@ export type SettingsAction =
   | { type: 'UPDATE_HEALTH_EMERGENCY'; payload: Partial<HealthEmergencySettings> }
   | { type: 'UPDATE_TRAVEL'; payload: Partial<TravelSettings> }
   | { type: 'UPDATE_ACCESSIBILITY'; payload: Partial<AccessibilitySettings> }
+  | { type: 'UPDATE_BIOMARKERS'; payload: Partial<BiomarkerSettings> }
   | { type: 'UPDATE_APP'; payload: Partial<AppSettings> }
   | { type: 'RESET_SETTINGS' }
   | { type: 'LOAD_SETTINGS'; payload: UserSettings };
@@ -197,6 +230,41 @@ export const defaultSettings: UserSettings = {
     voiceFeatures: false,
     screenReader: false,
     hapticFeedback: true,
+  },
+  biomarkers: {
+    units: {
+      glucose: 'mg/dL',
+      cholesterol: 'mg/dL',
+      creatinine: 'mg/dL',
+      bloodPressure: 'mmHg',
+      weight: 'kg',
+      temperature: 'celsius',
+    },
+    visibility: {
+      'creatinine': true,
+      'alt': true,
+      'glucose': true,
+      'cholesterol': true,
+      'tsh': true,
+      'vitamin_d': true,
+      'free_t3': true,
+      'ldl': true,
+      'hdl': true,
+      'hs_crp': true,
+      'homa_ir': true,
+      'resting_hr': true,
+    },
+    healthGoalPreset: 'general_wellness',
+    customGoals: {
+      targetRanges: {},
+      priorities: [],
+    },
+    displaySettings: {
+      showTrends: true,
+      showPercentiles: true,
+      groupByCategory: true,
+      sortBy: 'category',
+    },
   },
   app: {
     firstLaunch: true,

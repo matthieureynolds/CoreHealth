@@ -20,6 +20,7 @@ import {
   HealthEmergencySettings,
   TravelSettings,
   AccessibilitySettings,
+  BiomarkerSettings,
   AppSettings,
 } from '../types/settings';
 
@@ -35,6 +36,7 @@ interface SettingsContextType {
   updateHealthEmergencySettings: (updates: Partial<HealthEmergencySettings>) => Promise<void>;
   updateTravelSettings: (updates: Partial<TravelSettings>) => Promise<void>;
   updateAccessibilitySettings: (updates: Partial<AccessibilitySettings>) => Promise<void>;
+  updateBiomarkerSettings: (updates: Partial<BiomarkerSettings>) => Promise<void>;
   updateAppSettings: (updates: Partial<AppSettings>) => Promise<void>;
   
   // Utility actions
@@ -94,6 +96,11 @@ function settingsReducer(state: UserSettings, action: SettingsAction): UserSetti
       return {
         ...state,
         accessibility: { ...state.accessibility, ...action.payload },
+      };
+    case 'UPDATE_BIOMARKERS':
+      return {
+        ...state,
+        biomarkers: { ...state.biomarkers, ...action.payload },
       };
     case 'UPDATE_APP':
       return {
@@ -247,6 +254,14 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     await saveSettings(newSettings);
   };
 
+  const updateBiomarkerSettings = async (updates: Partial<BiomarkerSettings>) => {
+    const newSettings = { ...settings };
+    newSettings.biomarkers = { ...newSettings.biomarkers, ...updates };
+    
+    dispatch({ type: 'UPDATE_BIOMARKERS', payload: updates });
+    await saveSettings(newSettings);
+  };
+
   const updateAppSettings = async (updates: Partial<AppSettings>) => {
     const newSettings = { ...settings };
     newSettings.app = { ...newSettings.app, ...updates };
@@ -349,6 +364,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     updateHealthEmergencySettings,
     updateTravelSettings,
     updateAccessibilitySettings,
+    updateBiomarkerSettings,
     updateAppSettings,
     resetSettings,
     exportSettings,

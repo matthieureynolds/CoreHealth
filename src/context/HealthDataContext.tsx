@@ -155,7 +155,36 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         AsyncStorage.getItem('originLocation'),
       ]);
 
-      if (storedProfile) setProfile(JSON.parse(storedProfile));
+      if (storedProfile) {
+        setProfile(JSON.parse(storedProfile));
+      } else {
+        // Create default profile if none exists
+        const newProfile: UserProfile = {
+          userId: 'default',
+          age: 30,
+          gender: 'other',
+          height: 170,
+          weight: 70,
+          ethnicity: '',
+          bloodType: 'unknown',
+          medicalHistory: [],
+          familyHistory: [],
+          surgeries: [],
+          vaccinations: [],
+          allergies: [],
+          lifestyle: {
+            smoking: { status: 'never' },
+            alcohol: { frequency: 'never' },
+            diet: { type: 'omnivore', restrictions: [], supplements: [] },
+            exercise: { frequency: 'never', type: [], intensity: 'low' },
+            sleep: { averageHoursPerNight: 8, sleepQuality: 'good', sleepDisorders: [] },
+            stress: { level: 'low', managementTechniques: [] },
+          },
+          organSpecificConditions: [],
+        };
+        setProfile(newProfile);
+      }
+      
       if (storedBiomarkers) setBiomarkers(JSON.parse(storedBiomarkers));
       if (storedLabResults) setLabResults(JSON.parse(storedLabResults));
       if (storedDeviceData) setDeviceData(JSON.parse(storedDeviceData));
@@ -418,20 +447,56 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   };
 
   const generateDailyInsights = async () => {
-    // Mock insight generation based on current data
-    // In production, this would use AI/ML algorithms
-    const insights: DailyInsight[] = [
-      {
-        id: Date.now().toString(),
-        title: 'Weekly Health Summary',
-        description: 'Your health metrics show positive trends this week.',
-        category: 'recovery',
-        priority: 'low',
-        actionable: false,
-      },
-    ];
+    try {
+      // First try to get AI-powered insights
+      let insights: DailyInsight[] = [];
+      
+      try {
+        const { HealthAssistantService } = require('../services/healthAssistantService');
+        insights = await HealthAssistantService.generateDailyRecommendations(
+          profile,
+          biomarkers,
+          healthScore
+        );
+        console.log('✨ Generated AI-powered daily insights');
+      } catch (aiError) {
+        console.warn('AI insights unavailable, using fallback:', aiError);
+        // Fallback to enhanced insights based on current data
+        insights = [
+          {
+            id: Date.now().toString(),
+            title: 'Weekly Health Summary',
+            description: 'Your health metrics show positive trends this week.',
+            category: 'recovery',
+            priority: 'low',
+            actionable: false,
+          },
+          {
+            id: (Date.now() + 1).toString(),
+            title: 'Hydration Focus',
+            description: 'Staying well hydrated supports all body functions and health metrics.',
+            category: 'nutrition',
+            priority: 'medium',
+            actionable: true,
+            action: 'Aim for 8 glasses of water throughout the day.',
+          },
+                     {
+             id: (Date.now() + 2).toString(),
+             title: 'Movement Opportunity',
+             description: 'Regular movement helps maintain cardiovascular health and energy levels.',
+             category: 'activity',
+             priority: 'medium',
+             actionable: true,
+             action: 'Take a 10-minute walk or do some light stretching.',
+           },
+        ];
+      }
 
-    setDailyInsights(prev => [...insights, ...prev]);
+      setDailyInsights(insights);
+      await AsyncStorage.setItem('dailyInsights', JSON.stringify(insights));
+    } catch (error) {
+      console.error('Failed to generate daily insights:', error);
+    }
   };
 
   const updateLocation = async (location: string) => {
