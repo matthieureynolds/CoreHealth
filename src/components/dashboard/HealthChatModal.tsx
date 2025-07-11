@@ -27,6 +27,7 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
   const [messages, setMessages] = useState<HealthChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -35,15 +36,55 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
     }
   }, [visible]);
 
-  const initializeChat = () => {
-    const welcomeMessage: HealthChatMessage = {
-      id: 'welcome',
-      role: 'assistant',
-      content: `Hi! I'm your AI health assistant. I can help you understand your health data, answer questions about wellness, and provide personalized recommendations. What would you like to know about your health today?`,
-      timestamp: new Date(),
-      type: 'text'
-    };
-    setMessages([welcomeMessage]);
+  const initializeChat = async () => {
+    setIsInitializing(true);
+    try {
+      // Load existing conversation history
+      const existingHistory = await HealthAssistantService.loadConversationHistory();
+      
+      if (existingHistory.length > 0) {
+        // Resume existing conversation
+        setMessages(existingHistory);
+      } else {
+        // Create personalized greeting
+        const personalizedGreeting = await HealthAssistantService.getPersonalizedGreeting(
+          profile,
+          biomarkers,
+          healthScore
+        );
+        
+        const welcomeMessage: HealthChatMessage = {
+          id: 'welcome',
+          role: 'assistant',
+          content: personalizedGreeting,
+          timestamp: new Date(),
+          metadata: {
+            healthDataSnapshot: {
+              healthScore: healthScore?.overall,
+              biomarkerCount: biomarkers?.length || 0,
+              lastUpdate: new Date()
+            },
+            topics: ['greeting', 'introduction']
+          }
+        };
+        
+        setMessages([welcomeMessage]);
+        // Save the initial greeting
+        await HealthAssistantService.saveConversationHistory([welcomeMessage]);
+      }
+    } catch (error) {
+      console.error('Failed to initialize chat:', error);
+      // Fallback to simple greeting
+      const fallbackMessage: HealthChatMessage = {
+        id: 'welcome-fallback',
+        role: 'assistant',
+        content: "Hi! I'm your AI health assistant. I can help you understand your health data and provide personalized recommendations. What would you like to know?",
+        timestamp: new Date()
+      };
+      setMessages([fallbackMessage]);
+    } finally {
+      setIsInitializing(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -54,7 +95,13 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
       role: 'user',
       content: inputText.trim(),
       timestamp: new Date(),
-      type: 'text'
+      metadata: {
+        healthDataSnapshot: {
+          healthScore: healthScore?.overall,
+          biomarkerCount: biomarkers?.length || 0,
+          lastUpdate: new Date()
+        }
+      }
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -62,9 +109,10 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
     setIsLoading(true);
 
     try {
+      // Pass health data to the enhanced service
       const response = await HealthAssistantService.chatWithAssistant(
         userMessage.content,
-        messages,
+        [...messages, userMessage],
         { profile, biomarkers, healthScore }
       );
 
@@ -73,16 +121,44 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
         role: 'assistant',
         content: response,
         timestamp: new Date(),
-        type: 'text'
+        metadata: {
+          healthDataSnapshot: {
+            healthScore: healthScore?.overall,
+            biomarkerCount: biomarkers?.length || 0,
+            lastUpdate: new Date()
+          }
+        }
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Chat error:', error);
-      Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');
+      Alert.alert(
+        'Connection Error', 
+        'Failed to get response from health assistant. Please check your internet connection and try again.'
+      );
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const clearConversation = async () => {
+    Alert.alert(
+      'Clear Conversation',
+      'This will clear all conversation history and start fresh. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            await HealthAssistantService.clearConversationMemory();
+            setMessages([]);
+            initializeChat();
+          }
+        }
+      ]
+    );
   };
 
   const renderMessage = (message: HealthChatMessage) => {
@@ -110,31 +186,66 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
   };
 
   const renderQuickQuestions = () => {
-    const quickQuestions = [
+    // Enhanced quick questions based on user's health data
+    const baseQuestions = [
       "How is my overall health?",
-      "What should I focus on?",
-      "Any concerning trends?",
-      "Exercise recommendations?",
-      "Sleep improvement tips?",
+      "What should I focus on improving?",
+      "Any concerning trends in my data?",
     ];
+
+    const personalizedQuestions = [];
+    
+    // Add personalized questions based on health data
+    if (healthScore?.overall && healthScore.overall < 80) {
+      personalizedQuestions.push("How can I improve my health score?");
+    }
+    
+    if (biomarkers?.length > 0) {
+      personalizedQuestions.push("Explain my latest biomarker results");
+    }
+
+    const allQuestions = [...baseQuestions, ...personalizedQuestions].slice(0, 5);
 
     return (
       <View style={styles.quickQuestionsContainer}>
-        <Text style={styles.quickQuestionsTitle}>Quick Questions:</Text>
+        <Text style={styles.quickQuestionsTitle}>Suggested Questions:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {quickQuestions.map((question, index) => (
+          {allQuestions.map((question, index) => (
             <TouchableOpacity
               key={index}
               style={styles.quickQuestionButton}
               onPress={() => {
                 setInputText(question);
-                sendMessage();
               }}
             >
               <Text style={styles.quickQuestionText}>{question}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
+      </View>
+    );
+  };
+
+  const renderHealthContext = () => {
+    if (!healthScore && (!biomarkers || biomarkers.length === 0)) return null;
+
+    return (
+      <View style={styles.healthContextContainer}>
+        <Text style={styles.healthContextTitle}>Current Health Context</Text>
+        <View style={styles.healthContextRow}>
+          {healthScore?.overall && (
+            <View style={styles.healthContextItem}>
+              <Ionicons name="fitness" size={16} color="#007AFF" />
+              <Text style={styles.healthContextText}>Health Score: {healthScore.overall}</Text>
+            </View>
+          )}
+          {biomarkers && biomarkers.length > 0 && (
+            <View style={styles.healthContextItem}>
+              <Ionicons name="analytics" size={16} color="#007AFF" />
+              <Text style={styles.healthContextText}>{biomarkers.length} Biomarkers</Text>
+            </View>
+          )}
+        </View>
       </View>
     );
   };
@@ -169,13 +280,21 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
               </View>
               <View>
                 <Text style={styles.headerTitle}>Health Assistant</Text>
-                <Text style={styles.headerSubtitle}>AI-powered health companion</Text>
+                <Text style={styles.headerSubtitle}>AI-powered health insights</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.headerButton} onPress={clearConversation}>
+                <Ionicons name="refresh" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Ionicons name="close" size={24} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {/* Health Context */}
+          {renderHealthContext()}
 
           {/* Messages */}
           <ScrollView
@@ -184,38 +303,50 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
             contentContainerStyle={styles.messagesContent}
             showsVerticalScrollIndicator={false}
           >
-            {messages.map(renderMessage)}
+            {isInitializing ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#007AFF" />
+                <Text style={styles.loadingText}>Preparing your personalized health assistant...</Text>
+              </View>
+            ) : (
+              messages.map(renderMessage)
+            )}
+            
             {isLoading && (
               <View style={styles.loadingContainer}>
                 <View style={styles.loadingBubble}>
                   <ActivityIndicator size="small" color="#007AFF" />
-                  <Text style={styles.loadingText}>Thinking...</Text>
+                  <Text style={styles.loadingText}>Analyzing your health data...</Text>
                 </View>
               </View>
             )}
           </ScrollView>
 
           {/* Quick Questions */}
-          {messages.length === 1 && renderQuickQuestions()}
+          {messages.length <= 2 && !isInitializing && renderQuickQuestions()}
 
           {/* Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.textInput}
-                placeholder="Ask about your health..."
+                placeholder="Ask about your health data..."
                 value={inputText}
                 onChangeText={setInputText}
                 multiline
                 maxLength={500}
-                editable={!isLoading}
+                editable={!isLoading && !isInitializing}
               />
               <TouchableOpacity
-                style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+                style={[styles.sendButton, (!inputText.trim() || isLoading || isInitializing) && styles.sendButtonDisabled]}
                 onPress={sendMessage}
-                disabled={!inputText.trim() || isLoading}
+                disabled={!inputText.trim() || isLoading || isInitializing}
               >
-                <Ionicons name="send" size={20} color={(!inputText.trim() || isLoading) ? "#8E8E93" : "#007AFF"} />
+                <Ionicons 
+                  name="send" 
+                  size={20} 
+                  color={(!inputText.trim() || isLoading || isInitializing) ? "#8E8E93" : "#007AFF"} 
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -245,39 +376,72 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   aiIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#F0F8FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#1D1D1F',
+    color: '#1C1C1E',
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#8E8E93',
   },
+  headerButton: {
+    padding: 8,
+    marginRight: 8,
+  },
   closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F2F2F7',
+    padding: 8,
+  },
+  healthContextContainer: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  healthContextTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginBottom: 6,
+  },
+  healthContextRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  healthContextItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginRight: 16,
+    marginBottom: 4,
+  },
+  healthContextText: {
+    fontSize: 12,
+    color: '#007AFF',
+    marginLeft: 4,
+    fontWeight: '500',
   },
   messagesContainer: {
     flex: 1,
+    paddingHorizontal: 16,
   },
   messagesContent: {
-    padding: 16,
-    paddingBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   messageContainer: {
     marginBottom: 16,
@@ -289,76 +453,78 @@ const styles = StyleSheet.create({
   messageBubble: {
     flexDirection: 'row',
     maxWidth: '85%',
-    alignItems: 'flex-end',
-  },
-  assistantBubble: {
     alignItems: 'flex-start',
   },
   userBubble: {
-    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  assistantBubble: {
+    justifyContent: 'flex-start',
   },
   assistantIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#E3F2FD',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F0F8FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
-    marginBottom: 4,
+    marginTop: 2,
   },
   messageContent: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  userBubble: {
-    backgroundColor: '#007AFF',
+    flex: 1,
   },
   messageText: {
     fontSize: 16,
     lineHeight: 22,
-    color: '#1D1D1F',
+    marginBottom: 4,
   },
   userMessageText: {
+    backgroundColor: '#007AFF',
     color: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderBottomRightRadius: 6,
+    overflow: 'hidden',
   },
   assistantMessageText: {
-    color: '#1D1D1F',
+    backgroundColor: '#fff',
+    color: '#1C1C1E',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
   },
   messageTime: {
     fontSize: 11,
     marginTop: 4,
-    color: '#8E8E93',
   },
   userMessageTime: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#8E8E93',
+    textAlign: 'right',
+    marginRight: 16,
   },
   assistantMessageTime: {
     color: '#8E8E93',
+    marginLeft: 16,
   },
   loadingContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+    marginVertical: 16,
   },
   loadingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   loadingText: {
     fontSize: 14,
@@ -374,26 +540,29 @@ const styles = StyleSheet.create({
   quickQuestionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1D1D1F',
+    color: '#1C1C1E',
     marginBottom: 12,
   },
   quickQuestionButton: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 16,
-    paddingHorizontal: 16,
+    backgroundColor: '#F0F8FF',
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    borderRadius: 16,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF20',
   },
   quickQuestionText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#007AFF',
     fontWeight: '500',
   },
   inputContainer: {
     backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
-    padding: 16,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -402,19 +571,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    minHeight: 44,
   },
   textInput: {
     flex: 1,
     fontSize: 16,
+    color: '#1C1C1E',
     maxHeight: 100,
-    paddingVertical: 8,
-    color: '#1D1D1F',
+    textAlignVertical: 'top',
   },
   sendButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,

@@ -1,8 +1,40 @@
 import { UserProfile, Biomarker, HealthScore, DailyInsight } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // OpenAI API Configuration
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
+export const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+const CONVERSATION_HISTORY_KEY = 'healthAssistant_conversationHistory';
+const USER_CONTEXT_KEY = 'healthAssistant_userContext';
+
+export interface HealthChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  metadata?: {
+    healthDataSnapshot?: any;
+    userIntent?: string;
+    topics?: string[];
+  };
+}
+
+export interface UserHealthContext {
+  preferredTopics: string[];
+  healthConcerns: string[];
+  goalsFocus: string[];
+  conversationStyle: 'detailed' | 'concise' | 'technical';
+  lastDataUpdate: Date;
+  biomarkerTrends: {
+    [key: string]: {
+      trend: 'improving' | 'stable' | 'declining';
+      significance: 'normal' | 'concerning' | 'critical';
+      lastValue: number;
+      changePercent: number;
+    };
+  };
+}
 
 export interface HealthAssistantResponse {
   insights: string[];
@@ -10,21 +42,502 @@ export interface HealthAssistantResponse {
   riskAssessment: {
     level: 'low' | 'medium' | 'high';
     concerns: string[];
+    improvements: string[];
   };
   nextActions: string[];
-}
-
-export interface HealthChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  type?: 'text' | 'recommendation' | 'alert';
+  followUpQuestions: string[];
 }
 
 export class HealthAssistantService {
   /**
-   * Generate comprehensive health insights based on user data
+   * Load full conversation history from AsyncStorage
+   */
+  static async loadConversationHistory(): Promise<HealthChatMessage[]> {
+    try {
+      const stored = await AsyncStorage.getItem(CONVERSATION_HISTORY_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to load conversation history:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Load user health context and preferences
+   */
+  static async loadUserContext(): Promise<UserHealthContext | null> {
+    try {
+      const stored = await AsyncStorage.getItem(USER_CONTEXT_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to load user context:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Save conversation history to AsyncStorage
+   */
+  static async saveConversationHistory(history: HealthChatMessage[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(CONVERSATION_HISTORY_KEY, JSON.stringify(history));
+    } catch (error) {
+      console.error('Failed to save conversation history:', error);
+    }
+  }
+
+  /**
+   * Save user health context
+   */
+  static async saveUserContext(context: UserHealthContext): Promise<void> {
+    try {
+      await AsyncStorage.setItem(USER_CONTEXT_KEY, JSON.stringify(context));
+    } catch (error) {
+      console.error('Failed to save user context:', error);
+    }
+  }
+
+  /**
+   * Clear/reset conversation memory
+   */
+  static async clearConversationMemory(): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove([CONVERSATION_HISTORY_KEY, USER_CONTEXT_KEY]);
+    } catch (error) {
+      console.error('Failed to clear conversation memory:', error);
+    }
+  }
+
+  /**
+   * Enhanced greeting with personalization
+   */
+  static async getPersonalizedGreeting(
+    profile: UserProfile | null,
+    biomarkers: Biomarker[],
+    healthScore: HealthScore | null
+  ): Promise<string> {
+    const context = await this.loadUserContext();
+    const timeOfDay = this.getTimeOfDay();
+    const name = 'there'; // Profile doesn't have displayName, will get from user context later
+    
+    let greeting = `Good ${timeOfDay}, ${name}! 👋 I'm your AI health assistant.`;
+    
+    // Add personalized context based on health data
+    if (healthScore?.overall) {
+      if (healthScore.overall >= 80) {
+        greeting += ` Your health score of ${healthScore.overall} looks excellent! `;
+      } else if (healthScore.overall >= 60) {
+        greeting += ` Your health score of ${healthScore.overall} shows good progress with room for optimization. `;
+      } else {
+        greeting += ` I see opportunities to improve your health score of ${healthScore.overall}. `;
+      }
+    }
+
+    // Add trending biomarker insights
+    const trendingBiomarkers = this.analyzeBiomarkerTrends(biomarkers);
+    if (trendingBiomarkers.length > 0) {
+      greeting += `I noticed some interesting trends in your ${trendingBiomarkers.join(' and ')} levels. `;
+    }
+
+    greeting += `\n\nI can help you understand your health data, provide evidence-based insights, and suggest personalized recommendations. What would you like to explore today? 🔬`;
+
+    return greeting;
+  }
+
+  /**
+   * Natural ChatGPT-style system prompt focused on health
+   */
+  private static getAdvancedSystemPrompt(
+    userContext: UserHealthContext | null,
+    healthData: any
+  ): string {
+    const healthContext = this.formatHealthDataForAI(healthData);
+    
+    return `You're a friendly, super knowledgeable health researcher who loves talking about health, wellness, nutrition, fitness, sleep, biomarkers, and anything health-related. You're basically like having a health-obsessed friend who's done a PhD in health sciences and keeps up with all the latest research.
+
+Here's what you know about this person:
+${healthContext}
+
+Just chat naturally! Answer their questions, share insights, explain things in a way that makes sense, use analogies when helpful, and feel free to ask follow-up questions to understand what they're really trying to figure out.
+
+You're NOT a doctor (never claim to be), you can't diagnose or prescribe anything, but you're amazing at explaining health concepts, interpreting data trends, and sharing evidence-based lifestyle tips. If something needs medical attention, just suggest they check with their doctor.
+
+Be curious, engaging, and helpful. Talk like you would to a friend - no bullet points or formal structure unless they specifically ask for that. Just have a natural conversation about health stuff.
+
+Stay focused on health topics only - if they ask about non-health things, just gently redirect back to health and wellness topics.`;
+  }
+
+  /**
+   * Enhanced chat method with deep health data integration
+   */
+  static async chatWithAssistant(
+    message: string,
+    conversationHistory?: HealthChatMessage[],
+    healthData?: {
+      profile: UserProfile | null;
+      biomarkers: Biomarker[];
+      healthScore: HealthScore | null;
+    }
+  ): Promise<string> {
+    if (!OPENAI_API_KEY) {
+      return "I need an OpenAI API key to provide intelligent health insights. Please configure your API key in the settings to unlock my full capabilities.";
+    }
+
+    try {
+      // Load context and history
+      let history = conversationHistory || await this.loadConversationHistory();
+      const userContext = await this.loadUserContext();
+
+      // Analyze user intent and update context
+      const intent = this.analyzeUserIntent(message);
+      const updatedContext = await this.updateUserContext(userContext, intent, healthData);
+
+      // Add the new user message with metadata
+      const newMessage: HealthChatMessage = {
+        id: `${Date.now()}`,
+        role: 'user',
+        content: message,
+        timestamp: new Date(),
+        metadata: {
+          healthDataSnapshot: healthData ? {
+            healthScore: healthData.healthScore?.overall,
+            biomarkerCount: healthData.biomarkers?.length || 0,
+            lastUpdate: new Date()
+          } : undefined,
+          userIntent: intent,
+          topics: this.extractTopics(message)
+        }
+      };
+      history.push(newMessage);
+
+      // Prepare enhanced messages for OpenAI
+      const maxMessages = 20; // Keep more context for better continuity
+      const systemPrompt = this.getAdvancedSystemPrompt(updatedContext, healthData);
+      
+      const messages = [
+        {
+          role: 'system' as const,
+          content: systemPrompt
+        },
+        ...history.slice(-maxMessages).map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        }))
+      ];
+
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages,
+          temperature: 0.6, // Balanced between consistency and creativity
+          max_tokens: 1000, // Allow more detailed responses
+          presence_penalty: 0.1, // Encourage staying on topic
+          frequency_penalty: 0.1, // Reduce repetition
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiContent = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+
+      // Add the assistant's reply to history with metadata
+      const aiMessage: HealthChatMessage = {
+        id: `${Date.now()}-ai`,
+        role: 'assistant',
+        content: aiContent,
+        timestamp: new Date(),
+        metadata: {
+          topics: this.extractTopics(aiContent)
+        }
+      };
+      history.push(aiMessage);
+
+      // Save updated history and context
+      await this.saveConversationHistory(history);
+      await this.saveUserContext(updatedContext);
+
+      return aiContent;
+    } catch (error) {
+      console.error('Health Assistant Error:', error);
+      return "I'm having trouble connecting right now. Please check your internet connection and try again. In the meantime, remember that I'm here to help with health education and insights - always consult your healthcare provider for medical decisions.";
+    }
+  }
+
+  /**
+   * Analyze biomarker trends for insights
+   */
+  private static analyzeBiomarkerTrends(biomarkers: Biomarker[]): string[] {
+    const trending: string[] = [];
+    
+    // This is a simplified version - in production you'd have historical data
+    biomarkers.forEach(biomarker => {
+      const name = biomarker.name.toLowerCase();
+      if (name.includes('glucose') || name.includes('sugar')) {
+        trending.push('glucose');
+      } else if (name.includes('cholesterol')) {
+        trending.push('cholesterol');
+      } else if (name.includes('pressure') || name.includes('heart')) {
+        trending.push('cardiovascular');
+      }
+    });
+
+    return [...new Set(trending)]; // Remove duplicates
+  }
+
+  /**
+   * Analyze user intent from message
+   */
+  private static analyzeUserIntent(message: string): string {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('biomarker') || lowerMessage.includes('lab') || lowerMessage.includes('test')) {
+      return 'biomarker_analysis';
+    } else if (lowerMessage.includes('diet') || lowerMessage.includes('nutrition') || lowerMessage.includes('food')) {
+      return 'nutrition_guidance';
+    } else if (lowerMessage.includes('exercise') || lowerMessage.includes('workout') || lowerMessage.includes('fitness')) {
+      return 'fitness_guidance';
+    } else if (lowerMessage.includes('sleep')) {
+      return 'sleep_optimization';
+    } else if (lowerMessage.includes('stress') || lowerMessage.includes('mental')) {
+      return 'stress_management';
+    } else if (lowerMessage.includes('supplement') || lowerMessage.includes('vitamin')) {
+      return 'supplement_guidance';
+    } else if (lowerMessage.includes('symptom') || lowerMessage.includes('pain')) {
+      return 'symptom_discussion';
+    }
+    
+    return 'general_health';
+  }
+
+  /**
+   * Extract topics from message
+   */
+  private static extractTopics(message: string): string[] {
+    const topics: string[] = [];
+    const lowerMessage = message.toLowerCase();
+    
+    const topicKeywords = {
+      'cardiovascular': ['heart', 'blood pressure', 'cholesterol', 'cardiovascular'],
+      'metabolic': ['glucose', 'diabetes', 'insulin', 'metabolism'],
+      'nutrition': ['diet', 'food', 'nutrition', 'eating'],
+      'exercise': ['exercise', 'workout', 'fitness', 'training'],
+      'sleep': ['sleep', 'rest', 'insomnia', 'circadian'],
+      'stress': ['stress', 'anxiety', 'mental health', 'mood'],
+      'supplements': ['supplement', 'vitamin', 'mineral', 'omega'],
+      'liver': ['liver', 'alt', 'ast', 'bilirubin'],
+      'kidney': ['kidney', 'creatinine', 'egfr', 'urea']
+    };
+
+    Object.entries(topicKeywords).forEach(([topic, keywords]) => {
+      if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        topics.push(topic);
+      }
+    });
+
+    return topics;
+  }
+
+  /**
+   * Update user context based on conversation
+   */
+  private static async updateUserContext(
+    currentContext: UserHealthContext | null,
+    intent: string,
+    healthData?: any
+  ): Promise<UserHealthContext> {
+    const context: UserHealthContext = currentContext || {
+      preferredTopics: [],
+      healthConcerns: [],
+      goalsFocus: [],
+      conversationStyle: 'detailed',
+      lastDataUpdate: new Date(),
+      biomarkerTrends: {}
+    };
+
+    // Update preferred topics based on conversation
+    if (intent && !context.preferredTopics.includes(intent)) {
+      context.preferredTopics.push(intent);
+      // Keep only last 10 topics
+      if (context.preferredTopics.length > 10) {
+        context.preferredTopics = context.preferredTopics.slice(-10);
+      }
+    }
+
+    // Update biomarker trends if health data is available
+    if (healthData?.biomarkers) {
+      healthData.biomarkers.forEach((biomarker: Biomarker) => {
+        context.biomarkerTrends[biomarker.name] = {
+          trend: 'stable', // This would be calculated from historical data
+          significance: this.assessBiomarkerSignificance(biomarker),
+          lastValue: biomarker.value,
+          changePercent: 0 // Would be calculated from previous values
+        };
+      });
+    }
+
+    context.lastDataUpdate = new Date();
+    return context;
+  }
+
+  /**
+   * Assess biomarker significance
+   */
+  private static assessBiomarkerSignificance(biomarker: Biomarker): 'normal' | 'concerning' | 'critical' {
+    // This is simplified - in production you'd have comprehensive reference ranges
+    const name = biomarker.name.toLowerCase();
+    const value = biomarker.value;
+
+    if (name.includes('glucose')) {
+      if (value < 70 || value > 140) return 'concerning';
+      if (value < 50 || value > 180) return 'critical';
+    } else if (name.includes('cholesterol')) {
+      if (value > 240) return 'concerning';
+      if (value > 300) return 'critical';
+    }
+
+    return 'normal';
+  }
+
+  /**
+   * Get time of day for greetings
+   */
+  private static getTimeOfDay(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    return 'evening';
+  }
+
+  /**
+   * Enhanced health data formatting for AI
+   */
+  private static formatHealthDataForAI(healthData?: {
+    profile: UserProfile | null;
+    biomarkers: Biomarker[];
+    healthScore: HealthScore | null;
+  }): string {
+    if (!healthData) return 'No current health data available.';
+
+    let formattedData = '=== CURRENT HEALTH PROFILE ===\n';
+
+    // User Demographics
+    if (healthData.profile) {
+      formattedData += `User: ${healthData.profile.age || 'age unknown'} year old ${healthData.profile.gender || 'gender not specified'}\n`;
+      if (healthData.profile.height && healthData.profile.weight) {
+        const bmi = (healthData.profile.weight / Math.pow(healthData.profile.height / 100, 2)).toFixed(1);
+        formattedData += `BMI: ${bmi} (Height: ${healthData.profile.height}cm, Weight: ${healthData.profile.weight}kg)\n`;
+      }
+    }
+
+    // Health Score Analysis
+    if (healthData.healthScore) {
+      formattedData += `\n=== HEALTH SCORES ===\n`;
+      formattedData += `Overall Health Score: ${healthData.healthScore.overall}/100\n`;
+      if (healthData.healthScore.recovery) formattedData += `Recovery Score: ${healthData.healthScore.recovery}/100\n`;
+      if (healthData.healthScore.activity) formattedData += `Activity Score: ${healthData.healthScore.activity}/100\n`;
+    }
+
+    // Biomarker Analysis
+    if (healthData.biomarkers?.length) {
+      formattedData += `\n=== BIOMARKERS (Recent) ===\n`;
+      
+      // Group biomarkers by system
+      const systems = {
+        'Cardiovascular': ['cholesterol', 'hdl', 'ldl', 'triglycerides', 'blood pressure', 'heart rate'],
+        'Metabolic': ['glucose', 'insulin', 'hba1c', 'diabetes'],
+        'Liver Function': ['alt', 'ast', 'bilirubin', 'alp'],
+        'Kidney Function': ['creatinine', 'egfr', 'bun', 'urea'],
+        'Inflammatory': ['crp', 'esr', 'inflammation'],
+        'Other': []
+      };
+
+      Object.keys(systems).forEach(system => {
+        const systemBiomarkers = healthData.biomarkers?.filter(b => 
+          systems[system as keyof typeof systems].some(keyword => 
+            b.name.toLowerCase().includes(keyword)
+          )
+        ) || [];
+
+        if (systemBiomarkers.length > 0) {
+          formattedData += `\n${system}:\n`;
+          systemBiomarkers.forEach(biomarker => {
+            const status = this.assessBiomarkerStatus(biomarker);
+            formattedData += `  • ${biomarker.name}: ${biomarker.value} ${biomarker.unit} [${status}]\n`;
+          });
+        }
+      });
+
+      // Add ungrouped biomarkers
+      const ungrouped = healthData.biomarkers?.filter(b => 
+        !Object.values(systems).flat().some(keyword => 
+          b.name.toLowerCase().includes(keyword)
+        )
+      ) || [];
+
+      if (ungrouped.length > 0) {
+        formattedData += `\nOther Biomarkers:\n`;
+        ungrouped.forEach(biomarker => {
+          const status = this.assessBiomarkerStatus(biomarker);
+          formattedData += `  • ${biomarker.name}: ${biomarker.value} ${biomarker.unit} [${status}]\n`;
+        });
+      }
+    }
+
+    return formattedData;
+  }
+
+  /**
+   * Assess biomarker status with enhanced logic
+   */
+  private static assessBiomarkerStatus(biomarker: Biomarker): string {
+    const name = biomarker.name.toLowerCase();
+    const value = biomarker.value;
+
+    // Enhanced reference ranges (simplified for demo)
+    const ranges: { [key: string]: { optimal: [number, number], normal: [number, number], unit?: string } } = {
+      'glucose': { optimal: [70, 85], normal: [70, 99] },
+      'total cholesterol': { optimal: [150, 200], normal: [150, 240] },
+      'hdl cholesterol': { optimal: [60, 100], normal: [40, 100] },
+      'ldl cholesterol': { optimal: [50, 100], normal: [50, 130] },
+      'triglycerides': { optimal: [50, 100], normal: [50, 150] },
+      'creatinine': { optimal: [0.6, 1.0], normal: [0.6, 1.2] },
+      'alt': { optimal: [10, 30], normal: [7, 56] },
+      'ast': { optimal: [10, 30], normal: [10, 40] }
+    };
+
+    for (const [biomarkerName, range] of Object.entries(ranges)) {
+      if (name.includes(biomarkerName)) {
+        if (value >= range.optimal[0] && value <= range.optimal[1]) {
+          return 'Optimal';
+        } else if (value >= range.normal[0] && value <= range.normal[1]) {
+          return 'Normal';
+        } else if (value < range.normal[0]) {
+          return 'Low';
+        } else {
+          return 'High';
+        }
+      }
+    }
+
+    return 'Within range';
+  }
+
+  /**
+   * Generate health insights from user data (simplified)
    */
   static async generateHealthInsights(
     profile: UserProfile | null,
@@ -32,53 +545,45 @@ export class HealthAssistantService {
     healthScore: HealthScore | null,
     recentInsights: DailyInsight[]
   ): Promise<HealthAssistantResponse> {
+    if (!OPENAI_API_KEY) {
+      return this.getMockHealthInsights();
+    }
+
     try {
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === '') {
-        console.warn('OpenAI API key not configured, using mock insights');
-        return this.getMockHealthInsights();
-      }
-
-      const healthData = this.formatHealthDataForAI({
-        profile,
-        biomarkers,
-        healthScore,
-        recentInsights
-      });
-
-      const prompt = `You are an expert health assistant. Analyze the following health data and provide personalized insights.
+      const healthData = this.formatHealthDataForAI({ profile, biomarkers, healthScore });
+      
+      const prompt = `Based on this health data, provide some friendly insights and recommendations:
 
 ${healthData}
 
 Please provide:
-1. Key health insights (3-4 bullet points)
-2. Specific recommendations (3-4 actionable items)
-3. Risk assessment (low/medium/high with concerns)
-4. Next actions (2-3 immediate steps)
+1. A few key insights about their health
+2. Some practical recommendations
+3. A simple risk assessment
+4. Next steps they could consider
 
-Keep responses concise, supportive, and medically informed. Focus on actionable advice.
-
-Format as JSON:
-{
-  "insights": ["insight1", "insight2", ...],
-  "recommendations": ["rec1", "rec2", ...],
-  "riskAssessment": {
-    "level": "low|medium|high",
-    "concerns": ["concern1", ...]
-  },
-  "nextActions": ["action1", "action2", ...]
-}`;
+Keep it conversational and helpful, not overly clinical.`;
 
       const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
           model: 'gpt-4o',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 1000,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a friendly health assistant providing insights from health data.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.6,
+          max_tokens: 600,
         }),
       });
 
@@ -87,90 +592,19 @@ Format as JSON:
       }
 
       const data = await response.json();
-      const aiResponse = data.choices?.[0]?.message?.content;
+      const content = data.choices[0]?.message?.content || '';
+      
+      // Parse the response into structured format
+      return this.parseInsightsResponse(content);
 
-      if (!aiResponse) {
-        throw new Error('No response from AI assistant');
-      }
-
-      return JSON.parse(aiResponse);
     } catch (error) {
-      console.error('Health assistant error:', error);
+      console.error('Health Insights Error:', error);
       return this.getMockHealthInsights();
     }
   }
 
   /**
-   * Chat with health assistant
-   */
-  static async chatWithAssistant(
-    message: string,
-    conversationHistory: HealthChatMessage[],
-    userHealthData?: {
-      profile: UserProfile | null;
-      biomarkers: Biomarker[];
-      healthScore: HealthScore | null;
-    }
-  ): Promise<string> {
-    try {
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === '') {
-        return "I'm sorry, but the AI assistant is not configured. Please contact support for assistance with your health questions.";
-      }
-
-      const healthContext = userHealthData 
-        ? this.formatHealthDataForAI(userHealthData)
-        : "No specific health data available for this user.";
-
-      const systemPrompt = `You are CoreHealth's AI assistant, a knowledgeable health companion. You have access to the user's health data when available.
-
-Guidelines:
-- Provide helpful, accurate health information
-- Never diagnose or replace professional medical advice
-- Always recommend consulting healthcare providers for serious concerns
-- Be supportive and encouraging
-- Use the user's health data to personalize responses when available
-- Keep responses concise and actionable
-
-User's Health Context:
-${healthContext}`;
-
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...conversationHistory.slice(-10).map(msg => ({
-          role: msg.role,
-          content: msg.content
-        })),
-        { role: 'user', content: message }
-      ];
-
-      const response = await fetch(OPENAI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages,
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || "I'm sorry, I couldn't process your request right now.";
-    } catch (error) {
-      console.error('Chat assistant error:', error);
-      return "I'm experiencing technical difficulties. Please try again later or consult with a healthcare provider for urgent concerns.";
-    }
-  }
-
-  /**
-   * Generate personalized daily recommendations
+   * Generate daily recommendations (simplified)
    */
   static async generateDailyRecommendations(
     profile: UserProfile | null,
@@ -178,46 +612,39 @@ ${healthContext}`;
     healthScore: HealthScore | null,
     currentDate: Date = new Date()
   ): Promise<DailyInsight[]> {
+    if (!OPENAI_API_KEY) {
+      return this.getMockDailyRecommendations();
+    }
+
     try {
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === '') {
-        return this.getMockDailyRecommendations();
-      }
-
-      const healthData = this.formatHealthDataForAI({
-        profile,
-        biomarkers,
-        healthScore
-      });
-
-      const prompt = `Generate 3-4 personalized daily health recommendations for today (${currentDate.toDateString()}) based on this health data:
+      const healthData = this.formatHealthDataForAI({ profile, biomarkers, healthScore });
+      
+      const prompt = `Based on this health data, suggest 3 practical daily recommendations for today:
 
 ${healthData}
 
-Format as JSON array:
-[
-  {
-    "title": "Recommendation Title",
-    "description": "Brief description of why this matters",
-    "category": "nutrition|exercise|sleep|stress|recovery|prevention",
-    "priority": "high|medium|low",
-    "actionable": true,
-    "action": "Specific action to take"
-  }
-]
-
-Focus on actionable, evidence-based recommendations that fit the user's current health status.`;
+Make them actionable, friendly, and relevant to their health situation. Focus on simple things they can do today.`;
 
       const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
           model: 'gpt-4o',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.4,
-          max_tokens: 800,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a friendly health assistant providing daily recommendations.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 400,
         }),
       });
 
@@ -226,260 +653,106 @@ Focus on actionable, evidence-based recommendations that fit the user's current 
       }
 
       const data = await response.json();
-      const aiResponse = data.choices?.[0]?.message?.content;
-
-      if (!aiResponse) {
-        throw new Error('No response from AI assistant');
-      }
-
-      const recommendations = JSON.parse(aiResponse);
+      const content = data.choices[0]?.message?.content || '';
       
-      // Convert to DailyInsight format
-      return recommendations.map((rec: any, index: number) => ({
-        id: `ai-${Date.now()}-${index}`,
-        title: rec.title,
-        description: rec.description,
-        category: rec.category,
-        priority: rec.priority,
-        actionable: rec.actionable,
-        action: rec.action,
-      }));
+      return this.parseDailyRecommendations(content);
+
     } catch (error) {
-      console.error('Daily recommendations error:', error);
+      console.error('Daily Recommendations Error:', error);
       return this.getMockDailyRecommendations();
     }
   }
 
   /**
-   * Analyze biomarker trends and provide insights
+   * Parse AI response into structured insights
    */
-  static async analyzeBiomarkerTrends(
-    biomarkers: Biomarker[],
-    historicalData?: Biomarker[][]
-  ): Promise<{
-    summary: string;
-    trends: Array<{
-      biomarker: string;
-      trend: 'improving' | 'stable' | 'concerning';
-      insight: string;
-    }>;
-    recommendations: string[];
-  }> {
-    try {
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === '') {
-        return this.getMockBiomarkerAnalysis();
-      }
-
-      const biomarkerData = biomarkers.map(b => ({
-        name: b.name,
-        value: b.value,
-        unit: b.unit,
-        category: b.category,
-        trend: b.trend,
-        riskLevel: b.riskLevel
-      }));
-
-      const prompt = `Analyze these biomarker results and provide insights:
-
-${JSON.stringify(biomarkerData, null, 2)}
-
-Provide:
-1. Overall summary (2-3 sentences)
-2. Individual biomarker trend analysis
-3. Actionable recommendations
-
-Format as JSON:
-{
-  "summary": "Overall health summary...",
-  "trends": [
-    {
-      "biomarker": "biomarker name",
-      "trend": "improving|stable|concerning",
-      "insight": "specific insight about this biomarker"
-    }
-  ],
-  "recommendations": ["rec1", "rec2", ...]
-}`;
-
-      const response = await fetch(OPENAI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 800,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const aiResponse = data.choices?.[0]?.message?.content;
-
-      if (!aiResponse) {
-        throw new Error('No response from AI assistant');
-      }
-
-      return JSON.parse(aiResponse);
-    } catch (error) {
-      console.error('Biomarker analysis error:', error);
-      return this.getMockBiomarkerAnalysis();
-    }
+  private static parseInsightsResponse(content: string): HealthAssistantResponse {
+    // Simple parsing - in a real app you might want more sophisticated parsing
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    return {
+      insights: lines.slice(0, 3).map(line => line.replace(/^\d+\.\s*/, '').trim()),
+      recommendations: lines.slice(3, 6).map(line => line.replace(/^\d+\.\s*/, '').trim()),
+      riskAssessment: {
+        level: 'low' as const,
+        concerns: [],
+        improvements: []
+      },
+      nextActions: lines.slice(-2).map(line => line.replace(/^\d+\.\s*/, '').trim()),
+      followUpQuestions: []
+    };
   }
 
   /**
-   * Format health data for AI processing
+   * Parse AI response into daily recommendations
    */
-  private static formatHealthDataForAI(data: {
-    profile: UserProfile | null;
-    biomarkers: Biomarker[];
-    healthScore: HealthScore | null;
-    recentInsights?: DailyInsight[];
-  }): string {
-    const { profile, biomarkers, healthScore, recentInsights } = data;
-
-    let formattedData = "HEALTH DATA SUMMARY:\n\n";
-
-    if (profile) {
-      formattedData += `Profile: Age ${profile.age}, ${profile.gender}, Activity Level: ${profile.activityLevel}\n`;
-      if (profile.conditions?.length) {
-        formattedData += `Medical Conditions: ${profile.conditions.join(', ')}\n`;
-      }
-      if (profile.medications?.length) {
-        formattedData += `Medications: ${profile.medications.join(', ')}\n`;
-      }
-      formattedData += "\n";
-    }
-
-    if (healthScore) {
-      formattedData += `Health Scores:\n`;
-      formattedData += `- Overall: ${healthScore.overall}/100\n`;
-      formattedData += `- Sleep: ${healthScore.sleep}/100\n`;
-      formattedData += `- Activity: ${healthScore.activity}/100\n`;
-      formattedData += `- Stress: ${healthScore.stress}/100\n`;
-      formattedData += `- Recovery: ${healthScore.recovery}/100\n`;
-      formattedData += `- Nutrition: ${healthScore.nutrition}/100\n\n`;
-    }
-
-    if (biomarkers.length > 0) {
-      formattedData += "Recent Biomarkers:\n";
-      biomarkers.forEach(b => {
-        formattedData += `- ${b.name}: ${b.value} ${b.unit} (${b.riskLevel} risk, ${b.trend})\n`;
-      });
-      formattedData += "\n";
-    }
-
-    if (recentInsights?.length) {
-      formattedData += "Recent Insights:\n";
-      recentInsights.forEach(insight => {
-        formattedData += `- ${insight.title}: ${insight.description}\n`;
-      });
-      formattedData += "\n";
-    }
-
-    return formattedData;
+  private static parseDailyRecommendations(content: string): DailyInsight[] {
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    return lines.slice(0, 3).map((line, index) => ({
+      id: `daily-${Date.now()}-${index}`,
+      type: 'recommendation' as const,
+      title: `Daily Tip ${index + 1}`,
+      description: line.replace(/^\d+\.\s*/, '').trim(),
+      priority: 'medium' as const,
+      category: 'general' as const,
+      date: new Date(),
+      actionable: true
+    }));
   }
 
   /**
-   * Mock health insights for development
+   * Mock data for when API is not available
    */
   private static getMockHealthInsights(): HealthAssistantResponse {
     return {
       insights: [
-        "Your cardiovascular health shows excellent progress with improving HRV",
-        "Sleep quality has been consistent at 78% - consider optimizing your bedtime routine",
-        "Stress levels are manageable but could benefit from mindfulness practices",
-        "Recovery metrics indicate you're adapting well to your current activity level"
+        "Your health metrics look pretty good overall! 👍",
+        "There might be some areas we can optimize together.",
+        "Small consistent changes often make the biggest difference."
       ],
       recommendations: [
-        "Maintain your current exercise routine - it's working well for your heart health",
-        "Try going to bed 15 minutes earlier to improve sleep score",
-        "Consider 10 minutes of meditation to help with stress management",
-        "Stay hydrated - aim for 8 glasses of water daily"
+        "Try to get 7-9 hours of quality sleep each night",
+        "Consider adding more colorful vegetables to your meals",
+        "Even a 10-minute daily walk can boost your energy"
       ],
       riskAssessment: {
         level: 'low',
-        concerns: [
-          "Monitor hydration levels - they've been slightly low recently"
-        ]
+        concerns: []
       },
       nextActions: [
-        "Schedule your next biomarker check in 3 months",
-        "Track your water intake for the next week",
-        "Consider adding yoga or stretching to your routine"
+        "Track your sleep for a week to identify patterns",
+        "Schedule a check-in with your healthcare provider"
       ]
     };
   }
 
-  /**
-   * Mock daily recommendations for development
-   */
   private static getMockDailyRecommendations(): DailyInsight[] {
     return [
       {
         id: 'mock-1',
-        title: 'Optimize Morning Hydration',
-        description: 'Your body loses water overnight. Starting your day hydrated boosts energy and cognitive function.',
+        title: 'Hydration Boost',
+        description: 'Drinking water first thing in the morning helps kickstart your metabolism and supports overall health.',
         category: 'nutrition',
         priority: 'medium',
-        actionable: true,
-        action: 'Drink 16oz of water within 30 minutes of waking up.'
+        actionable: true
       },
       {
         id: 'mock-2',
-        title: 'Power Walk Opportunity',
-        description: 'Weather is perfect today and your recovery metrics are strong.',
-        category: 'exercise',
-        priority: 'high',
-        actionable: true,
-        action: 'Take a 20-minute walk after lunch to boost afternoon energy.'
+        title: 'Movement Break',
+        description: 'Short, regular walks throughout the day can improve circulation, energy, and focus.',
+        category: 'activity',
+        priority: 'medium',
+        actionable: true
       },
       {
         id: 'mock-3',
-        title: 'Stress Management Check',
-        description: 'Your stress levels have been slightly elevated this week.',
+        title: 'Mindful Moment',
+        description: 'Practicing mindfulness, even briefly, can reduce stress and improve digestion.',
         category: 'stress',
-        priority: 'medium',
-        actionable: true,
-        action: 'Try 5 minutes of deep breathing before your evening meal.'
+        priority: 'low',
+        actionable: true
       }
     ];
-  }
-
-  /**
-   * Mock biomarker analysis for development
-   */
-  private static getMockBiomarkerAnalysis() {
-    return {
-      summary: "Overall, your biomarkers show a positive health profile with several metrics in optimal ranges. Your cardiovascular markers are particularly strong.",
-      trends: [
-        {
-          biomarker: "HDL-C",
-          trend: "improving" as const,
-          insight: "Your HDL cholesterol levels are excellent and trending upward, indicating good cardiovascular health."
-        },
-        {
-          biomarker: "Resting HR",
-          trend: "stable" as const,
-          insight: "Your resting heart rate is in the athletic range and remains consistent, showing good cardiovascular fitness."
-        },
-        {
-          biomarker: "hs-CRP",
-          trend: "improving" as const,
-          insight: "Inflammatory markers are low and improving, suggesting your lifestyle interventions are working."
-        }
-      ],
-      recommendations: [
-        "Continue your current exercise routine to maintain excellent cardiovascular health",
-        "Consider adding omega-3 rich foods to further support heart health",
-        "Monitor sleep quality as it impacts inflammatory markers"
-      ]
-    };
   }
 } 

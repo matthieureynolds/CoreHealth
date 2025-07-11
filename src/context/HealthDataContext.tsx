@@ -463,14 +463,14 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         console.warn('AI insights unavailable, using fallback:', aiError);
         // Fallback to enhanced insights based on current data
         insights = [
-          {
-            id: Date.now().toString(),
-            title: 'Weekly Health Summary',
-            description: 'Your health metrics show positive trends this week.',
-            category: 'recovery',
-            priority: 'low',
-            actionable: false,
-          },
+      {
+        id: Date.now().toString(),
+        title: 'Weekly Health Summary',
+        description: 'Your health metrics show positive trends this week.',
+        category: 'recovery',
+        priority: 'low',
+        actionable: false,
+      },
           {
             id: (Date.now() + 1).toString(),
             title: 'Hydration Focus',

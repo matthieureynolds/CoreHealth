@@ -228,7 +228,7 @@ export type MainTabParamList = {
   Dashboard: undefined;
   BodyMap: undefined;
   Profile: undefined;
-  Devices: undefined;
+  HealthAssistant: undefined;
   Travel: undefined;
 };
 

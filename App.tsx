@@ -23,14 +23,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SettingsProvider>
-        <AuthProvider>
-          <HealthDataProvider>
-            <NavigationContainer>
-              <RootNavigator />
-              <StatusBar style="auto" />
-            </NavigationContainer>
-          </HealthDataProvider>
-        </AuthProvider>
+      <AuthProvider>
+        <HealthDataProvider>
+          <NavigationContainer>
+            <RootNavigator />
+            <StatusBar style="auto" />
+          </NavigationContainer>
+        </HealthDataProvider>
+      </AuthProvider>
       </SettingsProvider>
     </SafeAreaProvider>
   );

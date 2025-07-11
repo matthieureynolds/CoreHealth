@@ -6,11 +6,11 @@ import { MainTabParamList } from '../types';
 import {
   DashboardScreen,
   BodyMapScreen,
-  DevicesScreen,
   TravelScreen,
 } from '../screens';
 
 import ProfileTabNavigator from './ProfileTabNavigator';
+import HealthAssistantScreen from '../screens/HealthAssistantScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -31,8 +31,8 @@ const MainNavigator: React.FC = () => {
             case 'Profile':
               iconName = focused ? 'person' : 'person-outline';
               break;
-            case 'Devices':
-              iconName = focused ? 'watch' : 'watch-outline';
+            case 'HealthAssistant':
+              iconName = focused ? 'medical' : 'medical-outline';
               break;
             case 'Travel':
               iconName = focused ? 'airplane' : 'airplane-outline';
@@ -46,18 +46,22 @@ const MainNavigator: React.FC = () => {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: '#8E8E93',
         headerStyle: {
-          backgroundColor: '#F8F9FA',
+          backgroundColor: '#000000',
         },
-        headerTintColor: '#000',
+        headerTintColor: '#FFFFFF',
         headerTitleStyle: {
           fontWeight: 'bold',
+        },
+        tabBarStyle: {
+          backgroundColor: '#1C1C1E',
+          borderTopColor: '#2C2C2E',
         },
       })}
     >
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ title: 'Health Dashboard' }}
+        options={{ title: 'Home' }}
       />
       <Tab.Screen
         name="BodyMap"
@@ -65,9 +69,9 @@ const MainNavigator: React.FC = () => {
         options={{ title: 'Body Map' }}
       />
       <Tab.Screen
-        name="Devices"
-        component={DevicesScreen}
-        options={{ title: 'Connected Devices' }}
+        name="HealthAssistant"
+        component={HealthAssistantScreen}
+        options={{ title: 'Health Assistant' }}
       />
       <Tab.Screen
         name="Travel"

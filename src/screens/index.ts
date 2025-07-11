@@ -1,7 +1,6 @@
 // Main App Screens
 export { default as DashboardScreen } from './dashboard';
 export { default as BodyMapScreen } from './body-map';
-export { default as DevicesScreen } from './devices';
 export { default as TravelScreen } from './travel';
 
 // Auth screens

@@ -409,13 +409,72 @@ const BodyMapScreen: React.FC = () => {
     );
   };
 
-  const renderDocumentUploadSection = () => (
-    <View style={styles.documentSection}>
-      <Text style={styles.sectionTitle}>Upload Your Lab Results</Text>
-      <Text style={styles.sectionDescription}>
-        Scan or upload your blood test, urine test, or any lab report to
-        automatically update your biomarkers using AI
-      </Text>
+  const renderDocumentUploadSection = () => {
+    const getSectionTitle = () => {
+      switch (selectedSystem) {
+        case 'organs':
+          return 'Upload Your Lab Results';
+        case 'skeleton':
+          return 'Upload Bone Health Reports';
+        case 'circulation':
+          return 'Upload Cardiovascular Reports';
+        default:
+          return 'Upload Your Lab Results';
+      }
+    };
+
+    const getSectionDescription = () => {
+      switch (selectedSystem) {
+        case 'organs':
+          return 'Scan or upload your blood test, urine test, or any lab report to automatically update your biomarkers using AI';
+        case 'skeleton':
+          return 'Upload DEXA scans, bone density reports, or calcium/Vitamin D tests to analyze your bone health biomarkers';
+        case 'circulation':
+          return 'Upload cardiovascular panels, lipid profiles, or heart health reports to analyze your cardiovascular biomarkers';
+        default:
+          return 'Scan or upload your blood test, urine test, or any lab report to automatically update your biomarkers using AI';
+      }
+    };
+
+    const getSupportedFormats = () => {
+      switch (selectedSystem) {
+        case 'organs':
+          return [
+            '• Blood test reports (PDF, JPG, PNG)',
+            '• Urine analysis reports',
+            '• Lipid panels, metabolic panels',
+            '• Thyroid function tests',
+          ];
+        case 'skeleton':
+          return [
+            '• DEXA scan reports (PDF, JPG, PNG)',
+            '• Bone density test results',
+            '• Calcium and Vitamin D tests',
+            '• Bone turnover markers',
+          ];
+        case 'circulation':
+          return [
+            '• Cardiovascular panels (PDF, JPG, PNG)',
+            '• Lipid profiles and cholesterol tests',
+            '• Blood pressure monitoring reports',
+            '• Cardiac biomarker tests',
+          ];
+        default:
+          return [
+            '• Blood test reports (PDF, JPG, PNG)',
+            '• Urine analysis reports',
+            '• Lipid panels, metabolic panels',
+            '• Thyroid function tests',
+          ];
+      }
+    };
+
+    return (
+      <View style={styles.documentSection}>
+        <Text style={styles.sectionTitle}>{getSectionTitle()}</Text>
+        <Text style={styles.sectionDescription}>
+          {getSectionDescription()}
+        </Text>
 
       <View style={styles.uploadOptions}>
         <TouchableOpacity
@@ -554,20 +613,16 @@ const BodyMapScreen: React.FC = () => {
 
       <View style={styles.supportedFormats}>
         <Text style={styles.supportedTitle}>✅ Supported formats:</Text>
-        <Text style={styles.supportedText}>
-          • Blood test reports (PDF, JPG, PNG)
-        </Text>
-        <Text style={styles.supportedText}>• Urine analysis reports</Text>
-        <Text style={styles.supportedText}>
-          • Lipid panels, metabolic panels
-        </Text>
-        <Text style={styles.supportedText}>• Thyroid function tests</Text>
+        {getSupportedFormats().map((format, index) => (
+          <Text key={index} style={styles.supportedText}>{format}</Text>
+        ))}
         <Text style={styles.supportedNote}>
           Files must be under 10MB for optimal processing
         </Text>
       </View>
     </View>
   );
+  };
 
   const renderInfoPanel = () => {
     if (!selectedOrgan || !organs[selectedOrgan]) return null;
@@ -649,7 +704,7 @@ const BodyMapScreen: React.FC = () => {
 
         <View style={styles.bodyMapContainer}>{renderBodyMap()}</View>
 
-        {selectedSystem === 'organs' && renderDocumentUploadSection()}
+        {renderDocumentUploadSection()}
       </ScrollView>
 
       {renderInfoPanel()}
