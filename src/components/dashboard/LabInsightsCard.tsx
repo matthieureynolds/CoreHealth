@@ -173,6 +173,11 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
           </TouchableOpacity>
         )}
         {showMore && moreResults.map(renderLabResult)}
+        {showMore && moreResults.length > 0 && (
+          <TouchableOpacity onPress={() => setShowMore(false)} style={styles.lessTab}>
+            <Text style={styles.lessTabText}>- Less</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
@@ -297,6 +302,15 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   moreTabText: {
+    color: '#007AFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  lessTab: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  lessTabText: {
     color: '#007AFF',
     fontWeight: '600',
     fontSize: 14,

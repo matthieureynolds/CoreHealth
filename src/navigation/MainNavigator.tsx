@@ -61,27 +61,27 @@ const MainNavigator: React.FC = () => {
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ title: 'Home' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="BodyMap"
         component={BodyMapScreen}
-        options={{ title: 'Body Map' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="HealthAssistant"
         component={HealthAssistantScreen}
-        options={{ title: 'Health Assistant' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Travel"
         component={TravelScreen}
-        options={{ title: 'Travel Health' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileTabNavigator}
-        options={{ title: 'My Profile' }}
+        options={{ headerShown: false }}
       />
     </Tab.Navigator>
   );

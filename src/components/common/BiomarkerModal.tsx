@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+    zIndex: 1000,
   },
   header: {
     flexDirection: 'row',

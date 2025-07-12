@@ -7,13 +7,21 @@ import {
   Dimensions,
   Image,
   Animated,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BiomarkerModal, { BiomarkerInfo } from '../../../components/common/BiomarkerModal';
-import RegionModal, { RegionData, RegionBiomarker } from '../../../components/common/RegionModal';
 import { getBiomarkerInfo } from '../../../data/biomarkerDatabase';
 
-const { width, height } = Dimensions.get('window');
+const getWindowDimensions = () => {
+  try {
+    return Dimensions.get('window');
+  } catch (error) {
+    return { width: 375, height: 812 }; // fallback dimensions
+  }
+};
+
+const { width, height } = getWindowDimensions();
 
 interface BoneHealthBiomarker {
   name: string;
@@ -44,10 +52,10 @@ interface SkeletonBodyMapProps {
 
 const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
   const [selectedZone, setSelectedZone] = useState<BoneHealthZone | null>(null);
-  const [regionModalVisible, setRegionModalVisible] = useState(false);
   const [showBiomarkerModal, setShowBiomarkerModal] = useState(false);
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [animatedValue] = useState(new Animated.Value(1));
+  const [panelAnim] = useState(new Animated.Value(0));
 
   const boneHealthZones: BoneHealthZone[] = [
     {
@@ -383,7 +391,6 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
 
   const handleZonePress = (zone: BoneHealthZone) => {
     setSelectedZone(zone);
-    setRegionModalVisible(true);
     onPartPress(zone.id);
 
     // Animate the pressed zone
@@ -399,9 +406,15 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Show the panel
+    Animated.spring(panelAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
-  const handleBiomarkerPress = (biomarker: RegionBiomarker) => {
+  const handleBiomarkerPress = (biomarker: BoneHealthBiomarker) => {
     const biomarkerInfo = getBiomarkerInfo(
       biomarker.name,
       typeof biomarker.value === 'number' ? biomarker.value : 0,
@@ -414,19 +427,13 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
     }
   };
 
-  const convertToRegionData = (zone: BoneHealthZone): RegionData => {
-    return {
-      name: zone.name,
-      description: zone.anatomicalFocus,
-      biomarkers: zone.biomarkers.map(biomarker => ({
-        name: biomarker.name,
-        value: biomarker.value,
-        unit: biomarker.unit,
-        referenceRange: biomarker.referenceRange,
-        status: biomarker.status,
-        description: biomarker.description,
-      })),
-    };
+  const handleClosePanel = () => {
+    Animated.spring(panelAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedZone(null);
+    });
   };
 
   return (
@@ -445,9 +452,9 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
           { id: 'general_systemic', x: 50, y: 28 },
           // Spine (just below rib cage, moved up)
           { id: 'spine', x: 50, y: 39 },
-          // Left Hip (exactly at user marker A)
+          // Left Hip (positioned at actual hip bone)
           { id: 'left_hip', x: 27, y: 52 },
-          // Right Hip (exactly at user marker B)
+          // Right Hip (positioned at actual hip bone)
           { id: 'right_hip', x: 73, y: 52 },
         ].map(dot => (
           <TouchableOpacity
@@ -462,8 +469,7 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
             onPress={() => {
               const zone = boneHealthZones.find(z => z.id === dot.id);
               if (zone) {
-                setSelectedZone(zone);
-                setRegionModalVisible(true);
+                handleZonePress(zone);
               }
             }}
             activeOpacity={0.8}
@@ -473,14 +479,52 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
         ))}
       </View>
       
-      {/* Region Modal */}
-      <RegionModal
-        visible={regionModalVisible}
-        region={selectedZone ? convertToRegionData(selectedZone) : null}
-        onClose={() => setRegionModalVisible(false)}
-        onBiomarkerPress={handleBiomarkerPress}
-      />
+      {/* Info Panel */}
+      {selectedZone && (
+        <Animated.View
+          style={[
+            styles.infoPanel,
+            {
+              transform: [{ translateY: panelAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [height, 0],
+              })}],
+            },
+          ]}
+        >
+          <View style={styles.panelHeader}>
+            <Text style={styles.zoneTitle}>{selectedZone.name}</Text>
+            <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
 
+          <Text style={styles.zoneDescription}>{selectedZone.anatomicalFocus}</Text>
+
+          <ScrollView
+            style={styles.biomarkerScrollView}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+          >
+            <View style={styles.biomarkerList}>
+              {selectedZone.biomarkers.map((biomarker, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.biomarkerItem}
+                  onPress={() => handleBiomarkerPress(biomarker)}
+                >
+                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
+                  <Text style={styles.biomarkerValue}>
+                    {biomarker.value} {biomarker.unit}
+                  </Text>
+                  <Text style={styles.biomarkerRange}>({biomarker.referenceRange})</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </Animated.View>
+      )}
+      
       {/* Biomarker Modal */}
       <BiomarkerModal
         visible={showBiomarkerModal}
@@ -535,6 +579,72 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     borderWidth: 2,
     borderColor: '#fff',
+  },
+  infoPanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '70%',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  zoneTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  zoneDescription: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+  },
+  biomarkerScrollView: {
+    flex: 1,
+  },
+  biomarkerList: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  biomarkerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  biomarkerName: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1C1C1E',
+  },
+  biomarkerValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#34C759',
+    marginRight: 8,
+  },
+  biomarkerRange: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 

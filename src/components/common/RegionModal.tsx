@@ -11,7 +11,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { BiomarkerInfo } from './BiomarkerModal';
 
-const { width, height } = Dimensions.get('window');
+const getWindowDimensions = () => {
+  try {
+    return Dimensions.get('window');
+  } catch (error) {
+    return { width: 375, height: 812 }; // fallback dimensions
+  }
+};
+
+const { width, height } = getWindowDimensions();
 
 export interface RegionBiomarker {
   name: string;
@@ -95,14 +103,24 @@ const RegionModal: React.FC<RegionModalProps> = ({
   });
 
   return (
-    <Animated.View
-      style={[
-        styles.infoPanel,
-        {
-          transform: [{ translateY }],
-        },
-      ]}
-    >
+    <>
+      {/* Semi-transparent overlay to hide background elements */}
+      <Animated.View
+        style={[
+          styles.overlay,
+          {
+            opacity: panelAnim,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.infoPanel,
+          {
+            transform: [{ translateY }],
+          },
+        ]}
+      >
       <View style={styles.panelHeader}>
         <Text style={styles.regionTitle}>{region.name}</Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -156,11 +174,21 @@ const RegionModal: React.FC<RegionModalProps> = ({
           ))}
         </View>
       </ScrollView>
-    </Animated.View>
+      </Animated.View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 999,
+  },
   infoPanel: {
     position: 'absolute',
     bottom: 0,
@@ -175,7 +203,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 10,
+    zIndex: 1000,
   },
   panelHeader: {
     flexDirection: 'row',

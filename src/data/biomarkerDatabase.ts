@@ -462,23 +462,7 @@ export const biomarkerDatabase: {
       'Consider genetic testing for MTHFR mutations',
     ],
   },
-  'NT-proBNP': {
-    name: 'NT-proBNP (Heart Failure Marker)',
-    unit: 'pg/mL',
-    referenceRange: '<125',
-    category: 'Heart Health',
-    explanation:
-      "NT-proBNP is released when your heart is under stress or working harder than normal. It's like a distress signal from your heart indicating it's struggling to pump effectively.",
-    whatItMeans:
-      'Normal levels suggest good heart function. Elevated levels may indicate heart failure, heart attack, or other heart problems requiring medical attention.',
-    tips: [
-      'Follow a heart-healthy diet low in sodium',
-      'Exercise as recommended by your doctor',
-      'Take prescribed heart medications consistently',
-      'Monitor your weight daily for fluid retention',
-      'See your cardiologist regularly for monitoring',
-    ],
-  },
+
   ALP: {
     name: 'ALP (Alkaline Phosphatase)',
     unit: 'U/L',
@@ -630,6 +614,435 @@ export const biomarkerDatabase: {
       'Follow a kidney-friendly diet with moderate protein',
       'Take ACE inhibitors or ARBs if prescribed',
       'Monitor regularly as kidney damage can be reversed if caught early',
+    ],
+  },
+  // Skeleton/Bone Health Biomarkers
+  'Vitamin D (25-OH)': {
+    name: 'Vitamin D (25-OH)',
+    unit: 'ng/mL',
+    referenceRange: '30-100',
+    category: 'Bone Health',
+    explanation:
+      "Vitamin D is essential for calcium absorption and bone mineralization. It's like the key that unlocks your body's ability to use calcium for strong bones.",
+    whatItMeans:
+      'Levels 30-100 ng/mL are optimal for bone health. Below 30 indicates deficiency that can weaken bones. Above 100 may be excessive.',
+    tips: [
+      'Get 10-30 minutes of sun exposure daily',
+      'Eat vitamin D-rich foods like fatty fish and egg yolks',
+      'Consider vitamin D3 supplements (2000-4000 IU daily)',
+      'Get your levels tested annually',
+      'Combine with calcium for maximum bone benefit',
+    ],
+  },
+  'Calcium (Total)': {
+    name: 'Calcium (Total)',
+    unit: 'mg/dL',
+    referenceRange: '8.5-10.5',
+    category: 'Bone Health',
+    explanation:
+      "Calcium is the primary mineral that makes up your bones and teeth. It's like the building blocks that create the structure of your skeleton.",
+    whatItMeans:
+      'Normal levels support strong bones and proper muscle/nerve function. High levels might indicate parathyroid problems. Low levels can weaken bones.',
+    tips: [
+      'Eat calcium-rich foods like dairy, leafy greens, and almonds',
+      'Take calcium supplements with vitamin D for absorption',
+      'Spread calcium intake throughout the day',
+      'Avoid excessive caffeine which can interfere with absorption',
+      'Get weight-bearing exercise to help bones use calcium',
+    ],
+  },
+  'PTH (Intact)': {
+    name: 'PTH (Intact)',
+    unit: 'pg/mL',
+    referenceRange: '15-65',
+    category: 'Bone Health',
+    explanation:
+      "Parathyroid hormone regulates calcium and phosphorus levels in your blood. It's like the thermostat that controls how much calcium is available for your bones.",
+    whatItMeans:
+      'Normal levels maintain proper calcium balance. High levels can cause bone loss and kidney stones. Low levels may cause low calcium.',
+    tips: [
+      'Ensure adequate vitamin D intake',
+      'Get regular calcium and PTH testing',
+      'Maintain healthy kidney function',
+      'Follow up with endocrinologist if levels are abnormal',
+      'Consider bone density testing if PTH is elevated',
+    ],
+  },
+  'BSAP': {
+    name: 'BSAP (Bone Formation Marker)',
+    unit: 'μg/L',
+    referenceRange: '6.5-20.1',
+    category: 'Bone Health',
+    explanation:
+      "BSAP is produced by bone-forming cells and indicates how actively your body is building new bone. It's like measuring construction activity in your skeleton.",
+    whatItMeans:
+      'Normal levels suggest healthy bone formation. High levels may indicate increased bone turnover or healing. Low levels might suggest poor bone formation.',
+    tips: [
+      'Ensure adequate calcium and vitamin D intake',
+      'Do weight-bearing exercises regularly',
+      'Get adequate protein for bone building',
+      'Monitor levels during bone health treatments',
+      'Consider bone density testing if levels are abnormal',
+    ],
+  },
+  'Osteocalcin': {
+    name: 'Osteocalcin',
+    unit: 'ng/mL',
+    referenceRange: '11-43',
+    category: 'Bone Health',
+    explanation:
+      "Osteocalcin is a protein made by bone-forming cells that helps bind calcium to bone. It's like the glue that holds calcium in place in your bones.",
+    whatItMeans:
+      'Normal levels indicate healthy bone formation. High levels may suggest increased bone turnover. Low levels might indicate poor bone formation.',
+    tips: [
+      'Ensure adequate vitamin K intake (leafy greens)',
+      'Get regular weight-bearing exercise',
+      'Maintain healthy vitamin D levels',
+      'Consider bone health supplements if levels are low',
+      'Monitor during bone health treatments',
+    ],
+  },
+  'CTX': {
+    name: 'CTX (Bone Resorption Marker)',
+    unit: 'ng/mL',
+    referenceRange: '0.104-0.704',
+    category: 'Bone Health',
+    explanation:
+      "CTX measures how quickly your body is breaking down old bone. It's like measuring demolition activity in your skeleton.",
+    whatItMeans:
+      'Normal levels suggest balanced bone turnover. High levels may indicate excessive bone loss. Low levels might suggest reduced bone turnover.',
+    tips: [
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing exercises to reduce bone loss',
+      'Consider bone-building medications if levels are high',
+      'Monitor levels during osteoporosis treatment',
+      'Get regular bone density scans',
+    ],
+  },
+
+
+  'Fibrinogen': {
+    name: 'Fibrinogen',
+    unit: 'mg/dL',
+    referenceRange: '200-400',
+    category: 'Heart Health',
+    explanation:
+      "Fibrinogen is a protein involved in blood clotting. High levels can increase blood clot risk and heart disease.",
+    whatItMeans:
+      'Normal levels support healthy blood clotting. High levels increase heart disease and stroke risk.',
+    tips: [
+      'Follow a heart-healthy diet',
+      'Exercise regularly to improve blood flow',
+      'Maintain a healthy weight',
+      'Quit smoking if you smoke',
+      'Consider omega-3 supplements',
+    ],
+  },
+  'D-dimer': {
+    name: 'D-dimer',
+    unit: 'μg/mL',
+    referenceRange: '<0.5',
+    category: 'Heart Health',
+    explanation:
+      "D-dimer is a protein fragment released when blood clots break down. It's used to detect blood clotting problems.",
+    whatItMeans:
+      'Normal levels suggest no active blood clotting. High levels may indicate blood clots or other clotting disorders.',
+    tips: [
+      'Stay active to prevent blood clots',
+      'Stay hydrated to maintain blood flow',
+      'Move regularly during long periods of sitting',
+      'Follow doctor recommendations if elevated',
+      'Monitor for symptoms of blood clots',
+    ],
+  },
+  'Platelet Count': {
+    name: 'Platelet Count',
+    unit: 'K/μL',
+    referenceRange: '150-450',
+    category: 'Blood Health',
+    explanation:
+      "Platelets are blood cells that help with clotting and wound healing. They're like the body's natural band-aids.",
+    whatItMeans:
+      'Normal levels support healthy blood clotting. High levels may increase clot risk. Low levels may cause bleeding problems.',
+    tips: [
+      'Eat a balanced diet rich in iron and B12',
+      'Stay hydrated to maintain blood volume',
+      'Avoid excessive alcohol which can affect platelets',
+      'Get regular blood tests if levels are abnormal',
+      'Follow doctor recommendations for treatment',
+    ],
+  },
+  'Hemoglobin': {
+    name: 'Hemoglobin',
+    unit: 'g/dL',
+    referenceRange: '12-16 (women), 14-18 (men)',
+    category: 'Blood Health',
+    explanation:
+      "Hemoglobin carries oxygen from your lungs to your body's tissues. It's like the delivery trucks for oxygen in your bloodstream.",
+    whatItMeans:
+      'Normal levels ensure adequate oxygen delivery. Low levels (anemia) can cause fatigue and shortness of breath.',
+    tips: [
+      'Eat iron-rich foods like red meat, spinach, and beans',
+      'Include vitamin C with iron-rich foods for absorption',
+      'Consider iron supplements if prescribed',
+      'Get adequate B12 and folate',
+      'Treat underlying causes of anemia',
+    ],
+  },
+  'SpO₂': {
+    name: 'SpO₂ (Blood Oxygen)',
+    unit: '%',
+    referenceRange: '95-100',
+    category: 'Oxygenation',
+    explanation:
+      "SpO₂ measures how much oxygen your blood is carrying. It's like checking the oxygen level in your body's fuel tank.",
+    whatItMeans:
+      '95-100% is normal. Below 95% may indicate breathing problems or lung disease.',
+    tips: [
+      'Practice deep breathing exercises',
+      'Exercise regularly to improve lung function',
+      'Avoid smoking and secondhand smoke',
+      'Get adequate sleep for respiratory health',
+      'See a doctor if levels are consistently low',
+    ],
+  },
+  'FEV1': {
+    name: 'FEV1 (Lung Function)',
+    unit: '% predicted',
+    referenceRange: '>80',
+    category: 'Oxygenation',
+    explanation:
+      "FEV1 measures how much air you can exhale in one second. It's like measuring your lungs' power output.",
+    whatItMeans:
+      'Above 80% is normal. Lower values may indicate lung disease or breathing problems.',
+    tips: [
+      'Quit smoking if you smoke',
+      'Exercise regularly to improve lung function',
+      'Avoid air pollution when possible',
+      'Practice breathing exercises',
+      'Follow doctor recommendations for lung conditions',
+    ],
+  },
+  'FVC': {
+    name: 'FVC (Total Lung Capacity)',
+    unit: '% predicted',
+    referenceRange: '>80',
+    category: 'Oxygenation',
+    explanation:
+      "FVC measures your total lung capacity - how much air your lungs can hold. It's like measuring your lungs' storage capacity.",
+    whatItMeans:
+      'Above 80% is normal. Lower values may indicate restrictive lung disease.',
+    tips: [
+      'Practice deep breathing exercises',
+      'Exercise regularly to maintain lung capacity',
+      'Maintain good posture for optimal breathing',
+      'Avoid smoking and air pollution',
+      'Get regular lung function testing if needed',
+    ],
+  },
+  'DLCO': {
+    name: 'DLCO (Gas Exchange)',
+    unit: '% predicted',
+    referenceRange: '>80',
+    category: 'Oxygenation',
+    explanation:
+      "DLCO measures how well your lungs transfer oxygen from air to blood. It's like measuring the efficiency of your lungs' oxygen exchange system.",
+    whatItMeans:
+      'Above 80% is normal. Lower values may indicate lung disease affecting gas exchange.',
+    tips: [
+      'Quit smoking if you smoke',
+      'Exercise regularly to improve lung efficiency',
+      'Avoid exposure to lung irritants',
+      'Practice breathing exercises',
+      'Follow doctor recommendations for lung conditions',
+    ],
+  },
+  'Carbon Monoxide': {
+    name: 'Carbon Monoxide',
+    unit: 'ppm',
+    referenceRange: '<9',
+    category: 'Oxygenation',
+    explanation:
+      "Carbon monoxide is a toxic gas that can interfere with oxygen delivery. It's like having a poison in your bloodstream.",
+    whatItMeans:
+      'Low levels are normal. High levels can cause oxygen deprivation and serious health problems.',
+    tips: [
+      'Install carbon monoxide detectors in your home',
+      'Never use gas appliances in enclosed spaces',
+      'Avoid smoking and secondhand smoke',
+      'Get fresh air if you suspect exposure',
+      'Seek immediate medical attention for high levels',
+    ],
+  },
+  'Pulmonary Function': {
+    name: 'Pulmonary Function',
+    unit: '% predicted',
+    referenceRange: '>80',
+    category: 'Oxygenation',
+    explanation:
+      "Pulmonary function tests measure overall lung health and breathing capacity. It's like a comprehensive health check for your respiratory system.",
+    whatItMeans:
+      'Above 80% is normal. Lower values may indicate lung disease or breathing problems.',
+    tips: [
+      'Quit smoking if you smoke',
+      'Exercise regularly to maintain lung function',
+      'Practice breathing exercises',
+      'Avoid air pollution and lung irritants',
+      'Get regular lung function testing if needed',
+    ],
+  },
+  // Additional Skeleton/Bone Health Biomarkers
+  'Phosphorus': {
+    name: 'Phosphorus',
+    unit: 'mg/dL',
+    referenceRange: '2.5-4.5',
+    category: 'Bone Health',
+    explanation:
+      "Phosphorus works with calcium to build strong bones and teeth. It's like the partner mineral that helps calcium do its job properly.",
+    whatItMeans:
+      'Normal levels support bone health and energy production. High levels may indicate kidney problems. Low levels can weaken bones.',
+    tips: [
+      'Eat phosphorus-rich foods like dairy, meat, and nuts',
+      'Balance phosphorus with calcium intake',
+      'Avoid excessive phosphorus from processed foods',
+      'Get adequate vitamin D for phosphorus absorption',
+      'Monitor levels if you have kidney disease',
+    ],
+  },
+  'Magnesium': {
+    name: 'Magnesium',
+    unit: 'mg/dL',
+    referenceRange: '1.7-2.2',
+    category: 'Bone Health',
+    explanation:
+      "Magnesium is essential for bone formation and helps your body use calcium and vitamin D. It's like the coordinator that makes bone building work smoothly.",
+    whatItMeans:
+      'Normal levels support bone health and muscle function. Low levels can cause muscle cramps and bone problems.',
+    tips: [
+      'Eat magnesium-rich foods like nuts, seeds, and leafy greens',
+      'Consider magnesium supplements if levels are low',
+      'Get adequate vitamin D for magnesium absorption',
+      'Limit alcohol which can deplete magnesium',
+      'Monitor levels if you have digestive issues',
+    ],
+  },
+  'Zinc': {
+    name: 'Zinc',
+    unit: 'μg/dL',
+    referenceRange: '60-120',
+    category: 'Bone Health',
+    explanation:
+      "Zinc is essential for bone formation and helps your body make collagen, the protein framework of bones. It's like the construction worker that builds bone structure.",
+    whatItMeans:
+      'Normal levels support bone health and immune function. Low levels can impair bone healing and growth.',
+    tips: [
+      'Eat zinc-rich foods like meat, shellfish, and legumes',
+      'Include vitamin C with zinc for better absorption',
+      'Avoid excessive iron supplements which can block zinc',
+      'Consider zinc supplements if levels are low',
+      'Monitor levels if you have digestive issues',
+    ],
+  },
+  'Copper': {
+    name: 'Copper',
+    unit: 'μg/dL',
+    referenceRange: '70-140',
+    category: 'Bone Health',
+    explanation:
+      "Copper is required for collagen cross-linking, which gives bones their strength. It's like the glue that holds bone structure together.",
+    whatItMeans:
+      'Normal levels support bone strength and connective tissue health. Low levels can weaken bones and cause joint problems.',
+    tips: [
+      'Eat copper-rich foods like nuts, seeds, and shellfish',
+      'Balance copper with zinc intake',
+      'Avoid excessive zinc which can block copper',
+      'Consider copper supplements if levels are low',
+      'Monitor levels if you have digestive issues',
+    ],
+  },
+  'CRP (hs-CRP)': {
+    name: 'CRP (hs-CRP)',
+    unit: 'mg/L',
+    referenceRange: '<3.0',
+    category: 'Bone Health',
+    explanation:
+      "CRP measures inflammation in your body, which can affect bone metabolism and healing. It's like checking if there's inflammation that might be affecting your bones.",
+    whatItMeans:
+      'Lower levels indicate less inflammation and better bone health. High levels may suggest inflammation affecting bone metabolism.',
+    tips: [
+      'Follow an anti-inflammatory diet',
+      'Exercise regularly to reduce inflammation',
+      'Maintain a healthy weight',
+      'Quit smoking if you smoke',
+      'Consider omega-3 supplements',
+    ],
+  },
+  'ESR': {
+    name: 'ESR',
+    unit: 'mm/hr',
+    referenceRange: '<20',
+    category: 'Bone Health',
+    explanation:
+      "ESR measures inflammation and can indicate conditions that affect bone health. It's like a general inflammation marker that can signal bone-related problems.",
+    whatItMeans:
+      'Normal levels suggest no significant inflammation. High levels may indicate inflammatory conditions affecting bones.',
+    tips: [
+      'Follow an anti-inflammatory diet',
+      'Exercise regularly to reduce inflammation',
+      'Get adequate sleep for immune function',
+      'Manage stress which can affect inflammation',
+      'See a doctor if levels are consistently high',
+    ],
+  },
+  'P1NP': {
+    name: 'P1NP (Bone Formation Marker)',
+    unit: 'ng/mL',
+    referenceRange: '16.3-78.1',
+    category: 'Bone Health',
+    explanation:
+      "P1NP is a marker of bone formation activity. It's like measuring how actively your body is building new bone tissue.",
+    whatItMeans:
+      'Normal levels suggest healthy bone formation. High levels may indicate increased bone turnover. Low levels might suggest poor bone formation.',
+    tips: [
+      'Ensure adequate calcium and vitamin D intake',
+      'Do weight-bearing exercises regularly',
+      'Get adequate protein for bone building',
+      'Monitor levels during bone health treatments',
+      'Consider bone density testing if levels are abnormal',
+    ],
+  },
+  'NTX': {
+    name: 'NTX (Bone Resorption Marker)',
+    unit: 'nmol BCE/mmol Cr',
+    referenceRange: '5.4-24.2',
+    category: 'Bone Health',
+    explanation:
+      "NTX measures how quickly your body is breaking down old bone. It's like measuring demolition activity in your skeleton.",
+    whatItMeans:
+      'Normal levels suggest balanced bone turnover. High levels may indicate excessive bone loss. Low levels might suggest reduced bone turnover.',
+    tips: [
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing exercises to reduce bone loss',
+      'Consider bone-building medications if levels are high',
+      'Monitor levels during osteoporosis treatment',
+      'Get regular bone density scans',
+    ],
+  },
+  'TRACP-5b': {
+    name: 'TRACP-5b (Osteoclast Marker)',
+    unit: 'U/L',
+    referenceRange: '1.03-4.15',
+    category: 'Bone Health',
+    explanation:
+      "TRACP-5b is produced by bone-resorbing cells (osteoclasts). It's like measuring the activity of cells that break down bone.",
+    whatItMeans:
+      'Normal levels suggest balanced bone resorption. High levels may indicate excessive bone breakdown. Low levels might suggest reduced bone turnover.',
+    tips: [
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing exercises to reduce bone loss',
+      'Consider bone-building medications if levels are high',
+      'Monitor levels during osteoporosis treatment',
+      'Get regular bone density scans',
     ],
   },
 };

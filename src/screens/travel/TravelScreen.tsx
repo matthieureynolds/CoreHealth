@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Linking,
   Modal,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -114,7 +115,7 @@ const TravelScreen: React.FC = () => {
       case 'severe':
         return '#FF3B30';
       default:
-        return '#666';
+        return '#8E8E93';
     }
   };
 
@@ -137,7 +138,7 @@ const TravelScreen: React.FC = () => {
         </Text>
         <Text style={styles.metricDescription}>{metric.description}</Text>
         <View style={styles.recommendationContainer}>
-          <Ionicons name="information-circle-outline" size={16} color="#666" />
+          <Ionicons name="information-circle-outline" size={16} color="#8E8E93" />
           <Text style={styles.recommendationText}>{metric.recommendation}</Text>
       </View>
       </View>
@@ -182,7 +183,7 @@ const TravelScreen: React.FC = () => {
         )}
         
         <View style={styles.recommendationContainer}>
-          <Ionicons name="information-circle-outline" size={16} color="#666" />
+          <Ionicons name="information-circle-outline" size={16} color="#8E8E93" />
           <Text style={styles.recommendationText}>{vaccinations.recommendation}</Text>
         </View>
       </View>
@@ -358,7 +359,7 @@ const TravelScreen: React.FC = () => {
         </Text>
         
         <View style={styles.recommendationContainer}>
-          <Ionicons name="bed-outline" size={16} color="#666" />
+          <Ionicons name="bed-outline" size={16} color="#8E8E93" />
           <Text style={styles.recommendationText}>
             Sleep Adjustment: {jetLagData.sleepAdjustment.strategy}
             {'\n'}Days to adjust: {jetLagData.sleepAdjustment.daysToAdjust} 
@@ -418,7 +419,7 @@ const TravelScreen: React.FC = () => {
       case 'severe':
         return '#FF3B30';
       default:
-        return '#666';
+        return '#8E8E93';
     }
   };
 
@@ -463,7 +464,7 @@ const TravelScreen: React.FC = () => {
         case 'extreme': return '#FF3B30';
         case 'high': return '#FF5722';
         case 'moderate': return '#FF9500';
-        default: return '#666';
+        default: return '#8E8E93';
       }
     };
 
@@ -968,18 +969,40 @@ const TravelScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-      }
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Travel Health Dashboard</Text>
-        <Text style={styles.subtitle}>
-          Personal health insights for your location
-        </Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Travel Health</Text>
+          <Text style={styles.headerSubtitle}>Destination health insights</Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={handleRefresh}
+          disabled={isRefreshing}
+        >
+          <Ionicons 
+            name="refresh" 
+            size={20} 
+            color={isRefreshing ? "#8E8E93" : "#007AFF"} 
+          />
+        </TouchableOpacity>
       </View>
+
+      <ScrollView 
+        style={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={handleRefresh}
+            tintColor="#007AFF"
+            colors={['#007AFF']}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
 
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
@@ -1151,28 +1174,52 @@ const TravelScreen: React.FC = () => {
       </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#000000',
   },
   header: {
-    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#000000',
   },
-  title: {
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: 16,
-    color: '#666',
-    marginTop: 8,
-    lineHeight: 22,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  refreshButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF30',
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
   },
   searchSection: {
     margin: 20,

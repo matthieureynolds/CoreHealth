@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -29,21 +31,23 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const { signIn, signUp } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
+    setError('');
     setIsLoading(true);
     try {
       await signIn(email, password);
       // Login successful - user will be automatically navigated to main app
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid email or password');
+      setError(error.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +60,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Ionicons name="medical" size={60} color="#007AFF" />
+          <View style={styles.logoContainer}>
+            <Image source={require('../../assets/logocorehealth.png')} style={styles.logo} />
+          </View>
           <Text style={styles.title}>CoreHealth</Text>
           <Text style={styles.subtitle}>Your Personal Health Intelligence</Text>
         </View>
@@ -66,14 +72,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons
               name="mail-outline"
               size={20}
-              color="#666"
+              color="#8E8E93"
               style={styles.inputIcon}
             />
             <TextInput
               style={styles.input}
               placeholder="Email"
+              placeholderTextColor="#8E8E93"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (error) setError('');
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -84,14 +94,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons
               name="lock-closed-outline"
               size={20}
-              color="#666"
+              color="#8E8E93"
               style={styles.inputIcon}
             />
             <TextInput
               style={styles.input}
               placeholder="Password"
+              placeholderTextColor="#8E8E93"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (error) setError('');
+              }}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
             />
@@ -102,10 +116,17 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons
                 name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                 size={20}
-                color="#666"
+                color="#8E8E93"
               />
             </TouchableOpacity>
           </View>
+
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={16} color="#FF3B30" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
           <TouchableOpacity
             style={styles.forgotPassword}
@@ -115,13 +136,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.loginButton]}
+            style={[styles.button, styles.loginButton, isLoading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.loginButtonText}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.loginButtonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>
@@ -139,27 +162,40 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF',
-    marginTop: 16,
+    color: '#FFFFFF',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    marginTop: 8,
+    color: '#8E8E93',
     textAlign: 'center',
   },
   form: {
@@ -169,23 +205,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: '#2C2C2E',
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#1C1C1E',
+    height: 56,
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    height: 50,
+    height: 56,
     fontSize: 16,
-    color: '#000',
+    color: '#FFFFFF',
   },
   eyeIcon: {
     padding: 4,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF3B3010',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    marginLeft: 8,
   },
   forgotPassword: {
     alignItems: 'flex-end',
@@ -197,7 +250,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   button: {
-    height: 50,
+    height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -206,47 +259,21 @@ const styles = StyleSheet.create({
   loginButton: {
     backgroundColor: '#007AFF',
   },
+  buttonDisabled: {
+    backgroundColor: '#007AFF80',
+  },
   loginButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E5EA',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: '#666',
-    fontSize: 14,
-  },
-  googleButton: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    flexDirection: 'row',
-  },
-  googleIcon: {
-    marginRight: 12,
-  },
-  googleButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 24,
   },
   footerText: {
-    color: '#666',
+    color: '#8E8E93',
     fontSize: 14,
   },
   signUpText: {

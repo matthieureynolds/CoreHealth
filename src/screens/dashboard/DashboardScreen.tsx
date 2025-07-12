@@ -16,6 +16,7 @@ import BiomarkerModal, {
 } from '../../components/common/BiomarkerModal';
 import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
 import HealthChatModal from '../../components/dashboard/HealthChatModal';
+import LabResultDetailModal from '../../components/dashboard/LabResultDetailModal';
 
 // New redesigned components
 import HeroHealthScore from '../../components/dashboard/HeroHealthScore';
@@ -31,6 +32,8 @@ const DashboardScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
+  const [labResultModalVisible, setLabResultModalVisible] = useState(false);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
@@ -87,8 +90,8 @@ const DashboardScreen: React.FC = () => {
   };
 
   const handleLabResultPress = (labResult: any) => {
-    console.log('Lab result pressed:', labResult);
-    // TODO: Navigate to detailed lab results view
+    setSelectedLabResult(labResult);
+    setLabResultModalVisible(true);
   };
 
   const handleTravelPress = () => {
@@ -114,11 +117,10 @@ const DashboardScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-        <Text style={styles.greeting}>
+          <Text style={styles.greeting}>
             Good {getTimeOfDay()}, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}!
-        </Text>
-        {/* Removed date */}
-      </View>
+          </Text>
+        </View>
         <TouchableOpacity 
           style={styles.aiButton}
           onPress={() => setChatModalVisible(true)}
@@ -171,7 +173,6 @@ const DashboardScreen: React.FC = () => {
         {/* Medical Timeline */}
         <MedicalTimeline 
           onEventPress={handleMedicalEventPress}
-          onViewAllPress={() => console.log('View all medical events pressed')}
         />
 
         {/* Bottom spacing */}
@@ -192,6 +193,15 @@ const DashboardScreen: React.FC = () => {
         visible={chatModalVisible}
         onClose={() => setChatModalVisible(false)}
       />
+
+      <LabResultDetailModal
+        visible={labResultModalVisible}
+        labResult={selectedLabResult}
+        onClose={() => {
+          setLabResultModalVisible(false);
+          setSelectedLabResult(null);
+        }}
+      />
     </View>
   );
 };
@@ -206,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 60,
     paddingBottom: 16,
     backgroundColor: '#000000',
   },
@@ -218,10 +228,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 4,
-  },
-  date: {
-    fontSize: 16,
-    color: '#8E8E93',
   },
   aiButton: {
     width: 40,

@@ -13,7 +13,7 @@ interface EnvironmentalMetric {
   value: string;
   status: 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous';
   icon: keyof typeof Ionicons.glyphMap;
-  score?: number; // Added for new circles
+  score?: number;
 }
 
 interface TravelHealthSummaryProps {
@@ -106,14 +106,15 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi' },
   ];
 
-  const renderEnvironmentalMetricCircle = (metric: EnvironmentalMetric) => {
+  const renderEnvironmentalMetricTab = (metric: EnvironmentalMetric) => {
     const statusColor = getStatusColor(metric.status);
     return (
-      <View key={metric.id} style={styles.metricCircleItem}>
-        <View style={[styles.metricCircle, { borderColor: statusColor }] }>
-          <Text style={[styles.metricCircleScore, { color: statusColor }]}>{metric.score}</Text>
+      <View key={metric.id} style={[styles.metricTab, { borderBottomColor: statusColor }]}>
+        <View style={styles.metricTabContent}>
+          <Ionicons name={metric.icon} size={16} color={statusColor} />
+          <Text style={[styles.metricTabScore, { color: statusColor }]}>{metric.score}</Text>
+          <Text style={styles.metricTabLabel}>{metric.label}</Text>
         </View>
-        <Text style={styles.metricCircleLabel}>{metric.label}</Text>
       </View>
     );
   };
@@ -129,7 +130,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
           <Ionicons name="location" size={20} color="#007AFF" />
           <Text style={styles.title}>Travel Health</Text>
         </View>
-        <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
       </View>
 
       <View style={styles.locationContainer}>
@@ -137,9 +137,9 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         <Text style={styles.locationSubtitle}>Current Location</Text>
       </View>
 
-      {/* Circles for Air Quality, Pollen, Water */}
-      <View style={styles.metricCirclesRow}>
-        {environmentalMetrics.map(renderEnvironmentalMetricCircle)}
+      {/* Modern tabs for Air Quality, Pollen, Water */}
+      <View style={styles.metricTabsContainer}>
+        {environmentalMetrics.map(renderEnvironmentalMetricTab)}
       </View>
 
       {jetLagHours > 0 && (
@@ -190,12 +190,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
           </View>
         )}
       </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Tap for detailed travel health insights
-        </Text>
-      </View>
     </TouchableOpacity>
   );
 };
@@ -237,42 +231,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
   },
-  metricsContainer: {
-    marginBottom: 16,
-  },
-  metricItem: {
+  metricTabsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: 16,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    padding: 4,
+  },
+  metricTab: {
+    flex: 1,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  metricTabContent: {
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 10,
-    marginBottom: 6,
-    minHeight: 48,
+    paddingHorizontal: 8,
   },
-  metricLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 12,
+  metricTabScore: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
   },
-  metricIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  metricLabel: {
-    fontSize: 14,
+  metricTabLabel: {
+    fontSize: 11,
     color: '#FFFFFF',
     fontWeight: '500',
-  },
-  metricValue: {
-    fontSize: 14,
-    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 2,
   },
   jetLagContainer: {
     backgroundColor: '#2C2C2E',
@@ -296,45 +282,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#EBEBF5',
     lineHeight: 16,
-  },
-  footer: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-  metricCirclesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  metricCircleItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  metricCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-    backgroundColor: '#222',
-  },
-  metricCircleScore: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  metricCircleLabel: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    textAlign: 'center',
   },
   jetLagPlanCard: {
     backgroundColor: '#222',

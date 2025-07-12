@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -19,17 +21,21 @@ interface MedicalEvent {
   priority: 'low' | 'medium' | 'high';
   status: 'upcoming' | 'due' | 'overdue';
   icon: keyof typeof Ionicons.glyphMap;
+  doctor?: {
+    name: string;
+    specialty: string;
+    address: string;
+    phone: string;
+  };
+  details?: string;
+  history?: string;
 }
 
 interface MedicalTimelineProps {
   onEventPress?: (event: MedicalEvent) => void;
-  onViewAllPress?: () => void;
 }
 
-const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ 
-  onEventPress, 
-  onViewAllPress 
-}) => {
+const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   // Mock data - in real app this would come from props or context
   const upcomingEvents: MedicalEvent[] = [
     {
@@ -41,7 +47,15 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
       time: '10:00 AM',
       priority: 'medium',
       status: 'upcoming',
-      icon: 'medical'
+      icon: 'medical',
+      doctor: {
+        name: 'Dr. Sarah Chen, MD',
+        specialty: 'Internal Medicine',
+        address: '123 Medical Center Dr, Suite 200, New York, NY 10001',
+        phone: '(555) 123-4567'
+      },
+      details: 'Comprehensive annual physical examination including blood work, EKG, and health assessment.',
+      history: 'Previous visits: Dec 2023, Dec 2022, Dec 2021. All visits showed good health status.'
     },
     {
       id: 'vitamin_d',
@@ -52,7 +66,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
       time: '8:00 AM',
       priority: 'low',
       status: 'due',
-      icon: 'medical-outline'
+      icon: 'medical-outline',
+      details: '2000 IU daily supplement to maintain optimal vitamin D levels.'
     },
     {
       id: 'flu_shot',
@@ -62,7 +77,27 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
       date: 'This week',
       priority: 'high',
       status: 'due',
-      icon: 'shield-checkmark'
+      icon: 'shield-checkmark',
+      details: 'Annual flu shot to protect against seasonal influenza.'
+    },
+    {
+      id: 'dental_cleaning',
+      type: 'appointment',
+      title: 'Dental Cleaning',
+      subtitle: 'Dr. Michael Rodriguez, DDS',
+      date: 'Dec 20, 2024',
+      time: '2:00 PM',
+      priority: 'medium',
+      status: 'upcoming',
+      icon: 'medical',
+      doctor: {
+        name: 'Dr. Michael Rodriguez, DDS',
+        specialty: 'General Dentistry',
+        address: '456 Dental Plaza, Floor 3, New York, NY 10002',
+        phone: '(555) 987-6543'
+      },
+      details: 'Regular dental cleaning and examination.',
+      history: 'Previous visits: Jun 2024, Dec 2023. Good oral health maintained.'
     },
     {
       id: 'cholesterol_check',
@@ -72,12 +107,14 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
       date: 'Jan 2025',
       priority: 'medium',
       status: 'upcoming',
-      icon: 'analytics'
+      icon: 'analytics',
+      details: 'Blood test to check cholesterol levels and cardiovascular health markers.'
     }
   ];
 
   const [completed, setCompleted] = useState<string[]>([]);
-  const [ignored, setIgnored] = useState<string[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<MedicalEvent | null>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
 
   const getEventColor = (event: MedicalEvent): string => {
     if (event.status === 'overdue') return '#FF3B30';
@@ -100,109 +137,102 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
     }
   };
 
+  const handleEventPress = (event: MedicalEvent) => {
+    if (event.type === 'appointment') {
+      setSelectedEvent(event);
+      setShowEventModal(true);
+    } else {
+      onEventPress?.(event);
+    }
+  };
+
+  const handleAddAppointment = () => {
+    Alert.alert(
+      'Add Appointment',
+      'This would open a form to add a new appointment. In a real app, this would navigate to an appointment creation screen.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const renderRightActions = (event: MedicalEvent) => (
+    <TouchableOpacity
+      style={styles.doneButton}
+      onPress={() => setCompleted(prev => [...prev, event.id])}
+    >
+      <Ionicons name="checkmark-circle" size={24} color="#30D158" />
+      <Text style={styles.doneText}>Done</Text>
+    </TouchableOpacity>
+  );
+
   const renderEvent = (event: MedicalEvent) => {
-    if (completed.includes(event.id) || ignored.includes(event.id)) return null;
+    if (completed.includes(event.id)) return null;
+    
     const eventColor = getEventColor(event);
     const statusText = getStatusText(event.status);
 
-    // Special logic for Vitamin D Supplement
-    if (event.id === 'vitamin_d') {
-      const renderRightActions = () => (
-        <TouchableOpacity
-          style={styles.ignoreButton}
-          onPress={() => setIgnored(prev => [...prev, event.id])}
-        >
-          <Ionicons name="close-circle" size={24} color="#FF3B30" />
-          <Text style={styles.ignoreText}>Ignore</Text>
-        </TouchableOpacity>
-      );
-      return (
-        <Swipeable renderRightActions={renderRightActions}>
-          <View style={styles.eventItem}>
-            <View style={styles.eventLeft}>
-              <View style={[styles.eventIconContainer, { backgroundColor: `${eventColor}20` }]}> 
-                <Ionicons name={event.icon} size={18} color={eventColor} />
-              </View>
-              <View style={styles.eventContent}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  {statusText && (
-                    <Text style={[styles.statusBadge, { color: eventColor }]}> {statusText} </Text>
-                  )}
-                </View>
-                <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-                <View style={styles.eventDateContainer}>
-                  <Text style={styles.eventDate}>{event.date}</Text>
-                  {event.time && (
-                    <>
-                      <Text style={styles.eventDateSeparator}>•</Text>
-                      <Text style={styles.eventTime}>{event.time}</Text>
-                    </>
-                  )}
-                </View>
-              </View>
-            </View>
-            <TouchableOpacity onPress={() => setCompleted(prev => [...prev, event.id])} style={styles.tickButton}>
-              <Ionicons name="checkmark-circle" size={22} color="#30D158" />
-            </TouchableOpacity>
-          </View>
-        </Swipeable>
-      );
-    }
-
-    // Default event rendering
     return (
-      <TouchableOpacity
-        key={event.id}
-        style={styles.eventItem}
-        onPress={() => onEventPress?.(event)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.eventLeft}>
-          <View style={[styles.eventIconContainer, { backgroundColor: `${eventColor}20` }]}> 
-            <Ionicons name={event.icon} size={18} color={eventColor} />
-          </View>
-          <View style={styles.eventContent}>
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              {statusText && (
-                <Text style={[styles.statusBadge, { color: eventColor }]}> {statusText} </Text>
-              )}
+      <Swipeable key={event.id} renderRightActions={() => renderRightActions(event)}>
+        <TouchableOpacity
+          style={styles.eventItem}
+          onPress={() => handleEventPress(event)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.eventLeft}>
+            <View style={[styles.eventIconContainer, { backgroundColor: `${eventColor}20` }]}> 
+              <Ionicons name={event.icon} size={18} color={eventColor} />
             </View>
-            <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-            <View style={styles.eventDateContainer}>
-              <Text style={styles.eventDate}>{event.date}</Text>
-              {event.time && (
-                <>
-                  <Text style={styles.eventDateSeparator}>•</Text>
-                  <Text style={styles.eventTime}>{event.time}</Text>
-                </>
-              )}
+            <View style={styles.eventContent}>
+              <View style={styles.eventHeader}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                {statusText && (
+                  <Text style={[styles.statusBadge, { color: eventColor }]}> {statusText} </Text>
+                )}
+              </View>
+              <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+              <View style={styles.eventDateContainer}>
+                <Text style={styles.eventDate}>{event.date}</Text>
+                {event.time && (
+                  <>
+                    <Text style={styles.eventDateSeparator}>•</Text>
+                    <Text style={styles.eventTime}>{event.time}</Text>
+                  </>
+                )}
+              </View>
             </View>
           </View>
-        </View>
-        <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
-      </TouchableOpacity>
+          <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
   const renderEventsByCategory = () => {
-    const dueEvents = upcomingEvents.filter(e => e.status === 'due' || e.status === 'overdue');
-    const upcomingEventsFiltered = upcomingEvents.filter(e => e.status === 'upcoming');
+    const appointments = upcomingEvents.filter(e => e.type === 'appointment' && !completed.includes(e.id));
+    const medications = upcomingEvents.filter(e => e.type === 'medication' && !completed.includes(e.id));
+    const otherEvents = upcomingEvents.filter(e => 
+      e.type !== 'appointment' && e.type !== 'medication' && !completed.includes(e.id)
+    );
 
     return (
       <>
-        {dueEvents.length > 0 && (
+        {appointments.length > 0 && (
           <>
-            <Text style={styles.categoryTitle}>Due Now</Text>
-            {dueEvents.map(renderEvent)}
+            <Text style={styles.categoryTitle}>Appointments</Text>
+            {appointments.map(renderEvent)}
           </>
         )}
         
-        {upcomingEventsFiltered.length > 0 && (
+        {medications.length > 0 && (
           <>
-            <Text style={styles.categoryTitle}>Upcoming</Text>
-            {upcomingEventsFiltered.map(renderEvent)}
+            <Text style={styles.categoryTitle}>Medications & Supplements</Text>
+            {medications.map(renderEvent)}
+          </>
+        )}
+        
+        {otherEvents.length > 0 && (
+          <>
+            <Text style={styles.categoryTitle}>Other</Text>
+            {otherEvents.map(renderEvent)}
           </>
         )}
       </>
@@ -216,9 +246,6 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
           <Ionicons name="calendar" size={20} color="#007AFF" />
           <Text style={styles.title}>Medical Timeline</Text>
         </View>
-        <TouchableOpacity onPress={onViewAllPress}>
-          <Text style={styles.viewAllText}>View All</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.eventsList} showsVerticalScrollIndicator={false}>
@@ -226,11 +253,65 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddAppointment}>
           <Ionicons name="add" size={16} color="#007AFF" />
           <Text style={styles.addButtonText}>Add Appointment</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Appointment Detail Modal */}
+      <Modal
+        visible={showEventModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowEventModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Appointment Details</Text>
+            <TouchableOpacity onPress={() => setShowEventModal(false)}>
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          
+          {selectedEvent && (
+            <ScrollView style={styles.modalContent}>
+              <View style={styles.appointmentCard}>
+                <Text style={styles.appointmentTitle}>{selectedEvent.title}</Text>
+                <Text style={styles.appointmentDateTime}>
+                  {selectedEvent.date} at {selectedEvent.time}
+                </Text>
+              </View>
+
+              {selectedEvent.doctor && (
+                <View style={styles.doctorSection}>
+                  <Text style={styles.sectionTitle}>Doctor Information</Text>
+                  <View style={styles.doctorInfo}>
+                    <Text style={styles.doctorName}>{selectedEvent.doctor.name}</Text>
+                    <Text style={styles.doctorSpecialty}>{selectedEvent.doctor.specialty}</Text>
+                    <Text style={styles.doctorAddress}>{selectedEvent.doctor.address}</Text>
+                    <Text style={styles.doctorPhone}>{selectedEvent.doctor.phone}</Text>
+                  </View>
+                </View>
+              )}
+
+              {selectedEvent.details && (
+                <View style={styles.detailsSection}>
+                  <Text style={styles.sectionTitle}>Appointment Details</Text>
+                  <Text style={styles.detailsText}>{selectedEvent.details}</Text>
+                </View>
+              )}
+
+              {selectedEvent.history && (
+                <View style={styles.historySection}>
+                  <Text style={styles.sectionTitle}>Visit History</Text>
+                  <Text style={styles.historyText}>{selectedEvent.history}</Text>
+                </View>
+              )}
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -259,20 +340,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginLeft: 8,
   },
-  viewAllText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
   eventsList: {
-    maxHeight: 240,
+    maxHeight: 300,
   },
   categoryTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 8,
-    marginTop: 8,
+    marginTop: 12,
   },
   eventItem: {
     flexDirection: 'row',
@@ -344,8 +420,8 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   footer: {
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#2C2C2E',
   },
@@ -353,22 +429,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    backgroundColor: '#007AFF20',
+    borderRadius: 12,
   },
   addButtonText: {
     fontSize: 14,
     color: '#007AFF',
-    fontWeight: '500',
+    fontWeight: '600',
     marginLeft: 6,
   },
-  tickButton: {
-    padding: 6,
-    marginLeft: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ignoreButton: {
-    backgroundColor: '#FF3B30',
+  doneButton: {
+    backgroundColor: '#30D158',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -377,11 +449,106 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginRight: 8,
   },
-  ignoreText: {
+  doneText: {
     color: '#fff',
     fontWeight: '600',
     marginLeft: 6,
     fontSize: 15,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  appointmentCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  appointmentTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  appointmentDateTime: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  doctorSection: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  doctorInfo: {
+    gap: 8,
+  },
+  doctorName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  doctorSpecialty: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  doctorAddress: {
+    fontSize: 14,
+    color: '#8E8E93',
+    lineHeight: 20,
+  },
+  doctorPhone: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  detailsSection: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  detailsText: {
+    fontSize: 14,
+    color: '#EBEBF5',
+    lineHeight: 20,
+  },
+  historySection: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  historyText: {
+    fontSize: 14,
+    color: '#EBEBF5',
+    lineHeight: 20,
   },
 });
 

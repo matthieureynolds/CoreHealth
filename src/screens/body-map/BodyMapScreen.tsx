@@ -9,6 +9,7 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -47,7 +48,15 @@ const BodyMapScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSystem, setSelectedSystem] =
     useState<BodySystemType>('organs');
-  const { height, width } = Dimensions.get('window');
+  const getWindowDimensions = () => {
+    try {
+      return Dimensions.get('window');
+    } catch (error) {
+      return { width: 375, height: 812 }; // fallback dimensions
+    }
+  };
+
+  const { height, width } = getWindowDimensions();
 
   const handleOrganPress = (organId: string) => {
     setSelectedOrgan(organId);
@@ -202,18 +211,14 @@ const BodyMapScreen: React.FC = () => {
               }
             },
           },
-          { text: 'Great!' },
+          { text: 'Continue', style: 'cancel' },
         ],
       );
     } catch (error) {
-      console.error('Processing error:', error);
+      console.error('Document processing error:', error);
       Alert.alert(
         'Processing Error',
-        "Unable to process this document. Please ensure it's a clear medical report and try again.",
-        [
-          { text: 'Try Again', onPress: () => handleProcessDocument(document) },
-          { text: 'Cancel', style: 'cancel' },
-        ],
+        'Failed to process document. Please try again with a clearer image or different document.',
       );
     } finally {
       setIsProcessing(null);
@@ -222,42 +227,44 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const getBiomarkerStatusColor = (status?: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
+      case 'normal':
+        return '#30D158';
+      case 'low':
+        return '#FF9F0A';
       case 'high':
+        return '#FF6B35';
       case 'critical':
         return '#FF3B30';
-      case 'low':
-        return '#FF9500';
-      case 'normal':
-        return '#34C759';
       default:
         return '#8E8E93';
     }
   };
 
   const getBiomarkerStatusIcon = (status?: string) => {
-    switch (status) {
-      case 'high':
-      case 'critical':
-        return 'warning';
-      case 'low':
-        return 'alert-circle';
+    switch (status?.toLowerCase()) {
       case 'normal':
         return 'checkmark-circle';
+      case 'low':
+        return 'arrow-down-circle';
+      case 'high':
+        return 'arrow-up-circle';
+      case 'critical':
+        return 'warning';
       default:
         return 'help-circle';
     }
   };
 
   const groupBiomarkersByOrgan = (biomarkers: ExtractedBiomarker[]) => {
-    const grouped: { [organ: string]: ExtractedBiomarker[] } = {};
-    biomarkers.forEach(biomarker => {
-      if (!grouped[biomarker.organSystem]) {
-        grouped[biomarker.organSystem] = [];
+    return biomarkers.reduce((groups, biomarker) => {
+      const organ = biomarker.organ || 'Other';
+      if (!groups[organ]) {
+        groups[organ] = [];
       }
-      grouped[biomarker.organSystem].push(biomarker);
-    });
-    return grouped;
+      groups[organ].push(biomarker);
+      return groups;
+    }, {} as { [key: string]: ExtractedBiomarker[] });
   };
 
   const handleBiomarkerPress = (
@@ -265,12 +272,11 @@ const BodyMapScreen: React.FC = () => {
     value: number,
     status?: string,
   ) => {
-    const normalizedStatus =
-      (status as 'normal' | 'low' | 'high' | 'critical') || 'normal';
+    const biomarkerStatus = status as 'normal' | 'low' | 'high' | 'critical';
     const biomarkerInfo = getBiomarkerInfo(
       biomarkerName,
       value,
-      normalizedStatus,
+      biomarkerStatus || 'normal',
     );
 
     if (biomarkerInfo) {
@@ -281,29 +287,16 @@ const BodyMapScreen: React.FC = () => {
 
   const handleSystemChange = (system: BodySystemType) => {
     setSelectedSystem(system);
-    // Close any open panels when switching systems
-    if (selectedOrgan) {
-      handleClosePanel();
-    }
+    setSelectedOrgan(null);
+    panelAnim.setValue(0);
   };
 
   const handleSkeletonPartPress = (partId: string) => {
-    // Handle skeleton part selection - could open a detailed view
     console.log('Skeleton part pressed:', partId);
-    // For now, just show an alert with mock data
-    Alert.alert(
-      'Skeleton Health',
-      `Selected: ${partId}\nClick to view detailed bone and joint health information.`,
-    );
   };
 
   const handleCirculationPointPress = (pointId: string) => {
-    // Handle circulation point selection
     console.log('Circulation point pressed:', pointId);
-    Alert.alert(
-      'Cardiovascular Health',
-      `Selected: ${pointId}\nClick to view detailed cardiovascular information.`,
-    );
   };
 
   const renderBodyMap = () => {
@@ -313,9 +306,7 @@ const BodyMapScreen: React.FC = () => {
       case 'skeleton':
         return <SkeletonBodyMap onPartPress={handleSkeletonPartPress} />;
       case 'circulation':
-        return (
-          <CirculationBodyMap onPointPress={handleCirculationPointPress} />
-        );
+        return <CirculationBodyMap onPointPress={handleCirculationPointPress} />;
       default:
         return <BodyMap onOrganPress={handleOrganPress} />;
     }
@@ -327,341 +318,217 @@ const BodyMapScreen: React.FC = () => {
     const groupedBiomarkers = groupBiomarkersByOrgan(extractedBiomarkers);
 
     return (
-      <View style={styles.biomarkerResults}>
-        <Text style={styles.biomarkerResultsTitle}>📊 Your Latest Results</Text>
-        <Text style={styles.biomarkerResultsSubtitle}>
-          {extractedBiomarkers.length} biomarkers extracted from your lab
-          reports
-        </Text>
-
-        {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
-          <View key={organ} style={styles.organGroup}>
-            <TouchableOpacity
-              style={styles.organGroupHeader}
-              onPress={() => handleOrganPress(organ)}
-            >
-              <Text style={styles.organGroupTitle}>
-                {organ.charAt(0).toUpperCase() + organ.slice(1)} (
-                {biomarkers.length})
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color="#007AFF" />
-            </TouchableOpacity>
-
-            <View style={styles.biomarkersList}>
-              {biomarkers.slice(0, 3).map((biomarker, index) => (
+      <View style={styles.resultsContainer}>
+        <View style={styles.resultsHeader}>
+          <Text style={styles.resultsTitle}>Extracted Biomarkers</Text>
+          <Text style={styles.resultsSubtitle}>
+            {extractedBiomarkers.length} biomarkers found
+          </Text>
+        </View>
+        
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.resultsScrollContainer}
+        >
+          {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
+            <View key={organ} style={styles.organResultsCard}>
+              <View style={styles.organResultsHeader}>
+                <Ionicons 
+                  name="medical" 
+                  size={16} 
+                  color="#007AFF" 
+                />
+                <Text style={styles.organResultsTitle}>{organ}</Text>
+              </View>
+              
+              {biomarkers.map((biomarker, index) => (
                 <TouchableOpacity
-                  key={index}
+                  key={`${biomarker.name}-${index}`}
                   style={styles.biomarkerResultItem}
-                  onPress={() =>
+                  onPress={() => 
                     handleBiomarkerPress(
                       biomarker.name,
                       biomarker.value,
                       biomarker.status,
                     )
                   }
+                  activeOpacity={0.7}
                 >
-                  <View style={styles.biomarkerResultInfo}>
-                    <Text style={styles.biomarkerResultName}>
+                  <View style={styles.biomarkerResultContent}>
+                    <Text style={styles.biomarkerResultName} numberOfLines={1}>
                       {biomarker.name}
                     </Text>
                     <Text style={styles.biomarkerResultValue}>
                       {biomarker.value} {biomarker.unit}
-                      {biomarker.referenceRange && (
-                        <Text style={styles.biomarkerResultRange}>
-                          {' '}
-                          ({biomarker.referenceRange})
-                        </Text>
-                      )}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      styles.statusIndicator,
-                      {
-                        backgroundColor: getBiomarkerStatusColor(
-                          biomarker.status,
-                        ),
-                      },
-                    ]}
-                  >
+                  
+                  <View style={styles.biomarkerResultStatus}>
                     <Ionicons
                       name={getBiomarkerStatusIcon(biomarker.status)}
                       size={16}
-                      color="#FFFFFF"
+                      color={getBiomarkerStatusColor(biomarker.status)}
                     />
+                    <Text 
+                      style={[
+                        styles.biomarkerResultStatusText,
+                        { color: getBiomarkerStatusColor(biomarker.status) }
+                      ]}
+                    >
+                      {biomarker.status?.toUpperCase() || 'NORMAL'}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
-              {biomarkers.length > 3 && (
-                <TouchableOpacity
-                  style={styles.viewMoreButton}
-                  onPress={() => handleOrganPress(organ)}
-                >
-                  <Text style={styles.viewMoreText}>
-                    View {biomarkers.length - 3} more
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
-          </View>
-        ))}
+          ))}
+        </ScrollView>
       </View>
     );
   };
 
   const renderDocumentUploadSection = () => {
     const getSectionTitle = () => {
-      switch (selectedSystem) {
-        case 'organs':
-          return 'Upload Your Lab Results';
-        case 'skeleton':
-          return 'Upload Bone Health Reports';
-        case 'circulation':
-          return 'Upload Cardiovascular Reports';
-        default:
-          return 'Upload Your Lab Results';
+      if (uploadedDocuments.length === 0) {
+        return 'Upload Lab Results';
       }
+      return `Uploaded Documents (${uploadedDocuments.length})`;
     };
 
     const getSectionDescription = () => {
-      switch (selectedSystem) {
-        case 'organs':
-          return 'Scan or upload your blood test, urine test, or any lab report to automatically update your biomarkers using AI';
-        case 'skeleton':
-          return 'Upload DEXA scans, bone density reports, or calcium/Vitamin D tests to analyze your bone health biomarkers';
-        case 'circulation':
-          return 'Upload cardiovascular panels, lipid profiles, or heart health reports to analyze your cardiovascular biomarkers';
-        default:
-          return 'Scan or upload your blood test, urine test, or any lab report to automatically update your biomarkers using AI';
+      if (uploadedDocuments.length === 0) {
+        return 'Scan or upload your lab results to see biomarkers on your body map';
       }
+      return 'Tap on any document to process it with AI and extract biomarkers';
     };
 
     const getSupportedFormats = () => {
-      switch (selectedSystem) {
-        case 'organs':
-          return [
-            '• Blood test reports (PDF, JPG, PNG)',
-            '• Urine analysis reports',
-            '• Lipid panels, metabolic panels',
-            '• Thyroid function tests',
-          ];
-        case 'skeleton':
-          return [
-            '• DEXA scan reports (PDF, JPG, PNG)',
-            '• Bone density test results',
-            '• Calcium and Vitamin D tests',
-            '• Bone turnover markers',
-          ];
-        case 'circulation':
-          return [
-            '• Cardiovascular panels (PDF, JPG, PNG)',
-            '• Lipid profiles and cholesterol tests',
-            '• Blood pressure monitoring reports',
-            '• Cardiac biomarker tests',
-          ];
-        default:
-          return [
-            '• Blood test reports (PDF, JPG, PNG)',
-            '• Urine analysis reports',
-            '• Lipid panels, metabolic panels',
-            '• Thyroid function tests',
-          ];
-      }
+      return 'Supports: PDF, JPG, PNG, HEIC';
     };
 
     return (
-      <View style={styles.documentSection}>
-        <Text style={styles.sectionTitle}>{getSectionTitle()}</Text>
-        <Text style={styles.sectionDescription}>
-          {getSectionDescription()}
-        </Text>
-
-      <View style={styles.uploadOptions}>
-        <TouchableOpacity
-          style={[
-            styles.uploadButton,
-            isProcessing && styles.uploadButtonDisabled,
-          ]}
-          onPress={handleCameraPress}
-          disabled={!!isProcessing}
-        >
-          <Ionicons
-            name="camera"
-            size={32}
-            color={isProcessing ? '#8E8E93' : '#34C759'}
-          />
-          <Text
-            style={[
-              styles.uploadButtonText,
-              isProcessing && styles.uploadButtonTextDisabled,
-            ]}
-          >
-            Scan Document
-          </Text>
-          <Text
-            style={[
-              styles.uploadButtonSubtext,
-              isProcessing && styles.uploadButtonTextDisabled,
-            ]}
-          >
-            Use camera to scan
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.uploadButton,
-            isProcessing && styles.uploadButtonDisabled,
-          ]}
-          onPress={handleDocumentPicker}
-          disabled={!!isProcessing}
-        >
-          <Ionicons
-            name="document"
-            size={32}
-            color={isProcessing ? '#8E8E93' : '#007AFF'}
-          />
-          <Text
-            style={[
-              styles.uploadButtonText,
-              isProcessing && styles.uploadButtonTextDisabled,
-            ]}
-          >
-            Upload File
-          </Text>
-          <Text
-            style={[
-              styles.uploadButtonSubtext,
-              isProcessing && styles.uploadButtonTextDisabled,
-            ]}
-          >
-            Choose from gallery
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Processing Status */}
-      {isProcessing && processingStep && (
-        <View style={styles.processingStatus}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.processingText}>{processingStep}</Text>
-          <Text style={styles.processingSubtext}>
-            This may take 10-30 seconds
-          </Text>
+      <View style={styles.uploadSection}>
+        <View style={styles.uploadHeader}>
+          <Text style={styles.uploadTitle}>{getSectionTitle()}</Text>
+          <Text style={styles.uploadDescription}>{getSectionDescription()}</Text>
+          <Text style={styles.uploadFormats}>{getSupportedFormats()}</Text>
         </View>
-      )}
 
-      {uploadedDocuments.length > 0 && (
-        <View style={styles.uploadedDocuments}>
-          <Text style={styles.uploadedTitle}>📎 Recent Uploads</Text>
-          {uploadedDocuments.slice(-3).map((doc, index) => (
-            <View key={doc.id} style={styles.documentItem}>
-              <View style={styles.documentIcon}>
-                <Ionicons
-                  name={doc.type === 'camera' ? 'camera' : 'document'}
-                  size={20}
-                  color="#007AFF"
-                />
+        <View style={styles.uploadButtonsContainer}>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={handleCameraPress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.uploadButtonContent}>
+              <View style={styles.uploadButtonIcon}>
+                <Ionicons name="camera" size={24} color="#007AFF" />
               </View>
-              <View style={styles.documentInfo}>
-                <Text style={styles.documentName}>
-                  {doc.name.length > 25
-                    ? `${doc.name.substring(0, 25)}...`
-                    : doc.name}
-                </Text>
-                <Text style={styles.documentDate}>
-                  {doc.timestamp.toLocaleDateString()} •{' '}
-                  {doc.size
-                    ? `${Math.round(doc.size / 1024)}KB`
-                    : 'Unknown size'}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[
-                  styles.processButton,
-                  isProcessing === doc.id && styles.processingButton,
-                  processedDocuments.some(pd => pd.name === doc.name) &&
-                    styles.processedButton,
-                ]}
-                onPress={() => handleProcessDocument(doc)}
-                disabled={
-                  isProcessing === doc.id ||
-                  processedDocuments.some(pd => pd.name === doc.name)
-                }
-              >
-                <Text
-                  style={[
-                    styles.processButtonText,
-                    processedDocuments.some(pd => pd.name === doc.name) &&
-                      styles.processedButtonText,
-                  ]}
-                >
-                  {isProcessing === doc.id
-                    ? 'Scanning...'
-                    : processedDocuments.some(pd => pd.name === doc.name)
-                      ? 'Processed ✓'
-                      : 'Scan My Results'}
-                </Text>
-              </TouchableOpacity>
+              <Text style={styles.uploadButtonText}>Scan Document</Text>
+              <Text style={styles.uploadButtonSubtext}>Use Camera</Text>
             </View>
-          ))}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={handleDocumentPicker}
+            activeOpacity={0.8}
+          >
+            <View style={styles.uploadButtonContent}>
+              <View style={styles.uploadButtonIcon}>
+                <Ionicons name="folder-open" size={24} color="#007AFF" />
+              </View>
+              <Text style={styles.uploadButtonText}>Choose File</Text>
+              <Text style={styles.uploadButtonSubtext}>From Device</Text>
+            </View>
+          </TouchableOpacity>
         </View>
-      )}
 
-      {/* Biomarker Results */}
-      {renderBiomarkerResults()}
+        {uploadedDocuments.length > 0 && (
+          <View style={styles.documentsList}>
+            <Text style={styles.documentsTitle}>Recent Documents</Text>
+            {uploadedDocuments.map((doc, index) => (
+              <View key={doc.id} style={styles.documentItem}>
+                <View style={styles.documentInfo}>
+                  <Ionicons
+                    name={doc.type === 'camera' ? 'camera' : 'document'}
+                    size={20}
+                    color="#8E8E93"
+                  />
+                  <View style={styles.documentDetails}>
+                    <Text style={styles.documentName} numberOfLines={1}>
+                      {doc.name}
+                    </Text>
+                    <Text style={styles.documentMeta}>
+                      {doc.timestamp.toLocaleDateString()} • {doc.type}
+                    </Text>
+                  </View>
+                </View>
 
-      <View style={styles.supportedFormats}>
-        <Text style={styles.supportedTitle}>✅ Supported formats:</Text>
-        {getSupportedFormats().map((format, index) => (
-          <Text key={index} style={styles.supportedText}>{format}</Text>
-        ))}
-        <Text style={styles.supportedNote}>
-          Files must be under 10MB for optimal processing
-        </Text>
+                <View style={styles.documentActions}>
+                  {isProcessing === doc.id ? (
+                    <View style={styles.processingIndicator}>
+                      <ActivityIndicator size="small" color="#007AFF" />
+                      <Text style={styles.processingText}>{processingStep}</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.processButton}
+                      onPress={() => handleProcessDocument(doc)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.processButtonText}>Scan Results</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
-    </View>
-  );
+    );
   };
 
   const renderInfoPanel = () => {
-    if (!selectedOrgan || !organs[selectedOrgan]) return null;
+    if (!selectedOrgan) return null;
 
-    const organ = organs[selectedOrgan];
-    const data = organ.data;
-    const translateY = panelAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [height, 0],
-    });
+    const organ = organs.find(o => o.id === selectedOrgan);
+    if (!organ) return null;
 
     return (
       <Animated.View
         style={[
           styles.infoPanel,
           {
-            transform: [{ translateY }],
+            transform: [
+              {
+                translateY: panelAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [height, 0],
+                }),
+              },
+            ],
           },
         ]}
       >
         <View style={styles.panelHeader}>
-          <Text style={styles.organTitle}>{data.name}</Text>
-          <TouchableOpacity
-            onPress={handleClosePanel}
-            style={styles.closeButton}
-          >
-            <Ionicons name="close" size={24} color="#666" />
+          <View style={styles.panelHeaderContent}>
+            <Text style={styles.panelTitle}>{organ.name}</Text>
+            <Text style={styles.panelSubtitle}>{organ.description}</Text>
+          </View>
+          <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color="#8E8E93" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.organDescription}>{data.description}</Text>
-
         <ScrollView
-          style={styles.biomarkerScrollView}
-          showsVerticalScrollIndicator={true}
-          bounces={true}
+          style={styles.panelContent}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.biomarkerList}>
-            {data.biomarkers.map((biomarker, index) => (
+          <View style={styles.biomarkersSection}>
+            <Text style={styles.biomarkersTitle}>Key Biomarkers</Text>
+            {organ.biomarkers.map((biomarker, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.biomarkerItem}
@@ -672,15 +539,48 @@ const BodyMapScreen: React.FC = () => {
                     biomarker.status,
                   )
                 }
+                activeOpacity={0.7}
               >
-                <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                <Text style={styles.biomarkerValue}>
-                  {biomarker.value} {biomarker.unit}
-                </Text>
-                <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
+                <View style={styles.biomarkerContent}>
+                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
+                  <Text style={styles.biomarkerValue}>
+                    {biomarker.value} {biomarker.unit}
+                  </Text>
+                  <Text style={styles.biomarkerRange}>
+                    ({biomarker.referenceRange})
+                  </Text>
+                </View>
+                
+                <View style={styles.biomarkerStatus}>
+                  <Ionicons
+                    name={getBiomarkerStatusIcon(biomarker.status)}
+                    size={16}
+                    color={getBiomarkerStatusColor(biomarker.status)}
+                  />
+                  <Text
+                    style={[
+                      styles.biomarkerStatusText,
+                      { color: getBiomarkerStatusColor(biomarker.status) },
+                    ]}
+                  >
+                    {biomarker.status?.toUpperCase() || 'NORMAL'}
+                  </Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
+
+          {organ.recommendations && organ.recommendations.length > 0 && (
+            <View style={styles.recommendationsSection}>
+              <Text style={styles.recommendationsTitle}>Recommendations</Text>
+              {organ.recommendations.map((recommendation, index) => (
+                <View key={index} style={styles.recommendationItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#30D158" />
+                  <Text style={styles.recommendationText}>{recommendation}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </Animated.View>
     );
@@ -688,27 +588,46 @@ const BodyMapScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>My Body</Text>
+          <Text style={styles.headerSubtitle}>Interactive Health Map</Text>
+        </View>
+      </View>
+
+      {/* Body System Selector */}
+      <BodySystemSelector
+        selectedSystem={selectedSystem}
+        onSystemChange={handleSystemChange}
+      />
+
       <ScrollView
-        style={styles.scrollView}
+        style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
-        bounces={true}
+        contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>My Body</Text>
+        {/* Body Map */}
+        <View style={styles.bodyMapContainer}>
+          {renderBodyMap()}
         </View>
 
-        <BodySystemSelector
-          selectedSystem={selectedSystem}
-          onSystemChange={handleSystemChange}
-        />
+        {/* Biomarker Results */}
+        {renderBiomarkerResults()}
 
-        <View style={styles.bodyMapContainer}>{renderBodyMap()}</View>
-
+        {/* Document Upload Section */}
         {renderDocumentUploadSection()}
+
+        {/* Bottom spacing */}
+        <View style={styles.bottomSpacing} />
       </ScrollView>
 
+      {/* Info Panel */}
       {renderInfoPanel()}
 
+      {/* Biomarker Modal */}
       <BiomarkerModal
         visible={modalVisible}
         biomarker={selectedBiomarker}
@@ -724,309 +643,343 @@ const BodyMapScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
+    backgroundColor: '#000000',
   },
   header: {
-    padding: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#000000',
   },
-  title: {
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   bodyMapContainer: {
-    height: 600,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  documentSection: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    marginHorizontal: 16,
+    marginVertical: 8,
     padding: 20,
-    backgroundColor: '#F8F9FA',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
+  resultsContainer: {
+    marginTop: 16,
+    marginHorizontal: 16,
+  },
+  resultsHeader: {
+    marginBottom: 12,
+  },
+  resultsTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  resultsSubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  resultsScrollContainer: {
+    paddingRight: 16,
+  },
+  organResultsCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 12,
+    minWidth: 200,
+  },
+  organResultsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  organResultsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  biomarkerResultItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  biomarkerResultContent: {
+    flex: 1,
+  },
+  biomarkerResultName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  biomarkerResultValue: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  biomarkerResultStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  biomarkerResultStatusText: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  uploadSection: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 20,
+  },
+  uploadHeader: {
+    marginBottom: 20,
+  },
+  uploadTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  sectionDescription: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
-    lineHeight: 22,
+  uploadDescription: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 4,
   },
-  uploadOptions: {
+  uploadFormats: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontStyle: 'italic',
+  },
+  uploadButtonsContainer: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 20,
   },
   uploadButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  uploadButtonContent: {
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
-    borderStyle: 'dashed',
+  },
+  uploadButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#007AFF20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   uploadButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1C1E',
-    marginTop: 8,
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
   uploadButtonSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  uploadButtonDisabled: {
-    borderColor: '#8E8E93',
-  },
-  uploadButtonTextDisabled: {
+    fontSize: 12,
     color: '#8E8E93',
   },
-  uploadedDocuments: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+  documentsList: {
+    marginTop: 16,
   },
-  uploadedTitle: {
-    fontSize: 18,
+  documentsTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   documentItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  documentIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderBottomColor: '#2C2C2E',
   },
   documentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  documentDetails: {
     marginLeft: 12,
+    flex: 1,
   },
   documentName: {
-    fontSize: 16,
-    color: '#1C1C1E',
+    fontSize: 14,
     fontWeight: '500',
-  },
-  documentDate: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  processButton: {
-    backgroundColor: '#34C759',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  processButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    marginBottom: 2,
   },
-  processingButton: {
-    backgroundColor: '#FF9500',
+  documentMeta: {
+    fontSize: 12,
+    color: '#8E8E93',
   },
-  processedButton: {
-    backgroundColor: '#34C759',
+  documentActions: {
+    alignItems: 'flex-end',
   },
-  processedButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  processingStatus: {
+  processingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
   },
   processingText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontSize: 12,
+    color: '#007AFF',
     marginLeft: 8,
   },
-  processingSubtext: {
-    fontSize: 14,
-    color: '#666',
-  },
-  biomarkerResults: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  biomarkerResultsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  biomarkerResultsSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  organGroup: {
-    marginBottom: 16,
-  },
-  organGroupHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  organGroupTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  biomarkersList: {
-    marginTop: 8,
-  },
-  biomarkerResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  biomarkerResultInfo: {
-    flex: 1,
-  },
-  biomarkerResultName: {
-    fontSize: 16,
-    color: '#1C1C1E',
-    fontWeight: '500',
-  },
-  biomarkerResultValue: {
-    fontSize: 14,
-    color: '#666',
-  },
-  biomarkerResultRange: {
-    fontSize: 14,
-    color: '#666',
-  },
-  statusIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewMoreButton: {
-    padding: 8,
+  processButton: {
     backgroundColor: '#007AFF',
     borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  viewMoreText: {
-    fontSize: 14,
+  processButtonText: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  supportedFormats: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-  },
-  supportedTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  supportedText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  supportedNote: {
-    fontSize: 12,
-    color: '#666',
   },
   infoPanel: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '70%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    maxHeight: '70%',
+    zIndex: 1000,
   },
   panelHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
   },
-  organTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  organDescription: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-  },
-  biomarkerScrollView: {
+  panelHeaderContent: {
     flex: 1,
   },
-  biomarkerList: {
-    gap: 16,
-    paddingBottom: 20,
+  panelTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  panelSubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panelContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  biomarkersSection: {
+    paddingVertical: 16,
+  },
+  biomarkersTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 16,
   },
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#2C2C2E',
+  },
+  biomarkerContent: {
+    flex: 1,
   },
   biomarkerName: {
-    flex: 1,
     fontSize: 16,
-    color: '#1C1C1E',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
   biomarkerValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#34C759',
-    marginRight: 8,
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 2,
   },
   biomarkerRange: {
+    fontSize: 12,
+    color: '#8E8E93',
+  },
+  biomarkerStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  biomarkerStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  recommendationsSection: {
+    paddingVertical: 16,
+  },
+  recommendationsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 16,
+  },
+  recommendationItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  recommendationText: {
     fontSize: 14,
-    color: '#666',
+    color: '#FFFFFF',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  bottomSpacing: {
+    height: 40,
   },
 });
 

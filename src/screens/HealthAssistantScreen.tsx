@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../context/HealthDataContext';
@@ -198,96 +199,75 @@ General recommendations include:
 
 ${exerciseFreq !== 'not specified' && exerciseFreq !== 'never' ? 'Great job staying active!' : 'Consider starting with light activities like walking and gradually building up.'} 
 
-Would you like personalized exercise suggestions based on your health profile?`;
+What type of exercise are you interested in or currently doing?`;
     }
 
     if (lowerQuery.includes('sleep') || lowerQuery.includes('rest')) {
-      const sleepHours = userProfile?.lifestyle?.sleep?.averageHoursPerNight;
-      const sleepQuality = userProfile?.lifestyle?.sleep?.sleepQuality;
+      return `Sleep is fundamental to health! Quality sleep supports:
       
-      return `Sleep is fundamental to health! ${sleepHours ? `You currently get about ${sleepHours} hours per night` : 'Sleep tracking would be helpful'}${sleepQuality ? ` with ${sleepQuality} quality` : ''}.
+• Immune function
+• Mental health and mood
+• Physical recovery
+• Hormone regulation
 
-Optimal sleep includes:
-• 7-9 hours nightly for most adults
+Aim for 7-9 hours of quality sleep per night. Good sleep hygiene includes:
 • Consistent sleep schedule
-• Good sleep hygiene practices
+• Dark, quiet, cool bedroom
+• Avoiding screens before bed
+• Regular exercise (but not too close to bedtime)
 
-${sleepHours && sleepHours < 7 ? 'Consider prioritizing more sleep - it affects everything from immune function to mental clarity.' : sleepHours && sleepHours >= 7 ? 'Your sleep duration looks good!' : ''}
-
-What sleep challenges are you experiencing?`;
+How's your sleep quality lately? Any specific sleep issues you'd like to discuss?`;
     }
 
     if (lowerQuery.includes('stress') || lowerQuery.includes('anxiety') || lowerQuery.includes('mental')) {
-      const stressLevel = userProfile?.lifestyle?.stress?.level || 'not specified';
-      return `Mental health is just as important as physical health. ${stressLevel !== 'not specified' ? `I see your stress level is "${stressLevel}".` : ''}
+      return `Mental health is just as important as physical health! Chronic stress can impact:
 
-Stress management strategies include:
-• Regular exercise and movement
+• Immune function
+• Cardiovascular health
+• Sleep quality
+• Digestive health
+
+Stress management techniques include:
 • Mindfulness and meditation
-• Adequate sleep and nutrition
-• Social connections and support
-• Professional help when needed
+• Regular exercise
+• Adequate sleep
+• Social connections
+• Professional support when needed
 
-${stressLevel === 'high' || stressLevel === 'severe' ? 'High stress levels can impact physical health. Consider speaking with a healthcare provider about stress management strategies.' : ''}
-
-What aspects of stress management interest you most?`;
+How are you managing stress these days? I'm here to listen and provide support.`;
     }
 
-    if (lowerQuery.includes('medication') || lowerQuery.includes('allergy') || lowerQuery.includes('medical history')) {
-      const allergies = userProfile?.allergies?.length || 0;
-      const conditions = userProfile?.medicalHistory?.length || 0;
-      
-      return `I can help you understand your medical information. ${allergies > 0 ? `You have ${allergies} recorded allergies` : 'No allergies recorded'}${conditions > 0 ? ` and ${conditions} medical conditions` : ''} in your profile.
+    if (lowerQuery.includes('medication') || lowerQuery.includes('drug') || lowerQuery.includes('prescription')) {
+      return `I can help you understand medications, but remember I'm not a doctor and can't provide medical advice. 
 
-Important reminders:
-• Always inform healthcare providers about allergies
-• Keep medication lists updated
-• Understand drug interactions
-• Follow prescribed dosages and timing
+For medication questions, always consult with your healthcare provider. I can help you:
+• Understand general medication information
+• Track medication interactions (with your doctor's guidance)
+• Discuss lifestyle factors that might affect medications
+• Learn about medication safety
 
-For specific medical advice, always consult your healthcare provider. What questions do you have about managing your medical information?`;
+What specific medication questions do you have?`;
     }
 
-    if (lowerQuery.includes('weight') || lowerQuery.includes('bmi') || lowerQuery.includes('height')) {
-      const height = userProfile?.height;
-      const weight = userProfile?.weight;
-      let bmi = '';
-      
-      if (height && weight) {
-        const bmiValue = weight / ((height / 100) ** 2);
-        bmi = `Your current BMI is ${bmiValue.toFixed(1)}. `;
-      }
-
-      return `${bmi}Body composition involves more than just weight - muscle mass, bone density, and overall health matter too.
-
-Healthy approaches include:
-• Balanced nutrition
-• Regular physical activity
-• Adequate hydration
-• Consistent sleep patterns
-• Stress management
-
-${height && weight ? 'Your recorded measurements help track trends over time.' : 'Consider tracking measurements to monitor progress.'} 
-
-What are your health and wellness goals?`;
-    }
-
-    // Default health assistant response
+    // Default response
     return `I'm here to help with your health questions! I can assist with:
 
-🔬 **Biomarker Analysis** - Understanding lab results and health metrics
-🥗 **Nutrition Guidance** - Diet recommendations and meal planning  
-🏃 **Exercise Planning** - Workout suggestions based on your fitness level
-😴 **Sleep Optimization** - Improving sleep quality and habits
-🧘 **Stress Management** - Techniques for mental wellbeing
-💊 **Medical History** - Managing medications, allergies, and conditions
-📊 **Health Tracking** - Interpreting trends and patterns
+• Understanding your biomarkers and lab results
+• Nutrition and diet guidance
+• Exercise and fitness recommendations
+• Sleep and stress management
+• General health education
 
-Feel free to ask specific questions about any health topic, and I'll provide personalized insights based on your profile data. What would you like to explore first?`;
+What would you like to know more about? Feel free to ask specific questions or share your health goals.`;
   };
 
   useEffect(() => {
+    // Auto-scroll to bottom when new messages arrive
+    if (scrollViewRef.current) {
+      setTimeout(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
   }, [messages]);
 
   const formatTime = (date: Date) => {
@@ -297,221 +277,274 @@ Feel free to ask specific questions about any health topic, and I'll provide per
   const speak = (text: string) => {
     Speech.speak(text, {
       language: 'en',
-      rate: 1.0,
-      pitch: 1.0,
+      pitch: 1,
+      rate: 0.9,
     });
   };
 
   const MessageBubble = ({ message }: { message: ChatMessage }) => (
     <View style={[
-      styles.messageBubble,
-      message.role === 'user' ? styles.userMessage : styles.assistantMessage
+      styles.messageContainer,
+      message.role === 'user' ? styles.userMessageContainer : styles.assistantMessageContainer
     ]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={[
+        styles.messageBubble,
+        message.role === 'user' ? styles.userMessageBubble : styles.assistantMessageBubble
+      ]}>
         <Text style={[
           styles.messageText,
           message.role === 'user' ? styles.userMessageText : styles.assistantMessageText
         ]}>
           {message.content}
         </Text>
+        <View style={styles.messageFooter}>
+          <Text style={styles.messageTime}>{formatTime(message.timestamp)}</Text>
         {message.role === 'assistant' && (
-          <TouchableOpacity onPress={() => speak(message.content)} style={styles.speakerButton}>
-            <Ionicons name="volume-high-outline" size={20} color="#007AFF" />
+            <TouchableOpacity onPress={() => speak(message.content)} style={styles.speakButton}>
+              <Ionicons name="volume-medium" size={16} color="#8E8E93" />
           </TouchableOpacity>
         )}
+        </View>
       </View>
-      <Text style={[
-        styles.messageTime,
-        message.role === 'user' ? styles.userMessageTime : styles.assistantMessageTime
-      ]}>
-        {formatTime(message.timestamp)}
-      </Text>
     </View>
   );
 
   const QuickActions = () => (
-    <View style={styles.quickActions}>
-      <Text style={styles.quickActionsTitle}>Quick Questions</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <View style={styles.quickActionsContainer}>
+      <Text style={styles.quickActionsTitle}>Quick Actions</Text>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.quickActionsScroll}
+      >
         <TouchableOpacity 
           style={styles.quickActionButton}
-          onPress={() => setInputText("What do my recent biomarkers mean?")}
+          onPress={() => setInputText('Help me understand my biomarkers')}
         >
-          <Ionicons name="analytics-outline" size={16} color="#007AFF" />
+          <Ionicons name="analytics" size={20} color="#007AFF" />
           <Text style={styles.quickActionText}>Biomarkers</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.quickActionButton}
-          onPress={() => setInputText("Give me nutrition advice based on my profile")}
+          onPress={() => setInputText('What should I eat for better health?')}
         >
-          <Ionicons name="nutrition-outline" size={16} color="#007AFF" />
+          <Ionicons name="nutrition" size={20} color="#007AFF" />
           <Text style={styles.quickActionText}>Nutrition</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.quickActionButton}
-          onPress={() => setInputText("What exercise routine do you recommend for me?")}
+          onPress={() => setInputText('How can I improve my sleep?')}
         >
-          <Ionicons name="fitness-outline" size={16} color="#007AFF" />
-          <Text style={styles.quickActionText}>Exercise</Text>
+          <Ionicons name="moon" size={20} color="#007AFF" />
+          <Text style={styles.quickActionText}>Sleep</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.quickActionButton}
-          onPress={() => setInputText("How can I improve my sleep quality?")}
+          onPress={() => setInputText('Exercise recommendations for my age')}
         >
-          <Ionicons name="moon-outline" size={16} color="#007AFF" />
-          <Text style={styles.quickActionText}>Sleep</Text>
+          <Ionicons name="fitness" size={20} color="#007AFF" />
+          <Text style={styles.quickActionText}>Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
   );
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View style={styles.assistantInfo}>
-            <View style={styles.assistantAvatar}>
-              <Ionicons name="medical" size={24} color="#FFFFFF" />
+          <Text style={styles.headerTitle}>Health Assistant</Text>
+          <Text style={styles.headerSubtitle}>AI-powered health guidance</Text>
             </View>
-            <View>
-              <Text style={styles.assistantName}>Health Assistant</Text>
-              <Text style={styles.assistantStatus}>AI-Powered • Always Available</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="information-circle-outline" size={24} color="#007AFF" />
-          </TouchableOpacity>
+        <View style={styles.headerIcon}>
+          <Ionicons name="sparkles" size={24} color="#007AFF" />
         </View>
       </View>
 
-      {/* Messages */}
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {/* Chat Messages */}
       <ScrollView 
         ref={scrollViewRef}
         style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.messagesContent}
       >
+          {/* Quick Actions */}
+          <QuickActions />
+          
+          {/* Messages */}
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
         
+          {/* Loading Indicator */}
         {isLoading && (
-          <View style={styles.loadingMessage}>
+            <View style={styles.loadingContainer}>
+              <View style={styles.loadingBubble}>
             <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.loadingText}>Assistant is thinking...</Text>
+                <Text style={styles.loadingText}>Thinking...</Text>
+              </View>
           </View>
         )}
       </ScrollView>
 
-      {/* Quick Actions */}
-      {messages.length <= 1 && <QuickActions />}
-
-      {/* Input */}
+        {/* Input Section */}
       <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
-          {/* Image input button */}
-          <TouchableOpacity style={styles.iconButton} onPress={handleImageInput}>
-            <Ionicons name="image-outline" size={24} color="#007AFF" />
+          <View style={styles.inputRow}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleImageInput}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="camera" size={20} color="#8E8E93" />
           </TouchableOpacity>
-          {/* Voice input button */}
-          <TouchableOpacity style={styles.iconButton} onPress={handleVoiceInput}>
-            <Ionicons name="mic-outline" size={24} color="#007AFF" />
-          </TouchableOpacity>
+            
+            <View style={styles.textInputContainer}>
           <TextInput
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ask about your health..."
+                placeholder="Ask me anything about your health..."
+                placeholderTextColor="#8E8E93"
             multiline
             maxLength={500}
+                onSubmitEditing={sendMessage}
           />
+            </View>
+            
           <TouchableOpacity 
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                inputText.trim() ? styles.sendButtonActive : styles.sendButtonInactive
+              ]}
             onPress={sendMessage}
             disabled={!inputText.trim() || isLoading}
+              activeOpacity={0.7}
           >
-            <Ionicons name="send" size={20} color="#FFFFFF" />
+              <Ionicons 
+                name="send" 
+                size={20} 
+                color={inputText.trim() ? "#FFFFFF" : "#8E8E93"} 
+              />
           </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.disclaimer}>
-          This AI assistant provides general health information only. Always consult healthcare professionals for medical advice.
-        </Text>
+      </KeyboardAvoidingView>
       </View>
-    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#000000',
   },
   header: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: 60,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    backgroundColor: '#000000',
   },
   headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flex: 1,
   },
-  assistantInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
-  assistantAvatar: {
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  headerIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+    backgroundColor: '#1C1C1E',
     alignItems: 'center',
-    marginRight: 12,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF30',
   },
-  assistantName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  assistantStatus: {
-    fontSize: 13,
-    color: '#30D158',
-    marginTop: 2,
-  },
-  headerButton: {
-    padding: 8,
+  keyboardContainer: {
+    flex: 1,
   },
   messagesContainer: {
     flex: 1,
+    backgroundColor: '#000000',
   },
   messagesContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  quickActionsContainer: {
+    marginVertical: 16,
+  },
+  quickActionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  quickActionsScroll: {
+    paddingRight: 16,
+  },
+  quickActionButton: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 12,
+    alignItems: 'center',
+    minWidth: 80,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+  },
+  quickActionText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  messageContainer: {
+    marginVertical: 8,
+  },
+  userMessageContainer: {
+    alignItems: 'flex-end',
+  },
+  assistantMessageContainer: {
+    alignItems: 'flex-start',
   },
   messageBubble: {
     maxWidth: '80%',
-    borderRadius: 18,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  userMessage: {
+  userMessageBubble: {
     backgroundColor: '#007AFF',
-    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
   },
-  assistantMessage: {
-    backgroundColor: '#FFFFFF',
-    alignSelf: 'flex-start',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
+  assistantMessageBubble: {
+    backgroundColor: '#1C1C1E',
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
   },
   messageText: {
     fontSize: 16,
@@ -521,112 +554,88 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   assistantMessageText: {
-    color: '#000000',
+    color: '#FFFFFF',
+  },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
   messageTime: {
     fontSize: 12,
-    marginTop: 8,
-  },
-  userMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'right',
-  },
-  assistantMessageTime: {
     color: '#8E8E93',
   },
-  loadingMessage: {
+  speakButton: {
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    alignItems: 'flex-start',
+    marginVertical: 8,
+  },
+  loadingBubble: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E5E5EA',
   },
   loadingText: {
     fontSize: 14,
     color: '#8E8E93',
     marginLeft: 8,
   },
-  quickActions: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
-  },
-  quickActionsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 12,
-  },
-  quickActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  quickActionText: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginLeft: 6,
-    fontWeight: '500',
-  },
   inputContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
+    backgroundColor: '#1C1C1E',
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  inputWrapper: {
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 24,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  textInputContainer: {
+    flex: 1,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    marginBottom: 8,
+    maxHeight: 100,
   },
   textInput: {
-    flex: 1,
     fontSize: 16,
-    color: '#000000',
-    maxHeight: 100,
-    paddingVertical: 8,
+    color: '#FFFFFF',
+    textAlignVertical: 'top',
+    minHeight: 24,
   },
   sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  sendButtonActive: {
     backgroundColor: '#007AFF',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
   },
-  sendButtonDisabled: {
-    backgroundColor: '#C7C7CC',
-  },
-  disclaimer: {
-    fontSize: 11,
-    color: '#8E8E93',
-    textAlign: 'center',
-    lineHeight: 14,
-  },
-  iconButton: {
-    padding: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  speakerButton: {
-    marginLeft: 8,
-    padding: 4,
+  sendButtonInactive: {
+    backgroundColor: '#2C2C2E',
   },
 });
 

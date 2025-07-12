@@ -24,57 +24,53 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
       id: 'organs' as BodySystemType,
       name: 'Organs',
       icon: 'body' as const,
-      description: 'Internal organs & biomarkers',
-      color: '#FF6B35',
     },
     {
       id: 'skeleton' as BodySystemType,
       name: 'Skeleton',
       icon: 'skull' as const,
-      description: 'Bones, joints & mobility',
-      color: '#E8E8E8',
     },
     {
       id: 'circulation' as BodySystemType,
       name: 'Circulation',
       icon: 'heart' as const,
-      description: 'Heart, blood vessels & flow',
-      color: '#FF3B30',
     },
+    // Example for future tab:
+    // { id: 'vitamins' as BodySystemType, name: 'Vitamin Chart', icon: 'nutrition' as const },
   ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Body Systems</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={styles.tabScrollContainer}
       >
         {systems.map(system => (
           <TouchableOpacity
             key={system.id}
             style={[
-              styles.systemCard,
-              selectedSystem === system.id && styles.selectedCard,
-              { borderColor: system.color },
+              styles.tab,
+              selectedSystem === system.id && styles.selectedTab,
             ]}
             onPress={() => onSystemChange(system.id)}
+            activeOpacity={0.7}
           >
-            <View
-              style={[styles.iconContainer, { backgroundColor: system.color }]}
-            >
-              <Ionicons name={system.icon} size={24} color="#fff" />
-            </View>
+            <Ionicons 
+              name={system.icon} 
+              size={18} 
+              color={selectedSystem === system.id ? '#007AFF' : '#8E8E93'} 
+            />
             <Text
               style={[
-                styles.systemName,
-                selectedSystem === system.id && styles.selectedText,
+                styles.tabText,
+                selectedSystem === system.id && styles.selectedTabText,
               ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
               {system.name}
             </Text>
-            <Text style={styles.systemDescription}>{system.description}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -84,62 +80,39 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#F8F9FA',
+    paddingVertical: 12,
+    paddingHorizontal: 0, // Remove side padding for edge-to-edge scroll
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 12,
-  },
-  scrollContainer: {
-    paddingRight: 20,
-  },
-  systemCard: {
-    width: 120,
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginRight: 12,
+  tabScrollContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    paddingHorizontal: 10,
   },
-  selectedCard: {
-    borderWidth: 2,
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20, // More padding for touch area
+    gap: 8,
+    minWidth: 100, // Prevents wrapping for long names
   },
-  systemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 4,
+  selectedTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#007AFF',
   },
-  selectedText: {
+  tabText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#8E8E93',
+    maxWidth: 120,
+  },
+  selectedTabText: {
     color: '#007AFF',
-  },
-  systemDescription: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 16,
+    fontWeight: '600',
   },
 });
 
