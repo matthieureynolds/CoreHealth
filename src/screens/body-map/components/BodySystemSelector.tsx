@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export type BodySystemType = 'organs' | 'skeleton' | 'circulation';
+export type BodySystemType = 'organs' | 'skeleton' | 'circulation' | 'nutrition';
 
 interface BodySystemSelectorProps {
   selectedSystem: BodySystemType;
@@ -35,8 +35,11 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
       name: 'Circulation',
       icon: 'heart' as const,
     },
-    // Example for future tab:
-    // { id: 'vitamins' as BodySystemType, name: 'Vitamin Chart', icon: 'nutrition' as const },
+    {
+      id: 'nutrition' as BodySystemType,
+      name: 'Nutrition',
+      icon: 'nutrition' as const,
+    },
   ];
 
   return (
@@ -55,7 +58,7 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
             ]}
             onPress={() => onSystemChange(system.id)}
             activeOpacity={0.7}
-          >
+            >
             <Ionicons 
               name={system.icon} 
               size={18} 

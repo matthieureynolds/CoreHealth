@@ -2,7 +2,7 @@ import { UserProfile, Biomarker, HealthScore, DailyInsight } from '../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // OpenAI API Configuration
-export const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
+export const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-openai-api-key-here';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 const CONVERSATION_HISTORY_KEY = 'healthAssistant_conversationHistory';
@@ -21,18 +21,66 @@ export interface HealthChatMessage {
 }
 
 export interface UserHealthContext {
+  // Basic preferences
   preferredTopics: string[];
   healthConcerns: string[];
   goalsFocus: string[];
   conversationStyle: 'detailed' | 'concise' | 'technical';
+  
+  // Memory and learning
   lastDataUpdate: Date;
+  conversationCount: number;
+  lastConversationDate: Date;
+  favoriteTopics: string[];
+  avoidedTopics: string[];
+  
+  // Health tracking
   biomarkerTrends: {
     [key: string]: {
       trend: 'improving' | 'stable' | 'declining';
       significance: 'normal' | 'concerning' | 'critical';
       lastValue: number;
       changePercent: number;
+      lastDiscussed: Date;
     };
+  };
+  
+  // Personal insights
+  personalInsights: {
+    [key: string]: {
+      insight: string;
+      date: Date;
+      confidence: number;
+    };
+  };
+  
+  // Health goals and progress
+  healthGoals: {
+    [key: string]: {
+      goal: string;
+      target: string;
+      progress: number;
+      startDate: Date;
+      lastUpdate: Date;
+    };
+  };
+  
+  // Recommendations history
+  recommendationsHistory: {
+    [key: string]: {
+      recommendation: string;
+      date: Date;
+      followed: boolean;
+      outcome?: string;
+    };
+  };
+  
+  // User preferences learned over time
+  learnedPreferences: {
+    responseLength: 'short' | 'medium' | 'long';
+    technicalLevel: 'basic' | 'intermediate' | 'advanced';
+    focusAreas: string[];
+    communicationStyle: 'casual' | 'professional' | 'motivational';
   };
 }
 
@@ -56,7 +104,12 @@ export class HealthAssistantService {
     try {
       const stored = await AsyncStorage.getItem(CONVERSATION_HISTORY_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map((message: any) => ({
+          ...message,
+          timestamp: new Date(message.timestamp || Date.now())
+        }));
       }
       return [];
     } catch (error) {
@@ -115,6 +168,97 @@ export class HealthAssistantService {
   }
 
   /**
+   * Enhanced memory functions
+   */
+  static async addPersonalInsight(key: string, insight: string, confidence: number = 0.8): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context) {
+        context.personalInsights[key] = {
+          insight,
+          date: new Date(),
+          confidence
+        };
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to add personal insight:', error);
+    }
+  }
+
+  static async addHealthGoal(key: string, goal: string, target: string): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context) {
+        context.healthGoals[key] = {
+          goal,
+          target,
+          progress: 0,
+          startDate: new Date(),
+          lastUpdate: new Date()
+        };
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to add health goal:', error);
+    }
+  }
+
+  static async updateHealthGoalProgress(key: string, progress: number): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context && context.healthGoals[key]) {
+        context.healthGoals[key].progress = progress;
+        context.healthGoals[key].lastUpdate = new Date();
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to update health goal progress:', error);
+    }
+  }
+
+  static async addRecommendation(recommendation: string, followed: boolean = false): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context) {
+        const key = `rec_${Date.now()}`;
+        context.recommendationsHistory[key] = {
+          recommendation,
+          date: new Date(),
+          followed
+        };
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to add recommendation:', error);
+    }
+  }
+
+  static async updateRecommendationOutcome(key: string, outcome: string): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context && context.recommendationsHistory[key]) {
+        context.recommendationsHistory[key].outcome = outcome;
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to update recommendation outcome:', error);
+    }
+  }
+
+  static async learnUserPreference(preference: keyof UserHealthContext['learnedPreferences'], value: string | string[]): Promise<void> {
+    try {
+      const context = await this.loadUserContext();
+      if (context) {
+        context.learnedPreferences[preference] = value;
+        await this.saveUserContext(context);
+      }
+    } catch (error) {
+      console.error('Failed to learn user preference:', error);
+    }
+  }
+
+  /**
    * Enhanced greeting with personalization
    */
   static async getPersonalizedGreeting(
@@ -126,16 +270,16 @@ export class HealthAssistantService {
     const timeOfDay = this.getTimeOfDay();
     const name = 'there'; // Profile doesn't have displayName, will get from user context later
     
-    let greeting = `Good ${timeOfDay}, ${name}! 👋 I'm your AI health assistant.`;
+    let greeting = `Hi ${name}! 👋 I'm your health assistant.`;
     
     // Add personalized context based on health data
     if (healthScore?.overall) {
       if (healthScore.overall >= 80) {
-        greeting += ` Your health score of ${healthScore.overall} looks excellent! `;
+        greeting += ` Your health score of ${healthScore.overall} is looking great! `;
       } else if (healthScore.overall >= 60) {
-        greeting += ` Your health score of ${healthScore.overall} shows good progress with room for optimization. `;
+        greeting += ` Your health score of ${healthScore.overall} is pretty good - we can definitely optimize it further. `;
       } else {
-        greeting += ` I see opportunities to improve your health score of ${healthScore.overall}. `;
+        greeting += ` I see some opportunities to boost your health score of ${healthScore.overall}. `;
       }
     }
 
@@ -145,7 +289,7 @@ export class HealthAssistantService {
       greeting += `I noticed some interesting trends in your ${trendingBiomarkers.join(' and ')} levels. `;
     }
 
-    greeting += `\n\nI can help you understand your health data, provide evidence-based insights, and suggest personalized recommendations. What would you like to explore today? 🔬`;
+    greeting += `\n\nI'm here to help you understand your health data, answer questions, and chat about anything health-related. What's on your mind today?`;
 
     return greeting;
   }
@@ -158,19 +302,61 @@ export class HealthAssistantService {
     healthData: any
   ): string {
     const healthContext = this.formatHealthDataForAI(healthData);
+    const memoryContext = this.formatMemoryContextForAI(userContext);
     
-    return `You're a friendly, super knowledgeable health researcher who loves talking about health, wellness, nutrition, fitness, sleep, biomarkers, and anything health-related. You're basically like having a health-obsessed friend who's done a PhD in health sciences and keeps up with all the latest research.
+    return `You're a friendly, knowledgeable health assistant—think of yourself as a health-savvy friend who's passionate about wellness, nutrition, fitness, and helping people understand their bodies. You love making health feel approachable, fun, and practical.
 
-Here's what you know about this person:
+Here's what I know about this person:
 ${healthContext}
 
-Just chat naturally! Answer their questions, share insights, explain things in a way that makes sense, use analogies when helpful, and feel free to ask follow-up questions to understand what they're really trying to figure out.
+${memoryContext}
 
-You're NOT a doctor (never claim to be), you can't diagnose or prescribe anything, but you're amazing at explaining health concepts, interpreting data trends, and sharing evidence-based lifestyle tips. If something needs medical attention, just suggest they check with their doctor.
+Chat naturally, like a supportive friend! Use casual, encouraging language, and don't be overly formal. You can use emojis, ask follow-up questions, and share interesting health tips in a relaxed, actionable way.
 
-Be curious, engaging, and helpful. Talk like you would to a friend - no bullet points or formal structure unless they specifically ask for that. Just have a natural conversation about health stuff.
+Always give practical, step-by-step advice when possible. If you notice something important, gently suggest they check with a healthcare provider, but never say 'I am not a doctor.'
 
-Stay focused on health topics only - if they ask about non-health things, just gently redirect back to health and wellness topics.`;
+Keep the conversation focused on health and wellness. If they ask about something unrelated, gently steer it back to health topics.
+
+Be helpful, curious, and engaging—just like chatting with someone who really cares about their well-being! Always try to make your advice actionable and relevant to their situation. If you can, offer encouragement and ask what they'd like to focus on next.`;
+  }
+
+  /**
+   * Format memory context for AI
+   */
+  private static formatMemoryContextForAI(userContext: UserHealthContext | null): string {
+    if (!userContext) return '';
+
+    let memoryContext = '\n=== CONVERSATION MEMORY ===\n';
+    
+    // Conversation history
+    memoryContext += `We've had ${userContext.conversationCount} conversations together.\n`;
+    memoryContext += `Last conversation: ${userContext.lastConversationDate.toLocaleDateString()}\n`;
+    
+    // Favorite topics
+    if (userContext.favoriteTopics.length > 0) {
+      memoryContext += `You often ask about: ${userContext.favoriteTopics.join(', ')}\n`;
+    }
+    
+    // Health goals
+    if (Object.keys(userContext.healthGoals).length > 0) {
+      memoryContext += '\nYour health goals:\n';
+      Object.entries(userContext.healthGoals).forEach(([key, goal]) => {
+        memoryContext += `• ${goal.goal} (${goal.progress}% complete)\n`;
+      });
+    }
+    
+    // Recent insights
+    if (Object.keys(userContext.personalInsights).length > 0) {
+      memoryContext += '\nRecent insights about you:\n';
+      Object.entries(userContext.personalInsights).slice(-3).forEach(([key, insight]) => {
+        memoryContext += `• ${insight.insight}\n`;
+      });
+    }
+    
+    // Learned preferences
+    memoryContext += `\nI've learned you prefer: ${userContext.learnedPreferences.responseLength} responses, ${userContext.learnedPreferences.technicalLevel} explanations, ${userContext.learnedPreferences.communicationStyle} communication style.\n`;
+    
+    return memoryContext;
   }
 
   /**
@@ -359,14 +545,33 @@ Stay focused on health topics only - if they ask about non-health things, just g
     intent: string,
     healthData?: any
   ): Promise<UserHealthContext> {
+    const now = new Date();
+    
     const context: UserHealthContext = currentContext || {
       preferredTopics: [],
       healthConcerns: [],
       goalsFocus: [],
       conversationStyle: 'detailed',
-      lastDataUpdate: new Date(),
-      biomarkerTrends: {}
+      lastDataUpdate: now,
+      conversationCount: 0,
+      lastConversationDate: now,
+      favoriteTopics: [],
+      avoidedTopics: [],
+      biomarkerTrends: {},
+      personalInsights: {},
+      healthGoals: {},
+      recommendationsHistory: {},
+      learnedPreferences: {
+        responseLength: 'medium',
+        technicalLevel: 'intermediate',
+        focusAreas: [],
+        communicationStyle: 'casual',
+      },
     };
+
+    // Update conversation tracking
+    context.conversationCount += 1;
+    context.lastConversationDate = now;
 
     // Update preferred topics based on conversation
     if (intent && !context.preferredTopics.includes(intent)) {
@@ -384,12 +589,13 @@ Stay focused on health topics only - if they ask about non-health things, just g
           trend: 'stable', // This would be calculated from historical data
           significance: this.assessBiomarkerSignificance(biomarker),
           lastValue: biomarker.value,
-          changePercent: 0 // Would be calculated from previous values
+          changePercent: 0, // Would be calculated from previous values
+          lastDiscussed: now
         };
       });
     }
 
-    context.lastDataUpdate = new Date();
+    context.lastDataUpdate = now;
     return context;
   }
 
@@ -695,7 +901,7 @@ Make them actionable, friendly, and relevant to their health situation. Focus on
       title: `Daily Tip ${index + 1}`,
       description: line.replace(/^\d+\.\s*/, '').trim(),
       priority: 'medium' as const,
-      category: 'general' as const,
+      category: 'nutrition' as const,
       date: new Date(),
       actionable: true
     }));
@@ -718,12 +924,14 @@ Make them actionable, friendly, and relevant to their health situation. Focus on
       ],
       riskAssessment: {
         level: 'low',
-        concerns: []
+        concerns: [],
+        improvements: []
       },
       nextActions: [
         "Track your sleep for a week to identify patterns",
         "Schedule a check-in with your healthcare provider"
-      ]
+      ],
+      followUpQuestions: []
     };
   }
 

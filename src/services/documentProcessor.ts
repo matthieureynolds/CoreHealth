@@ -30,12 +30,12 @@ export interface ExtractedBiomarker {
 
 // Google Cloud Vision API Configuration
 const GOOGLE_CLOUD_VISION_API_KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_VISION_API_KEY || 'your-api-key-here';
+  process.env.EXPO_PUBLIC_GOOGLE_VISION_API_KEY || 'AIzaSyAPV0pl1cmA44s-3CJ441vVxPMMpB_HEIk';
 const GOOGLE_VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
 
 // OpenAI API Configuration
 const OPENAI_API_KEY =
-  process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-api-key-here';
+  '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';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 export class DocumentProcessor {
@@ -128,11 +128,6 @@ export class DocumentProcessor {
       const startTime = Date.now();
 
       // Check if API key is configured
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-api-key-here') {
-        console.warn('OpenAI API key not configured, using fallback parsing');
-        return this.parseBiomarkersFallback(rawText);
-      }
-
       const prompt = `You are a biomarker parsing assistant. Extract all biomarker results from the medical document text below. 
 
 For each biomarker found, return:

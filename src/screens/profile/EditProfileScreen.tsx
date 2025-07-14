@@ -9,8 +9,10 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
@@ -22,11 +24,11 @@ type EditProfileScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 interface FormData {
   displayName: string;
   age: string;
-  gender: 'male' | 'female' | 'other';
+  gender: 'male' | 'female';
   height: string;
   weight: string;
   ethnicity: string;
-  bloodType: string;
+  bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown';
 }
 
 const EditProfileScreen: React.FC = () => {
@@ -37,23 +39,61 @@ const EditProfileScreen: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     displayName: user?.displayName || '',
     age: profile?.age?.toString() || '',
-    gender: profile?.gender || 'male',
+    gender: (profile?.gender === 'other' ? 'male' : profile?.gender) || 'male',
     height: profile?.height?.toString() || '',
     weight: profile?.weight?.toString() || '',
     ethnicity: profile?.ethnicity || '',
-    bloodType: '',
+    bloodType: profile?.bloodType || 'unknown',
   });
+
+  // Date picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [showEthnicityPicker, setShowEthnicityPicker] = useState(false);
+  const [showBloodTypePicker, setShowBloodTypePicker] = useState(false);
+  const [activePicker, setActivePicker] = useState<'age' | 'gender' | 'ethnicity' | 'bloodType' | null>(null);
+
+  // Picker options
+  const genderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+  ];
+
+  const ethnicityOptions = [
+    { value: 'white', label: 'White' },
+    { value: 'black', label: 'Black or African American' },
+    { value: 'hispanic', label: 'Hispanic or Latino' },
+    { value: 'asian', label: 'Asian' },
+    { value: 'pacific_islander', label: 'Native Hawaiian or Pacific Islander' },
+    { value: 'american_indian', label: 'American Indian or Alaska Native' },
+    { value: 'middle_eastern', label: 'Middle Eastern or North African' },
+    { value: 'mixed', label: 'Mixed Race' },
+    { value: 'other', label: 'Other' },
+    { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+  ];
+
+  const bloodTypeOptions = [
+    { value: 'A+', label: 'A+' },
+    { value: 'A-', label: 'A-' },
+    { value: 'B+', label: 'B+' },
+    { value: 'B-', label: 'B-' },
+    { value: 'AB+', label: 'AB+' },
+    { value: 'AB-', label: 'AB-' },
+    { value: 'O+', label: 'O+' },
+    { value: 'O-', label: 'O-' },
+    { value: 'unknown', label: 'Unknown' },
+  ];
 
   useEffect(() => {
     if (profile) {
       setFormData({
         displayName: user?.displayName || '',
         age: profile.age?.toString() || '',
-        gender: profile.gender || 'male',
+        gender: (profile.gender === 'other' ? 'male' : profile.gender) || 'male',
         height: profile.height?.toString() || '',
         weight: profile.weight?.toString() || '',
         ethnicity: profile.ethnicity || '',
-        bloodType: '',
+        bloodType: profile.bloodType || 'unknown',
       });
     }
   }, [profile, user]);
@@ -92,6 +132,7 @@ const EditProfileScreen: React.FC = () => {
         height,
         weight,
         ethnicity: formData.ethnicity,
+        bloodType: formData.bloodType,
       });
 
       Alert.alert('Success', 'Profile updated successfully', [
@@ -103,6 +144,60 @@ const EditProfileScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getCurrentPickerOptions = () => {
+    switch (activePicker) {
+      case 'gender':
+        return genderOptions;
+      case 'ethnicity':
+        return ethnicityOptions;
+      case 'bloodType':
+        return bloodTypeOptions;
+      default:
+        return [];
+    }
+  };
+
+  const getCurrentPickerValue = () => {
+    switch (activePicker) {
+      case 'gender':
+        return formData.gender;
+      case 'ethnicity':
+        return formData.ethnicity;
+      case 'bloodType':
+        return formData.bloodType;
+      default:
+        return '';
+    }
+  };
+
+  const getCurrentPickerTitle = () => {
+    switch (activePicker) {
+      case 'gender':
+        return 'Select Gender';
+      case 'ethnicity':
+        return 'Select Ethnicity';
+      case 'bloodType':
+        return 'Select Blood Type';
+      default:
+        return '';
+    }
+  };
+
+  const handlePickerSelect = (value: string) => {
+    switch (activePicker) {
+      case 'gender':
+        setFormData({ ...formData, gender: value as 'male' | 'female' });
+        break;
+      case 'ethnicity':
+        setFormData({ ...formData, ethnicity: value });
+        break;
+      case 'bloodType':
+        setFormData({ ...formData, bloodType: value as 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown' });
+        break;
+    }
+    setActivePicker(null);
   };
 
   const FormSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -144,34 +239,25 @@ const EditProfileScreen: React.FC = () => {
     </View>
   );
 
-  const GenderSelector = () => (
+  const PickerField = ({ 
+    label, 
+    value, 
+    onPress,
+    placeholder = 'Select option'
+  }: {
+    label: string;
+    value: string;
+    onPress: () => void;
+    placeholder?: string;
+  }) => (
     <View style={styles.formField}>
-      <Text style={styles.fieldLabel}>Gender</Text>
-      <View style={styles.genderContainer}>
-        {[
-          { value: 'male', label: 'Male' },
-          { value: 'female', label: 'Female' },
-          { value: 'other', label: 'Other' },
-        ].map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.genderOption,
-              formData.gender === option.value && styles.genderOptionSelected,
-            ]}
-            onPress={() => setFormData({ ...formData, gender: option.value as any })}
-          >
-            <Text
-              style={[
-                styles.genderOptionText,
-                formData.gender === option.value && styles.genderOptionTextSelected,
-              ]}
-            >
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TouchableOpacity style={styles.pickerButton} onPress={onPress}>
+        <Text style={[styles.pickerText, !value && styles.pickerPlaceholder]}>
+          {value || placeholder}
+        </Text>
+        <Ionicons name="chevron-down" size={20} color="#007AFF" />
+      </TouchableOpacity>
     </View>
   );
 
@@ -181,7 +267,7 @@ const EditProfileScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <FormSection title="Personal Information">
+        <FormSection title="Personal Details">
           <FormField
             label="Full Name"
             value={formData.displayName}
@@ -190,23 +276,28 @@ const EditProfileScreen: React.FC = () => {
             maxLength={50}
           />
           
-          <FormField
+          <PickerField
             label="Age"
             value={formData.age}
-            onChangeText={(text) => setFormData({ ...formData, age: text })}
-            placeholder="Enter your age"
-            keyboardType="numeric"
-            maxLength={3}
+            onPress={() => {
+              setActivePicker('age');
+              setShowDatePicker(true);
+            }}
+            placeholder="Select your age"
           />
-          
-          <GenderSelector />
-          
-          <FormField
-            label="Ethnicity (Optional)"
-            value={formData.ethnicity}
-            onChangeText={(text) => setFormData({ ...formData, ethnicity: text })}
-            placeholder="e.g., Asian, Hispanic, African American"
-            maxLength={50}
+
+          <PickerField
+            label="Gender"
+            value={genderOptions.find(opt => opt.value === formData.gender)?.label || ''}
+            onPress={() => setActivePicker('gender')}
+            placeholder="Select gender"
+          />
+
+          <PickerField
+            label="Ethnicity"
+            value={ethnicityOptions.find(opt => opt.value === formData.ethnicity)?.label || ''}
+            onPress={() => setActivePicker('ethnicity')}
+            placeholder="Select ethnicity"
           />
         </FormSection>
 
@@ -215,7 +306,7 @@ const EditProfileScreen: React.FC = () => {
             label="Height (cm)"
             value={formData.height}
             onChangeText={(text) => setFormData({ ...formData, height: text })}
-            placeholder="Enter height in centimeters"
+            placeholder="Enter your height in cm"
             keyboardType="numeric"
             maxLength={3}
           />
@@ -224,41 +315,85 @@ const EditProfileScreen: React.FC = () => {
             label="Weight (kg)"
             value={formData.weight}
             onChangeText={(text) => setFormData({ ...formData, weight: text })}
-            placeholder="Enter weight in kilograms"
+            placeholder="Enter your weight in kg"
             keyboardType="numeric"
-            maxLength={5}
+            maxLength={3}
+          />
+
+          <PickerField
+            label="Blood Type"
+            value={bloodTypeOptions.find(opt => opt.value === formData.bloodType)?.label || ''}
+            onPress={() => setActivePicker('bloodType')}
+            placeholder="Select blood type"
           />
         </FormSection>
-
-        <FormSection title="Health Information">
-          <FormField
-            label="Blood Type (Optional)"
-            value={formData.bloodType}
-            onChangeText={(text) => setFormData({ ...formData, bloodType: text })}
-            placeholder="e.g., A+, B-, O+, AB-"
-            maxLength={4}
-          />
-        </FormSection>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={isLoading}
-          >
-            <Text style={styles.saveButtonText}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
+
+      {/* Save Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={isLoading}
+        >
+          <Text style={styles.saveButtonText}>
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Age Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display="spinner"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              const age = new Date().getFullYear() - selectedDate.getFullYear();
+              setFormData({ ...formData, age: age.toString() });
+            }
+          }}
+        />
+      )}
+
+      {/* Picker Modal */}
+      <Modal
+        visible={activePicker !== null}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setActivePicker(null)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{getCurrentPickerTitle()}</Text>
+              <TouchableOpacity 
+                onPress={() => setActivePicker(null)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.pickerOptions}>
+              {getCurrentPickerOptions().map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.pickerOption}
+                  onPress={() => handlePickerSelect(option.value)}
+                >
+                  <Text style={styles.pickerOptionText}>{option.label}</Text>
+                  {getCurrentPickerValue() === option.value && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -266,25 +401,22 @@ const EditProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F2F2F7',
   },
   scrollView: {
     flex: 1,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     marginTop: 20,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingVertical: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#666',
-    marginTop: 20,
+    color: '#1C1C1E',
     marginBottom: 16,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   formField: {
     marginBottom: 20,
@@ -296,72 +428,101 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textInput: {
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    backgroundColor: '#F2F2F7',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
     color: '#1C1C1E',
-    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   multilineInput: {
-    height: 80,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
-  genderContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  genderOption: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  pickerButton: {
+    backgroundColor: '#F2F2F7',
     borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    alignItems: 'center',
-    backgroundColor: '#fff',
   },
-  genderOptionSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  genderOptionText: {
+  pickerText: {
     fontSize: 16,
     color: '#1C1C1E',
-    fontWeight: '500',
   },
-  genderOptionTextSelected: {
-    color: '#fff',
+  pickerPlaceholder: {
+    color: '#8E8E93',
   },
-  buttonContainer: {
-    padding: 20,
-    gap: 12,
+  footer: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
   },
   saveButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 16,
     borderRadius: 8,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   saveButtonDisabled: {
-    backgroundColor: '#999',
+    backgroundColor: '#8E8E93',
   },
   saveButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
-  cancelButton: {
-    backgroundColor: '#F2F2F7',
-    paddingVertical: 16,
-    borderRadius: 8,
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
-  cancelButtonText: {
-    color: '#007AFF',
+  modalTitle: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  pickerOptions: {
+    maxHeight: 400,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  pickerOptionText: {
+    fontSize: 16,
+    color: '#1C1C1E',
   },
 });
 

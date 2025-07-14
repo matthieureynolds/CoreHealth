@@ -102,6 +102,43 @@ const ProfileScreen: React.FC = () => {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#FF6B6B' }]}>
+              <Ionicons name="document-text" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionTitle}>Add Medical Record</Text>
+            <Text style={styles.quickActionSubtitle}>Scan or upload documents</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#4ECDC4' }]}>
+              <Ionicons name="analytics" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionTitle}>Generate Health Report</Text>
+            <Text style={styles.quickActionSubtitle}>Create specialist reports</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#45B7D1' }]}>
+              <Ionicons name="share" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionTitle}>Share with Doctor</Text>
+            <Text style={styles.quickActionSubtitle}>Send health data securely</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#96CEB4' }]}>
+              <Ionicons name="watch" size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.quickActionTitle}>Connected Devices</Text>
+            <Text style={styles.quickActionSubtitle}>Manage health devices</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Data & Privacy</Text>
         <ProfileItem
           icon="document-text-outline"
@@ -241,6 +278,46 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     fontWeight: '500',
     marginLeft: 8,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  quickActionCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  quickActionSubtitle: {
+    fontSize: 12,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
 

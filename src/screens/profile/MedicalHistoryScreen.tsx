@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList, MedicalCondition, FamilyCondition, Vaccination, Surgery, LifestyleInfo, OrganCondition } from '../../types';
@@ -19,24 +23,31 @@ import { useHealthData } from '../../context/HealthDataContext';
 
 type MedicalHistoryScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
+const { width } = Dimensions.get('window');
+
 const MedicalHistoryScreen: React.FC = () => {
   const navigation = useNavigation<MedicalHistoryScreenNavigationProp>();
   const { profile, updateProfile } = useHealthData();
   
   const [activeTab, setActiveTab] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [voiceModalVisible, setVoiceModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcribedText, setTranscribedText] = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const recordingAnimation = useRef(new Animated.Value(0)).current;
 
   const tabs = [
-    { id: 0, title: 'Conditions', icon: 'medical-outline' },
-    { id: 1, title: 'Allergies', icon: 'warning-outline' },
-    { id: 2, title: 'Medications', icon: 'medkit-outline' },
-    { id: 3, title: 'Vaccinations', icon: 'shield-checkmark-outline' },
-    { id: 4, title: 'Surgeries', icon: 'cut-outline' },
-    { id: 5, title: 'Family History', icon: 'people-outline' },
-    { id: 6, title: 'Lifestyle', icon: 'fitness-outline' },
-    { id: 7, title: 'Organ Conditions', icon: 'body-outline' },
+    { id: 0, title: 'Conditions', icon: 'medical-outline', color: '#FF6B6B' },
+    { id: 1, title: 'Allergies', icon: 'warning-outline', color: '#FFD93D' },
+    { id: 2, title: 'Vaccinations', icon: 'shield-checkmark-outline', color: '#6BCF7F' },
+    { id: 3, title: 'Family History', icon: 'people-outline', color: '#4ECDC4' },
+    { id: 4, title: 'Surgeries', icon: 'cut-outline', color: '#A8E6CF' },
+    { id: 5, title: 'Lifestyle', icon: 'fitness-outline', color: '#FF8B94' },
   ];
 
   const getCurrentData = () => {
@@ -45,13 +56,104 @@ const MedicalHistoryScreen: React.FC = () => {
     switch (activeTab) {
       case 0: return profile.medicalHistory || [];
       case 1: return profile.allergies || [];
-      case 2: return []; // Medications would be implemented later
-      case 3: return profile.vaccinations || [];
+      case 2: return profile.vaccinations || [];
+      case 3: return profile.familyHistory || [];
       case 4: return profile.surgeries || [];
-      case 5: return profile.familyHistory || [];
-      case 6: return profile.lifestyle ? [profile.lifestyle] : [];
-      case 7: return profile.organSpecificConditions || [];
+      case 5: return profile.lifestyle ? [profile.lifestyle] : [];
       default: return [];
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant microphone permission to use voice input.');
+        return;
+      }
+
+      setIsRecording(true);
+      setTranscribedText('');
+      setAiSuggestions([]);
+
+      // Animate recording indicator
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(recordingAnimation, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(recordingAnimation, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Simulate voice transcription (in real app, use actual speech-to-text)
+      setTimeout(() => {
+        const mockTranscriptions = {
+          0: ['I have diabetes type 2', 'Hypertension diagnosed in 2020', 'Asthma since childhood'],
+          1: ['Peanut allergy', 'Penicillin allergy', 'Latex allergy'],
+          2: ['COVID vaccine', 'Flu shot', 'Tetanus booster'],
+          3: ['Father has heart disease', 'Mother has diabetes', 'Sister has asthma'],
+          4: ['Appendectomy in 2018', 'Knee surgery', 'Cataract surgery'],
+          5: ['I exercise 3 times a week', 'I don\'t smoke', 'I drink occasionally'],
+        };
+
+        const transcription = mockTranscriptions[activeTab as keyof typeof mockTranscriptions]?.[Math.floor(Math.random() * 3)] || 'I have a medical condition';
+        setTranscribedText(transcription);
+        
+        // Simulate AI suggestions
+        setTimeout(() => {
+          const suggestions = generateAiSuggestions(transcription, activeTab);
+          setAiSuggestions(suggestions);
+          setIsProcessing(false);
+        }, 1000);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      Alert.alert('Error', 'Failed to start recording. Please try again.');
+    }
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    recordingAnimation.stopAnimation();
+    setIsProcessing(true);
+  };
+
+  const generateAiSuggestions = (text: string, tabIndex: number): string[] => {
+    const suggestions = {
+      0: ['Diabetes Type 2', 'Hypertension', 'Asthma', 'Depression', 'Anxiety'],
+      1: ['Peanut Allergy', 'Penicillin Allergy', 'Latex Allergy', 'Shellfish Allergy', 'Dairy Allergy'],
+      2: ['COVID-19 Vaccine', 'Influenza Vaccine', 'Tetanus Booster', 'MMR Vaccine', 'Hepatitis B Vaccine'],
+      3: ['Father - Heart Disease', 'Mother - Diabetes', 'Sister - Asthma', 'Brother - Hypertension'],
+      4: ['Appendectomy', 'Knee Surgery', 'Cataract Surgery', 'Hernia Repair', 'Gallbladder Removal'],
+      5: ['Non-smoker', 'Occasional drinker', 'Regular exercise', 'Vegetarian diet', 'Good sleep habits'],
+    };
+
+    return suggestions[tabIndex as keyof typeof suggestions] || [];
+  };
+
+  const handleVoiceSuggestion = (suggestion: string) => {
+    setFormData({ ...formData, [getCurrentFieldName()]: suggestion });
+    setVoiceModalVisible(false);
+    setModalVisible(true);
+  };
+
+  const getCurrentFieldName = () => {
+    switch (activeTab) {
+      case 0: return 'condition';
+      case 1: return 'allergy';
+      case 2: return 'name';
+      case 3: return 'condition';
+      case 4: return 'procedure';
+      case 5: return 'notes';
+      default: return 'name';
     }
   };
 
@@ -71,13 +173,20 @@ const MedicalHistoryScreen: React.FC = () => {
       case 1: // Allergies
         initialData = { allergy: '' };
         break;
-      case 3: // Vaccinations
+      case 2: // Vaccinations
         initialData = {
           name: '',
           date: new Date().toISOString().split('T')[0],
           nextDue: '',
           location: '',
           batchNumber: '',
+        };
+        break;
+      case 3: // Family History
+        initialData = {
+          relation: '',
+          condition: '',
+          ageOfOnset: '',
         };
         break;
       case 4: // Surgeries
@@ -90,21 +199,14 @@ const MedicalHistoryScreen: React.FC = () => {
           notes: '',
         };
         break;
-      case 5: // Family History
+      case 5: // Lifestyle
         initialData = {
-          relation: '',
-          condition: '',
-          ageOfOnset: '',
-        };
-        break;
-      case 7: // Organ Conditions
-        initialData = {
-          organSystem: 'cardiovascular',
-          condition: '',
-          diagnosedDate: '',
-          severity: 'mild',
-          status: 'active',
-          notes: '',
+          smoking: { status: 'never' },
+          alcohol: { frequency: 'never' },
+          diet: { type: 'omnivore' },
+          exercise: { frequency: 'never' },
+          sleep: { averageHoursPerNight: 7 },
+          stress: { level: 'low' },
         };
         break;
     }
@@ -117,7 +219,7 @@ const MedicalHistoryScreen: React.FC = () => {
   const handleEdit = (item: any, index: number) => {
     if (activeTab === 1) { // Allergies
       setFormData({ allergy: item });
-    } else if (activeTab === 6) { // Lifestyle
+    } else if (activeTab === 5) { // Lifestyle
       setFormData(item);
     } else {
       setFormData(item);
@@ -166,7 +268,7 @@ const MedicalHistoryScreen: React.FC = () => {
         }
         break;
 
-      case 3: // Vaccinations
+      case 2: // Vaccinations
         if (!formData.name.trim()) {
           Alert.alert('Error', 'Please enter a vaccination name');
           return;
@@ -184,6 +286,25 @@ const MedicalHistoryScreen: React.FC = () => {
           updatedProfile.vaccinations[editingItem.index] = vaccination;
         } else {
           updatedProfile.vaccinations = [...(updatedProfile.vaccinations || []), vaccination];
+        }
+        break;
+
+      case 3: // Family History
+        if (!formData.condition.trim()) {
+          Alert.alert('Error', 'Please enter a condition');
+          return;
+        }
+        const familyCondition: FamilyCondition = {
+          id: editingItem?.id || Date.now().toString(),
+          relation: formData.relation,
+          condition: formData.condition,
+          ageOfOnset: formData.ageOfOnset ? parseInt(formData.ageOfOnset) : undefined,
+        };
+        
+        if (editingItem) {
+          updatedProfile.familyHistory[editingItem.index] = familyCondition;
+        } else {
+          updatedProfile.familyHistory = [...(updatedProfile.familyHistory || []), familyCondition];
         }
         break;
 
@@ -209,56 +330,14 @@ const MedicalHistoryScreen: React.FC = () => {
         }
         break;
 
-      case 5: // Family History
-        if (!formData.relation.trim() || !formData.condition.trim()) {
-          Alert.alert('Error', 'Please enter both relation and condition');
-          return;
-        }
-        const familyCondition: FamilyCondition = {
-          id: editingItem?.id || Date.now().toString(),
-          relation: formData.relation,
-          condition: formData.condition,
-          ageOfOnset: formData.ageOfOnset ? parseInt(formData.ageOfOnset) : undefined,
-        };
-        
-        if (editingItem) {
-          updatedProfile.familyHistory[editingItem.index] = familyCondition;
-        } else {
-          updatedProfile.familyHistory = [...(updatedProfile.familyHistory || []), familyCondition];
-        }
-        break;
-
-      case 6: // Lifestyle
-        updatedProfile.lifestyle = formData;
-        break;
-
-      case 7: // Organ Conditions
-        if (!formData.condition.trim()) {
-          Alert.alert('Error', 'Please enter a condition name');
-          return;
-        }
-        const organCondition: OrganCondition = {
-          id: editingItem?.id || Date.now().toString(),
-          organSystem: formData.organSystem,
-          condition: formData.condition,
-          diagnosedDate: formData.diagnosedDate,
-          severity: formData.severity,
-          status: formData.status,
-          notes: formData.notes,
-        };
-        
-        if (editingItem) {
-          updatedProfile.organSpecificConditions[editingItem.index] = organCondition;
-        } else {
-          updatedProfile.organSpecificConditions = [...(updatedProfile.organSpecificConditions || []), organCondition];
-        }
+      case 5: // Lifestyle
+        updatedProfile.lifestyle = formData as LifestyleInfo;
         break;
     }
 
     updateProfile(updatedProfile);
     setModalVisible(false);
     setFormData({});
-    setEditingItem(null);
   };
 
   const handleDelete = (index: number) => {
@@ -282,17 +361,14 @@ const MedicalHistoryScreen: React.FC = () => {
               case 1:
                 updatedProfile.allergies.splice(index, 1);
                 break;
-              case 3:
+              case 2:
                 updatedProfile.vaccinations.splice(index, 1);
+                break;
+              case 3:
+                updatedProfile.familyHistory.splice(index, 1);
                 break;
               case 4:
                 updatedProfile.surgeries.splice(index, 1);
-                break;
-              case 5:
-                updatedProfile.familyHistory.splice(index, 1);
-                break;
-              case 7:
-                updatedProfile.organSpecificConditions.splice(index, 1);
                 break;
             }
             
@@ -312,588 +388,376 @@ const MedicalHistoryScreen: React.FC = () => {
           <Ionicons 
             name={tabs[activeTab].icon as any} 
             size={64} 
-            color="#C7C7CC" 
+            color={tabs[activeTab].color} 
+            style={{ opacity: 0.3 }}
           />
-          <Text style={styles.emptyStateTitle}>
-            No {tabs[activeTab].title} Added
+          <Text style={styles.emptyStateTitle}>No {tabs[activeTab].title} Added</Text>
+          <Text style={styles.emptyStateText}>
+            Start by adding your first {tabs[activeTab].title.toLowerCase()} entry
           </Text>
-          <Text style={styles.emptyStateSubtitle}>
-            {getEmptyStateMessage()}
+          <View style={styles.emptyStateActions}>
+            <TouchableOpacity 
+              style={[styles.addButton, { backgroundColor: tabs[activeTab].color }]}
+              onPress={handleAdd}
+            >
+              <Ionicons name="add" size={20} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Add {tabs[activeTab].title.slice(0, -1)}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.voiceButton, { borderColor: tabs[activeTab].color }]}
+              onPress={() => setVoiceModalVisible(true)}
+            >
+              <Ionicons name="mic" size={20} color={tabs[activeTab].color} />
+              <Text style={[styles.voiceButtonText, { color: tabs[activeTab].color }]}>
+                Voice Input
           </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     }
 
     return (
-      <View style={styles.listContainer}>
+      <View style={styles.contentContainer}>
+        <View style={styles.addSection}>
+          <TouchableOpacity 
+            style={[styles.addButton, { backgroundColor: tabs[activeTab].color }]}
+            onPress={handleAdd}
+          >
+            <Ionicons name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add {tabs[activeTab].title.slice(0, -1)}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.voiceButton, { borderColor: tabs[activeTab].color }]}
+            onPress={() => setVoiceModalVisible(true)}
+          >
+            <Ionicons name="mic" size={20} color={tabs[activeTab].color} />
+            <Text style={[styles.voiceButtonText, { color: tabs[activeTab].color }]}>
+              Voice
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
         {data.map((item, index) => (
           <TouchableOpacity 
             key={index} 
-            style={styles.listItem}
+              style={styles.itemCard}
             onPress={() => handleEdit(item, index)}
           >
-            <View style={styles.listItemContent}>
-              {renderListItemContent(item, index)}
+              <View style={styles.itemContent}>
+                <View style={styles.itemHeader}>
+                  <View style={[styles.itemIcon, { backgroundColor: tabs[activeTab].color }]}>
+                    <Ionicons name={tabs[activeTab].icon as any} size={20} color="#FFFFFF" />
             </View>
-            <View style={styles.listItemActions}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemTitle}>
+                      {activeTab === 1 ? String(item) : 
+                        (typeof item === 'object' ? 
+                          (('condition' in item && item.condition) || 
+                           ('name' in item && item.name) || 
+                           ('procedure' in item && item.procedure) || 
+                           'Untitled') : 
+                          'Untitled'
+                        )
+                      }
+                    </Text>
+                    <Text style={styles.itemSubtitle}>
+                      {activeTab === 0 && typeof item === 'object' && 'diagnosedDate' in item && item.diagnosedDate && `Diagnosed: ${item.diagnosedDate}`}
+                      {activeTab === 2 && typeof item === 'object' && 'date' in item && item.date && `Date: ${new Date(item.date).toLocaleDateString()}`}
+                      {activeTab === 3 && typeof item === 'object' && 'relation' in item && item.relation && `${item.relation}${('ageOfOnset' in item && item.ageOfOnset) ? ` (Age ${item.ageOfOnset})` : ''}`}
+                      {activeTab === 4 && typeof item === 'object' && 'date' in item && item.date && `Date: ${item.date}`}
+                    </Text>
+                  </View>
+                </View>
               <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleEdit(item, index)}
-              >
-                <Ionicons name="create-outline" size={20} color="#007AFF" />
-              </TouchableOpacity>
-              {activeTab !== 6 && ( // Don't show delete for lifestyle
-                <TouchableOpacity
-                  style={styles.actionButton}
+                  style={styles.deleteButton}
                   onPress={() => handleDelete(index)}
                 >
                   <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
-              )}
             </View>
           </TouchableOpacity>
         ))}
+        </ScrollView>
       </View>
     );
   };
 
-  const renderListItemContent = (item: any, index: number) => {
-    switch (activeTab) {
-      case 0: // Conditions
         return (
-          <>
-            <Text style={styles.itemTitle}>{item.condition}</Text>
-            <Text style={styles.itemSubtitle}>
-              {item.severity} • {item.status} • {item.diagnosedDate || 'Date not set'}
-            </Text>
-            {item.notes && <Text style={styles.itemNotes}>{item.notes}</Text>}
-          </>
-        );
-      
-      case 1: // Allergies
-        return <Text style={styles.itemTitle}>{item}</Text>;
-      
-      case 3: // Vaccinations
-        return (
-          <>
-            <Text style={styles.itemTitle}>{item.name}</Text>
-            <Text style={styles.itemSubtitle}>
-              Given: {item.date?.toDateString?.() || item.date}
-              {item.nextDue && ` • Next: ${item.nextDue?.toDateString?.() || item.nextDue}`}
-            </Text>
-            {item.location && <Text style={styles.itemNotes}>Location: {item.location}</Text>}
-          </>
-        );
-
-      case 4: // Surgeries
-        return (
-          <>
-            <Text style={styles.itemTitle}>{item.procedure}</Text>
-            <Text style={styles.itemSubtitle}>
-              {item.date || 'Date not set'}
-              {item.hospital && ` • ${item.hospital}`}
-            </Text>
-            {item.surgeon && <Text style={styles.itemNotes}>Surgeon: {item.surgeon}</Text>}
-          </>
-        );
-
-      case 5: // Family History
-        return (
-          <>
-            <Text style={styles.itemTitle}>{item.condition}</Text>
-            <Text style={styles.itemSubtitle}>
-              {item.relation}
-              {item.ageOfOnset && ` • Age of onset: ${item.ageOfOnset}`}
-            </Text>
-          </>
-        );
-
-      case 6: // Lifestyle
-        return (
-          <>
-            <Text style={styles.itemTitle}>Lifestyle Information</Text>
-            <Text style={styles.itemSubtitle}>
-              Smoking: {item.smoking?.status} • Alcohol: {item.alcohol?.frequency}
-            </Text>
-            <Text style={styles.itemSubtitle}>
-              Diet: {item.diet?.type} • Exercise: {item.exercise?.frequency}
-            </Text>
-          </>
-        );
-
-      case 7: // Organ Conditions
-        return (
-          <>
-            <Text style={styles.itemTitle}>{item.condition}</Text>
-            <Text style={styles.itemSubtitle}>
-              {item.organSystem} • {item.severity} • {item.status}
-            </Text>
-            {item.diagnosedDate && <Text style={styles.itemNotes}>Diagnosed: {item.diagnosedDate}</Text>}
-          </>
-        );
-
-      default:
-        return <Text style={styles.itemTitle}>Unknown item</Text>;
-    }
-  };
-
-  const getEmptyStateMessage = () => {
-    switch (activeTab) {
-      case 0: return 'Add any medical conditions you have been diagnosed with';
-      case 1: return 'List any allergies to medications, foods, or environmental factors';
-      case 2: return 'Track your current medications and dosages';
-      case 3: return 'Keep track of your vaccination history';
-      case 4: return 'Record any surgeries or procedures you have had';
-      case 5: return 'Document your family medical history';
-      case 6: return 'Set up your lifestyle information for personalized health insights';
-      case 7: return 'Track organ-specific conditions for targeted monitoring';
-      default: return 'No data available';
-    }
-  };
-
-  const renderModalContent = () => {
-    switch (activeTab) {
-      case 0: // Conditions
-      case 7: // Organ Conditions
-        return (
-          <>
-            {activeTab === 7 && (
-              <View style={styles.formGroup}>
-                <Text style={styles.formLabel}>Organ System</Text>
-                <View style={styles.pickerContainer}>
-                  {['cardiovascular', 'respiratory', 'digestive', 'nervous', 'endocrine', 'immune', 'urinary', 'reproductive', 'musculoskeletal', 'integumentary'].map((system) => (
-                    <TouchableOpacity
-                      key={system}
-                      style={[
-                        styles.pickerOption,
-                        formData.organSystem === system && styles.pickerOptionSelected
-                      ]}
-                      onPress={() => setFormData({ ...formData, organSystem: system })}
-                    >
-                      <Text style={[
-                        styles.pickerOptionText,
-                        formData.organSystem === system && styles.pickerOptionTextSelected
-                      ]}>
-                        {system.charAt(0).toUpperCase() + system.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Condition</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.condition || ''}
-                onChangeText={(text) => setFormData({ ...formData, condition: text })}
-                placeholder="Enter condition name"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Diagnosed Date</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.diagnosedDate || ''}
-                onChangeText={(text) => setFormData({ ...formData, diagnosedDate: text })}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Severity</Text>
-              <View style={styles.segmentedControl}>
-                {['mild', 'moderate', 'severe'].map((severity) => (
-                  <TouchableOpacity
-                    key={severity}
-                    style={[
-                      styles.segmentedButton,
-                      formData.severity === severity && styles.segmentedButtonSelected
-                    ]}
-                    onPress={() => setFormData({ ...formData, severity })}
-                  >
-                    <Text style={[
-                      styles.segmentedButtonText,
-                      formData.severity === severity && styles.segmentedButtonTextSelected
-                    ]}>
-                      {severity.charAt(0).toUpperCase() + severity.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Status</Text>
-              <View style={styles.segmentedControl}>
-                {['active', 'resolved', 'managed'].map((status) => (
-                  <TouchableOpacity
-                    key={status}
-                    style={[
-                      styles.segmentedButton,
-                      formData.status === status && styles.segmentedButtonSelected
-                    ]}
-                    onPress={() => setFormData({ ...formData, status })}
-                  >
-                    <Text style={[
-                      styles.segmentedButtonText,
-                      formData.status === status && styles.segmentedButtonTextSelected
-                    ]}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Notes</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                value={formData.notes || ''}
-                onChangeText={(text) => setFormData({ ...formData, notes: text })}
-                placeholder="Additional notes..."
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-          </>
-        );
-
-      case 1: // Allergies
-        return (
-          <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>Allergy</Text>
-            <TextInput
-              style={styles.textInput}
-              value={formData.allergy || ''}
-              onChangeText={(text) => setFormData({ ...formData, allergy: text })}
-              placeholder="Enter allergy (e.g., Penicillin, Peanuts)"
-            />
-          </View>
-        );
-
-      case 3: // Vaccinations
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Vaccine Name</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.name || ''}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
-                placeholder="Enter vaccine name"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Date Given</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.date || ''}
-                onChangeText={(text) => setFormData({ ...formData, date: text })}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Next Due (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.nextDue || ''}
-                onChangeText={(text) => setFormData({ ...formData, nextDue: text })}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Location (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.location || ''}
-                onChangeText={(text) => setFormData({ ...formData, location: text })}
-                placeholder="Clinic or hospital name"
-              />
-            </View>
-          </>
-        );
-
-      case 4: // Surgeries
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Procedure</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.procedure || ''}
-                onChangeText={(text) => setFormData({ ...formData, procedure: text })}
-                placeholder="Enter procedure name"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Date</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.date || ''}
-                onChangeText={(text) => setFormData({ ...formData, date: text })}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Hospital (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.hospital || ''}
-                onChangeText={(text) => setFormData({ ...formData, hospital: text })}
-                placeholder="Hospital name"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Surgeon (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.surgeon || ''}
-                onChangeText={(text) => setFormData({ ...formData, surgeon: text })}
-                placeholder="Surgeon name"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Notes (Optional)</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                value={formData.notes || ''}
-                onChangeText={(text) => setFormData({ ...formData, notes: text })}
-                placeholder="Additional notes..."
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-          </>
-        );
-
-      case 5: // Family History
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Relation</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.relation || ''}
-                onChangeText={(text) => setFormData({ ...formData, relation: text })}
-                placeholder="e.g., Mother, Father, Grandmother"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Condition</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.condition || ''}
-                onChangeText={(text) => setFormData({ ...formData, condition: text })}
-                placeholder="Medical condition"
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Age of Onset (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.ageOfOnset || ''}
-                onChangeText={(text) => setFormData({ ...formData, ageOfOnset: text })}
-                placeholder="Age when diagnosed"
-                keyboardType="numeric"
-              />
-            </View>
-          </>
-        );
-
-      case 6: // Lifestyle
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Smoking Status</Text>
-              <View style={styles.segmentedControl}>
-                {['never', 'former', 'current'].map((status) => (
-                  <TouchableOpacity
-                    key={status}
-                    style={[
-                      styles.segmentedButton,
-                      formData.smoking?.status === status && styles.segmentedButtonSelected
-                    ]}
-                    onPress={() => setFormData({ 
-                      ...formData, 
-                      smoking: { ...formData.smoking, status } 
-                    })}
-                  >
-                    <Text style={[
-                      styles.segmentedButtonText,
-                      formData.smoking?.status === status && styles.segmentedButtonTextSelected
-                    ]}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Alcohol Frequency</Text>
-              <View style={styles.pickerContainer}>
-                {['never', 'rarely', 'monthly', 'weekly', 'daily'].map((frequency) => (
-                  <TouchableOpacity
-                    key={frequency}
-                    style={[
-                      styles.pickerOption,
-                      formData.alcohol?.frequency === frequency && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setFormData({ 
-                      ...formData, 
-                      alcohol: { ...formData.alcohol, frequency } 
-                    })}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      formData.alcohol?.frequency === frequency && styles.pickerOptionTextSelected
-                    ]}>
-                      {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Diet Type</Text>
-              <View style={styles.pickerContainer}>
-                {['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'keto', 'paleo', 'mediterranean', 'other'].map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.pickerOption,
-                      formData.diet?.type === type && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setFormData({ 
-                      ...formData, 
-                      diet: { ...formData.diet, type } 
-                    })}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      formData.diet?.type === type && styles.pickerOptionTextSelected
-                    ]}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Exercise Frequency</Text>
-              <View style={styles.pickerContainer}>
-                {['never', 'rarely', '1-2_times_week', '3-4_times_week', '5+_times_week', 'daily'].map((frequency) => (
-                  <TouchableOpacity
-                    key={frequency}
-                    style={[
-                      styles.pickerOption,
-                      formData.exercise?.frequency === frequency && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => setFormData({ 
-                      ...formData, 
-                      exercise: { ...formData.exercise, frequency } 
-                    })}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      formData.exercise?.frequency === frequency && styles.pickerOptionTextSelected
-                    ]}>
-                      {frequency.replace('_', ' ').replace('+', '+')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </>
-        );
-
-      default:
-        return <Text>Form not implemented for this tab</Text>;
-    }
-  };
-
-  return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Medical History</Text>
-        <TouchableOpacity onPress={handleAdd} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#007AFF" />
-        </TouchableOpacity>
+        <Text style={styles.headerSubtitle}>Manage your health information</Text>
       </View>
 
       {/* Tab Navigation */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabContainer}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabContainer}
+        contentContainerStyle={styles.tabContent}
+      >
         {tabs.map((tab) => (
-          <TouchableOpacity
+                    <TouchableOpacity
             key={tab.id}
-            style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+                      style={[
+              styles.tabButton,
+              activeTab === tab.id && { backgroundColor: tab.color }
+                      ]}
             onPress={() => setActiveTab(tab.id)}
-          >
+                    >
             <Ionicons 
               name={tab.icon as any} 
-              size={16} 
-              color={activeTab === tab.id ? "#007AFF" : "#8E8E93"} 
+              size={20} 
+              color={activeTab === tab.id ? '#FFFFFF' : tab.color} 
             />
-            <Text style={[
-              styles.tabText, 
-              activeTab === tab.id && styles.activeTabText
-            ]}>
+                      <Text style={[
+              styles.tabText,
+              activeTab === tab.id && styles.tabTextActive
+                      ]}>
               {tab.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
       </ScrollView>
 
       {/* Content */}
-      <ScrollView style={styles.content}>
-        {renderTabContent()}
-      </ScrollView>
+      {renderTabContent()}
 
-      {/* Modal */}
+      {/* Voice Input Modal */}
+      <Modal
+        visible={voiceModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setVoiceModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.voiceModalContent}>
+            <View style={styles.voiceModalHeader}>
+              <Text style={styles.voiceModalTitle}>Voice Input</Text>
+              <TouchableOpacity 
+                onPress={() => setVoiceModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#8E8E93" />
+              </TouchableOpacity>
+                </View>
+
+            <View style={styles.voiceContent}>
+              {!isRecording && !transcribedText && (
+                <View style={styles.voiceStart}>
+                  <Text style={styles.voiceInstructions}>
+                    Tap the microphone to start recording your {tabs[activeTab].title.toLowerCase()}
+                  </Text>
+                  <TouchableOpacity 
+                    style={[styles.recordButton, { backgroundColor: tabs[activeTab].color }]}
+                    onPress={startRecording}
+                  >
+                    <Ionicons name="mic" size={32} color="#FFFFFF" />
+                  </TouchableOpacity>
+              </View>
+            )}
+            
+              {isRecording && (
+                <View style={styles.recordingState}>
+                  <Animated.View 
+                    style={[
+                      styles.recordingIndicator,
+                      { 
+                        backgroundColor: tabs[activeTab].color,
+                        transform: [{ scale: recordingAnimation }]
+                      }
+                    ]}
+                  />
+                  <Text style={styles.recordingText}>Recording...</Text>
+                  <TouchableOpacity 
+                    style={styles.stopButton}
+                    onPress={stopRecording}
+                  >
+                    <Text style={styles.stopButtonText}>Stop</Text>
+                  </TouchableOpacity>
+            </View>
+              )}
+
+              {isProcessing && (
+                <View style={styles.processingState}>
+                  <Text style={styles.processingText}>Processing your voice...</Text>
+            </View>
+              )}
+
+              {transcribedText && !isProcessing && (
+                <View style={styles.resultsState}>
+                  <Text style={styles.transcribedTitle}>You said:</Text>
+                  <Text style={styles.transcribedText}>{transcribedText}</Text>
+                  
+                  {aiSuggestions.length > 0 && (
+                    <View style={styles.suggestionsContainer}>
+                      <Text style={styles.suggestionsTitle}>AI Suggestions:</Text>
+                      {aiSuggestions.map((suggestion, index) => (
+                  <TouchableOpacity
+                          key={index}
+                          style={styles.suggestionButton}
+                          onPress={() => handleVoiceSuggestion(suggestion)}
+                        >
+                          <Text style={styles.suggestionText}>{suggestion}</Text>
+                          <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+                  )}
+            </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add/Edit Modal */}
       <Modal
         visible={modalVisible}
+        transparent={true}
         animationType="slide"
-        presentationStyle="pageSheet"
+        onRequestClose={() => setModalVisible(false)}
       >
-        <KeyboardAvoidingView 
-          style={styles.modalContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={styles.modalCancelButton}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>
-              {editingItem ? `Edit ${tabs[activeTab].title}` : `Add ${tabs[activeTab].title}`}
-            </Text>
-            <TouchableOpacity onPress={handleSave}>
-              <Text style={styles.modalSaveButton}>Save</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            {renderModalContent()}
-          </ScrollView>
-        </KeyboardAvoidingView>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editingItem ? 'Edit' : 'Add'} {tabs[activeTab].title.slice(0, -1)}
+                    </Text>
+              <TouchableOpacity 
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#8E8E93" />
+                  </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {activeTab === 0 && (
+                <>
+              <TextInput
+                    style={styles.input}
+                    placeholder="Condition name"
+                    value={formData.condition}
+                    onChangeText={(text) => setFormData({ ...formData, condition: text })}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Diagnosed date (optional)"
+                    value={formData.diagnosedDate}
+                    onChangeText={(text) => setFormData({ ...formData, diagnosedDate: text })}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Notes (optional)"
+                    value={formData.notes}
+                onChangeText={(text) => setFormData({ ...formData, notes: text })}
+                multiline
+              />
+          </>
+              )}
+
+              {activeTab === 1 && (
+            <TextInput
+                  style={styles.input}
+                  placeholder="Allergy name"
+                  value={formData.allergy}
+              onChangeText={(text) => setFormData({ ...formData, allergy: text })}
+            />
+              )}
+
+              {activeTab === 2 && (
+          <>
+              <TextInput
+                    style={styles.input}
+                    placeholder="Vaccination name"
+                    value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
+              />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Date received"
+                    value={formData.date}
+                onChangeText={(text) => setFormData({ ...formData, date: text })}
+              />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Location (optional)"
+                    value={formData.location}
+                onChangeText={(text) => setFormData({ ...formData, location: text })}
+              />
+          </>
+              )}
+
+              {activeTab === 3 && (
+          <>
+              <TextInput
+                    style={styles.input}
+                    placeholder="Relation (e.g., Father, Mother, Sister)"
+                    value={formData.relation}
+                    onChangeText={(text) => setFormData({ ...formData, relation: text })}
+                  />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Condition"
+                    value={formData.condition}
+                    onChangeText={(text) => setFormData({ ...formData, condition: text })}
+                  />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Age of onset (optional)"
+                    value={formData.ageOfOnset}
+                    onChangeText={(text) => setFormData({ ...formData, ageOfOnset: text })}
+                    keyboardType="numeric"
+                  />
+                </>
+              )}
+
+              {activeTab === 4 && (
+                <>
+              <TextInput
+                    style={styles.input}
+                    placeholder="Procedure name"
+                    value={formData.procedure}
+                    onChangeText={(text) => setFormData({ ...formData, procedure: text })}
+                  />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Date of surgery"
+                    value={formData.date}
+                    onChangeText={(text) => setFormData({ ...formData, date: text })}
+                  />
+              <TextInput
+                    style={styles.input}
+                    placeholder="Hospital (optional)"
+                    value={formData.hospital}
+                    onChangeText={(text) => setFormData({ ...formData, hospital: text })}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Surgeon (optional)"
+                    value={formData.surgeon}
+                    onChangeText={(text) => setFormData({ ...formData, surgeon: text })}
+                  />
+                </>
+              )}
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+                  <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSave}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+                  </TouchableOpacity>
+              </View>
+            </View>
+              </View>
       </Modal>
     </View>
   );
@@ -905,94 +769,140 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
-  },
-  backButton: {
-    padding: 8,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
   },
-  addButton: {
-    padding: 8,
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginTop: 4,
   },
   tabContainer: {
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
-  tab: {
+  tabContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 12,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    marginLeft: 6,
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  addSection: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 12,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    flex: 1,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  voiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginRight: 8,
-    gap: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
   },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
-  },
-  tabText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  activeTabText: {
-    color: '#007AFF',
-  },
-  content: {
-    flex: 1,
+  voiceButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 100,
+    justifyContent: 'center',
+    paddingHorizontal: 40,
   },
   emptyStateTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
     color: '#1C1C1E',
     marginTop: 16,
     marginBottom: 8,
-    textAlign: 'center',
   },
-  emptyStateSubtitle: {
+  emptyStateText: {
     fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
-    lineHeight: 22,
+    marginBottom: 32,
   },
-  listContainer: {
-    paddingTop: 20,
+  emptyStateActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  listItem: {
+  itemCard: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 12,
     borderRadius: 12,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
   },
-  listItemContent: {
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  itemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  itemInfo: {
     flex: 1,
   },
   itemTitle: {
@@ -1004,129 +914,177 @@ const styles = StyleSheet.create({
   itemSubtitle: {
     fontSize: 14,
     color: '#8E8E93',
-    marginBottom: 2,
   },
-  itemNotes: {
-    fontSize: 13,
-    color: '#8E8E93',
-    fontStyle: 'italic',
-  },
-  listItemActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
+  deleteButton: {
     padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F2F2F7',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  voiceModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
-  modalCancelButton: {
-    fontSize: 17,
-    color: '#007AFF',
+  voiceModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   modalTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1C1C1E',
   },
-  modalSaveButton: {
-    fontSize: 17,
-    color: '#007AFF',
+  voiceModalTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#1C1C1E',
   },
-  modalContent: {
-    flex: 1,
-    padding: 16,
+  closeButton: {
+    padding: 4,
   },
-  formGroup: {
-    marginBottom: 24,
+  voiceContent: {
+    padding: 20,
+    alignItems: 'center',
   },
-  formLabel: {
+  voiceStart: {
+    alignItems: 'center',
+  },
+  voiceInstructions: {
+    fontSize: 16,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  recordButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recordingState: {
+    alignItems: 'center',
+  },
+  recordingIndicator: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 16,
+  },
+  recordingText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginBottom: 16,
+  },
+  stopButton: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  stopButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  processingState: {
+    alignItems: 'center',
+  },
+  processingText: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  resultsState: {
+    width: '100%',
+  },
+  transcribedTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1C1E',
     marginBottom: 8,
   },
-  textInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+  transcribedText: {
     fontSize: 16,
-    color: '#1C1C1E',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#C6C6C8',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  segmentedControl: {
-    flexDirection: 'row',
+    color: '#8E8E93',
+    marginBottom: 24,
+    padding: 16,
     backgroundColor: '#F2F2F7',
     borderRadius: 8,
-    padding: 2,
   },
-  segmentedButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: 'center',
+  suggestionsContainer: {
+    marginTop: 16,
   },
-  segmentedButtonSelected: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
-    elevation: 1,
+  suggestionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 12,
   },
-  segmentedButtonText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  segmentedButtonTextSelected: {
-    color: '#007AFF',
-  },
-  pickerContainer: {
+  suggestionButton: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pickerOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: '#1C1C1E',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  input: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1C1C1E',
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
-  pickerOptionSelected: {
+  modalFooter: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  saveButton: {
     backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  pickerOptionText: {
-    fontSize: 14,
-    color: '#1C1C1E',
-    fontWeight: '500',
-  },
-  pickerOptionTextSelected: {
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 });

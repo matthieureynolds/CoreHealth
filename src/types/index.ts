@@ -315,6 +315,22 @@ export interface JetLagData {
   recommendations: string[];
 }
 
+export interface JetLagPlanningEvent {
+  id: string;
+  destination: string;
+  destinationTimezone: string;
+  departureDate: string; // ISO date string
+  returnDate?: string; // ISO date string
+  timeZoneDifference: number;
+  preparationStartDate: string; // Calculated: departureDate - daysToAdjust
+  daysToAdjust: number;
+  sleepAdjustment: SleepScheduleAdjustment;
+  lightExposureSchedule: LightExposureSchedule;
+  status: 'upcoming' | 'active' | 'completed';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TimeZoneInfo {
   currentTime: string;
   currentDate: string;

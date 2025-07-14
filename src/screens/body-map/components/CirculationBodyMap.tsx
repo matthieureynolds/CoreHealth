@@ -196,7 +196,7 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
           <View style={styles.panelHeader}>
             <Text style={styles.zoneTitle}>{selectedZone.name}</Text>
             <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#666" />
+              <Ionicons name="close" size={24} color="#8E8E93" />
             </TouchableOpacity>
           </View>
 
@@ -237,7 +237,7 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
     paddingVertical: 0,
   },
   bodyOutline: {
@@ -253,29 +253,29 @@ const styles = StyleSheet.create({
   },
   zoneDot: {
     position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,122,255,0.15)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2196F3', // Modern blue
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#7FDBFF', // Lighter blue border
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateX: -16 }, { translateY: -16 }],
+    transform: [{ translateX: -22 }, { translateY: -22 }],
     zIndex: 10,
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#2196F3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
   },
   dotInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#007AFF',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#00BFFF', // Lighter blue for inner dot
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#E3F2FD', // Very light blue border
   },
   infoPanel: {
     position: 'absolute',
@@ -283,13 +283,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '70%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
     zIndex: 1000,
@@ -303,14 +303,14 @@ const styles = StyleSheet.create({
   zoneTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
   },
   closeButton: {
     padding: 4,
   },
   zoneDescription: {
     fontSize: 16,
-    color: '#666',
+    color: '#8E8E93',
     marginBottom: 20,
   },
   biomarkerScrollView: {
@@ -326,12 +326,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#2C2C2E',
   },
   biomarkerName: {
     flex: 1,
     fontSize: 16,
-    color: '#1C1C1E',
+    color: '#FFFFFF',
   },
   biomarkerValue: {
     fontSize: 16,
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   biomarkerRange: {
     fontSize: 14,
-    color: '#666',
+    color: '#8E8E93',
   },
 });
 

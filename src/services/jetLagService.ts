@@ -289,6 +289,41 @@ export const generateJetLagData = (
   };
 };
 
+/**
+ * Create a jet lag planning event from destination and departure date
+ * Following Nico Rosberg's 1.5 hour per day adjustment rule
+ */
+export const createJetLagPlanningEvent = (
+  destination: string,
+  destinationTimezone: string,
+  departureDate: string,
+  originTimezone: string,
+  originLocation: string = 'Home',
+  returnDate?: string
+) => {
+  const timeZoneDifference = calculateTimeZoneDifference(originTimezone, destinationTimezone);
+  const sleepAdjustment = generateSleepScheduleAdjustment(timeZoneDifference);
+  const lightExposureSchedule = generateLightExposureSchedule(timeZoneDifference, originTimezone, destinationTimezone);
+  
+  // Calculate preparation start date (departure date - days to adjust)
+  const departure = new Date(departureDate);
+  const preparationStartDate = new Date(departure);
+  preparationStartDate.setDate(departure.getDate() - sleepAdjustment.daysToAdjust);
+  
+  return {
+    destination,
+    destinationTimezone,
+    departureDate,
+    returnDate,
+    timeZoneDifference,
+    preparationStartDate: preparationStartDate.toISOString(),
+    daysToAdjust: sleepAdjustment.daysToAdjust,
+    sleepAdjustment,
+    lightExposureSchedule,
+    status: 'upcoming' as const,
+  };
+};
+
 // Helper functions
 const parseTimeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);

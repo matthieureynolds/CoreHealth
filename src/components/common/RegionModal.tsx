@@ -113,14 +113,14 @@ const RegionModal: React.FC<RegionModalProps> = ({
           },
         ]}
       />
-      <Animated.View
-        style={[
-          styles.infoPanel,
-          {
-            transform: [{ translateY }],
-          },
-        ]}
-      >
+    <Animated.View
+      style={[
+        styles.infoPanel,
+        {
+          transform: [{ translateY }],
+        },
+      ]}
+    >
       <View style={styles.panelHeader}>
         <Text style={styles.regionTitle}>{region.name}</Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -174,7 +174,7 @@ const RegionModal: React.FC<RegionModalProps> = ({
           ))}
         </View>
       </ScrollView>
-      </Animated.View>
+    </Animated.View>
     </>
   );
 };

@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import BodyMap from './components/BodyMap';
-import { organs } from './organs';
+import { organsList } from './organs';
 import {
   DocumentProcessor,
   ProcessedDocument,
@@ -30,6 +30,7 @@ import BodySystemSelector, {
 } from './components/BodySystemSelector';
 import SkeletonBodyMap from './components/SkeletonBodyMap';
 import CirculationBodyMap from './components/CirculationBodyMap';
+import NutritionBodyMap from './components/NutritionBodyMap';
 
 const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
@@ -299,6 +300,11 @@ const BodyMapScreen: React.FC = () => {
     console.log('Circulation point pressed:', pointId);
   };
 
+  const handleNutritionItemPress = (item: any) => {
+    // Handle nutrition item press - could show detailed modal
+    console.log('Nutrition item pressed:', item.name);
+  };
+
   const renderBodyMap = () => {
     switch (selectedSystem) {
       case 'organs':
@@ -307,6 +313,8 @@ const BodyMapScreen: React.FC = () => {
         return <SkeletonBodyMap onPartPress={handleSkeletonPartPress} />;
       case 'circulation':
         return <CirculationBodyMap onPointPress={handleCirculationPointPress} />;
+      case 'nutrition':
+        return <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />;
       default:
         return <BodyMap onOrganPress={handleOrganPress} />;
     }
@@ -323,7 +331,7 @@ const BodyMapScreen: React.FC = () => {
           <Text style={styles.resultsTitle}>Extracted Biomarkers</Text>
           <Text style={styles.resultsSubtitle}>
             {extractedBiomarkers.length} biomarkers found
-          </Text>
+        </Text>
         </View>
         
         <ScrollView 
@@ -331,7 +339,7 @@ const BodyMapScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.resultsScrollContainer}
         >
-          {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
+        {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
             <View key={organ} style={styles.organResultsCard}>
               <View style={styles.organResultsHeader}>
                 <Ionicons 
@@ -346,7 +354,7 @@ const BodyMapScreen: React.FC = () => {
                 <TouchableOpacity
                   key={`${biomarker.name}-${index}`}
                   style={styles.biomarkerResultItem}
-                  onPress={() => 
+                  onPress={() =>
                     handleBiomarkerPress(
                       biomarker.name,
                       biomarker.value,
@@ -377,12 +385,12 @@ const BodyMapScreen: React.FC = () => {
                       ]}
                     >
                       {biomarker.status?.toUpperCase() || 'NORMAL'}
-                    </Text>
+                  </Text>
                   </View>
                 </TouchableOpacity>
               ))}
-            </View>
-          ))}
+          </View>
+        ))}
         </ScrollView>
       </View>
     );
@@ -416,9 +424,9 @@ const BodyMapScreen: React.FC = () => {
         </View>
 
         <View style={styles.uploadButtonsContainer}>
-          <TouchableOpacity
+        <TouchableOpacity
             style={styles.uploadButton}
-            onPress={handleCameraPress}
+          onPress={handleCameraPress}
             activeOpacity={0.8}
           >
             <View style={styles.uploadButtonContent}>
@@ -428,11 +436,11 @@ const BodyMapScreen: React.FC = () => {
               <Text style={styles.uploadButtonText}>Scan Document</Text>
               <Text style={styles.uploadButtonSubtext}>Use Camera</Text>
             </View>
-          </TouchableOpacity>
+        </TouchableOpacity>
 
-          <TouchableOpacity
+        <TouchableOpacity
             style={styles.uploadButton}
-            onPress={handleDocumentPicker}
+          onPress={handleDocumentPicker}
             activeOpacity={0.8}
           >
             <View style={styles.uploadButtonContent}>
@@ -442,28 +450,28 @@ const BodyMapScreen: React.FC = () => {
               <Text style={styles.uploadButtonText}>Choose File</Text>
               <Text style={styles.uploadButtonSubtext}>From Device</Text>
             </View>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+      </View>
 
-        {uploadedDocuments.length > 0 && (
+      {uploadedDocuments.length > 0 && (
           <View style={styles.documentsList}>
             <Text style={styles.documentsTitle}>Recent Documents</Text>
             {uploadedDocuments.map((doc, index) => (
-              <View key={doc.id} style={styles.documentItem}>
+            <View key={doc.id} style={styles.documentItem}>
                 <View style={styles.documentInfo}>
-                  <Ionicons
-                    name={doc.type === 'camera' ? 'camera' : 'document'}
-                    size={20}
+                <Ionicons
+                  name={doc.type === 'camera' ? 'camera' : 'document'}
+                  size={20}
                     color="#8E8E93"
-                  />
+                />
                   <View style={styles.documentDetails}>
                     <Text style={styles.documentName} numberOfLines={1}>
                       {doc.name}
-                    </Text>
+                </Text>
                     <Text style={styles.documentMeta}>
                       {doc.timestamp.toLocaleDateString()} • {doc.type}
-                    </Text>
-                  </View>
+                </Text>
+              </View>
                 </View>
 
                 <View style={styles.documentActions}>
@@ -473,27 +481,27 @@ const BodyMapScreen: React.FC = () => {
                       <Text style={styles.processingText}>{processingStep}</Text>
                     </View>
                   ) : (
-                    <TouchableOpacity
+              <TouchableOpacity
                       style={styles.processButton}
-                      onPress={() => handleProcessDocument(doc)}
+                onPress={() => handleProcessDocument(doc)}
                       activeOpacity={0.7}
-                    >
+              >
                       <Text style={styles.processButtonText}>Scan Results</Text>
-                    </TouchableOpacity>
+              </TouchableOpacity>
                   )}
                 </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    );
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
   };
 
   const renderInfoPanel = () => {
     if (!selectedOrgan) return null;
 
-    const organ = organs.find(o => o.id === selectedOrgan);
+    const organ = organsList.find(o => o.id === selectedOrgan);
     if (!organ) return null;
 
     return (
@@ -514,8 +522,8 @@ const BodyMapScreen: React.FC = () => {
       >
         <View style={styles.panelHeader}>
           <View style={styles.panelHeaderContent}>
-            <Text style={styles.panelTitle}>{organ.name}</Text>
-            <Text style={styles.panelSubtitle}>{organ.description}</Text>
+            <Text style={styles.panelTitle}>{organ.data.name}</Text>
+            <Text style={styles.panelSubtitle}>{organ.data.description}</Text>
           </View>
           <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#8E8E93" />
@@ -528,7 +536,7 @@ const BodyMapScreen: React.FC = () => {
         >
           <View style={styles.biomarkersSection}>
             <Text style={styles.biomarkersTitle}>Key Biomarkers</Text>
-            {organ.biomarkers.map((biomarker, index) => (
+            {organ.data.biomarkers.map((biomarker, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.biomarkerItem}
@@ -542,10 +550,10 @@ const BodyMapScreen: React.FC = () => {
                 activeOpacity={0.7}
               >
                 <View style={styles.biomarkerContent}>
-                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                  <Text style={styles.biomarkerValue}>
-                    {biomarker.value} {biomarker.unit}
-                  </Text>
+                <Text style={styles.biomarkerName}>{biomarker.name}</Text>
+                <Text style={styles.biomarkerValue}>
+                  {biomarker.value} {biomarker.unit}
+                </Text>
                   <Text style={styles.biomarkerRange}>
                     ({biomarker.referenceRange})
                   </Text>
@@ -591,18 +599,18 @@ const BodyMapScreen: React.FC = () => {
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       {/* Header */}
-      <View style={styles.header}>
+        <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>My Body</Text>
-          <Text style={styles.headerSubtitle}>Interactive Health Map</Text>
+          <Text style={styles.headerSubtitle}>Explore your organs, track biomarkers, and upload lab results for AI-powered health insights</Text>
         </View>
-      </View>
+        </View>
 
       {/* Body System Selector */}
-      <BodySystemSelector
-        selectedSystem={selectedSystem}
-        onSystemChange={handleSystemChange}
-      />
+        <BodySystemSelector
+          selectedSystem={selectedSystem}
+          onSystemChange={handleSystemChange}
+        />
 
       <ScrollView
         style={styles.scrollContainer}
@@ -610,9 +618,13 @@ const BodyMapScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Body Map */}
-        <View style={styles.bodyMapContainer}>
-          {renderBodyMap()}
-        </View>
+        {selectedSystem === 'nutrition' ? (
+          renderBodyMap()
+        ) : (
+          <View style={styles.bodyMapContainer}>
+            {renderBodyMap()}
+          </View>
+        )}
 
         {/* Biomarker Results */}
         {renderBiomarkerResults()}
@@ -643,42 +655,67 @@ const BodyMapScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#F8F9FA',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: '#000000',
+    backgroundColor: '#F8F9FA',
   },
   headerContent: {
     flex: 1,
   },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF20',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#6C757D',
+    fontWeight: '400',
+    lineHeight: 20,
+    flexWrap: 'wrap',
   },
   scrollContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     paddingBottom: 20,
   },
   bodyMapContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 20,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   resultsContainer: {
     marginTop: 16,
@@ -690,22 +727,27 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   resultsSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   resultsScrollContainer: {
     paddingRight: 16,
   },
   organResultsCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginRight: 12,
     minWidth: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   organResultsHeader: {
     flexDirection: 'row',
@@ -715,7 +757,7 @@ const styles = StyleSheet.create({
   organResultsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginLeft: 8,
   },
   biomarkerResultItem: {
@@ -724,7 +766,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#E9ECEF',
   },
   biomarkerResultContent: {
     flex: 1,
@@ -732,12 +774,12 @@ const styles = StyleSheet.create({
   biomarkerResultName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 2,
   },
   biomarkerResultValue: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   biomarkerResultStatus: {
     flexDirection: 'row',
@@ -749,11 +791,16 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   uploadSection: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     marginHorizontal: 16,
     marginTop: 16,
     padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   uploadHeader: {
     marginBottom: 20,
@@ -761,17 +808,17 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 8,
   },
   uploadDescription: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#6C757D',
     marginBottom: 4,
   },
   uploadFormats: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#6C757D',
     fontStyle: 'italic',
   },
   uploadButtonsContainer: {
@@ -781,11 +828,11 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     flex: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#F8F9FA',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: '#E9ECEF',
   },
   uploadButtonContent: {
     alignItems: 'center',
@@ -794,7 +841,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#007AFF10',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -802,12 +849,12 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   uploadButtonSubtext: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   documentsList: {
     marginTop: 16,
@@ -815,7 +862,7 @@ const styles = StyleSheet.create({
   documentsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 12,
   },
   documentItem: {
@@ -824,7 +871,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#E9ECEF',
   },
   documentInfo: {
     flexDirection: 'row',
@@ -838,12 +885,12 @@ const styles = StyleSheet.create({
   documentName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 2,
   },
   documentMeta: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   documentActions: {
     alignItems: 'flex-end',
@@ -873,11 +920,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '70%',
     zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   panelHeader: {
     flexDirection: 'row',
@@ -886,7 +938,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#E9ECEF',
   },
   panelHeaderContent: {
     flex: 1,
@@ -894,20 +946,22 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   panelSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#F8F9FA',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
   },
   panelContent: {
     flex: 1,
@@ -919,7 +973,7 @@ const styles = StyleSheet.create({
   biomarkersTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 16,
   },
   biomarkerItem: {
@@ -928,7 +982,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#E9ECEF',
   },
   biomarkerContent: {
     flex: 1,
@@ -936,17 +990,17 @@ const styles = StyleSheet.create({
   biomarkerName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   biomarkerValue: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#6C757D',
     marginBottom: 2,
   },
   biomarkerRange: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#6C757D',
   },
   biomarkerStatus: {
     flexDirection: 'row',
@@ -963,7 +1017,7 @@ const styles = StyleSheet.create({
   recommendationsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginBottom: 16,
   },
   recommendationItem: {
@@ -973,7 +1027,7 @@ const styles = StyleSheet.create({
   },
   recommendationText: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#1A1A1A',
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,

@@ -60,10 +60,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Image source={require('../../assets/logocorehealth.png')} style={styles.logo} />
-          </View>
-          <Text style={styles.title}>CoreHealth</Text>
+          <Image source={require('../../../assets/corehealthlogo2.png')} style={styles.logo} />
           <Text style={styles.subtitle}>Your Personal Health Intelligence</Text>
         </View>
 
@@ -168,29 +165,16 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
+    paddingTop: 60,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: 200,
+    height: 200,
     resizeMode: 'contain',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   subtitle: {
@@ -200,6 +184,7 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+    alignItems: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -211,6 +196,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#1C1C1E',
     height: 56,
+    width: '100%',
+    maxWidth: 320,
   },
   inputIcon: {
     marginRight: 12,
@@ -243,6 +230,8 @@ const styles = StyleSheet.create({
   forgotPassword: {
     alignItems: 'flex-end',
     marginBottom: 24,
+    width: '100%',
+    maxWidth: 320,
   },
   forgotPasswordText: {
     color: '#007AFF',
@@ -255,6 +244,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    width: '100%',
+    maxWidth: 320,
   },
   loginButton: {
     backgroundColor: '#007AFF',

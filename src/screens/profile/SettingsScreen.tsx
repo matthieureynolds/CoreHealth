@@ -318,682 +318,386 @@ const SettingsScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* General Settings */}
-      <View style={styles.section}>
-        <SectionHeader title="General Settings" />
-        
-        <SettingsItem
-          icon="language-outline"
-          title="Language"
-          value={settings.general.language}
-          onPress={() => {
-            Alert.alert('Language', 'Language selection coming soon!');
-          }}
-        />
-        
-        <SettingsItem
-          icon="contrast-outline"
-          title="Theme"
-          value={settings.general.theme === 'auto' ? 'Automatic' : 
-                 settings.general.theme === 'light' ? 'Light' : 'Dark'}
-          onPress={() => setActivePicker('theme')}
-        />
-        
-        <SettingsItem
-          icon="resize-outline"
-          title="Units"
-          value={settings.general.units === 'metric' ? 'Metric' : 'Imperial'}
-          onPress={() => setActivePicker('units')}
-        />
-        
-        <SettingsItem
-          icon="calendar-outline"
-          title="Date Format"
-          value={settings.general.dateFormat}
-          onPress={() => setActivePicker('dateFormat')}
-        />
-        
-        <SettingsItem
-          icon="time-outline"
-          title="Time Format"
-          value={settings.general.timeFormat === '24h' ? '24-Hour' : '12-Hour'}
-          onPress={() => setActivePicker('timeFormat')}
-        />
+    <View style={styles.container}>
+      {/* Modern iOS-style header with proper spacing */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
-      {/* Contact & Account */}
-      <View style={styles.section}>
-        <SectionHeader title="Contact & Account" />
-        
-        <SettingsItem
-          icon="mail-outline"
-          title="Email Address"
-          value={user?.email || 'Not set'}
-          onPress={() => {
-            Alert.alert('Email Address', 'Email management coming soon!');
-          }}
-        />
-        
-        <SettingsItem
-          icon="call-outline"
-          title="Phone Number"
-          value="Not set"
-          onPress={() => {
-            Alert.alert('Phone Number', 'Phone number management coming soon!');
-          }}
-        />
-        
-        <SettingsItem
-          icon="key-outline"
-          title="Change Password"
-          onPress={() => {
-            Alert.alert('Change Password', 'Password change coming soon!');
-          }}
-        />
-        
-        <SettingsItem
-          icon="logo-google"
-          title="Linked Accounts"
-          value="Google, Apple"
-          subtitle="Manage connected login providers"
-          onPress={() => {
-            Alert.alert('Linked Accounts', 'Account linking management coming soon!');
-          }}
-        />
-        
-        <SettingsItem
-          icon="shield-checkmark-outline"
-          title="Two-Factor Authentication"
-          subtitle={settings.privacy.twoFactorAuth ? 'Enabled for enhanced security' : 'Recommended for health data protection'}
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.privacy.twoFactorAuth}
-              onValueChange={(value) => updatePrivacySettings({ twoFactorAuth: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Section - Modern Apple-style */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.profileSection}
+            onPress={() => navigation.navigate('EditProfile')}
+          >
+            <View style={styles.profileHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {user?.displayName?.charAt(0) || 'U'}
+                </Text>
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
+                <Text style={styles.profileUsername}>@{user?.email?.split('@')[0] || 'user'}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </View>
+          </TouchableOpacity>
+        </View>
 
-      {/* Biomarker Preferences */}
-      <View style={styles.section}>
-        <SectionHeader title="Biomarker Preferences" />
-        
-        <SettingsItem
-          icon="analytics-outline"
-          title="Health Goal Preset"
-          value={healthGoalOptions.find(opt => opt.value === settings.biomarkers.healthGoalPreset)?.label || 'General Wellness'}
-          subtitle="Optimizes biomarker tracking for your health goals"
-          onPress={() => setActivePicker('healthGoalPreset')}
-        />
-        
-        <SettingsItem
-          icon="list-outline"
-          title="Display Order"
-          value={biomarkerSortOptions.find(opt => opt.value === settings.biomarkers.displaySettings.sortBy)?.label || 'By Category'}
-          subtitle="How biomarkers are organized in your dashboard"
-          onPress={() => setActivePicker('biomarkerSort')}
-        />
-        
-        <SettingsItem
-          icon="eye-outline"
-          title="Biomarker Visibility"
-          subtitle="Choose which biomarkers to track or hide"
-          onPress={() => navigation.navigate('BiomarkerVisibility')}
-        />
-        
-        <SettingsItem
-          icon="trending-up-outline"
-          title="Show Trends"
-          subtitle="Display trend arrows and historical data"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.biomarkers.displaySettings.showTrends}
-              onValueChange={(value) => updateBiomarkerSettings({ 
-                displaySettings: { 
-                  ...settings.biomarkers.displaySettings, 
-                  showTrends: value 
-                } 
-              })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="stats-chart-outline"
-          title="Show Percentiles"
-          subtitle="Compare your values to population ranges"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.biomarkers.displaySettings.showPercentiles}
-              onValueChange={(value) => updateBiomarkerSettings({ 
-                displaySettings: { 
-                  ...settings.biomarkers.displaySettings, 
-                  showPercentiles: value 
-                } 
-              })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="folder-outline"
-          title="Group by Category"
-          subtitle="Organize biomarkers by health system"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.biomarkers.displaySettings.groupByCategory}
-              onValueChange={(value) => updateBiomarkerSettings({ 
-                displaySettings: { 
-                  ...settings.biomarkers.displaySettings, 
-                  groupByCategory: value 
-                } 
-              })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
+        {/* General Settings */}
+        <View style={styles.section}>
+          <SectionHeader title="General" />
+          <SettingsItem
+            icon="color-palette-outline"
+            title="Appearance"
+            value={settings.general.theme === 'auto' ? 'Automatic' : settings.general.theme === 'light' ? 'Light' : 'Dark'}
+            onPress={() => setActivePicker('theme')}
+          />
+          <SettingsItem
+            icon="scale-outline"
+            title="Units"
+            value={settings.general.units === 'metric' ? 'Metric' : 'Imperial'}
+            onPress={() => setActivePicker('units')}
+          />
+          <SettingsItem
+            icon="calendar-outline"
+            title="Date Format"
+            value={settings.general.dateFormat}
+            onPress={() => setActivePicker('dateFormat')}
+          />
+          <SettingsItem
+            icon="time-outline"
+            title="Time Format"
+            value={settings.general.timeFormat === '12h' ? '12-Hour' : '24-Hour'}
+            onPress={() => setActivePicker('timeFormat')}
+          />
+        </View>
 
-      {/* Biomarker Units */}
-      <View style={styles.section}>
-        <SectionHeader title="Biomarker Units" />
-        
-        <SettingsItem
-          icon="water-outline"
-          title="Glucose"
-          value={settings.biomarkers.units.glucose}
-          subtitle="Blood sugar measurement units"
-          onPress={() => setActivePicker('glucoseUnits')}
-        />
-        
-        <SettingsItem
-          icon="heart-circle-outline"
-          title="Cholesterol"
-          value={settings.biomarkers.units.cholesterol}
-          subtitle="Cholesterol and lipid measurement units"
-          onPress={() => setActivePicker('cholesterolUnits')}
-        />
-        
-        <SettingsItem
-          icon="fitness-outline"
-          title="Creatinine"
-          value={settings.biomarkers.units.creatinine}
-          subtitle="Kidney function measurement units"
-          onPress={() => setActivePicker('creatinineUnits')}
-        />
-        
-        <SettingsItem
-          icon="thermometer-outline"
-          title="Blood Pressure"
-          value={settings.biomarkers.units.bloodPressure}
-          subtitle="Currently using mmHg (standard)"
-          showChevron={false}
-        />
-        
-        <SettingsItem
-          icon="scale-outline"
-          title="Weight"
-          value={settings.biomarkers.units.weight}
-          subtitle="Body weight measurement units"
-          showChevron={false}
-        />
-      </View>
+        {/* Notifications */}
+        <View style={styles.section}>
+          <SectionHeader title="Notifications" />
+          <SettingsItem
+            icon="notifications-outline"
+            title="Push Notifications"
+            rightElement={
+              <Switch
+                value={settings.notifications.enabled}
+                onValueChange={(value) => updateNotificationSettings({ enabled: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="medical-outline"
+            title="Health Alerts"
+            rightElement={
+              <Switch
+                value={settings.notifications.biomarkerAlerts}
+                onValueChange={(value) => updateNotificationSettings({ biomarkerAlerts: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="airplane-outline"
+            title="Travel Reminders"
+            rightElement={
+              <Switch
+                value={settings.notifications.travelWarnings}
+                onValueChange={(value) => updateNotificationSettings({ travelWarnings: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="test-tube-outline"
+            title="Lab Results"
+            rightElement={
+              <Switch
+                value={settings.notifications.healthSummaries}
+                onValueChange={(value) => updateNotificationSettings({ healthSummaries: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+        </View>
 
-      {/* Notifications */}
-      <View style={styles.section}>
-        <SectionHeader title="Notifications & Alerts" />
-        
-        <SettingsItem
-          icon="notifications-outline"
-          title="Enable Notifications"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.notifications.enabled}
-              onValueChange={async (value) => {
-                if (value) {
-                  const granted = await scheduleNotificationPermissions();
-                  if (granted) {
-                    updateNotificationSettings({ enabled: value });
-                  } else {
-                    Alert.alert('Permission Denied', 'Please enable notifications in device settings.');
-                  }
-                } else {
-                  updateNotificationSettings({ enabled: value });
-                }
-              }}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        {settings.notifications.enabled && (
-          <>
+        {/* Privacy & Security */}
+        <View style={styles.section}>
+          <SectionHeader title="Privacy & Security" />
+          <SettingsItem
+            icon="finger-print-outline"
+            title="Biometric Authentication"
+            value={settings.privacy.biometricAuth ? 'Enabled' : 'Disabled'}
+            onPress={handleBiometricSetup}
+          />
+          <SettingsItem
+            icon="lock-closed-outline"
+            title="Session Timeout"
+            value={settings.privacy.sessionTimeout}
+            onPress={() => setActivePicker('sessionTimeout')}
+          />
+          <SettingsItem
+            icon="eye-outline"
+            title="Data Sharing"
+            value={settings.privacy.dataSharing.analytics ? 'Enabled' : 'Disabled'}
+            onPress={() => updatePrivacySettings({ 
+              dataSharing: { 
+                ...settings.privacy.dataSharing, 
+                analytics: !settings.privacy.dataSharing.analytics 
+              } 
+            })}
+          />
+        </View>
+
+        {/* Data & Sync */}
+        <View style={styles.section}>
+          <SectionHeader title="Data & Sync" />
+          <SettingsItem
+            icon="cloud-upload-outline"
+            title="Sync Frequency"
+            value={settings.dataSync.syncFrequency}
+            onPress={() => setActivePicker('syncFrequency')}
+          />
+          <SettingsItem
+            icon="wifi-outline"
+            title="Wi-Fi Only Sync"
+            rightElement={
+              <Switch
+                value={settings.dataSync.wifiOnly}
+                onValueChange={(value) => updateDataSyncSettings({ wifiOnly: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="download-outline"
+            title="Export Data"
+            onPress={handleExportSettings}
+          />
+        </View>
+
+        {/* Accessibility */}
+        <View style={styles.section}>
+          <SectionHeader title="Accessibility" />
+          <SettingsItem
+            icon="text-outline"
+            title="Font Size"
+            value={settings.accessibility.fontSize}
+            onPress={() => setActivePicker('fontSize')}
+          />
+          <SettingsItem
+            icon="hand-left-outline"
+            title="Haptic Feedback"
+            rightElement={
+              <Switch
+                value={settings.accessibility.hapticFeedback}
+                onValueChange={(value) => updateAccessibilitySettings({ hapticFeedback: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="contrast-outline"
+            title="High Contrast"
+            rightElement={
+              <Switch
+                value={settings.accessibility.highContrast}
+                onValueChange={(value) => updateAccessibilitySettings({ highContrast: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="eye-off-outline"
+            title="Reduce Motion"
+            rightElement={
+              <Switch
+                value={settings.accessibility.reducedMotion}
+                onValueChange={(value) => updateAccessibilitySettings({ reducedMotion: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+        </View>
+
+        {/* Health & Biomarkers */}
+        <View style={styles.section}>
+          <SectionHeader title="Health & Biomarkers" />
+          <SettingsItem
+            icon="target-outline"
+            title="Health Goals"
+            value={settings.biomarkers.healthGoalPreset}
+            onPress={() => setActivePicker('healthGoalPreset')}
+          />
+          <SettingsItem
+            icon="list-outline"
+            title="Display Order"
+            value={settings.biomarkers.displaySettings.sortBy}
+            onPress={() => setActivePicker('biomarkerSort')}
+          />
+          <SettingsItem
+            icon="eye-outline"
+            title="Show Trends"
+            rightElement={
+              <Switch
+                value={settings.biomarkers.displaySettings.showTrends}
+                onValueChange={(value) => updateBiomarkerSettings({ 
+                  displaySettings: { 
+                    ...settings.biomarkers.displaySettings, 
+                    showTrends: value 
+                  } 
+                })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+        </View>
+
+        {/* Travel Settings */}
+        <View style={styles.section}>
+          <SectionHeader title="Travel" />
+          <SettingsItem
+            icon="airplane-outline"
+            title="Auto-detect Location"
+            rightElement={
+              <Switch
+                value={settings.travel.autoLocationDetection}
+                onValueChange={(value) => updateTravelSettings({ autoLocationDetection: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <SettingsItem
+            icon="notifications-outline"
+            title="Travel Health Alerts"
+            rightElement={
+              <Switch
+                value={settings.travel.autoEnableTravelHealth}
+                onValueChange={(value) => updateTravelSettings({ autoEnableTravelHealth: value })}
+                trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+        </View>
+
+        {/* Advanced Settings */}
+        {showAdvanced && (
+          <View style={styles.section}>
+            <SectionHeader title="Advanced" />
             <SettingsItem
-              icon="newspaper-outline"
-              title="Daily Health Summaries"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.healthSummaries}
-                  onValueChange={(value) => updateNotificationSettings({ healthSummaries: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="warning-outline"
-              title="Abnormal Biomarker Alerts"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.biomarkerAlerts}
-                  onValueChange={(value) => updateNotificationSettings({ biomarkerAlerts: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="medical-outline"
-              title="Vaccination Reminders"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.vaccinationReminders}
-                  onValueChange={(value) => updateNotificationSettings({ vaccinationReminders: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="airplane-outline"
-              title="Travel Health Warnings"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.travelWarnings}
-                  onValueChange={(value) => updateNotificationSettings({ travelWarnings: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="sync-outline"
-              title="Data Sync Issues"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.syncIssues}
-                  onValueChange={(value) => updateNotificationSettings({ syncIssues: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="alert-circle-outline"
-              title="Emergency Alerts"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.notifications.emergencyAlerts}
-                  onValueChange={(value) => updateNotificationSettings({ emergencyAlerts: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            
-            <SettingsItem
-              icon="notifications-circle-outline"
+              icon="bug-outline"
               title="Test Notification"
               onPress={handleTestNotification}
-              showChevron={false}
             />
-          </>
-        )}
-      </View>
-
-      {/* Privacy & Security */}
-      <View style={styles.section}>
-        <SectionHeader title="Privacy & Security" />
-        
-        <SettingsItem
-          icon="finger-print-outline"
-          title="Biometric Authentication"
-          subtitle={settings.privacy.biometricAuth ? 'Enabled' : 'Tap to enable'}
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.privacy.biometricAuth}
-              onValueChange={(value) => {
-                if (value) {
-                  handleBiometricSetup();
-                } else {
-                  updatePrivacySettings({ biometricAuth: false });
-                }
-              }}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="time-outline"
-          title="Session Timeout"
-          value={sessionTimeoutOptions.find(opt => opt.value === settings.privacy.sessionTimeout)?.label || settings.privacy.sessionTimeout}
-          onPress={() => setActivePicker('sessionTimeout')}
-        />
-        
-        <SettingsItem
-          icon="location-outline"
-          title="Location Services"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.privacy.locationServices}
-              onValueChange={(value) => updatePrivacySettings({ locationServices: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="people-outline"
-          title="Contacts Access"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.privacy.contactsAccess}
-              onValueChange={(value) => updatePrivacySettings({ contactsAccess: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
-
-      {/* Data & Sync */}
-      <View style={styles.section}>
-        <SectionHeader title="Data & Sync Management" />
-        
-        <SettingsItem
-          icon="sync-outline"
-          title="Auto Sync"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.dataSync.autoSync}
-              onValueChange={(value) => updateDataSyncSettings({ autoSync: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="refresh-outline"
-          title="Background Sync"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.dataSync.backgroundSync}
-              onValueChange={(value) => updateDataSyncSettings({ backgroundSync: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="time-outline"
-          title="Sync Frequency"
-          value={syncFrequencyOptions.find(opt => opt.value === settings.dataSync.syncFrequency)?.label || settings.dataSync.syncFrequency}
-          onPress={() => setActivePicker('syncFrequency')}
-        />
-        
-        <SettingsItem
-          icon="wifi-outline"
-          title="WiFi Only Sync"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.dataSync.wifiOnly}
-              onValueChange={(value) => updateDataSyncSettings({ wifiOnly: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
-
-      {/* Travel Settings */}
-      <View style={styles.section}>
-        <SectionHeader title="Travel Settings" />
-        
-        <SettingsItem
-          icon="airplane-outline"
-          title="Auto-Enable Travel Health"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.travel.autoEnableTravelHealth}
-              onValueChange={(value) => updateTravelSettings({ autoEnableTravelHealth: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="alarm-outline"
-          title="Medication Timezone Alerts"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.travel.medicationTimezoneAlerts}
-              onValueChange={(value) => updateTravelSettings({ medicationTimezoneAlerts: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="location-outline"
-          title="Auto Location Detection"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.travel.autoLocationDetection}
-              onValueChange={(value) => updateTravelSettings({ autoLocationDetection: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
-
-      {/* Accessibility */}
-      <View style={styles.section}>
-        <SectionHeader title="Accessibility" />
-        
-        <SettingsItem
-          icon="text-outline"
-          title="Font Size"
-          value={fontSizeOptions.find(opt => opt.value === settings.accessibility.fontSize)?.label || settings.accessibility.fontSize}
-          onPress={() => setActivePicker('fontSize')}
-        />
-        
-        <SettingsItem
-          icon="contrast-outline"
-          title="High Contrast"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.accessibility.highContrast}
-              onValueChange={(value) => updateAccessibilitySettings({ highContrast: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="phone-portrait-outline"
-          title="Reduced Motion"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.accessibility.reducedMotion}
-              onValueChange={(value) => updateAccessibilitySettings({ reducedMotion: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-        
-        <SettingsItem
-          icon="chatbox-outline"
-          title="Voice Features"
-          showChevron={false}
-          rightElement={
-            <Switch
-              value={settings.accessibility.voiceFeatures}
-              onValueChange={(value) => updateAccessibilitySettings({ voiceFeatures: value })}
-              trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-      </View>
-
-      {/* Advanced Settings */}
-      <View style={styles.section}>
-        <TouchableOpacity 
-          style={styles.advancedToggle}
-          onPress={() => setShowAdvanced(!showAdvanced)}
-        >
-          <Text style={styles.sectionTitle}>Advanced Settings</Text>
-          <Ionicons 
-            name={showAdvanced ? "chevron-up" : "chevron-down"} 
-            size={20} 
-            color="#007AFF" 
-          />
-        </TouchableOpacity>
-        
-        {showAdvanced && (
-          <>
             <SettingsItem
-              icon="download-outline"
-              title="Export Settings"
-              onPress={handleExportSettings}
-            />
-            
-            <SettingsItem
-              icon="refresh-circle-outline"
+              icon="refresh-outline"
               title="Reset All Settings"
               onPress={handleResetSettings}
             />
-            
-            <SettingsItem
-              icon="bug-outline"
-              title="Crash Reporting"
-              showChevron={false}
-              rightElement={
-                <Switch
-                  value={settings.app.crashReporting}
-                  onValueChange={(value) => updateAppSettings({ crashReporting: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#30D158' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-          </>
+          </View>
         )}
-      </View>
 
-      {/* Support & About */}
-      <View style={styles.section}>
-        <SectionHeader title="Support & About" />
-        
-        <SettingsItem
-          icon="help-circle-outline"
-          title="Help & Support"
-          onPress={() => navigation.navigate('HelpSupport')}
-        />
-        
-        <SettingsItem
-          icon="document-text-outline"
-          title="Privacy Policy"
-          onPress={() => navigation.navigate('PrivacyPolicy')}
-        />
-        
-        <SettingsItem
-          icon="document-outline"
-          title="Terms of Service"
-          onPress={() => navigation.navigate('TermsOfService')}
-        />
-        
-        <SettingsItem
-          icon="information-circle-outline"
-          title="About CoreHealth"
-          value="Version 1.0.0"
-          onPress={() => navigation.navigate('About')}
-        />
-      </View>
+        {/* Show Advanced Toggle */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.showAdvancedButton}
+            onPress={() => setShowAdvanced(!showAdvanced)}
+          >
+            <Text style={styles.showAdvancedText}>
+              {showAdvanced ? 'Hide Advanced Settings' : 'Show Advanced Settings'}
+            </Text>
+            <Ionicons 
+              name={showAdvanced ? "chevron-up" : "chevron-down"} 
+              size={20} 
+              color="#007AFF" 
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* Sign Out */}
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Sign Out */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
-      <View style={styles.bottomSpacing} />
-      
       {/* Settings Picker Modal */}
       <SettingsPicker
         visible={activePicker !== null}
         title={getCurrentPickerTitle()}
         options={getCurrentPickerOptions()}
         selectedValue={getCurrentPickerValue()}
-        onSelect={(value) => handlePickerSelect(activePicker!, value)}
+        onSelect={(value) => {
+          handlePickerSelect(activePicker!, value);
+          setActivePicker(null);
+        }}
         onClose={() => setActivePicker(null)}
       />
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  header: {
     backgroundColor: '#F2F2F7',
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6C757D',
+    fontWeight: '400',
+    lineHeight: 20,
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF20',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -1004,25 +708,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
   },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
   section: {
-    marginTop: 35,
+    backgroundColor: '#FFFFFF',
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E5E5EA',
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#6D6D72',
-    textTransform: 'uppercase',
-    marginLeft: 16,
-    marginBottom: 6,
-    letterSpacing: -0.08,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 12,
   },
   advancedToggle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginLeft: 16,
-    marginRight: 16,
-    marginBottom: 6,
+    marginBottom: 12,
   },
   settingsItem: {
     backgroundColor: '#FFFFFF',
@@ -1030,9 +737,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   settingsItemLeft: {
     flexDirection: 'row',
@@ -1040,13 +752,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingsItemTitle: {
-    fontSize: 17,
-    color: '#000000',
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1A1A1A',
     marginLeft: 12,
   },
   settingsItemSubtitle: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: '#6C757D',
     marginLeft: 12,
     marginTop: 2,
   },
@@ -1055,8 +768,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingsItemValue: {
-    fontSize: 17,
-    color: '#8E8E93',
+    fontSize: 14,
+    color: '#6C757D',
     marginRight: 8,
   },
   signOutButton: {
@@ -1064,18 +777,74 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   signOutText: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#FF3B30',
     marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   bottomSpacing: {
     height: 50,
+  },
+  profileSection: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 2,
+  },
+  profileUsername: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  showAdvancedButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+  },
+  showAdvancedText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
   },
 });
 

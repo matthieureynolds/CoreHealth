@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import JetLagPlanningCard from './JetLagPlanningCard';
 
 interface EnvironmentalMetric {
   id: string;
@@ -20,16 +21,16 @@ interface TravelHealthSummaryProps {
   currentLocation?: string;
   jetLagHours?: number;
   onTravelPress?: () => void;
-  plannedTrip?: { destination: string; date: string };
-  onJetLagPlanPress?: () => void;
+  jetLagPlanningEvents?: any[];
+  onJetLagEventPress?: (event: any) => void;
 }
 
 const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({ 
   currentLocation = 'New York, NY',
   jetLagHours = 0,
   onTravelPress,
-  plannedTrip,
-  onJetLagPlanPress
+  jetLagPlanningEvents = [],
+  onJetLagEventPress
 }) => {
   // Mock environmental data - in real app this would come from APIs
   const environmentalMetrics: EnvironmentalMetric[] = [
@@ -94,28 +95,34 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
   const jetLagInfo = getJetLagStatus();
 
-  // Mock planned trip if jetLagHours === 0
-  const showJetLagPlanning = plannedTrip || jetLagHours === 0;
-  const trip = plannedTrip || { destination: 'Sydney, Australia', date: '2024-08-15' };
-
   const [showMore, setShowMore] = useState(false);
 
   // Mock closest facilities
   const closestFacilities = [
-    { id: 'pharmacy1', name: 'City Pharmacy', type: 'Pharmacy', distance: '0.4 mi' },
-    { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi' },
+    { id: 'pharmacy1', name: 'City Pharmacy', type: 'Pharmacy', distance: '0.4 mi', travelTime: '4 mins' },
+    { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi', travelTime: '8 mins' },
   ];
 
-  const renderEnvironmentalMetricTab = (metric: EnvironmentalMetric) => {
+  const renderEnvironmentalMetric = (metric: EnvironmentalMetric) => {
     const statusColor = getStatusColor(metric.status);
     return (
-      <View key={metric.id} style={[styles.metricTab, { borderBottomColor: statusColor }]}>
-        <View style={styles.metricTabContent}>
-          <Ionicons name={metric.icon} size={16} color={statusColor} />
-          <Text style={[styles.metricTabScore, { color: statusColor }]}>{metric.score}</Text>
-          <Text style={styles.metricTabLabel}>{metric.label}</Text>
+      <TouchableOpacity key={metric.id} style={styles.metricCard}>
+        <View style={styles.metricCardContent}>
+          <View style={styles.metricCardLeft}>
+            <View style={[styles.metricIconContainer, { backgroundColor: `${statusColor}20` }]}>
+              <Ionicons name={metric.icon} size={24} color={statusColor} />
+            </View>
+            <View style={styles.metricInfo}>
+              <Text style={styles.metricLabel}>{metric.label}</Text>
+              <Text style={[styles.metricValue, { color: statusColor }]}>{metric.value}</Text>
+            </View>
+          </View>
+          <View style={styles.metricCardRight}>
+            <Text style={[styles.metricScore, { color: statusColor }]}>{metric.score}</Text>
+            <Text style={styles.metricScoreLabel}>Score</Text>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -137,9 +144,9 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         <Text style={styles.locationSubtitle}>Current Location</Text>
       </View>
 
-      {/* Modern tabs for Air Quality, Pollen, Water */}
-      <View style={styles.metricTabsContainer}>
-        {environmentalMetrics.map(renderEnvironmentalMetricTab)}
+      {/* Environmental metrics */}
+      <View style={styles.metricsContainer}>
+        {environmentalMetrics.map(renderEnvironmentalMetric)}
       </View>
 
       {jetLagHours > 0 && (
@@ -154,19 +161,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         </View>
       )}
 
-      {/* Jet Lag Planning Card */}
-      {showJetLagPlanning && (
-        <View style={styles.jetLagPlanCard}>
-          <Text style={styles.jetLagPlanTitle}>Jet Lag Planning</Text>
-          <Text style={styles.jetLagPlanSubtitle}>Upcoming Trip: {trip.destination} ({trip.date})</Text>
-          <TouchableOpacity style={styles.jetLagPlanButton} onPress={onJetLagPlanPress}>
-            <Ionicons name="airplane" size={16} color="#fff" />
-            <Text style={styles.jetLagPlanButtonText}>Start Jet Lag Plan</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* More tab for closest pharmacy/hospital */}
+      {/* More tab for additional information */}
       <View style={styles.moreTabContainer}>
         {!showMore && (
           <TouchableOpacity onPress={() => setShowMore(true)} style={styles.moreTab}>
@@ -175,12 +170,37 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         )}
         {showMore && (
           <View style={styles.facilitiesList}>
+            {/* Jet Lag Planning Events */}
+            {jetLagPlanningEvents.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Jet Lag Planning</Text>
+                {jetLagPlanningEvents.map((event, index) => (
+                  <JetLagPlanningCard
+                    key={event.id || index}
+                    event={event}
+                    onPress={() => onJetLagEventPress?.(event)}
+                  />
+                ))}
+              </>
+            )}
+
+            {/* Closest facilities */}
             {closestFacilities.map(facility => (
               <View key={facility.id} style={styles.facilityItem}>
-                <Ionicons name={facility.type === 'Pharmacy' ? 'medkit' : 'medkit-outline'} size={18} color="#30D158" style={{ marginRight: 8 }} />
-                <View>
+                <View style={styles.facilityIconContainer}>
+                  <Ionicons 
+                    name={facility.type === 'Pharmacy' ? 'medical' : 'medical-outline'} 
+                    size={20} 
+                    color="#30D158" 
+                  />
+                </View>
+                <View style={styles.facilityInfo}>
                   <Text style={styles.facilityName}>{facility.name}</Text>
                   <Text style={styles.facilityDetails}>{facility.type} • {facility.distance}</Text>
+                </View>
+                <View style={styles.travelTimeContainer}>
+                  <Ionicons name="car" size={14} color="#8E8E93" />
+                  <Text style={styles.travelTime}>{facility.travelTime}</Text>
                 </View>
               </View>
             ))}
@@ -231,33 +251,56 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
   },
-  metricTabsContainer: {
-    flexDirection: 'row',
+  metricsContainer: {
     marginBottom: 16,
+  },
+  metricCard: {
     backgroundColor: '#2C2C2E',
     borderRadius: 12,
-    padding: 4,
+    marginBottom: 8,
+    padding: 16,
   },
-  metricTab: {
-    flex: 1,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  metricTabContent: {
+  metricCardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
   },
-  metricTabScore: {
+  metricCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  metricIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  metricInfo: {
+    flex: 1,
+  },
+  metricLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  metricTabLabel: {
-    fontSize: 11,
+    fontWeight: '600',
     color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  metricValue: {
+    fontSize: 14,
     fontWeight: '500',
-    textAlign: 'center',
+  },
+  metricCardRight: {
+    alignItems: 'flex-end',
+  },
+  metricScore: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  metricScoreLabel: {
+    fontSize: 12,
+    color: '#8E8E93',
     marginTop: 2,
   },
   jetLagContainer: {
@@ -337,10 +380,39 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 4,
   },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+    marginTop: 4,
+  },
   facilityItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    paddingVertical: 8,
+  },
+  facilityIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#30D15820',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  facilityInfo: {
+    flex: 1,
+  },
+  travelTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  travelTime: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginLeft: 4,
   },
   facilityName: {
     color: '#fff',

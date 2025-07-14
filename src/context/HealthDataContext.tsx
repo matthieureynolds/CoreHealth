@@ -22,6 +22,7 @@ import {
   HealthcareFacilities,
   EmergencyContacts,
   JetLagData,
+  JetLagPlanningEvent,
   TimeZoneInfo,
   WeatherData,
   ExtremeHeatWarning,
@@ -76,6 +77,7 @@ interface HealthDataContextType {
   healthScore: HealthScore | null;
   travelHealth: TravelHealth | null;
   bodySystems: BodySystem[];
+  jetLagPlanningEvents: JetLagPlanningEvent[];
   isLoading: boolean;
 
   // Profile methods
@@ -102,6 +104,12 @@ interface HealthDataContextType {
   // Jet lag and timezone
   setOriginTimezone: (timezone: string, location?: string) => Promise<void>;
   calculateJetLag: (destinationTimezone: string, destinationLocation: string) => JetLagData | null;
+  
+  // Jet lag planning
+  addJetLagPlanningEvent: (event: Omit<JetLagPlanningEvent, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateJetLagPlanningEvent: (id: string, updates: Partial<JetLagPlanningEvent>) => Promise<void>;
+  deleteJetLagPlanningEvent: (id: string) => Promise<void>;
+  getUpcomingJetLagEvents: () => JetLagPlanningEvent[];
 }
 
 const HealthDataContext = createContext<HealthDataContextType | undefined>(
@@ -123,6 +131,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
   const [travelHealth, setTravelHealth] = useState<TravelHealth | null>(null);
   const [bodySystems, setBodySystems] = useState<BodySystem[]>([]);
+  const [jetLagPlanningEvents, setJetLagPlanningEvents] = useState<JetLagPlanningEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [originTimezone, setOriginTimezoneState] = useState<string | null>(null);
   const [originLocation, setOriginLocationState] = useState<string>('Home');
@@ -144,6 +153,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         storedHealthScore,
         storedOriginTimezone,
         storedOriginLocation,
+        storedJetLagPlanningEvents,
       ] = await Promise.all([
         AsyncStorage.getItem('profile'),
         AsyncStorage.getItem('biomarkers'),
@@ -153,6 +163,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         AsyncStorage.getItem('healthScore'),
         AsyncStorage.getItem('originTimezone'),
         AsyncStorage.getItem('originLocation'),
+        AsyncStorage.getItem('jetLagPlanningEvents'),
       ]);
 
       if (storedProfile) {
@@ -192,6 +203,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       if (storedHealthScore) setHealthScore(JSON.parse(storedHealthScore));
       if (storedOriginTimezone) setOriginTimezoneState(storedOriginTimezone);
       if (storedOriginLocation) setOriginLocationState(storedOriginLocation);
+      if (storedJetLagPlanningEvents) setJetLagPlanningEvents(JSON.parse(storedJetLagPlanningEvents));
     } catch (error) {
       console.error('Failed to load health data:', error);
     } finally {
@@ -587,33 +599,55 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         return 'severe';
       };
 
+      // Track API errors
+      const apiErrors: { [key: string]: string } = {};
+
       // Fetch real air quality data from Google
-      const airQualityData = await getGoogleAirQualityData(
-        locationData.coordinates.latitude,
-        locationData.coordinates.longitude
-      );
+      let airQualityData = null;
+      try {
+        airQualityData = await getGoogleAirQualityData(
+          locationData.coordinates.latitude,
+          locationData.coordinates.longitude
+        );
+      } catch (error) {
+        console.error('Air quality API error:', error);
+        apiErrors.airQuality = 'Failed to fetch air quality data';
+      }
 
       // Fetch real pollen data from Google
-      const pollenData = await getGooglePollenData(
-        locationData.coordinates.latitude,
-        locationData.coordinates.longitude
-      );
+      let pollenData = null;
+      try {
+        pollenData = await getGooglePollenData(
+          locationData.coordinates.latitude,
+          locationData.coordinates.longitude
+        );
+      } catch (error) {
+        console.error('Pollen API error:', error);
+        apiErrors.pollen = 'Failed to fetch pollen data';
+      }
 
       // Fetch nearby healthcare facilities
-      console.log('🏥 Fetching healthcare facilities for:', locationData.name);
-      const healthcareFacilities = await getAllHealthcareFacilities(
-        locationData.coordinates.latitude,
-        locationData.coordinates.longitude,
-        5000 // 5km radius
-      );
-      console.log('🏥 Healthcare facilities found:', {
-        hospitals: healthcareFacilities.hospitals.length,
-        pharmacies: healthcareFacilities.pharmacies.length,
-        clinics: healthcareFacilities.clinics.length,
-        dentists: healthcareFacilities.dentists.length,
-        total: healthcareFacilities.total,
-        nearestHospital: healthcareFacilities.hospitals[0]?.name || 'None found'
-      });
+      let healthcareFacilities = null;
+      try {
+        console.log('🏥 Fetching healthcare facilities for:', locationData.name);
+        healthcareFacilities = await getAllHealthcareFacilities(
+          locationData.coordinates.latitude,
+          locationData.coordinates.longitude,
+          5000 // 5km radius
+        );
+        console.log('🏥 Healthcare facilities found:', {
+          hospitals: healthcareFacilities.hospitals.length,
+          pharmacies: healthcareFacilities.pharmacies.length,
+          clinics: healthcareFacilities.clinics.length,
+          dentists: healthcareFacilities.dentists.length,
+          total: healthcareFacilities.total,
+          nearestHospital: healthcareFacilities.hospitals[0]?.name || 'None found'
+        });
+      } catch (error) {
+        console.error('Healthcare facilities API error:', error);
+        apiErrors.healthcare = 'Failed to fetch healthcare facilities';
+        healthcareFacilities = { hospitals: [], pharmacies: [], clinics: [], dentists: [], total: 0 };
+      }
 
       // Get emergency contacts for the country
       const countryCode = locationData.country === 'France' ? 'FR' :
@@ -781,10 +815,22 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       };
 
       // Generate weather health assessment
-      const weatherHealthAssessment = await generateWeatherHealthAssessment(
-        locationData.coordinates.latitude,
-        locationData.coordinates.longitude
-      );
+      let weatherHealthAssessment;
+      try {
+        weatherHealthAssessment = await generateWeatherHealthAssessment(
+          locationData.coordinates.latitude,
+          locationData.coordinates.longitude
+        );
+      } catch (error) {
+        console.error('Weather API error:', error);
+        apiErrors.weather = 'Failed to fetch weather data';
+        weatherHealthAssessment = {
+          weatherData: null,
+          heatIndexData: null,
+          extremeHeatWarning: null,
+          uvHeatCombination: null,
+        };
+      }
 
       // Generate hydration recommendations
       let hydrationRecommendation;
@@ -834,6 +880,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       // Add medication data to travel health
       mockTravelHealth.medicationAvailability = medicationAvailabilityData.length > 0 ? medicationAvailabilityData : undefined;
       mockTravelHealth.travelMedicationKit = travelMedicationKit;
+
+      // Store API errors in the travel health data for UI access
+      (mockTravelHealth as any).apiErrors = apiErrors;
 
       setTravelHealth(mockTravelHealth);
     } catch (error) {
@@ -886,6 +935,58 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     );
   };
 
+  // Jet lag planning methods
+  const addJetLagPlanningEvent = async (event: Omit<JetLagPlanningEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newEvent: JetLagPlanningEvent = {
+        ...event,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const updatedEvents = [...jetLagPlanningEvents, newEvent];
+      setJetLagPlanningEvents(updatedEvents);
+      await AsyncStorage.setItem('jetLagPlanningEvents', JSON.stringify(updatedEvents));
+    } catch (error) {
+      console.error('Failed to add jet lag planning event:', error);
+      throw error;
+    }
+  };
+
+  const updateJetLagPlanningEvent = async (id: string, updates: Partial<JetLagPlanningEvent>) => {
+    try {
+      const updatedEvents = jetLagPlanningEvents.map(event => 
+        event.id === id 
+          ? { ...event, ...updates, updatedAt: new Date().toISOString() }
+          : event
+      );
+      setJetLagPlanningEvents(updatedEvents);
+      await AsyncStorage.setItem('jetLagPlanningEvents', JSON.stringify(updatedEvents));
+    } catch (error) {
+      console.error('Failed to update jet lag planning event:', error);
+      throw error;
+    }
+  };
+
+  const deleteJetLagPlanningEvent = async (id: string) => {
+    try {
+      const updatedEvents = jetLagPlanningEvents.filter(event => event.id !== id);
+      setJetLagPlanningEvents(updatedEvents);
+      await AsyncStorage.setItem('jetLagPlanningEvents', JSON.stringify(updatedEvents));
+    } catch (error) {
+      console.error('Failed to delete jet lag planning event:', error);
+      throw error;
+    }
+  };
+
+  const getUpcomingJetLagEvents = (): JetLagPlanningEvent[] => {
+    const now = new Date();
+    return jetLagPlanningEvents
+      .filter(event => new Date(event.departureDate) > now)
+      .sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
+  };
+
   const value: HealthDataContextType = {
     profile,
     biomarkers,
@@ -895,6 +996,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     healthScore,
     travelHealth,
     bodySystems,
+    jetLagPlanningEvents,
     isLoading,
     updateProfile,
     addBiomarker,
@@ -907,6 +1009,10 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     updateTravelHealthData,
     setOriginTimezone,
     calculateJetLag,
+    addJetLagPlanningEvent,
+    updateJetLagPlanningEvent,
+    deleteJetLagPlanningEvent,
+    getUpcomingJetLagEvents,
   };
 
   return (

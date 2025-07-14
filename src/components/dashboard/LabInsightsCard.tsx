@@ -175,7 +175,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
         {showMore && moreResults.map(renderLabResult)}
         {showMore && moreResults.length > 0 && (
           <TouchableOpacity onPress={() => setShowMore(false)} style={styles.lessTab}>
-            <Text style={styles.lessTabText}>- Less</Text>
+            <Text style={styles.lessTabText}>Show Less</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

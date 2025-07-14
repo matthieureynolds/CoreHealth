@@ -27,7 +27,14 @@ import MedicalTimeline from '../../components/dashboard/MedicalTimeline';
 
 const DashboardScreen: React.FC = () => {
   const { user } = useAuth();
-  const { healthScore, dailyInsights, biomarkers, generateDailyInsights } = useHealthData();
+  const { 
+    healthScore, 
+    dailyInsights, 
+    biomarkers, 
+    generateDailyInsights,
+    getUpcomingJetLagEvents,
+    addJetLagPlanningEvent 
+  } = useHealthData();
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [chatModalVisible, setChatModalVisible] = useState(false);
@@ -104,6 +111,56 @@ const DashboardScreen: React.FC = () => {
     // TODO: Navigate to calendar or event details
   };
 
+  const handleJetLagEventPress = (event: any) => {
+    console.log('Jet lag event pressed:', event);
+    // TODO: Navigate to detailed jet lag planning view
+  };
+
+  // Temporary test function to add a Thailand trip
+  const addTestThailandTrip = async () => {
+    try {
+      const thailandEvent = {
+        destination: 'Bangkok, Thailand',
+        destinationTimezone: 'Asia/Bangkok',
+        departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        timeZoneDifference: 5, // 5 hours ahead
+        preparationStartDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        daysToAdjust: 4, // 4 days to adjust (5 hours / 1.5 hours per day = 4 days)
+        sleepAdjustment: {
+          totalTimeZoneDifference: 5,
+          direction: 'eastward' as const,
+          daysToAdjust: 4,
+          maxDailyAdjustment: 1.5,
+          dailySchedule: [
+            { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
+            { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
+            { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
+            { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
+          ],
+          strategy: 'Advance bedtime gradually each day before travel',
+          recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
+        },
+        lightExposureSchedule: {
+          direction: 'eastward' as const,
+          strategy: 'Advance circadian rhythm with early bright light',
+          schedule: [
+            { day: 1, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 2, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 3, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 4, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+          ],
+          generalTips: ['Use bright light therapy lamp if natural sunlight unavailable', 'Wear sunglasses during light avoidance periods'],
+        },
+        status: 'upcoming' as const,
+      };
+      
+      await addJetLagPlanningEvent(thailandEvent);
+      console.log('Thailand trip added successfully!');
+    } catch (error) {
+      console.error('Failed to add Thailand trip:', error);
+    }
+  };
+
   // Calculate mock values for demo
   const overallHealthScore = healthScore?.overall || 82;
   const recoveryScore = healthScore?.recovery || 85;
@@ -117,16 +174,24 @@ const DashboardScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.greeting}>
+        <Text style={styles.greeting}>
             Good {getTimeOfDay()}, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}!
-          </Text>
+        </Text>
+      </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={addTestThailandTrip}
+          >
+            <Ionicons name="airplane" size={16} color="#FF9500" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.aiButton}
+            onPress={() => setChatModalVisible(true)}
+          >
+            <Ionicons name="sparkles" size={20} color="#007AFF" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity 
-          style={styles.aiButton}
-          onPress={() => setChatModalVisible(true)}
-        >
-          <Ionicons name="sparkles" size={20} color="#007AFF" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -168,6 +233,8 @@ const DashboardScreen: React.FC = () => {
           currentLocation="New York, NY"
           jetLagHours={0}
           onTravelPress={handleTravelPress}
+          jetLagPlanningEvents={getUpcomingJetLagEvents()}
+          onJetLagEventPress={handleJetLagEventPress}
         />
 
         {/* Medical Timeline */}
@@ -216,9 +283,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 50,
     paddingBottom: 16,
     backgroundColor: '#000000',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  testButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FF950030',
   },
   headerContent: {
     flex: 1,
