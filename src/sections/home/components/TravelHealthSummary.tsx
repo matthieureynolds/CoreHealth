@@ -100,6 +100,11 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const handleMetricPress = (metric: EnvironmentalMetric) => {
+    setSelectedMetric(metric);
+    setModalVisible(true);
+  };
+
   // Mock closest facilities
   const closestFacilities = [
     { id: 'pharmacy1', name: 'City Pharmacy', type: 'Pharmacy', distance: '0.4 mi', travelTime: '4 mins' },
@@ -109,17 +114,10 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const renderEnvironmentalMetric = (metric: EnvironmentalMetric) => {
     const statusColor = getStatusColor(metric.status);
     return (
-      <TouchableOpacity
-        key={metric.id}
-        style={styles.metricCard}
-        onPress={() => {
-          setSelectedMetric(metric);
-          setModalVisible(true);
-        }}
-      >
+      <TouchableOpacity key={metric.id} style={styles.metricCard} onPress={() => handleMetricPress(metric)}>
         <View style={styles.metricCardContent}>
           <View style={styles.metricCardLeft}>
-            <View style={[styles.metricIconContainer, { backgroundColor: `${statusColor}20` }]}> 
+            <View style={[styles.metricIconContainer, { backgroundColor: `${statusColor}20` }]}>
               <Ionicons name={metric.icon} size={24} color={statusColor} />
             </View>
             <View style={styles.metricInfo}>
@@ -136,45 +134,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     );
   };
 
-  // Modal content for environmental metric details
-  const renderMetricModal = () => {
-    if (!selectedMetric) return null;
-    let description = '';
-    switch (selectedMetric.id) {
-      case 'air_quality':
-        description = 'Air quality is measured by the concentration of pollutants in the air. Good air quality is important for respiratory and cardiovascular health.';
-        break;
-      case 'pollen':
-        description = 'Pollen levels indicate the amount of pollen in the air, which can affect allergies and respiratory conditions.';
-        break;
-      case 'water_quality':
-        description = 'Water quality reflects the safety and cleanliness of local water sources. Excellent water quality is important for hydration and health.';
-        break;
-      default:
-        description = 'This metric provides important information about your travel environment.';
-    }
-    return (
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ backgroundColor: '#1C1C1E', borderRadius: 16, padding: 24, width: 320, alignItems: 'center' }}>
-            <Ionicons name={selectedMetric.icon} size={40} color={getStatusColor(selectedMetric.status)} style={{ marginBottom: 12 }} />
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 8 }}>{selectedMetric.label}</Text>
-            <Text style={{ fontSize: 16, color: getStatusColor(selectedMetric.status), marginBottom: 8 }}>{selectedMetric.value} (Score: {selectedMetric.score})</Text>
-            <Text style={{ fontSize: 15, color: '#EBEBF5', textAlign: 'center', marginBottom: 16 }}>{description}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 8, paddingVertical: 8, paddingHorizontal: 24, backgroundColor: '#007AFF', borderRadius: 8 }}>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   return (
     <TouchableOpacity 
       style={styles.container}
@@ -186,9 +145,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
           <Ionicons name="location" size={20} color="#007AFF" />
           <Text style={styles.title}>Travel Health</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-          <Text style={styles.moreTabText}>{showMore ? 'Show Less' : 'View All'}</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.locationContainer}>
@@ -241,9 +197,9 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
               <View key={facility.id} style={styles.facilityItem}>
                 <View style={styles.facilityIconContainer}>
                   <Ionicons 
-                    name={facility.type === 'Pharmacy' ? 'medkit' : facility.type === 'Hospital' ? 'business' : 'help-circle'}
-                    size={20}
-                    color="#30D158"
+                    name={facility.type === 'Pharmacy' ? 'medkit' : 'business'} 
+                    size={20} 
+                    color="#30D158" 
                   />
                 </View>
                 <View style={styles.facilityInfo}>
@@ -256,10 +212,36 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
                 </View>
               </View>
             ))}
+            <TouchableOpacity onPress={() => setShowMore(false)} style={styles.lessTab}>
+              <Text style={styles.lessTabText}>Show Less</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
-      {renderMetricModal()}
+
+      {/* Environmental Metric Detail Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 24, width: '85%', alignItems: 'center' }}>
+            <Ionicons name={selectedMetric?.icon || 'information-circle-outline'} size={40} color={getStatusColor(selectedMetric?.status || 'good')} style={{ marginBottom: 12 }} />
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1A1A1A', marginBottom: 8 }}>{selectedMetric?.label}</Text>
+            <Text style={{ fontSize: 18, color: getStatusColor(selectedMetric?.status || 'good'), marginBottom: 8 }}>{selectedMetric?.value} ({selectedMetric?.score})</Text>
+            <Text style={{ fontSize: 16, color: '#444', textAlign: 'center', marginBottom: 16 }}>
+              {selectedMetric?.id === 'air_quality' && 'Air quality reflects the concentration of pollutants in the air. Poor air quality can affect respiratory health, especially for sensitive groups.'}
+              {selectedMetric?.id === 'pollen' && 'Pollen levels indicate the amount of pollen in the air, which can trigger allergies and respiratory symptoms in sensitive individuals.'}
+              {selectedMetric?.id === 'water_quality' && 'Water quality measures the safety and cleanliness of local water sources. Excellent water quality is important for hydration and health.'}
+            </Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 8, padding: 10 }}>
+              <Text style={{ color: '#007AFF', fontWeight: '600', fontSize: 16 }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </TouchableOpacity>
   );
 };

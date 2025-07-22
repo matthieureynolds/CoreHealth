@@ -9,6 +9,8 @@ import { supabase } from '../config/supabase';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { DataService } from '../services/dataService';
 import { User } from '../types';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +26,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   handleEmailVerification: () => Promise<boolean>;
+  signInWithGoogle: () => Promise<void>; // Add Google sign-in
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -206,6 +209,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Google sign-in implementation
+  const signInWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const redirectTo = AuthSession.makeRedirectUri();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+        },
+      });
+      if (error) throw error;
+      // The user will be redirected back to the app after authentication
+      // Supabase will handle the session automatically
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      throw new Error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -216,6 +241,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resetPassword,
     resendVerificationEmail,
     handleEmailVerification,
+    signInWithGoogle, // Add to context
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

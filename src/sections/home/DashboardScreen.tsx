@@ -161,6 +161,83 @@ const DashboardScreen: React.FC = () => {
     }
   };
 
+  // --- Jet Lag Planning Events ---
+  // Outbound: Paris -> Bangkok
+  const outboundDeparture = new Date();
+  outboundDeparture.setDate(outboundDeparture.getDate() + 7); // 7 days from now
+  const outboundPrepStart = new Date(outboundDeparture);
+  outboundPrepStart.setDate(outboundDeparture.getDate() - 4); // 4 days before
+  const outboundSchedule = Array.from({ length: 4 }, (_, i) => {
+    const date = new Date(outboundPrepStart);
+    date.setDate(outboundPrepStart.getDate() + i);
+    return {
+      day: i + 1,
+      date: date.toISOString(),
+      bedtime: ['21:30', '21:00', '20:30', '20:00'][i],
+      wakeTime: ['06:30', '06:00', '05:30', '05:00'][i],
+      adjustment: [1.5, 1.5, 1.5, 0.5][i],
+    };
+  });
+  const outboundEvent = {
+    id: 'paris-bangkok',
+    destination: 'Bangkok, Thailand',
+    destinationTimezone: 'Asia/Bangkok',
+    departureDate: outboundDeparture.toISOString(),
+    timeZoneDifference: 5,
+    preparationStartDate: outboundPrepStart.toISOString(),
+    daysToAdjust: 4,
+    sleepAdjustment: {
+      totalTimeZoneDifference: 5,
+      direction: 'eastward',
+      daysToAdjust: 4,
+      maxDailyAdjustment: 1.5,
+      dailySchedule: outboundSchedule,
+      strategy: 'Advance bedtime gradually each day before travel',
+      recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
+    },
+    lightExposureSchedule: {},
+    status: 'upcoming',
+  };
+
+  // Return: Bangkok -> Paris
+  const returnDeparture = new Date(outboundDeparture);
+  returnDeparture.setDate(outboundDeparture.getDate() + 14); // 14 days after outbound
+  const returnPrepStart = new Date(returnDeparture);
+  returnPrepStart.setDate(returnDeparture.getDate() - 4);
+  const returnSchedule = Array.from({ length: 4 }, (_, i) => {
+    const date = new Date(returnPrepStart);
+    date.setDate(returnPrepStart.getDate() + i);
+    return {
+      day: i + 1,
+      date: date.toISOString(),
+      bedtime: ['23:00', '23:30', '00:00', '00:30'][i],
+      wakeTime: ['07:00', '07:30', '08:00', '08:30'][i],
+      adjustment: [-1.5, -1.5, -1.5, -0.5][i],
+    };
+  });
+  const returnEvent = {
+    id: 'bangkok-paris',
+    destination: 'Paris, France',
+    destinationTimezone: 'Europe/Paris',
+    departureDate: returnDeparture.toISOString(),
+    timeZoneDifference: -5,
+    preparationStartDate: returnPrepStart.toISOString(),
+    daysToAdjust: 4,
+    sleepAdjustment: {
+      totalTimeZoneDifference: -5,
+      direction: 'westward',
+      daysToAdjust: 4,
+      maxDailyAdjustment: 1.5,
+      dailySchedule: returnSchedule,
+      strategy: 'Delay bedtime gradually each day before travel',
+      recommendations: ['Start adjusting 4 days before departure', 'Use sunglasses in the evening'],
+    },
+    lightExposureSchedule: {},
+    status: 'upcoming',
+  };
+
+  const jetLagPlanningEvents = [outboundEvent, returnEvent];
+
   // Calculate mock values for demo
   const overallHealthScore = healthScore?.overall || 82;
   const recoveryScore = healthScore?.recovery || 85;
@@ -178,7 +255,15 @@ const DashboardScreen: React.FC = () => {
             Good {getTimeOfDay()}, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}!
         </Text>
       </View>
-        {/* Removed headerRight icons and buttons */}
+        <View style={styles.headerRight}>
+          {/* Removed plane icon button */}
+          <TouchableOpacity 
+            style={styles.aiButton}
+            onPress={() => setChatModalVisible(true)}
+          >
+            <Ionicons name="sparkles" size={20} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
@@ -220,7 +305,7 @@ const DashboardScreen: React.FC = () => {
           currentLocation="New York, NY"
           jetLagHours={0}
           onTravelPress={handleTravelPress}
-          jetLagPlanningEvents={getUpcomingJetLagEvents()}
+          jetLagPlanningEvents={jetLagPlanningEvents}
           onJetLagEventPress={handleJetLagEventPress}
         />
 
@@ -268,10 +353,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start', // Move greeting to top
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingTop: 32, // Less padding to move greeting higher
+    paddingBottom: 12, // Less bottom padding
     backgroundColor: '#000000',
   },
   headerRight: {
@@ -293,10 +378,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 28, // Slightly larger for prominence
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 0, // Remove extra margin
+    marginTop: 0, // Ensure no top margin
   },
   aiButton: {
     width: 40,

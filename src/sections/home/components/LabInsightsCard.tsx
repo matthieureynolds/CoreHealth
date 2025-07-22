@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AllLabResultsModal from './AllLabResultsModal';
 
 interface LabResult {
   id: string;
@@ -69,66 +70,6 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
       trendPercent: 5,
       status: 'normal',
       lastUpdated: '3 days ago'
-    },
-    {
-      id: 'hemoglobin',
-      name: 'Hemoglobin',
-      value: 14.2,
-      unit: 'g/dL',
-      trend: 'stable',
-      trendPercent: 0,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'platelets',
-      name: 'Platelets',
-      value: 220,
-      unit: '10^3/uL',
-      trend: 'down',
-      trendPercent: 3,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'wbc',
-      name: 'White Blood Cells',
-      value: 6.1,
-      unit: '10^3/uL',
-      trend: 'up',
-      trendPercent: 2,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'bun',
-      name: 'BUN',
-      value: 13,
-      unit: 'mg/dL',
-      trend: 'stable',
-      trendPercent: 0,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'alt',
-      name: 'ALT',
-      value: 22,
-      unit: 'U/L',
-      trend: 'down',
-      trendPercent: 1,
-      status: 'optimal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'ast',
-      name: 'AST',
-      value: 19,
-      unit: 'U/L',
-      trend: 'down',
-      trendPercent: 2,
-      status: 'optimal',
-      lastUpdated: '2 weeks ago'
     }
   ];
 
@@ -156,8 +97,6 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     if (trend === 'stable') return '#8E8E93';
     return isGoodTrend ? '#30D158' : '#FF3B30';
   };
-
-  const [showMore, setShowMore] = useState(false);
 
   // Only show the first 3 results, rest go in 'More'
   const mainResults = recentLabResults.slice(0, 3);
@@ -221,28 +160,76 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
           <Ionicons name="flask" size={20} color="#007AFF" />
           <Text style={styles.title}>Recent Lab Results</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-          <Text style={styles.viewAllText}>{showMore ? 'Show Less' : 'View All'}</Text>
+        <TouchableOpacity onPress={onViewAllPress}>
+          <Text style={styles.viewAllText}>View All</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.labResultsList} showsVerticalScrollIndicator={false}>
         {mainResults.map(renderLabResult)}
       </ScrollView>
-      {/* Expanded section at the bottom for all results */}
-      {showMore && (
-        <View style={styles.moreTabContainer}>
-          <Text style={styles.moreTabTitle}>All Lab Results</Text>
-          <ScrollView style={styles.moreTabList} nestedScrollEnabled={true}>
-            {recentLabResults.map(renderLabResult)}
-          </ScrollView>
-        </View>
-      )}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
           Next lab work recommended in 3 months
         </Text>
       </View>
     </View>
+  );
+};
+
+// Render modal at the root level
+export default (props: LabInsightsCardProps) => {
+  const [allModalVisible, setAllModalVisible] = React.useState(false);
+  return (
+    <>
+      <LabInsightsCard {...props} onViewAllPress={() => setAllModalVisible(true)} />
+      <AllLabResultsModal
+        visible={allModalVisible}
+        labResults={[
+          {
+            id: 'total_cholesterol',
+            name: 'Total Cholesterol',
+            value: 180,
+            unit: 'mg/dL',
+            trend: 'down',
+            trendPercent: 12,
+            status: 'optimal',
+            lastUpdated: '3 days ago'
+          },
+          {
+            id: 'ldl_cholesterol',
+            name: 'LDL Cholesterol',
+            value: 95,
+            unit: 'mg/dL',
+            trend: 'down',
+            trendPercent: 8,
+            status: 'normal',
+            lastUpdated: '3 days ago'
+          },
+          {
+            id: 'glucose',
+            name: 'Fasting Glucose',
+            value: 88,
+            unit: 'mg/dL',
+            trend: 'stable',
+            trendPercent: 2,
+            status: 'optimal',
+            lastUpdated: '1 week ago'
+          },
+          {
+            id: 'creatinine',
+            name: 'Creatinine',
+            value: 0.9,
+            unit: 'mg/dL',
+            trend: 'up',
+            trendPercent: 5,
+            status: 'normal',
+            lastUpdated: '3 days ago'
+          }
+        ]}
+        onClose={() => setAllModalVisible(false)}
+        onLabResultPress={props.onLabResultPress}
+      />
+    </>
   );
 };
 
@@ -373,21 +360,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-  moreTabContainer: {
-    backgroundColor: '#232323',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 8,
-  },
-  moreTabTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  moreTabList: {
-    maxHeight: 220,
-  },
-});
-
-export default LabInsightsCard; 
+}); 

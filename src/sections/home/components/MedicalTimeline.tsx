@@ -137,40 +137,6 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         hours: 'Mon-Fri 7:00 AM - 6:00 PM, Sat 8:00 AM - 2:00 PM',
         cost: 'Covered by insurance, fasting required'
       }
-    },
-    {
-      id: 'omega3_supplement',
-      type: 'medication',
-      title: 'Take Omega 3 Supplement',
-      subtitle: 'With breakfast',
-      date: 'Today',
-      time: '8:00 AM',
-      priority: 'low',
-      status: 'due',
-      icon: 'medical-outline',
-      details: '1000mg Omega 3 supplement to support heart and brain health.'
-    },
-    {
-      id: 'dentist_next_month',
-      type: 'appointment',
-      title: 'Dentist Appointment',
-      subtitle: 'Dr. Emily White, DDS',
-      date: (() => {
-        const today = new Date();
-        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 10);
-        return nextMonth.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      })(),
-      time: '11:00 AM',
-      priority: 'medium',
-      status: 'upcoming',
-      icon: 'medical',
-      doctor: {
-        name: 'Dr. Emily White, DDS',
-        specialty: 'Dentistry',
-        address: '789 Dental Ave, Suite 100, New York, NY 10005',
-        phone: '(555) 222-3344'
-      },
-      details: 'Routine dental checkup and cleaning.'
     }
   ];
 
@@ -190,10 +156,9 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
-  const [dateConfirmed, setDateConfirmed] = useState(false);
-  const [timeConfirmed, setTimeConfirmed] = useState(false);
+  // Replace newAppointment.date and newAppointment.time with Date objects in state
+  const [appointmentDate, setAppointmentDate] = useState<Date | null>(null);
+  const [appointmentTime, setAppointmentTime] = useState<Date | null>(null);
 
   // Appointment title suggestions
   const appointmentSuggestions = [
@@ -295,14 +260,12 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   };
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    setNewAppointment(prev => ({ ...prev, date: formatDate(date) }));
+    setAppointmentDate(date);
     setShowDatePicker(false);
   };
 
   const handleTimeSelect = (time: Date) => {
-    setSelectedTime(time);
-    setNewAppointment(prev => ({ ...prev, time: formatTime(time) }));
+    setAppointmentTime(time);
     setShowTimePicker(false);
   };
 
@@ -368,18 +331,28 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   };
 
   const handleSaveAppointment = (isDraft: boolean = false) => {
-    if (!newAppointment.title || !newAppointment.date) {
+    if (!newAppointment.title || !appointmentDate) {
       Alert.alert('Error', 'Please fill in the title and date');
       return;
     }
-
+    // Combine date and time into a single Date object for display
+    let finalDate = appointmentDate;
+    if (appointmentTime) {
+      finalDate = new Date(
+        appointmentDate.getFullYear(),
+        appointmentDate.getMonth(),
+        appointmentDate.getDate(),
+        appointmentTime.getHours(),
+        appointmentTime.getMinutes()
+      );
+    }
     const newEvent: MedicalEvent = {
       id: `appointment_${Date.now()}`,
       type: 'appointment',
       title: newAppointment.title,
       subtitle: newAppointment.doctor || 'No doctor specified',
-      date: newAppointment.date,
-      time: newAppointment.time || undefined,
+      date: formatDate(finalDate),
+      time: appointmentTime ? formatTime(finalDate) : undefined,
       priority: 'medium',
       status: isDraft ? 'upcoming' : 'upcoming',
       icon: 'medical',
@@ -391,29 +364,28 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         phone: 'Phone to be added'
       } : undefined
     };
-
     upcomingEvents.push(newEvent);
     setShowAddModal(false);
     setNewAppointment({ title: '', doctor: '', date: '', time: '', details: '', documents: [] });
+    setAppointmentDate(null);
+    setAppointmentTime(null);
     Alert.alert('Success', `Appointment ${isDraft ? 'saved as draft' : 'added'} successfully!`);
   };
 
   const renderRightActions = (event: MedicalEvent) => (
     <View style={styles.rightActionsFull}>
-      {event.type === 'medication' && (
-        <TouchableOpacity
-          style={[styles.fullWidthActionButton, styles.ignoreButton]}
-          onPress={() => setCompleted(prev => [...prev, event.id])}
-        >
-          <Ionicons name="close-circle" size={24} color="#FF9500" />
-          <Text style={styles.ignoreText}>Ignore</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={[styles.fullWidthActionButton, styles.ignoreButton]}
+        onPress={() => setCompleted(prev => [...prev, event.id])}
+      >
+        <Ionicons name="close-circle" size={24} color="#fff" />
+        <Text style={styles.ignoreText}>Ignore</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         style={[styles.fullWidthActionButton, styles.doneButton]}
         onPress={() => setCompleted(prev => [...prev, event.id])}
       >
-        <Ionicons name="checkmark-circle" size={24} color="#30D158" />
+        <Ionicons name="checkmark-circle" size={24} color="#fff" />
         <Text style={styles.doneText}>Done</Text>
       </TouchableOpacity>
     </View>
@@ -467,127 +439,61 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       .filter(e => !completed.includes(e.id))
       .sort((a, b) => {
         // Convert date strings to Date objects for comparison
-        const parseDate = (dateStr: string) => {
-          if (dateStr === 'Today') return new Date();
-          if (dateStr === 'This week') {
-            const now = new Date();
-            const dayOfWeek = now.getDay();
-            const daysUntilSunday = 7 - dayOfWeek;
-            return new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
-          }
-          return new Date(dateStr);
-        };
-        const dateA = parseDate(a.date);
-        const dateB = parseDate(b.date);
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
         return dateA.getTime() - dateB.getTime();
       });
 
-    // Group events by subheading
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const thisWeek: Date[] = [];
-    for (let i = 2; i <= 6; i++) {
-      const day = new Date(today);
-      day.setDate(today.getDate() + i);
-      thisWeek.push(day);
-    }
-    const nextWeekStart = new Date(today);
-    nextWeekStart.setDate(today.getDate() + (7 - today.getDay()));
-    const nextWeekEnd = new Date(nextWeekStart);
-    nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-    const thisMonth = today.getMonth();
-    const nextMonth = (today.getMonth() + 1) % 12;
-    const thisYear = today.getFullYear();
-    const nextMonthYear = nextMonth === 0 ? thisYear + 1 : thisYear;
-
-    const eventsByGroup: { [key: string]: MedicalEvent[] } = {
-      'Today': [],
-      'Tomorrow': [],
-      ...thisWeek.reduce((acc, day) => {
-        const label = day.toLocaleDateString('en-US', { weekday: 'long' });
-        acc[label] = [];
-        return acc;
-      }, {} as { [key: string]: MedicalEvent[] }),
-      'Next Week': [],
-      'Next Month': [],
-      'Future': [],
-    };
-
-    sortedEvents.forEach(event => {
-      let eventDate: Date;
-      if (event.date === 'Today') {
-        eventDate = today;
-      } else if (event.date === 'This week') {
-        eventDate = today;
-      } else {
-        eventDate = new Date(event.date);
-      }
-      if (
-        eventDate.getDate() === today.getDate() &&
-        eventDate.getMonth() === today.getMonth() &&
-        eventDate.getFullYear() === today.getFullYear()
-      ) {
-        eventsByGroup['Today'].push(event);
-      } else if (
-        eventDate.getDate() === tomorrow.getDate() &&
-        eventDate.getMonth() === tomorrow.getMonth() &&
-        eventDate.getFullYear() === tomorrow.getFullYear()
-      ) {
-        eventsByGroup['Tomorrow'].push(event);
-      } else {
-        let added = false;
-        for (let i = 0; i < thisWeek.length; i++) {
-          const day = thisWeek[i];
-          if (
-            eventDate.getDate() === day.getDate() &&
-            eventDate.getMonth() === day.getMonth() &&
-            eventDate.getFullYear() === day.getFullYear()
-          ) {
-            const label = day.toLocaleDateString('en-US', { weekday: 'long' });
-            eventsByGroup[label].push(event);
-            added = true;
-            break;
-          }
-        }
-        if (!added) {
-          // Next Week
-          if (
-            eventDate >= nextWeekStart &&
-            eventDate <= nextWeekEnd &&
-            (eventDate.getMonth() !== today.getMonth() || eventDate.getDate() > today.getDate() + 6)
-          ) {
-            eventsByGroup['Next Week'].push(event);
-          } else if (
-            eventDate.getMonth() === nextMonth &&
-            eventDate.getFullYear() === nextMonthYear
-          ) {
-            eventsByGroup['Next Month'].push(event);
-          } else {
-            eventsByGroup['Future'].push(event);
-          }
-        }
-      }
-    });
-
-    // Only show limited events when not expanded
-    if (!showAllEvents) {
-      const limited = sortedEvents.slice(0, 3);
-      return <>{limited.map(renderEvent)}</>;
-    }
-
-    return (
-      <>
-        {Object.entries(eventsByGroup).map(([group, events]) =>
-          events.length > 0 ? (
-            <React.Fragment key={group}>
-              <Text style={styles.categoryTitle}>{group}</Text>
-              {events.map(renderEvent)}
-            </React.Fragment>
-          ) : null
-        )}
-      </>
+    // Group events by date category
+    const todayEvents = sortedEvents.filter((e: MedicalEvent) => e.date === 'Today');
+    const thisWeekEvents = sortedEvents.filter((e: MedicalEvent) => e.date === 'This week');
+    const upcomingEventsList = sortedEvents.filter((e: MedicalEvent) => 
+      e.date !== 'Today' && e.date !== 'This week' && !e.date.includes('2024') && !e.date.includes('2025')
     );
+    const futureEvents = sortedEvents.filter((e: MedicalEvent) => 
+      e.date.includes('2024') || e.date.includes('2025')
+    );
+
+    // Always use the first 3 chronological events for the default view
+    const limitedEvents = sortedEvents.slice(0, 3);
+
+    if (showAllEvents) {
+      return (
+        <>
+          {todayEvents.length > 0 && (
+            <>
+              <Text style={styles.categoryTitle}>Today</Text>
+              {todayEvents.map(renderEvent)}
+            </>
+          )}
+          {thisWeekEvents.length > 0 && (
+            <>
+              <Text style={styles.categoryTitle}>This Week</Text>
+              {thisWeekEvents.map(renderEvent)}
+            </>
+          )}
+          {upcomingEventsList.length > 0 && (
+            <>
+              <Text style={styles.categoryTitle}>Upcoming</Text>
+              {upcomingEventsList.map(renderEvent)}
+            </>
+          )}
+          {futureEvents.length > 0 && (
+            <>
+              <Text style={styles.categoryTitle}>Future</Text>
+              {futureEvents.map(renderEvent)}
+            </>
+          )}
+        </>
+      );
+    } else {
+      // Default: show first 3 events in chronological order, not grouped
+      return (
+        <>
+          {limitedEvents.map(renderEvent)}
+        </>
+      );
+    }
   };
 
   return (
@@ -742,12 +648,9 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 style={styles.textInput}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={[styles.textInputText, { color: newAppointment.date ? '#FFFFFF' : '#8E8E93' }]}> 
-                  {newAppointment.date || 'Select date'}
+                <Text style={[styles.textInputText, { color: appointmentDate ? '#FFFFFF' : '#8E8E93' }]}> 
+                  {appointmentDate ? formatDate(appointmentDate) : 'Select date'}
                 </Text>
-                {dateConfirmed && (
-                  <Ionicons name="checkmark-circle" size={18} color="#30D158" style={{ marginLeft: 8 }} />
-                )}
               </TouchableOpacity>
             </View>
 
@@ -757,12 +660,9 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 style={styles.textInput}
                 onPress={() => setShowTimePicker(true)}
               >
-                <Text style={[styles.textInputText, { color: newAppointment.time ? '#FFFFFF' : '#8E8E93' }]}> 
-                  {newAppointment.time || 'Select time'}
+                <Text style={[styles.textInputText, { color: appointmentTime ? '#FFFFFF' : '#8E8E93' }]}> 
+                  {appointmentTime ? formatTime(appointmentTime) : 'Select time'}
                 </Text>
-                {timeConfirmed && (
-                  <Ionicons name="checkmark-circle" size={18} color="#30D158" style={{ marginLeft: 8 }} />
-                )}
               </TouchableOpacity>
             </View>
 
@@ -844,29 +744,23 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           visible={showDatePicker}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => {
-            setShowDatePicker(false);
-            setDateConfirmed(false);
-          }}
+          onRequestClose={() => setShowDatePicker(false)}
         >
           <View style={styles.pickerModalOverlay}>
             <View style={styles.pickerModalContent}>
               <View style={styles.pickerHeader}>
                 <Text style={styles.pickerTitle}>Select Date</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowDatePicker(false);
-                  setDateConfirmed(false);
-                }}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
               <DateTimePicker
-                value={selectedDate}
+                value={appointmentDate || new Date()}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={(event, date) => {
                   if (date) {
-                    setSelectedDate(date);
+                    handleDateSelect(date);
                   }
                 }}
                 style={styles.dateTimePicker}
@@ -875,20 +769,14 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <View style={styles.pickerButtons}>
                 <TouchableOpacity 
                   style={styles.pickerButton} 
-                  onPress={() => {
-                    setShowDatePicker(false);
-                    setDateConfirmed(false);
-                  }}
+                  onPress={() => setShowDatePicker(false)}
                 >
                   <Text style={styles.pickerButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.pickerButton, styles.pickerButtonPrimary]} 
                   onPress={() => {
-                    handleDateSelect(selectedDate);
-                    setDateConfirmed(true);
-                    setTimeout(() => setDateConfirmed(false), 1200);
-                    setShowDatePicker(false);
+                    handleDateSelect(appointmentDate || new Date());
                   }}
                 >
                   <Text style={[styles.pickerButtonText, styles.pickerButtonTextPrimary]}>Confirm</Text>
@@ -905,29 +793,23 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           visible={showTimePicker}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => {
-            setShowTimePicker(false);
-            setTimeConfirmed(false);
-          }}
+          onRequestClose={() => setShowTimePicker(false)}
         >
           <View style={styles.pickerModalOverlay}>
             <View style={styles.pickerModalContent}>
               <View style={styles.pickerHeader}>
                 <Text style={styles.pickerTitle}>Select Time</Text>
-                <TouchableOpacity onPress={() => {
-                  setShowTimePicker(false);
-                  setTimeConfirmed(false);
-                }}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
               <DateTimePicker
-                value={selectedTime}
+                value={appointmentTime || new Date()}
                 mode="time"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={(event, time) => {
                   if (time) {
-                    setSelectedTime(time);
+                    handleTimeSelect(time);
                   }
                 }}
                 style={styles.dateTimePicker}
@@ -936,20 +818,14 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <View style={styles.pickerButtons}>
                 <TouchableOpacity 
                   style={styles.pickerButton} 
-                  onPress={() => {
-                    setShowTimePicker(false);
-                    setTimeConfirmed(false);
-                  }}
+                  onPress={() => setShowTimePicker(false)}
                 >
                   <Text style={styles.pickerButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.pickerButton, styles.pickerButtonPrimary]} 
                   onPress={() => {
-                    handleTimeSelect(selectedTime);
-                    setTimeConfirmed(true);
-                    setTimeout(() => setTimeConfirmed(false), 1200);
-                    setShowTimePicker(false);
+                    handleTimeSelect(appointmentTime || new Date());
                   }}
                 >
                   <Text style={[styles.pickerButtonText, styles.pickerButtonTextPrimary]}>Confirm</Text>

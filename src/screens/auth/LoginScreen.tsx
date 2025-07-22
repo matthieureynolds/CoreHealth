@@ -33,7 +33,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle, isLoading: authLoading } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -141,6 +141,36 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text style={styles.loginButtonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Separator with 'or' */}
+          <View style={styles.separatorContainer}>
+            <View style={styles.separatorLine} />
+            <Text style={styles.separatorText}>or</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          {/* Google Sign-In Button */}
+          <TouchableOpacity
+            style={[styles.button, styles.googleButton, isLoading && styles.buttonDisabled]}
+            onPress={async () => {
+              setError('');
+              try {
+                await signInWithGoogle();
+              } catch (err: any) {
+                setError(err.message || 'Google sign-in failed');
+              }
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.loginButtonText}>Sign in with Google</Text>
+              </>
             )}
           </TouchableOpacity>
 
@@ -271,6 +301,31 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  googleButton: {
+    backgroundColor: '#DB4437',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12,
+    width: '100%',
+    maxWidth: 320,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#2C2C2E',
+  },
+  separatorText: {
+    marginHorizontal: 12,
+    color: '#8E8E93',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 
