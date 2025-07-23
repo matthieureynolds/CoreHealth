@@ -148,13 +148,12 @@ const styles = StyleSheet.create({
   },
   ringsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 0,
+    paddingHorizontal: 24, // Add side padding for equal outer spacing
   },
   ringContainer: {
     alignItems: 'center',
-    flex: 1,
     maxWidth: (width - 48) / 3,
     marginHorizontal: 0,
   },
