@@ -14,17 +14,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
 import { ProfileTabParamList } from '../../types';
-import { useSettings } from '../../context/SettingsContext';
-
-type ProfileScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation<ProfileScreenNavigationProp>();
+  const navigation = useNavigation<StackNavigationProp<ProfileTabParamList>>();
   const { user, signOut } = useAuth();
   const { profile } = useHealthData();
-  const { settings } = useSettings();
   const colorScheme = useColorScheme();
-  const isDark = (settings.general.theme === 'dark') || (settings.general.theme === 'auto' && colorScheme === 'dark');
+  const isDark = colorScheme === 'dark';
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -33,317 +29,198 @@ const ProfileScreen: React.FC = () => {
     ]);
   };
 
-  const ProfileItem = ({ icon, title, value, onPress }: any) => (
-    <TouchableOpacity style={styles.profileItem} onPress={onPress}>
-      <View style={styles.profileItemLeft}>
-        <Ionicons name={icon} size={24} color="#007AFF" />
-        <Text style={styles.profileItemTitle}>{title}</Text>
-      </View>
-      <View style={styles.profileItemRight}>
-        {value && <Text style={styles.profileItemValue}>{value}</Text>}
-        <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-      </View>
-    </TouchableOpacity>
-  );
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? '#000' : '#F8F9FA',
+      backgroundColor: isDark ? '#000' : '#F7F8FA',
     },
     header: {
-      paddingHorizontal: 20,
-      paddingTop: 32, // Match Dashboard
-      paddingBottom: 12,
-      backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start', // Left align
+      paddingHorizontal: 24,
+      paddingTop: 48,
+      paddingBottom: 8,
+      backgroundColor: isDark ? '#000' : '#FFFFFF',
     },
     headerTitle: {
-      fontSize: 28, // Match Dashboard
+      fontSize: 32,
       fontWeight: 'bold',
-      color: isDark ? '#FFF' : '#1C1C1E',
+      color: isDark ? '#FFF' : '#18181C',
       marginBottom: 0,
-      marginTop: 0,
-      textAlign: 'left',
     },
-    profileHeader: {
+    profileCard: {
+      flexDirection: 'row',
       alignItems: 'center',
-      paddingTop: 20,
-      paddingHorizontal: 20,
+      backgroundColor: isDark ? '#18181C' : '#FFFFFF',
+      borderRadius: 20,
+      marginHorizontal: 16,
+      marginTop: 24,
+      padding: 24,
+      shadowColor: isDark ? '#000' : '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
     },
     avatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
+      width: 72,
+      height: 72,
+      borderRadius: 36,
       backgroundColor: '#007AFF',
-      justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 12,
+      justifyContent: 'center',
+      marginRight: 20,
     },
     avatarText: {
       fontSize: 32,
       fontWeight: 'bold',
-      color: '#fff',
+      color: '#FFF',
     },
-    name: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: isDark ? '#FFF' : '#1C1C1E',
-      marginBottom: 4,
-    },
-    email: {
-      fontSize: 16,
-      color: isDark ? '#8E8E93' : '#666',
-    },
-    section: {
-      backgroundColor: isDark ? '#1C1C1E' : '#fff',
-      marginTop: 20,
-      paddingHorizontal: 20,
-      borderRadius: 16,
-      shadowColor: isDark ? '#000' : '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: isDark ? '#FFF' : '#666',
-      marginTop: 20,
-      marginBottom: 12,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    profileItem: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 16,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: isDark ? '#2C2C2E' : '#E5E5EA',
-    },
-    profileItemLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    profileInfo: {
       flex: 1,
     },
-    profileItemTitle: {
-      fontSize: 16,
-      color: isDark ? '#FFF' : '#1C1C1E',
-      marginLeft: 16,
+    profileName: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: isDark ? '#FFF' : '#18181C',
     },
-    profileItemRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    profileEmail: {
+      fontSize: 15,
+      color: isDark ? '#8E8E93' : '#6C757D',
+      marginTop: 2,
     },
-    profileItemValue: {
-      fontSize: 16,
-      color: isDark ? '#8E8E93' : '#666',
-      marginRight: 8,
-    },
-    signOutButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 16,
-      marginTop: 20,
-      marginBottom: 20,
-      backgroundColor: isDark ? '#1C1C1E' : 'transparent',
-      borderRadius: 12,
-    },
-    signOutText: {
-      fontSize: 16,
-      color: '#FF3B30',
-      fontWeight: '500',
-      marginLeft: 8,
-    },
-    quickActionsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      marginTop: 8,
-    },
-    quickActionCard: {
-      width: '48%',
-      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-      alignItems: 'center',
+    section: {
+      backgroundColor: isDark ? '#18181C' : '#FFFFFF',
+      borderRadius: 18,
+      marginHorizontal: 16,
+      marginTop: 28,
+      paddingVertical: 8,
       shadowColor: isDark ? '#000' : '#000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
       elevation: 2,
     },
-    quickActionIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
+    sectionHeader: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: isDark ? '#8E8E93' : '#6C757D',
+      marginLeft: 24,
+      marginTop: 16,
+      marginBottom: 8,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+    },
+    item: {
+      flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 12,
+      paddingVertical: 18,
+      paddingHorizontal: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? '#23232A' : '#F2F2F7',
     },
-    quickActionTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: isDark ? '#FFF' : '#1C1C1E',
-      textAlign: 'center',
-      marginBottom: 4,
+    lastItem: {
+      borderBottomWidth: 0,
     },
-    quickActionSubtitle: {
-      fontSize: 12,
-      color: isDark ? '#8E8E93' : '#8E8E93',
-      textAlign: 'center',
-      lineHeight: 16,
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? '#23232A' : '#F2F2F7',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    itemText: {
+      fontSize: 17,
+      color: isDark ? '#FFF' : '#18181C',
+      fontWeight: '500',
+      flex: 1,
+    },
+    valueText: {
+      fontSize: 15,
+      color: isDark ? '#8E8E93' : '#6C757D',
+      marginRight: 8,
+    },
+    chevron: {
+      marginLeft: 8,
+      color: isDark ? '#8E8E93' : '#C7C7CC',
+    },
+    signOut: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 18,
+      marginHorizontal: 16,
+      marginTop: 32,
+      backgroundColor: isDark ? '#23232A' : '#FFF0F0',
+      borderRadius: 14,
+    },
+    signOutText: {
+      color: '#FF3B30',
+      fontWeight: '700',
+      fontSize: 17,
+      marginLeft: 8,
     },
   });
 
+  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <View style={styles.section}>
+      <Text style={styles.sectionHeader}>{title}</Text>
+      {children}
+    </View>
+  );
+
+  const Item = ({ icon, label, value, onPress, last }: { icon: string; label: string; value?: string; onPress?: () => void; last?: boolean }) => (
+    <TouchableOpacity style={[styles.item, last && styles.lastItem]} onPress={onPress}>
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon as any} size={20} color="#007AFF" />
+      </View>
+      <Text style={styles.itemText}>{label}</Text>
+      {value && <Text style={styles.valueText}>{value}</Text>}
+      <Ionicons name="chevron-forward" size={20} style={styles.chevron} />
+    </TouchableOpacity>
+  );
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>TESTING123</Text>
       </View>
-
-        <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.displayName?.charAt(0) || 'U'}
-            </Text>
-          </View>
-          <Text style={styles.name}>{user?.displayName || 'User'}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Health Profile</Text>
-        <ProfileItem
-          icon="person-outline"
-          title="Personal Information"
-          value={profile ? `${profile.age} years old` : 'Not set'}
-          onPress={() => navigation.navigate('EditProfile')}
-        />
-        <ProfileItem
-          icon="medical-outline"
-          title="Medical History"
-          value={
-            profile?.medicalHistory.length
-              ? `${profile.medicalHistory.length} conditions`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="shield-checkmark-outline"
-          title="Vaccinations"
-          value={
-            profile?.vaccinations.length
-              ? `${profile.vaccinations.length} vaccines`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="people-outline"
-          title="Family History"
-          value={
-            profile?.familyHistory.length
-              ? `${profile.familyHistory.length} conditions`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="call-outline"
-          title="Emergency Contacts"
-          value="Manage contacts"
-          onPress={() => navigation.navigate('EmergencyContacts')}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
-            <View style={[styles.quickActionIcon, { backgroundColor: '#FF6B6B' }]}>
-              <Ionicons name="document-text" size={24} color="#FFFFFF" />
-            </View>
-            <Text style={styles.quickActionTitle}>Add Medical Record</Text>
-            <Text style={styles.quickActionSubtitle}>Scan or upload documents</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
-            <View style={[styles.quickActionIcon, { backgroundColor: '#4ECDC4' }]}>
-              <Ionicons name="analytics" size={24} color="#FFFFFF" />
-            </View>
-            <Text style={styles.quickActionTitle}>Generate Health Report</Text>
-            <Text style={styles.quickActionSubtitle}>Create specialist reports</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
-            <View style={[styles.quickActionIcon, { backgroundColor: '#45B7D1' }]}>
-              <Ionicons name="share" size={24} color="#FFFFFF" />
-            </View>
-            <Text style={styles.quickActionTitle}>Share with Doctor</Text>
-            <Text style={styles.quickActionSubtitle}>Send health data securely</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => {}}>
-            <View style={[styles.quickActionIcon, { backgroundColor: '#96CEB4' }]}>
-              <Ionicons name="watch" size={24} color="#FFFFFF" />
-            </View>
-            <Text style={styles.quickActionTitle}>Connected Devices</Text>
-            <Text style={styles.quickActionSubtitle}>Manage health devices</Text>
-          </TouchableOpacity>
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{user?.displayName?.charAt(0) || 'U'}</Text>
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
+          <Text style={styles.profileEmail}>{user?.email || ''}</Text>
         </View>
       </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data & Privacy</Text>
-        <ProfileItem
-          icon="document-text-outline"
-          title="Export Health Data"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="cloud-upload-outline"
-          title="Data Sync Settings"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="lock-closed-outline"
-          title="Privacy Settings"
-          onPress={() => {}}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-        <ProfileItem
-          icon="notifications-outline"
-          title="Notifications"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="help-circle-outline"
-          title="Help & Support"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="information-circle-outline"
-          title="About CoreHealth"
-          onPress={() => {}}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+      <Section title="Health Profile">
+        <Item icon="person-outline" label="Personal Information" value={profile ? `${profile.age} years old` : 'Not set'} onPress={() => navigation.navigate('EditProfile')} />
+        <Item icon="medical-outline" label="Medical History" value={profile?.medicalHistory.length ? `${profile.medicalHistory.length} conditions` : 'Not set'} onPress={() => navigation.navigate('MedicalHistory')} />
+        <Item icon="shield-checkmark-outline" label="Vaccinations" value={profile?.vaccinations.length ? `${profile.vaccinations.length} vaccines` : 'Not set'} onPress={() => navigation.navigate('MedicalHistory')} />
+        <Item icon="people-outline" label="Family History" value={profile?.familyHistory.length ? `${profile.familyHistory.length} conditions` : 'Not set'} onPress={() => navigation.navigate('MedicalHistory')} />
+        <Item icon="call-outline" label="Emergency Contacts" value="Manage contacts" onPress={() => navigation.navigate('EmergencyContacts')} last />
+      </Section>
+      <Section title="Quick Actions">
+        <Item icon="document-text" label="Add Medical Record" onPress={() => {}} />
+        <Item icon="analytics" label="Generate Health Report" onPress={() => {}} />
+        <Item icon="share" label="Share with Doctor" onPress={() => {}} />
+        <Item icon="watch" label="Connected Devices" onPress={() => {}} last />
+      </Section>
+      <Section title="Data & Privacy">
+        <Item icon="document-text-outline" label="Export Health Data" onPress={() => {}} />
+        <Item icon="cloud-upload-outline" label="Data Sync Settings" onPress={() => {}} />
+        <Item icon="lock-closed-outline" label="Privacy Settings" onPress={() => {}} last />
+      </Section>
+      <Section title="App Settings">
+        <Item icon="notifications-outline" label="Notifications" onPress={() => {}} />
+        <Item icon="help-circle-outline" label="Help & Support" onPress={() => {}} />
+        <Item icon="information-circle-outline" label="About CoreHealth" onPress={() => {}} last />
+      </Section>
+      <TouchableOpacity style={styles.signOut} onPress={handleSignOut}>
+        <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };

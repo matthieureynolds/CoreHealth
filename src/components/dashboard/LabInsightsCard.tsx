@@ -157,11 +157,16 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     return isGoodTrend ? '#30D158' : '#FF3B30';
   };
 
-  const [showMore, setShowMore] = useState(false);
+  const [showCount, setShowCount] = useState(3);
+  const [viewAll, setViewAll] = useState(false);
 
-  // Only show the first 3 results, rest go in 'More'
-  const mainResults = recentLabResults.slice(0, 3);
-  const moreResults = recentLabResults.slice(3);
+  const visibleResults = viewAll
+    ? recentLabResults
+    : recentLabResults.slice(0, showCount);
+  const hasMore = !viewAll && showCount < 6 && recentLabResults.length > 3;
+  const canShowLess = !viewAll && showCount > 3;
+  const canViewAll = !viewAll && showCount >= 6 && recentLabResults.length > 6;
+  const canShowLessFromAll = viewAll && recentLabResults.length > 3;
 
   const renderLabResult = (result: LabResult) => {
     // Determine if trend is good based on biomarker
@@ -221,22 +226,36 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
           <Ionicons name="flask" size={20} color="#007AFF" />
           <Text style={styles.title}>Recent Lab Results</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-          <Text style={styles.viewAllText}>{showMore ? 'Show Less' : 'View All'}</Text>
-        </TouchableOpacity>
+        {/* View All button top right, like Travel Health */}
+        {recentLabResults.length > 6 && !viewAll && (
+          <TouchableOpacity onPress={() => setViewAll(true)}>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <ScrollView style={styles.labResultsList} showsVerticalScrollIndicator={false}>
-        {mainResults.map(renderLabResult)}
+      <ScrollView
+        style={[styles.labResultsList, (showCount > 3 || viewAll) && styles.labResultsListExpanded]}
+        showsVerticalScrollIndicator={false}
+      >
+        {visibleResults.map(renderLabResult)}
       </ScrollView>
-      {/* Expanded section at the bottom for all results */}
-      {showMore && (
-        <View style={styles.moreTabContainer}>
-          <Text style={styles.moreTabTitle}>All Lab Results</Text>
-          <ScrollView style={styles.moreTabList} nestedScrollEnabled={true}>
-            {recentLabResults.map(renderLabResult)}
-          </ScrollView>
-        </View>
-      )}
+      <View style={{ alignItems: 'center', marginTop: 4 }}>
+        {hasMore && (
+          <TouchableOpacity onPress={() => setShowCount(6)} style={styles.moreTab}>
+            <Text style={styles.moreTabText}>More</Text>
+          </TouchableOpacity>
+        )}
+        {canShowLess && (
+          <TouchableOpacity onPress={() => setShowCount(3)} style={styles.lessTab}>
+            <Text style={styles.lessTabText}>Show Less</Text>
+          </TouchableOpacity>
+        )}
+        {canShowLessFromAll && (
+          <TouchableOpacity onPress={() => { setShowCount(3); setViewAll(false); }} style={styles.lessTab}>
+            <Text style={styles.lessTabText}>Show Less</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
           Next lab work recommended in 3 months
@@ -387,6 +406,9 @@ const styles = StyleSheet.create({
   },
   moreTabList: {
     maxHeight: 220,
+  },
+  labResultsListExpanded: {
+    maxHeight: 400,
   },
 });
 

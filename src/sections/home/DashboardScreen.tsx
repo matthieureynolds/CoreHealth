@@ -252,7 +252,7 @@ const DashboardScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
         <Text style={styles.greeting}>
-            Good {getTimeOfDay()}, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}!
+            TESTING123
         </Text>
       </View>
         <View style={styles.headerRight}>
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start', // Move greeting to top
     paddingHorizontal: 20,
-    paddingTop: 32, // Less padding to move greeting higher
+    paddingTop: 14, // Reduced from 20 to move greeting slightly higher
     paddingBottom: 12, // Less bottom padding
     backgroundColor: '#000000',
   },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   firstComponent: {
-    marginTop: 20, // Added top spacing
+    marginTop: 14, // Match header's paddingTop for balanced spacing
   },
 });
 

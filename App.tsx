@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import RootNavigator from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/context/AuthContext';
@@ -22,18 +23,20 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <SettingsProvider>
-      <AuthProvider>
-        <HealthDataProvider>
-          <NavigationContainer>
-            <RootNavigator />
-            <StatusBar style="auto" />
-          </NavigationContainer>
-        </HealthDataProvider>
-      </AuthProvider>
-      </SettingsProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SettingsProvider>
+        <AuthProvider>
+          <HealthDataProvider>
+            <NavigationContainer>
+              <RootNavigator />
+              <StatusBar style="auto" />
+            </NavigationContainer>
+          </HealthDataProvider>
+        </AuthProvider>
+        </SettingsProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

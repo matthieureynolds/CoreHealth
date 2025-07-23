@@ -72,37 +72,22 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     }
   };
 
-  const getJetLagStatus = (): { text: string; color: string; icon: keyof typeof Ionicons.glyphMap } => {
-    if (jetLagHours === 0) {
-      return {
-        text: 'No Jet Lag',
-        color: '#30D158',
-        icon: 'checkmark-circle'
-      };
-    } else if (jetLagHours <= 3) {
-      return {
-        text: `Mild Jet Lag (+${jetLagHours}h)`,
-        color: '#FF9F0A',
-        icon: 'time-outline'
-      };
-    } else {
-      return {
-        text: `Moderate Jet Lag (+${jetLagHours}h)`,
-        color: '#FF6B35',
-        icon: 'warning-outline'
-      };
-    }
-  };
-
-  const jetLagInfo = getJetLagStatus();
-
-  const [showMore, setShowMore] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
-  const handleMetricPress = (metric: EnvironmentalMetric) => {
-    setSelectedMetric(metric);
-    setModalVisible(true);
+  // Mock Jet Lag Planning event (matches screenshot)
+  const jetLagPlanningEvent = {
+    id: 'bangkok-thailand',
+    destination: 'Bangkok, Thailand',
+    timeZoneDifference: 5,
+    departureDate: '2025-07-21T00:00:00Z',
+    daysToAdjust: 4,
+    preparationStartDate: '2025-07-17T00:00:00Z',
+    sleepAdjustment: {
+      dailySchedule: [
+        { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
+        { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
+        { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
+        { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
+      ],
+    },
   };
 
   // Mock closest facilities
@@ -111,27 +96,13 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi', travelTime: '8 mins' },
   ];
 
-  const renderEnvironmentalMetric = (metric: EnvironmentalMetric) => {
-    const statusColor = getStatusColor(metric.status);
-    return (
-      <TouchableOpacity key={metric.id} style={styles.metricCard} onPress={() => handleMetricPress(metric)}>
-        <View style={styles.metricCardContent}>
-          <View style={styles.metricCardLeft}>
-            <View style={[styles.metricIconContainer, { backgroundColor: `${statusColor}20` }]}>
-              <Ionicons name={metric.icon} size={24} color={statusColor} />
-            </View>
-            <View style={styles.metricInfo}>
-              <Text style={styles.metricLabel}>{metric.label}</Text>
-              <Text style={[styles.metricValue, { color: statusColor }]}>{metric.value}</Text>
-            </View>
-          </View>
-          <View style={styles.metricCardRight}>
-            <Text style={[styles.metricScore, { color: statusColor }]}>{metric.score}</Text>
-            <Text style={styles.metricScoreLabel}>Score</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
+  const [showMore, setShowMore] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleMetricPress = (metric: EnvironmentalMetric) => {
+    setSelectedMetric(metric);
+    setModalVisible(true);
   };
 
   return (
@@ -154,20 +125,29 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
       {/* Environmental metrics */}
       <View style={styles.metricsContainer}>
-        {environmentalMetrics.map(renderEnvironmentalMetric)}
+        {environmentalMetrics.map(metric => (
+          <TouchableOpacity key={metric.id} style={styles.metricCard} onPress={() => handleMetricPress(metric)}>
+            <View style={styles.metricCardContent}>
+              <View style={styles.metricCardLeft}>
+                <View style={[styles.metricIconContainer, { backgroundColor: `${getStatusColor(metric.status)}20` }]}>
+                  <Ionicons name={metric.icon} size={24} color={getStatusColor(metric.status)} />
+                </View>
+                <View style={styles.metricInfo}>
+                  <Text style={styles.metricLabel}>{metric.label}</Text>
+                  <Text style={[styles.metricValue, { color: getStatusColor(metric.status) }]}>{metric.value}</Text>
+                </View>
+              </View>
+              <View style={styles.metricCardRight}>
+                <Text style={[styles.metricScore, { color: getStatusColor(metric.status) }]}>{metric.score}</Text>
+                <Text style={styles.metricScoreLabel}>Score</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {jetLagHours > 0 && (
-        <View style={styles.jetLagContainer}>
-          <View style={styles.jetLagHeader}>
-            <Ionicons name={jetLagInfo.icon} size={16} color={jetLagInfo.color} />
-            <Text style={[styles.jetLagText, { color: jetLagInfo.color }]}> {jetLagInfo.text} </Text>
-          </View>
-          <Text style={styles.jetLagAdvice}>
-            Consider adjusting sleep schedule gradually
-          </Text>
-        </View>
-      )}
+      {/* Jet Lag Planning Card (mock data) */}
+      <JetLagPlanningCard event={jetLagPlanningEvent} />
 
       {/* More tab for additional information */}
       <View style={styles.moreTabContainer}>
@@ -178,20 +158,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         )}
         {showMore && (
           <View style={styles.facilitiesList}>
-            {/* Jet Lag Planning Events */}
-            {jetLagPlanningEvents.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Jet Lag Planning</Text>
-                {jetLagPlanningEvents.map((event, index) => (
-                  <JetLagPlanningCard
-                    key={event.id || index}
-                    event={event}
-                    onPress={() => onJetLagEventPress?.(event)}
-                  />
-                ))}
-              </>
-            )}
-
             {/* Closest facilities */}
             {closestFacilities.map(facility => (
               <View key={facility.id} style={styles.facilityItem}>
@@ -334,64 +300,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
     marginTop: 2,
-  },
-  jetLagContainer: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#FF9F0A20',
-  },
-  jetLagHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  jetLagText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  jetLagAdvice: {
-    fontSize: 12,
-    color: '#EBEBF5',
-    lineHeight: 16,
-  },
-  jetLagPlanCard: {
-    backgroundColor: '#222',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#007AFF40',
-    alignItems: 'center',
-  },
-  jetLagPlanTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#007AFF',
-    marginBottom: 2,
-  },
-  jetLagPlanSubtitle: {
-    fontSize: 13,
-    color: '#fff',
-    marginBottom: 8,
-  },
-  jetLagPlanButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    marginTop: 4,
-  },
-  jetLagPlanButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 6,
   },
   moreTabContainer: {
     marginTop: 8,

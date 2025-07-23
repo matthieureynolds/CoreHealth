@@ -29,7 +29,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
   onViewAllPress, 
   onLabResultPress 
 }) => {
-  // Mock data - in real app this would come from props or context
+  // Mock data
   const recentLabResults: LabResult[] = [
     {
       id: 'total_cholesterol',
@@ -167,6 +167,10 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
       <ScrollView style={styles.labResultsList} showsVerticalScrollIndicator={false}>
         {mainResults.map(renderLabResult)}
       </ScrollView>
+      {/* Add '+ More' button for consistency with Travel Health */}
+      <TouchableOpacity style={styles.moreTab} onPress={onViewAllPress}>
+        <Text style={styles.moreTabText}>+ More</Text>
+      </TouchableOpacity>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
           Next lab work recommended in 3 months
@@ -176,62 +180,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
   );
 };
 
-// Render modal at the root level
-export default (props: LabInsightsCardProps) => {
-  const [allModalVisible, setAllModalVisible] = React.useState(false);
-  return (
-    <>
-      <LabInsightsCard {...props} onViewAllPress={() => setAllModalVisible(true)} />
-      <AllLabResultsModal
-        visible={allModalVisible}
-        labResults={[
-          {
-            id: 'total_cholesterol',
-            name: 'Total Cholesterol',
-            value: 180,
-            unit: 'mg/dL',
-            trend: 'down',
-            trendPercent: 12,
-            status: 'optimal',
-            lastUpdated: '3 days ago'
-          },
-          {
-            id: 'ldl_cholesterol',
-            name: 'LDL Cholesterol',
-            value: 95,
-            unit: 'mg/dL',
-            trend: 'down',
-            trendPercent: 8,
-            status: 'normal',
-            lastUpdated: '3 days ago'
-          },
-          {
-            id: 'glucose',
-            name: 'Fasting Glucose',
-            value: 88,
-            unit: 'mg/dL',
-            trend: 'stable',
-            trendPercent: 2,
-            status: 'optimal',
-            lastUpdated: '1 week ago'
-          },
-          {
-            id: 'creatinine',
-            name: 'Creatinine',
-            value: 0.9,
-            unit: 'mg/dL',
-            trend: 'up',
-            trendPercent: 5,
-            status: 'normal',
-            lastUpdated: '3 days ago'
-          }
-        ]}
-        onClose={() => setAllModalVisible(false)}
-        onLabResultPress={props.onLabResultPress}
-      />
-    </>
-  );
-};
+export default LabInsightsCard;
 
 const styles = StyleSheet.create({
   container: {

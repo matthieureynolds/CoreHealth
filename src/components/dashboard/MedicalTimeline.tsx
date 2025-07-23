@@ -4,16 +4,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Alert,
   Modal,
   TextInput,
-  FlatList,
   Image,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Swipeable } from 'react-native-gesture-handler';
+import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -171,7 +170,121 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         phone: '(555) 222-3344'
       },
       details: 'Routine dental checkup and cleaning.'
-    }
+    },
+    // Add event for Tomorrow
+    {
+      id: 'blood_pressure_check',
+      type: 'reminder',
+      title: 'Blood Pressure Check',
+      subtitle: 'Morning reading',
+      date: (() => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })(),
+      time: '7:30 AM',
+      priority: 'low',
+      status: 'due',
+      icon: 'pulse',
+      details: 'Take and record your blood pressure after waking up.'
+    },
+    // Add event for a weekday (e.g., Thursday)
+    {
+      id: 'therapy_session',
+      type: 'appointment',
+      title: 'Physical Therapy Session',
+      subtitle: 'Dr. Lisa Green',
+      date: (() => {
+        const thursday = new Date();
+        const day = thursday.getDay();
+        const daysUntilThursday = (4 - day + 7) % 7 || 7; // 4 = Thursday
+        thursday.setDate(thursday.getDate() + daysUntilThursday);
+        return thursday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })(),
+      time: '3:00 PM',
+      priority: 'medium',
+      status: 'upcoming',
+      icon: 'walk',
+      doctor: {
+        name: 'Dr. Lisa Green',
+        specialty: 'Physical Therapy',
+        address: '321 Wellness Ave, New York, NY 10006',
+        phone: '(555) 333-4455'
+      },
+      details: 'Weekly physical therapy for knee recovery.'
+    },
+    // Add event for Next Week
+    {
+      id: 'nutritionist',
+      type: 'appointment',
+      title: 'Nutritionist Consultation',
+      subtitle: 'Dr. Mark Brown',
+      date: (() => {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 8 - nextWeek.getDay()); // Next Monday
+        return nextWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })(),
+      time: '10:00 AM',
+      priority: 'medium',
+      status: 'upcoming',
+      icon: 'nutrition',
+      doctor: {
+        name: 'Dr. Mark Brown',
+        specialty: 'Nutrition',
+        address: '654 Healthy Way, New York, NY 10007',
+        phone: '(555) 555-6677'
+      },
+      details: 'Discuss dietary plan and recent lab results.'
+    },
+    // Add event for Next Month
+    {
+      id: 'eye_exam',
+      type: 'appointment',
+      title: 'Eye Exam',
+      subtitle: 'Dr. Susan Lee',
+      date: (() => {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        nextMonth.setDate(5);
+        return nextMonth.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })(),
+      time: '9:00 AM',
+      priority: 'medium',
+      status: 'upcoming',
+      icon: 'eye',
+      doctor: {
+        name: 'Dr. Susan Lee',
+        specialty: 'Ophthalmology',
+        address: '987 Vision Blvd, New York, NY 10008',
+        phone: '(555) 888-9999'
+      },
+      details: 'Annual eye health checkup.'
+    },
+    // Add event for Future
+    {
+      id: 'colonoscopy',
+      type: 'appointment',
+      title: 'Colonoscopy Screening',
+      subtitle: 'Dr. Alan Smith',
+      date: (() => {
+        const future = new Date();
+        future.setFullYear(future.getFullYear() + 1);
+        future.setMonth(2);
+        future.setDate(15);
+        return future.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      })(),
+      time: '8:00 AM',
+      priority: 'high',
+      status: 'upcoming',
+      icon: 'medkit',
+      doctor: {
+        name: 'Dr. Alan Smith',
+        specialty: 'Gastroenterology',
+        address: '123 GI Center, New York, NY 10009',
+        phone: '(555) 777-8888'
+      },
+      details: 'Routine colonoscopy screening for preventive care.'
+    },
   ];
 
   const [completed, setCompleted] = useState<string[]>([]);
@@ -398,24 +511,56 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     Alert.alert('Success', `Appointment ${isDraft ? 'saved as draft' : 'added'} successfully!`);
   };
 
-  const renderRightActions = (event: MedicalEvent) => (
-    <View style={styles.rightActionsFull}>
-      {event.type === 'medication' && (
-        <TouchableOpacity
-          style={[styles.fullWidthActionButton, styles.ignoreButton]}
+  // Only swipe right: show both Done (green) and Ignore (orange) buttons side by side
+  const renderLeftActions = (event: MedicalEvent) => (
+    <View style={{ flexDirection: 'row', height: '100%' }}>
+      <RectButton
+        style={{
+          flex: 1,
+          backgroundColor: '#30D158',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderTopLeftRadius: 12,
+          borderBottomLeftRadius: 12,
+        }}
           onPress={() => setCompleted(prev => [...prev, event.id])}
         >
-          <Ionicons name="close-circle" size={24} color="#FF9500" />
-          <Text style={styles.ignoreText}>Ignore</Text>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity
-        style={[styles.fullWidthActionButton, styles.doneButton]}
+        <Ionicons name="checkmark-circle" size={24} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: 'bold', marginTop: 4 }}>Done</Text>
+      </RectButton>
+      <RectButton
+        style={{
+          flex: 1,
+          backgroundColor: '#FF9500',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderTopRightRadius: 12,
+          borderBottomRightRadius: 12,
+        }}
         onPress={() => setCompleted(prev => [...prev, event.id])}
       >
-        <Ionicons name="checkmark-circle" size={24} color="#30D158" />
-        <Text style={styles.doneText}>Done</Text>
-      </TouchableOpacity>
+        <Ionicons name="close-circle" size={24} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: 'bold', marginTop: 4 }}>Ignore</Text>
+      </RectButton>
+    </View>
+  );
+
+  const renderRightActions = (event: MedicalEvent) => (
+    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+      <RectButton
+        style={{
+          flex: 1,
+          backgroundColor: '#FF9500',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+          paddingRight: 24,
+          borderRadius: 12,
+        }}
+        onPress={() => setCompleted(prev => [...prev, event.id])}
+      >
+        <Ionicons name="close-circle" size={24} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: 'bold', marginLeft: 8 }}>Ignore</Text>
+      </RectButton>
     </View>
   );
 
@@ -426,7 +571,11 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     const statusText = getStatusText(event.status);
 
     return (
-      <Swipeable key={event.id} renderRightActions={() => renderRightActions(event)}>
+      <Swipeable
+        key={event.id}
+        renderLeftActions={() => renderLeftActions(event)}
+        renderRightActions={undefined}
+      >
       <TouchableOpacity
         style={styles.eventItem}
           onPress={() => handleEventPress(event)}
@@ -455,7 +604,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             </View>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
+          {/* WhatsApp-style swipe hint: subtle right arrow */}
+          <Ionicons name="arrow-forward-circle-outline" size={22} color="#30D158" style={{ marginLeft: 8, opacity: 0.7 }} />
       </TouchableOpacity>
       </Swipeable>
     );
@@ -504,6 +654,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     const eventsByGroup: { [key: string]: MedicalEvent[] } = {
       'Today': [],
       'Tomorrow': [],
+      'This Week': [],
       ...thisWeek.reduce((acc, day) => {
         const label = day.toLocaleDateString('en-US', { weekday: 'long' });
         acc[label] = [];
@@ -519,8 +670,9 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       if (event.date === 'Today') {
         eventDate = today;
       } else if (event.date === 'This week') {
-        eventDate = today;
-      } else {
+        eventsByGroup['This Week'].push(event);
+        return;
+    } else {
         eventDate = new Date(event.date);
       }
       if (
@@ -570,24 +722,146 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       }
     });
 
-    // Only show limited events when not expanded
-    if (!showAllEvents) {
-      const limited = sortedEvents.slice(0, 3);
-      return <>{limited.map(renderEvent)}</>;
-    }
-
-    return (
-      <>
-        {Object.entries(eventsByGroup).map(([group, events]) =>
-          events.length > 0 ? (
+    // Always show subheadings, but limit to first 3 events when collapsed
+    let eventsShown = 0;
+    const maxEvents = showAllEvents ? Infinity : 3;
+      return (
+        <>
+        {Object.entries(eventsByGroup).map(([group, events]) => {
+          if (events.length === 0) return null;
+          const eventsToShow = showAllEvents
+            ? events
+            : events.slice(0, Math.max(0, maxEvents - eventsShown));
+          if (eventsToShow.length === 0) return null;
+          eventsShown += eventsToShow.length;
+          return (
             <React.Fragment key={group}>
               <Text style={styles.categoryTitle}>{group}</Text>
-              {events.map(renderEvent)}
+              {eventsToShow.map(renderEvent)}
             </React.Fragment>
-          ) : null
-        )}
-      </>
-    );
+          );
+        })}
+        </>
+      );
+  };
+
+  // Helper to flatten events by group for FlatList
+  const renderEventsByDateFlat = () => {
+    // Sort all events chronologically by date
+    const sortedEvents = [...upcomingEvents]
+      .filter(e => !completed.includes(e.id))
+      .sort((a, b) => {
+        const parseDate = (dateStr: string) => {
+          if (dateStr === 'Today') return new Date();
+          if (dateStr === 'This week') {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const daysUntilSunday = 7 - dayOfWeek;
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
+          }
+          return new Date(dateStr);
+        };
+        const dateA = parseDate(a.date);
+        const dateB = parseDate(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const thisWeek: Date[] = [];
+    for (let i = 2; i <= 6; i++) {
+      const day = new Date(today);
+      day.setDate(today.getDate() + i);
+      thisWeek.push(day);
+    }
+    const nextWeekStart = new Date(today);
+    nextWeekStart.setDate(today.getDate() + (7 - today.getDay()));
+    const nextWeekEnd = new Date(nextWeekStart);
+    nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+    const thisMonth = today.getMonth();
+    const nextMonth = (today.getMonth() + 1) % 12;
+    const thisYear = today.getFullYear();
+    const nextMonthYear = nextMonth === 0 ? thisYear + 1 : thisYear;
+    const eventsByGroup: { [key: string]: MedicalEvent[] } = {
+      'Today': [],
+      'Tomorrow': [],
+      'This Week': [],
+      ...thisWeek.reduce((acc, day) => {
+        const label = day.toLocaleDateString('en-US', { weekday: 'long' });
+        acc[label] = [];
+        return acc;
+      }, {} as { [key: string]: MedicalEvent[] }),
+      'Next Week': [],
+      'Next Month': [],
+      'Future': [],
+    };
+    sortedEvents.forEach(event => {
+      let eventDate: Date;
+      if (event.date === 'Today') {
+        eventDate = today;
+      } else if (event.date === 'This week') {
+        eventsByGroup['This Week'].push(event);
+        return;
+      } else {
+        eventDate = new Date(event.date);
+      }
+      if (
+        eventDate.getDate() === today.getDate() &&
+        eventDate.getMonth() === today.getMonth() &&
+        eventDate.getFullYear() === today.getFullYear()
+      ) {
+        eventsByGroup['Today'].push(event);
+      } else if (
+        eventDate.getDate() === tomorrow.getDate() &&
+        eventDate.getMonth() === tomorrow.getMonth() &&
+        eventDate.getFullYear() === tomorrow.getFullYear()
+      ) {
+        eventsByGroup['Tomorrow'].push(event);
+      } else {
+        let added = false;
+        for (let i = 0; i < thisWeek.length; i++) {
+          const day = thisWeek[i];
+          if (
+            eventDate.getDate() === day.getDate() &&
+            eventDate.getMonth() === day.getMonth() &&
+            eventDate.getFullYear() === day.getFullYear()
+          ) {
+            const label = day.toLocaleDateString('en-US', { weekday: 'long' });
+            eventsByGroup[label].push(event);
+            added = true;
+            break;
+          }
+        }
+        if (!added) {
+          if (
+            eventDate >= nextWeekStart &&
+            eventDate <= nextWeekEnd &&
+            (eventDate.getMonth() !== today.getMonth() || eventDate.getDate() > today.getDate() + 6)
+          ) {
+            eventsByGroup['Next Week'].push(event);
+          } else if (
+            eventDate.getMonth() === nextMonth &&
+            eventDate.getFullYear() === nextMonthYear
+          ) {
+            eventsByGroup['Next Month'].push(event);
+          } else {
+            eventsByGroup['Future'].push(event);
+          }
+        }
+      }
+    });
+    let eventsShown = 0;
+    const maxEvents = showAllEvents ? Infinity : 3;
+    const grouped = Object.entries(eventsByGroup).map(([group, events]) => {
+      if (events.length === 0) return [group, []];
+      const eventsToShow = showAllEvents
+        ? events
+        : events.slice(0, Math.max(0, maxEvents - eventsShown));
+      if (eventsToShow.length === 0) return [group, []];
+      eventsShown += eventsToShow.length;
+      return [group, eventsToShow];
+    });
+    return grouped;
   };
 
   return (
@@ -604,9 +878,32 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.eventsList} showsVerticalScrollIndicator={false}>
-        {renderEventsByDate()}
-      </ScrollView>
+      <FlatList
+        data={Object.entries(renderEventsByDateFlat())}
+        keyExtractor={item => item[0]}
+        renderItem={({ item }) => {
+          const group = item[0];
+          const events = item[1];
+          if (Array.isArray(events) && events.length > 0) {
+            return (
+              <View key={group}>
+                <Text style={styles.categoryTitle}>{group}</Text>
+                {events.map((event: MedicalEvent) => renderEvent(event))}
+              </View>
+            );
+          }
+          return null;
+        }}
+        style={[styles.eventsList, showAllEvents && styles.eventsListExpanded]}
+        showsVerticalScrollIndicator={false}
+      />
+      {showAllEvents && (
+        <View style={{ alignItems: 'center', marginTop: 8 }}>
+          <TouchableOpacity onPress={() => setShowAllEvents(false)} style={styles.lessTab}>
+            <Text style={styles.lessTabText}>Show Less</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.addButton} onPress={handleAddAppointment}>
@@ -631,7 +928,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           </View>
           
           {selectedEvent && (
-            <ScrollView style={styles.modalContent}>
+            <View style={styles.modalContent}>
               <View style={styles.appointmentCard}>
                 <Text style={styles.appointmentTitle}>{selectedEvent.title}</Text>
                 <Text style={styles.appointmentDateTime}>
@@ -677,7 +974,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                   </View>
                 </View>
               )}
-            </ScrollView>
+            </View>
           )}
         </View>
       </Modal>
@@ -697,7 +994,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalContent}>
+          <View style={styles.modalContent}>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Appointment Title *</Text>
               <TextInput
@@ -742,7 +1039,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 style={styles.textInput}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={[styles.textInputText, { color: newAppointment.date ? '#FFFFFF' : '#8E8E93' }]}> 
+                <Text style={[styles.textInputText, { color: newAppointment.date ? '#FFFFFF' : '#8E8E93' }]}>
                   {newAppointment.date || 'Select date'}
                 </Text>
                 {dateConfirmed && (
@@ -757,7 +1054,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 style={styles.textInput}
                 onPress={() => setShowTimePicker(true)}
               >
-                <Text style={[styles.textInputText, { color: newAppointment.time ? '#FFFFFF' : '#8E8E93' }]}> 
+                <Text style={[styles.textInputText, { color: newAppointment.time ? '#FFFFFF' : '#8E8E93' }]}>
                   {newAppointment.time || 'Select time'}
                 </Text>
                 {timeConfirmed && (
@@ -834,7 +1131,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 <Text style={styles.saveButtonText}>Save Appointment</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </View>
         </View>
       </Modal>
 
@@ -867,6 +1164,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 onChange={(event, date) => {
                   if (date) {
                     setSelectedDate(date);
+                    setDateConfirmed(false); // Reset checkmark until confirmed
                   }
                 }}
                 style={styles.dateTimePicker}
@@ -885,10 +1183,10 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 <TouchableOpacity 
                   style={[styles.pickerButton, styles.pickerButtonPrimary]} 
                   onPress={() => {
-                    handleDateSelect(selectedDate);
+                    setShowDatePicker(false);
+                    setNewAppointment(prev => ({ ...prev, date: formatDate(selectedDate) }));
                     setDateConfirmed(true);
                     setTimeout(() => setDateConfirmed(false), 1200);
-                    setShowDatePicker(false);
                   }}
                 >
                   <Text style={[styles.pickerButtonText, styles.pickerButtonTextPrimary]}>Confirm</Text>
@@ -928,6 +1226,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 onChange={(event, time) => {
                   if (time) {
                     setSelectedTime(time);
+                    setTimeConfirmed(false); // Reset checkmark until confirmed
                   }
                 }}
                 style={styles.dateTimePicker}
@@ -946,10 +1245,10 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 <TouchableOpacity 
                   style={[styles.pickerButton, styles.pickerButtonPrimary]} 
                   onPress={() => {
-                    handleTimeSelect(selectedTime);
+                    setShowTimePicker(false);
+                    setNewAppointment(prev => ({ ...prev, time: formatTime(selectedTime) }));
                     setTimeConfirmed(true);
                     setTimeout(() => setTimeConfirmed(false), 1200);
-                    setShowTimePicker(false);
                   }}
                 >
                   <Text style={[styles.pickerButtonText, styles.pickerButtonTextPrimary]}>Confirm</Text>
@@ -989,6 +1288,9 @@ const styles = StyleSheet.create({
   },
   eventsList: {
     maxHeight: 300,
+  },
+  eventsListExpanded: {
+    maxHeight: 800,
   },
   categoryTitle: {
     fontSize: 14,
@@ -1432,6 +1734,17 @@ const styles = StyleSheet.create({
   },
   pickerButtonTextPrimary: {
     color: '#FFFFFF',
+  },
+  lessTab: {
+    backgroundColor: '#007AFF20',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  lessTabText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
 

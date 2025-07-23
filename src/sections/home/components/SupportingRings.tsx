@@ -33,7 +33,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   lifestyle, 
   onRingPress 
 }) => {
-  const ringSize = (width - 48) / 3 - 16; // Responsive sizing
+  const ringSize = (width - 48) / 3 - 16;
   const strokeWidth = 6;
   const radius = (ringSize - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -78,7 +78,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
       >
         <View style={styles.ringContent}>
           <Svg width={ringSize} height={ringSize} style={styles.svg}>
-            {/* Background circle */}
             <Circle
               stroke="#2C2C2E"
               fill="none"
@@ -87,7 +86,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
               r={radius}
               strokeWidth={strokeWidth}
             />
-            {/* Progress circle */}
             <Circle
               stroke={metric.color}
               fill="none"
@@ -101,7 +99,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
               transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
             />
           </Svg>
-          
           <View style={styles.ringCenter}>
             <View style={[styles.iconContainer, { backgroundColor: `${metric.color}20` }]}>
               <Ionicons 
@@ -116,7 +113,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
             </View>
           </View>
         </View>
-        
         <Text style={styles.ringTitle}>{metric.title}</Text>
         {metric.subtitle && (
           <Text style={styles.ringSubtitle}>{metric.subtitle}</Text>
@@ -152,15 +148,15 @@ const styles = StyleSheet.create({
   },
   ringsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // More space between rings
+    justifyContent: 'space-evenly',
     alignItems: 'flex-start',
-    paddingHorizontal: 0, // Remove extra padding
+    paddingHorizontal: 0,
   },
   ringContainer: {
     alignItems: 'center',
     flex: 1,
     maxWidth: (width - 48) / 3,
-    marginHorizontal: 18, // Increased spacing
+    marginHorizontal: 0,
   },
   ringContent: {
     position: 'relative',
