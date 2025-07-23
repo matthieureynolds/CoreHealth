@@ -175,7 +175,7 @@ const DashboardScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
         <Text style={styles.greeting}>
-            Good {getTimeOfDay()}, {user?.displayName ? user.displayName.split(' ')[0] : 'User'}!
+            Good day mate
         </Text>
       </View>
         {/* Removed headerRight icons and buttons */}
