@@ -25,7 +25,7 @@ const ProfileDetailsScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
-      <View style={styles.profileHeader}>
+        <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
           {user && typeof (user as any).avatar === 'string' && (user as any).avatar.length > 0 ? (
             <Image source={{ uri: (user as any).avatar }} style={styles.avatar} />
@@ -38,9 +38,9 @@ const ProfileDetailsScreen: React.FC = () => {
         <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
         <Text style={styles.profileEmail}>{user?.email}</Text>
         <TouchableOpacity style={styles.editProfileButton} onPress={() => navigation.navigate('EditProfile')}>
-          <Ionicons name="create-outline" size={16} color="#007AFF" />
-          <Text style={styles.editProfileText}>Edit Profile</Text>
-        </TouchableOpacity>
+            <Ionicons name="create-outline" size={16} color="#007AFF" />
+            <Text style={styles.editProfileText}>Edit Profile</Text>
+          </TouchableOpacity>
       </View>
 
       {/* Profile Info Card */}
