@@ -150,12 +150,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 24, // Add side padding for equal outer spacing
+    paddingHorizontal: 32, // Increase side padding for more outer space
   },
   ringContainer: {
     alignItems: 'center',
     maxWidth: (width - 48) / 3,
-    marginHorizontal: 0,
+    marginHorizontal: 8, // Add margin between circles
   },
   ringContent: {
     position: 'relative',

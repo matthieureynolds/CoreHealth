@@ -109,8 +109,8 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
       {/* Preparation schedule preview */}
       <View style={styles.schedulePreview}>
         <Text style={styles.scheduleTitle}>Sleep Adjustment Schedule</Text>
-        {event.sleepAdjustment.dailySchedule.map((sched, idx) => (
-          <View style={styles.scheduleRow} key={idx}>
+        {event.sleepAdjustment.dailySchedule.map((sched) => (
+          <View style={styles.scheduleRow} key={`${sched.day}-${sched.bedtime}`}> 
             <Text style={styles.scheduleDay}>
               {sched.date ? formatDate(sched.date) : `Day ${sched.day}`}:
             </Text>

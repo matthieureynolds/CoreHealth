@@ -242,7 +242,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
       <View style={{ alignItems: 'center', marginTop: 4 }}>
         {hasMore && (
           <TouchableOpacity onPress={() => setShowCount(6)} style={styles.moreTab}>
-            <Text style={styles.moreTabText}>More</Text>
+            <Text style={styles.moreTabText}>+ More</Text>
           </TouchableOpacity>
         )}
         {canShowLess && (

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,233 +22,97 @@ const ProfileDetailsScreen: React.FC = () => {
   const { user } = useAuth();
   const { profile } = useHealthData();
 
-  const ProfileItem = ({ icon, title, value, onPress }: any) => (
-    <TouchableOpacity style={styles.profileItem} onPress={onPress}>
-      <View style={styles.profileItemLeft}>
-        <Ionicons name={icon} size={24} color="#007AFF" />
-        <Text style={styles.profileItemTitle}>{title}</Text>
-      </View>
-      <View style={styles.profileItemRight}>
-        {value && <Text style={styles.profileItemValue}>{value}</Text>}
-        <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.profileHeader}>
-          <TouchableOpacity style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.displayName?.charAt(0) || 'U'}
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.name}>{user?.displayName || 'User'}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-          <TouchableOpacity 
-            style={styles.editProfileButton}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            <Ionicons name="create-outline" size={16} color="#007AFF" />
-            <Text style={styles.editProfileText}>Edit Profile</Text>
-          </TouchableOpacity>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
+      <View style={styles.profileHeader}>
+        <View style={styles.avatarContainer}>
+          {user && typeof (user as any).avatar === 'string' && (user as any).avatar.length > 0 ? (
+            <Image source={{ uri: (user as any).avatar }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitial}>{user?.displayName?.charAt(0) || 'U'}</Text>
+            </View>
+          )}
         </View>
+        <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
+        <Text style={styles.profileEmail}>{user?.email}</Text>
+        <TouchableOpacity style={styles.editProfileButton} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="create-outline" size={16} color="#007AFF" />
+          <Text style={styles.editProfileText}>Edit Profile</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        <ProfileItem
-          icon="person-outline"
-          title="Basic Details"
-          value={profile ? `${profile.age} years old, ${profile.gender}` : 'Not set'}
-          onPress={() => navigation.navigate('EditProfile')}
-        />
-        <ProfileItem
-          icon="fitness-outline"
-          title="Physical Stats"
-          value={profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}
-          onPress={() => navigation.navigate('EditProfile')}
-        />
-        <ProfileItem
-          icon="location-outline"
-          title="Ethnicity"
-          value={profile?.ethnicity || 'Not set'}
-          onPress={() => navigation.navigate('EditProfile')}
-        />
+      {/* Profile Info Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>PERSONAL INFORMATION</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Basic Details</Text>
+          <Text style={styles.cardValue}>{profile ? `${profile.age} years old, ${profile.gender}` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="fitness-outline" size={22} color="#4CD964" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Physical Stats</Text>
+          <Text style={styles.cardValue}>{profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="location-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Ethnicity</Text>
+          <Text style={styles.cardValue}>{profile?.ethnicity || 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Health Profile</Text>
-        <ProfileItem
-          icon="medical-outline"
-          title="Medical History"
-          value={
-            profile?.medicalHistory.length
-              ? `${profile.medicalHistory.length} conditions`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="shield-checkmark-outline"
-          title="Vaccinations"
-          value={
-            profile?.vaccinations.length
-              ? `${profile.vaccinations.length} vaccines`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="warning-outline"
-          title="Allergies"
-          value={
-            profile?.allergies.length
-              ? `${profile.allergies.length} allergies`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
-        <ProfileItem
-          icon="people-outline"
-          title="Family History"
-          value={
-            profile?.familyHistory.length
-              ? `${profile.familyHistory.length} conditions`
-              : 'Not set'
-          }
-          onPress={() => navigation.navigate('MedicalHistory')}
-        />
+      {/* Health Profile Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>HEALTH PROFILE</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+          <Ionicons name="medical-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Medical History</Text>
+          <Text style={styles.cardValue}>{profile?.medicalHistory?.length ? `${profile.medicalHistory.length} conditions` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+          <Ionicons name="shield-checkmark-outline" size={22} color="#6BCF7F" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Vaccinations</Text>
+          <Text style={styles.cardValue}>{profile?.vaccinations?.length ? `${profile.vaccinations.length} vaccines` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+          <Ionicons name="warning-outline" size={22} color="#FFD93D" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Allergies</Text>
+          <Text style={styles.cardValue}>{profile?.allergies?.length ? `${profile.allergies.length} allergies` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+          <Ionicons name="people-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Family History</Text>
+          <Text style={styles.cardValue}>{profile?.familyHistory?.length ? `${profile.familyHistory.length} conditions` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Connected Devices</Text>
-        
-        {/* Fitness Trackers */}
-        <ProfileItem
-          icon="watch-outline"
-          title="Apple Watch"
-          value="Connected"
-          onPress={() => {
-            Alert.alert('Apple Watch', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="fitness-outline"
-          title="Whoop 4.0"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Whoop 4.0', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="ellipse-outline"
-          title="Oura Ring"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Oura Ring', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="speedometer-outline"
-          title="Garmin"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Garmin', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="walk-outline"
-          title="Fitbit"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Fitbit', 'Device management coming soon!');
-          }}
-        />
-        
-        {/* Health Monitoring */}
-        <ProfileItem
-          icon="scale-outline"
-          title="Withings Body+"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Withings Body+', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="thermometer-outline"
-          title="Withings Thermo"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Withings Thermo', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="heart-outline"
-          title="KardiaMobile"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('KardiaMobile', 'Device management coming soon!');
-          }}
-        />
-        
-        {/* Sleep & Recovery */}
-        <ProfileItem
-          icon="bed-outline"
-          title="Eight Sleep Pod"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Eight Sleep Pod', 'Device management coming soon!');
-          }}
-        />
-        
-        {/* Oral Health */}
-        <ProfileItem
-          icon="medical-outline"
-          title="Oral-B iO"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Oral-B iO', 'Device management coming soon!');
-          }}
-        />
-        
-        {/* Health Apps */}
-        <ProfileItem
-          icon="phone-portrait-outline"
-          title="Apple Health"
-          value="Connected"
-          onPress={() => {
-            Alert.alert('Apple Health', 'Device management coming soon!');
-          }}
-        />
-        <ProfileItem
-          icon="phone-portrait-outline"
-          title="Samsung Health"
-          value="Not connected"
-          onPress={() => {
-            Alert.alert('Samsung Health', 'Device management coming soon!');
-          }}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <ProfileItem
-          icon="add-circle-outline"
-          title="Add Medical Record"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="document-text-outline"
-          title="Generate Health Report"
-          onPress={() => {}}
-        />
-        <ProfileItem
-          icon="share-outline"
-          title="Share with Doctor"
-          onPress={() => {}}
-        />
+      {/* Quick Actions Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>QUICK ACTIONS</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
+          <Ionicons name="add-circle-outline" size={22} color="#FF6B6B" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Add Medical Record</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
+          <Ionicons name="document-text-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Generate Health Report</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
+          <Ionicons name="share-outline" size={22} color="#45B7D1" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Share with Doctor</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -256,49 +121,62 @@ const ProfileDetailsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    backgroundColor: '#fff',
-    paddingBottom: 20,
+    backgroundColor: '#111',
   },
   profileHeader: {
     alignItems: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    backgroundColor: '#222',
+    paddingVertical: 32,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  avatarContainer: {
+    marginBottom: 12,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+    backgroundColor: '#333',
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#333',
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
   },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  avatarInitial: {
     color: '#fff',
+    fontSize: 36,
+    fontWeight: 'bold',
   },
-  name: {
+  profileName: {
+    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1C1C1E',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  email: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 16,
+  profileEmail: {
+    color: '#aaa',
+    fontSize: 15,
+    marginBottom: 0,
   },
   editProfileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#181818',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    marginTop: 10,
   },
   editProfileText: {
     fontSize: 14,
@@ -306,71 +184,48 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 4,
   },
-  section: {
-    backgroundColor: '#fff',
-    marginTop: 20,
-    paddingHorizontal: 20,
+  card: {
+    backgroundColor: '#181818',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  sectionTitle: {
+  cardHeader: {
+    color: '#888',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    letterSpacing: 1.2,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+  },
+  cardIcon: {
+    marginRight: 16,
+  },
+  cardLabel: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginTop: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  profileItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
-  },
-  profileItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
   },
-  profileItemTitle: {
-    fontSize: 16,
-    color: '#1C1C1E',
-    marginLeft: 16,
-  },
-  profileItemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileItemValue: {
-    fontSize: 16,
-    color: '#666',
+  cardValue: {
+    color: '#aaa',
+    fontSize: 15,
     marginRight: 8,
   },
-  summaryCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  summaryContent: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  summaryTitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+  chevron: {
+    marginLeft: 8,
   },
 });
 

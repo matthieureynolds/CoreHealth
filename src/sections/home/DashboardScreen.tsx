@@ -163,35 +163,25 @@ const DashboardScreen: React.FC = () => {
 
   // --- Jet Lag Planning Events ---
   // Outbound: Paris -> Bangkok
-  const outboundDeparture = new Date();
-  outboundDeparture.setDate(outboundDeparture.getDate() + 7); // 7 days from now
-  const outboundPrepStart = new Date(outboundDeparture);
-  outboundPrepStart.setDate(outboundDeparture.getDate() - 4); // 4 days before
-  const outboundSchedule = Array.from({ length: 4 }, (_, i) => {
-    const date = new Date(outboundPrepStart);
-    date.setDate(outboundPrepStart.getDate() + i);
-    return {
-      day: i + 1,
-      date: date.toISOString(),
-      bedtime: ['21:30', '21:00', '20:30', '20:00'][i],
-      wakeTime: ['06:30', '06:00', '05:30', '05:00'][i],
-      adjustment: [1.5, 1.5, 1.5, 0.5][i],
-    };
-  });
   const outboundEvent = {
     id: 'paris-bangkok',
     destination: 'Bangkok, Thailand',
     destinationTimezone: 'Asia/Bangkok',
-    departureDate: outboundDeparture.toISOString(),
+    departureDate: '2024-07-21T08:00:00.000Z',
     timeZoneDifference: 5,
-    preparationStartDate: outboundPrepStart.toISOString(),
+    preparationStartDate: '2024-07-17T08:00:00.000Z',
     daysToAdjust: 4,
     sleepAdjustment: {
       totalTimeZoneDifference: 5,
       direction: 'eastward',
       daysToAdjust: 4,
       maxDailyAdjustment: 1.5,
-      dailySchedule: outboundSchedule,
+      dailySchedule: [
+        { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
+        { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
+        { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
+        { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
+      ],
       strategy: 'Advance bedtime gradually each day before travel',
       recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
     },
@@ -200,8 +190,8 @@ const DashboardScreen: React.FC = () => {
   };
 
   // Return: Bangkok -> Paris
-  const returnDeparture = new Date(outboundDeparture);
-  returnDeparture.setDate(outboundDeparture.getDate() + 14); // 14 days after outbound
+  const returnDeparture = new Date(outboundEvent.departureDate);
+  returnDeparture.setDate(returnDeparture.getDate() + 14); // 14 days after outbound
   const returnPrepStart = new Date(returnDeparture);
   returnPrepStart.setDate(returnDeparture.getDate() - 4);
   const returnSchedule = Array.from({ length: 4 }, (_, i) => {
@@ -251,10 +241,10 @@ const DashboardScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-        <Text style={styles.greeting}>
-            TESTING123
-        </Text>
-      </View>
+          <Text style={styles.greeting}>
+            {`Good ${getTimeOfDay()}, ${user?.displayName || 'there'}`}
+          </Text>
+        </View>
         <View style={styles.headerRight}>
           {/* Removed plane icon button */}
           <TouchableOpacity 
@@ -305,7 +295,7 @@ const DashboardScreen: React.FC = () => {
           currentLocation="New York, NY"
           jetLagHours={0}
           onTravelPress={handleTravelPress}
-          jetLagPlanningEvents={jetLagPlanningEvents}
+          jetLagPlanningEvents={[outboundEvent]}
           onJetLagEventPress={handleJetLagEventPress}
         />
 
@@ -353,10 +343,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', // Move greeting to top
+    alignItems: 'flex-start', // Keep greeting at the top
     paddingHorizontal: 20,
-    paddingTop: 14, // Reduced from 20 to move greeting slightly higher
-    paddingBottom: 12, // Less bottom padding
+    paddingTop: 4, // Move header higher (was 14)
+    paddingBottom: 4, // Less bottom padding (was 12)
     backgroundColor: '#000000',
   },
   headerRight: {
@@ -383,6 +373,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 0, // Remove extra margin
     marginTop: 0, // Ensure no top margin
+    textAlignVertical: 'top', // Ensure text is at the top
   },
   aiButton: {
     width: 40,

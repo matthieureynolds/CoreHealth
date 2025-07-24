@@ -5,9 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import JetLagPlanningCard from './JetLagPlanningCard';
+import { calculateTimeZoneDifference, calculateJetLagSeverity, generateSleepScheduleAdjustment } from '../../../services/jetLagService';
 
 interface EnvironmentalMetric {
   id: string;
@@ -96,6 +98,19 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi', travelTime: '8 mins' },
   ];
 
+  // Jet Lag Calculator state
+  const [originTz, setOriginTz] = useState('America/New_York');
+  const [destTz, setDestTz] = useState('Europe/London');
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calcResult, setCalcResult] = useState<any>(null);
+
+  const handleCalculate = () => {
+    const diff = calculateTimeZoneDifference(originTz, destTz);
+    const severity = calculateJetLagSeverity(diff);
+    const sleepAdj = generateSleepScheduleAdjustment(diff);
+    setCalcResult({ diff, severity, sleepAdj });
+  };
+
   const [showMore, setShowMore] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -148,6 +163,47 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
       {/* Jet Lag Planning Card (mock data) */}
       <JetLagPlanningCard event={jetLagPlanningEvent} />
+
+      {/* Jet Lag Calculator */}
+      <View style={{ marginBottom: 16 }}>
+        <TouchableOpacity onPress={() => setShowCalculator(v => !v)} style={{ alignSelf: 'flex-end', marginBottom: 4 }}>
+          <Text style={{ color: '#007AFF', fontWeight: '600' }}>{showCalculator ? 'Hide Jet Lag Calculator' : 'Show Jet Lag Calculator'}</Text>
+        </TouchableOpacity>
+        {showCalculator && (
+          <View style={{ backgroundColor: '#232323', borderRadius: 12, padding: 12, marginBottom: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16, marginBottom: 8 }}>Jet Lag Calculator</Text>
+            <Text style={{ color: '#fff', fontSize: 13 }}>Origin Timezone</Text>
+            <TextInput
+              style={{ backgroundColor: '#333', color: '#fff', borderRadius: 6, padding: 8, marginBottom: 8 }}
+              value={originTz}
+              onChangeText={setOriginTz}
+              placeholder="e.g., America/New_York"
+              placeholderTextColor="#888"
+              autoCapitalize="none"
+            />
+            <Text style={{ color: '#fff', fontSize: 13 }}>Destination Timezone</Text>
+            <TextInput
+              style={{ backgroundColor: '#333', color: '#fff', borderRadius: 6, padding: 8, marginBottom: 8 }}
+              value={destTz}
+              onChangeText={setDestTz}
+              placeholder="e.g., Europe/London"
+              placeholderTextColor="#888"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity onPress={handleCalculate} style={{ backgroundColor: '#007AFF', borderRadius: 6, padding: 10, alignItems: 'center', marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Calculate</Text>
+            </TouchableOpacity>
+            {calcResult && (
+              <View style={{ marginTop: 4 }}>
+                <Text style={{ color: '#fff', fontSize: 14 }}>Time Zone Difference: <Text style={{ fontWeight: 'bold' }}>{calcResult.diff}h</Text></Text>
+                <Text style={{ color: '#fff', fontSize: 14 }}>Severity: <Text style={{ fontWeight: 'bold' }}>{calcResult.severity}</Text></Text>
+                <Text style={{ color: '#fff', fontSize: 14, marginTop: 4 }}>Adjustment Plan: <Text style={{ fontWeight: 'bold' }}>{calcResult.sleepAdj.strategy}</Text></Text>
+                <Text style={{ color: '#fff', fontSize: 13, marginTop: 2 }}>Days to adjust: {calcResult.sleepAdj.daysToAdjust} (max {calcResult.sleepAdj.maxDailyAdjustment}h/day)</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
 
       {/* More tab for additional information */}
       <View style={styles.moreTabContainer}>

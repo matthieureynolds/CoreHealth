@@ -175,7 +175,7 @@ const DashboardScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
         <Text style={styles.greeting}>
-            {`Good ${getTimeOfDay()}`}
+            {`Good ${getTimeOfDay()},${user?.displayName ? ' ' + user.displayName.split(' ')[0] : ''}`}
         </Text>
       </View>
         {/* Removed headerRight icons and buttons */}
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start', // Keep greeting at the top
     paddingHorizontal: 20,
-    paddingTop: 0, // Move greeting as high as possible
+    paddingTop: 32, // Lower greeting more
     paddingBottom: 2, // Tighter fit
     backgroundColor: '#000000',
   },
@@ -293,10 +293,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 26, // Slightly smaller for balance
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 16, // Even more space below greeting
   },
   aiButton: {
     width: 40,

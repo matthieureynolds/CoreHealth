@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
   },
   ringsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly', // Evenly distribute circles
     alignItems: 'flex-start',
-    paddingHorizontal: 8,
+    paddingHorizontal: 0, // Remove side padding
   },
   ringContainer: {
     alignItems: 'center',
-    flex: 1,
     maxWidth: (width - 48) / 3,
+    marginHorizontal: 0,
   },
   ringContent: {
     position: 'relative',

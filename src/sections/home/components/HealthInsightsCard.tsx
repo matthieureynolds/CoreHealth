@@ -70,8 +70,8 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
 
   const renderInsights = () => (
     <View style={styles.contentContainer}>
-      {insights?.insights.map((insight, index) => (
-        <View key={index} style={styles.insightItem}>
+      {insights?.insights.map((insight) => (
+        <View key={insight} style={styles.insightItem}>
           <View style={styles.insightIcon}>
             <Ionicons name="bulb" size={16} color="#FF9500" />
           </View>
@@ -83,8 +83,8 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
 
   const renderRecommendations = () => (
     <View style={styles.contentContainer}>
-      {insights?.recommendations.map((recommendation, index) => (
-        <View key={index} style={styles.recommendationItem}>
+      {insights?.recommendations.map((recommendation) => (
+        <View key={recommendation} style={styles.recommendationItem}>
           <View style={styles.recommendationIcon}>
             <Ionicons name="checkmark-circle" size={16} color="#30D158" />
           </View>
@@ -106,18 +106,18 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
         </View>
         <View style={styles.riskInfo}>
           <Text style={styles.riskLevel}>Risk Level: {insights?.riskAssessment.level?.toUpperCase()}</Text>
-          {insights?.riskAssessment.concerns.map((concern, index) => (
-            <Text key={index} style={styles.riskConcern}>• {concern}</Text>
+          {insights?.riskAssessment.concerns.map((concern) => (
+            <Text key={concern} style={styles.riskConcern}>• {concern}</Text>
           ))}
         </View>
       </View>
 
       <View style={styles.actionsSection}>
         <Text style={styles.actionsSectionTitle}>Next Actions:</Text>
-        {insights?.nextActions.map((action, index) => (
-          <View key={index} style={styles.actionItem}>
+        {insights?.nextActions.map((action) => (
+          <View key={action} style={styles.actionItem}>
             <View style={styles.actionNumber}>
-              <Text style={styles.actionNumberText}>{index + 1}</Text>
+              <Text style={styles.actionNumberText}>•</Text>
             </View>
             <Text style={styles.actionText}>{action}</Text>
           </View>

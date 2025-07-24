@@ -171,7 +171,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           <Text style={styles.title}>Medical Timeline</Text>
         </View>
         <TouchableOpacity onPress={() => setShowAllEvents(!showAllEvents)}>
-          <Text style={styles.viewAllText}>{showAllEvents ? 'Show Less' : 'View All'}</Text>
+          <Text style={styles.viewAllText}>{showAllEvents ? 'Show Less' : '+ More'}</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.eventsList} showsVerticalScrollIndicator={false}>

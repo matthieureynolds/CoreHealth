@@ -316,14 +316,15 @@ const styles = StyleSheet.create({
   },
   metricsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     marginBottom: 12,
   },
   metricCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
-    width: (width - 48) / 2,
+    flex: 1,
+    marginHorizontal: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
