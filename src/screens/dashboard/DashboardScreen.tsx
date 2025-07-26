@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,46 @@ const DashboardScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [labResultModalVisible, setLabResultModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (getUpcomingJetLagEvents().length === 0) {
+      const thailandEvent = {
+        destination: 'Bangkok, Thailand',
+        destinationTimezone: 'Asia/Bangkok',
+        departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        timeZoneDifference: 5, // 5 hours ahead
+        preparationStartDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        daysToAdjust: 4, // 4 days to adjust
+        sleepAdjustment: {
+          totalTimeZoneDifference: 5,
+          direction: 'eastward' as const,
+          daysToAdjust: 4,
+          maxDailyAdjustment: 1.5,
+          dailySchedule: [
+            { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
+            { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
+            { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
+            { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
+          ],
+          strategy: 'Advance bedtime gradually each day before travel',
+          recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
+        },
+        lightExposureSchedule: {
+          direction: 'eastward' as const,
+          strategy: 'Advance circadian rhythm with early bright light',
+          schedule: [
+            { day: 1, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 2, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 3, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+            { day: 4, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
+          ],
+          generalTips: ['Use bright light therapy lamp if natural sunlight unavailable', 'Wear sunglasses during light avoidance periods'],
+        },
+        status: 'upcoming' as const,
+      };
+      addJetLagPlanningEvent(thailandEvent);
+    }
+  }, []);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();

@@ -13,6 +13,7 @@ import {
   StatusBar,
   Image,
   Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../context/HealthDataContext';
@@ -43,6 +44,9 @@ const HealthAssistantScreen: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedText, setRecordedText] = useState('');
+  const [fabOpen, setFabOpen] = useState(false);
+  const fabAnim = useRef(new Animated.Value(0)).current;
+  const fabScale = useRef(new Animated.Value(1)).current;
 
   // Initialize conversation with personalized greeting
   useEffect(() => {
@@ -288,6 +292,33 @@ const HealthAssistantScreen: React.FC = () => {
     }
   };
 
+  const toggleFab = () => {
+    setFabOpen((open) => {
+      Animated.parallel([
+        Animated.timing(fabAnim, {
+          toValue: open ? 0 : 1,
+          duration: 200,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.spring(fabScale, {
+            toValue: 1.2,
+            friction: 3,
+            tension: 100,
+            useNativeDriver: true,
+          }),
+          Animated.spring(fabScale, {
+            toValue: 1,
+            friction: 3,
+            tension: 100,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+      return !open;
+    });
+  };
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -303,6 +334,13 @@ const HealthAssistantScreen: React.FC = () => {
       return '';
     }
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDateTime = (date: Date) => {
+    if (!date || !(date instanceof Date)) {
+      return '';
+    }
+    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   const speak = (text: string) => {
@@ -365,7 +403,7 @@ const HealthAssistantScreen: React.FC = () => {
               {message.content}
             </Text>
             <View style={styles.messageFooter}>
-              <Text style={styles.messageTime}>{formatTime(message.timestamp)}</Text>
+              <Text style={styles.messageTime}>{formatDateTime(message.timestamp)}</Text>
               {message.role === 'assistant' && (
                 <TouchableOpacity onPress={() => speak(message.content)} style={styles.speakButton}>
                   <Ionicons name="volume-medium" size={16} color="#8E8E93" />
@@ -443,9 +481,7 @@ const HealthAssistantScreen: React.FC = () => {
           <Text style={styles.headerTitle}>Health Assistant</Text>
           <Text style={styles.headerSubtitle}>Your AI health companion</Text>
         </View>
-        <View style={styles.headerIcon}>
-          <Ionicons name="sparkles" size={24} color="#007AFF" />
-        </View>
+        {/* Remove the headerIcon with sparkles */}
       </View>
 
       <KeyboardAvoidingView 
@@ -478,22 +514,28 @@ const HealthAssistantScreen: React.FC = () => {
           )}
         </ScrollView>
 
+        {/* FAB Actions (appear above input when plus is pressed) */}
+        {fabOpen && (
+          <View style={styles.fabActionsContainer}>
+            <TouchableOpacity style={styles.fabAction} onPress={() => { setFabOpen(false); handleImageInput(); }}>
+              <Ionicons name="camera" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.fabAction} onPress={() => { setFabOpen(false); handleDocumentInput(); }}>
+              <Ionicons name="attach" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Modern Input Section */}
         <View style={styles.inputContainer}>
           <View style={styles.inputRow}>
+            {/* Plus button on the left */}
             <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleImageInput}
+              style={styles.inputActionButton}
+              onPress={toggleFab}
               activeOpacity={0.7}
             >
-              <Ionicons name="camera" size={20} color="#8E8E93" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleDocumentInput}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="attach" size={20} color="#8E8E93" />
+              <Ionicons name="add" size={24} color="#8E8E93" />
             </TouchableOpacity>
             
             <View style={styles.textInputContainer}>
@@ -501,7 +543,7 @@ const HealthAssistantScreen: React.FC = () => {
                 style={styles.textInput}
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder="Ask me anything about your health..."
+                placeholder="Ask me anything about health..."
                 placeholderTextColor="#8E8E93"
                 multiline
                 maxLength={500}
@@ -509,18 +551,15 @@ const HealthAssistantScreen: React.FC = () => {
               />
             </View>
             
+            {/* Microphone/Send button on the right */}
             <TouchableOpacity 
-              style={[
-                styles.sendButton,
-                inputText.trim() ? styles.sendButtonActive : styles.sendButtonInactive
-              ]}
-              onPress={sendMessage}
-              disabled={!inputText.trim() || isLoading}
+              style={styles.inputActionButton}
+              onPress={inputText.trim() ? sendMessage : handleVoiceInput}
               activeOpacity={0.7}
             >
               <Ionicons 
-                name="send" 
-                size={20} 
+                name={inputText.trim() ? "arrow-up" : "mic"} 
+                size={24} 
                 color={inputText.trim() ? "#FFFFFF" : "#8E8E93"} 
               />
             </TouchableOpacity>
@@ -541,8 +580,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 32, // Match DashboardScreen
+    paddingBottom: 2, // Match DashboardScreen
     backgroundColor: '#000000',
   },
   headerContent: {
@@ -558,6 +597,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     fontWeight: '500',
+    marginBottom: 8,
   },
   headerIcon: {
     width: 40,
@@ -662,20 +702,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    marginLeft: 40,
+    marginLeft: 16,
+    marginRight: 16,
   },
   assistantMessageBubble: {
-    backgroundColor: '#181A20',
-    borderBottomLeftRadius: 8,
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#2C2C2E',
-    shadowColor: '#222',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
     paddingVertical: 14,
     marginRight: 40,
@@ -698,7 +729,7 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#000000',
   },
   speakButton: {
     marginLeft: 8,
@@ -779,6 +810,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 6,
   },
+  inputActionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+  },
   textInputContainer: {
     flex: 1,
     backgroundColor: '#232A34',
@@ -815,6 +855,49 @@ const styles = StyleSheet.create({
   },
   sendButtonInactive: {
     backgroundColor: '#232A34',
+  },
+  fabContainer: {
+    position: 'absolute',
+    left: 16,
+    bottom: 100,
+    width: 48,
+    height: 48,
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'auto',
+  },
+  fabMain: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+  },
+  fabActionsContainer: {
+    position: 'absolute',
+    left: 16,
+    bottom: 80,
+    zIndex: 1000,
+    alignItems: 'center',
+  },
+  fabAction: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#232A34',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
   },
 });
 

@@ -241,10 +241,10 @@ const DashboardScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.greeting}>
+        <Text style={styles.greeting}>
             {`Good ${getTimeOfDay()}, ${user?.displayName || 'there'}`}
-          </Text>
-        </View>
+        </Text>
+      </View>
         <View style={styles.headerRight}>
           {/* Removed plane icon button */}
           <TouchableOpacity 

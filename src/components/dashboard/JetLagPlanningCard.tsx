@@ -19,10 +19,9 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      weekday: 'short'
+    return date.toLocaleDateString('en-GB', { 
+      day: '2-digit',
+      month: '2-digit'
     });
   };
 
@@ -109,28 +108,26 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
       {/* Preparation schedule preview */}
       <View style={styles.schedulePreview}>
         <Text style={styles.scheduleTitle}>Sleep Adjustment Schedule</Text>
-        <View style={styles.scheduleRow}>
-          <Text style={styles.scheduleDay}>Day 1:</Text>
-          <Text style={styles.scheduleTime}>
-            {event.sleepAdjustment.dailySchedule[0]?.bedtime} - {event.sleepAdjustment.dailySchedule[0]?.wakeTime}
-          </Text>
-          <Text style={styles.scheduleAdjustment}>
-            {event.sleepAdjustment.dailySchedule[0]?.adjustment > 0 ? '+' : ''}
-            {event.sleepAdjustment.dailySchedule[0]?.adjustment}h
-          </Text>
-        </View>
-        {event.sleepAdjustment.dailySchedule.length > 1 && (
-          <View style={styles.scheduleRow}>
-            <Text style={styles.scheduleDay}>Day 2:</Text>
-            <Text style={styles.scheduleTime}>
-              {event.sleepAdjustment.dailySchedule[1]?.bedtime} - {event.sleepAdjustment.dailySchedule[1]?.wakeTime}
-            </Text>
-            <Text style={styles.scheduleAdjustment}>
-              {event.sleepAdjustment.dailySchedule[1]?.adjustment > 0 ? '+' : ''}
-              {event.sleepAdjustment.dailySchedule[1]?.adjustment}h
-            </Text>
-          </View>
-        )}
+        {event.sleepAdjustment.dailySchedule.map((day, idx) => {
+          // Calculate the date for this day
+          const prepStart = new Date(event.preparationStartDate);
+          const thisDate = new Date(prepStart.getTime() + idx * 24 * 60 * 60 * 1000);
+          const dayLabel = thisDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+          if (idx < 2) {
+            return (
+              <View key={idx} style={styles.scheduleRow}>
+                <Text style={styles.scheduleDay}>{dayLabel}:</Text>
+                <Text style={styles.scheduleTime}>
+                  {day.bedtime} - {day.wakeTime}
+                </Text>
+                <Text style={styles.scheduleAdjustment}>
+                  {day.adjustment > 0 ? '+' : ''}{day.adjustment}h
+                </Text>
+              </View>
+            );
+          }
+          return null;
+        })}
         {event.sleepAdjustment.dailySchedule.length > 2 && (
           <Text style={styles.scheduleMore}>
             +{event.sleepAdjustment.dailySchedule.length - 2} more days...
