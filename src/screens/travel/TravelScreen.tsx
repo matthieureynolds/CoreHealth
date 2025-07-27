@@ -1201,14 +1201,7 @@ const TravelScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#007AFF" />
-      {/* Location Banner at Top */}
-      {travelHealth && (
-        <View style={styles.locationBanner}>
-          <Ionicons name="location" size={22} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.locationBannerText}>{travelHealth.location}</Text>
-        </View>
-      )}
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -1282,91 +1275,53 @@ const TravelScreen: React.FC = () => {
 
           {travelHealth && (
             <View style={styles.section}>
-              <View style={styles.locationHeader}>
+              {/* Simplified Location Display */}
+              <View style={styles.locationCard}>
                 <View style={styles.locationInfo}>
                   <Ionicons name="location" size={20} color="#007AFF" />
                   <Text style={styles.locationText}>{travelHealth.location}</Text>
                 </View>
-                <Text style={styles.lastUpdated}>
-                  Last updated: {travelHealth.lastUpdated.toLocaleTimeString()}
-                </Text>
-              </View>
-
-              <View style={styles.overallRiskBanner}>
-                <Ionicons
-                  name="shield-checkmark"
-                  size={24}
-                  color={getRiskColor(travelHealth.overallRiskLevel)}
-                />
-                <Text style={styles.overallRiskText}>
-                  Overall Risk Level: {' '}
-                  <Text style={[styles.riskLevelText, { color: getRiskColor(travelHealth.overallRiskLevel) }]}>
-                    {travelHealth.overallRiskLevel.toUpperCase()}
+                <View style={styles.riskIndicator}>
+                  <Ionicons
+                    name="shield-checkmark"
+                    size={20}
+                    color={getRiskColor(travelHealth.overallRiskLevel)}
+                  />
+                  <Text style={[styles.riskText, { color: getRiskColor(travelHealth.overallRiskLevel) }]}>
+                    {travelHealth.overallRiskLevel}
                   </Text>
-                </Text>
+                </View>
               </View>
 
-              {/* Add API Error Warnings for specific data */}
-              {apiErrors.airQuality && (
-                <ApiErrorWarning 
-                  type="Air Quality" 
-                  message="Unable to fetch real-time air quality data. Using estimated values." 
-                />
-              )}
-              
-              {apiErrors.pollen && (
-                <ApiErrorWarning 
-                  type="Pollen" 
-                  message="Unable to fetch pollen forecast data. Using estimated values." 
-                />
-              )}
-              
-              {apiErrors.weather && (
-                <ApiErrorWarning 
-                  type="Weather" 
-                  message="Unable to fetch current weather data. Some features may be limited." 
-                />
-              )}
-              
-              {apiErrors.healthcare && (
-                <ApiErrorWarning 
-                  type="Healthcare Facilities" 
-                  message="Unable to find nearby healthcare facilities. Check your location or try again later." 
-                />
+              {/* Priority Health Metrics - Only show the most important ones */}
+              <View style={styles.metricsGrid}>
+                {renderHealthCard(travelHealth.airQuality, 'Air Quality')}
+                {renderHealthCard(travelHealth.uvIndex, 'UV Index')}
+                {renderHealthCard(travelHealth.waterSafety, 'Water Safety')}
+                {renderHealthCard(travelHealth.foodSafety, 'Food Safety')}
+              </View>
+
+              {/* Healthcare Facilities - Simplified */}
+              {travelHealth.healthcareFacilities && (
+                <View style={styles.healthcareSection}>
+                  <Text style={styles.sectionTitle}>Healthcare</Text>
+                  {renderHealthcareFacilities(travelHealth.healthcareFacilities)}
+                </View>
               )}
 
-              {/* Add timezone and jet lag components */}
-              {travelHealth.timeZoneInfo && renderTimeZoneInfo(travelHealth.timeZoneInfo)}
+              {/* Vaccinations - Keep this important */}
+              {renderVaccinationCard(travelHealth.vaccinations)}
+
+              {/* Jet Lag Info - Keep this */}
               {travelHealth.jetLagData && renderJetLagCard(travelHealth.jetLagData)}
 
-              {/* Add weather and health safety components */}
-              {travelHealth.weatherData && renderWeatherCard(travelHealth.weatherData)}
-              {travelHealth.heatWarning && renderHeatWarningCard(travelHealth.heatWarning)}
-              {travelHealth.hydrationRecommendation && renderHydrationCard(travelHealth.hydrationRecommendation)}
-              {travelHealth.activitySafety && renderActivitySafetyCard(travelHealth.activitySafety)}
-
-              {/* Core health metrics - moved up for priority */}
-              {renderHealthCard(travelHealth.airQuality, 'Air Quality')}
-              {renderHealthCard(travelHealth.pollenLevels, 'Pollen Levels')}
-              {renderHealthCard(travelHealth.waterSafety, 'Water Safety')}
-              {renderHealthCard(travelHealth.uvIndex, 'UV Index')}
-              {renderHealthCard(travelHealth.altitudeRisk, 'Altitude Risk')}
-              {renderHealthCard(travelHealth.diseaseRisk, 'Disease Risk')}
-              {renderHealthCard(travelHealth.foodSafety, 'Food Safety')}
-              {renderVaccinationCard(travelHealth.vaccinations)}
-              {travelHealth.healthcareFacilities && renderHealthcareFacilities(travelHealth.healthcareFacilities)}
-              {travelHealth.emergencyContacts && renderEmergencyContacts(travelHealth.emergencyContacts)}
-              
-              {/* Medication info - moved down and condensed */}
-              {travelHealth.medicationAvailability && travelHealth.medicationAvailability.length > 0 && 
-                travelHealth.medicationAvailability.map((availability, index) => (
-                  <React.Fragment key={availability.medication.id}>
-                    {renderMedicationAvailabilityCard(availability)}
-                    {availability.nearbyPharmacies.length > 0 && renderMedicationPharmaciesCard(availability.nearbyPharmacies)}
-                  </React.Fragment>
-                ))
-              }
-              {travelHealth.travelMedicationKit && renderTravelMedicationKitCard(travelHealth.travelMedicationKit)}
+              {/* Weather - Simplified */}
+              {travelHealth.weatherData && (
+                <View style={styles.weatherSection}>
+                  <Text style={styles.sectionTitle}>Weather</Text>
+                  {renderWeatherCard(travelHealth.weatherData)}
+                </View>
+              )}
             </View>
           )}
 
@@ -1577,7 +1532,7 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginLeft: 8,
   },
   lastUpdated: {
@@ -2653,6 +2608,42 @@ datePickerButton: {
 datePickerText: {
   fontSize: 16,
   color: '#FFFFFF',
+},
+locationCard: {
+  backgroundColor: '#1C1C1E',
+  borderRadius: 12,
+  padding: 16,
+  marginBottom: 20,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+riskIndicator: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+riskText: {
+  fontSize: 14,
+  fontWeight: '600',
+  marginLeft: 6,
+},
+metricsGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  marginBottom: 20,
+},
+healthcareSection: {
+  marginBottom: 20,
+},
+weatherSection: {
+  marginBottom: 20,
+},
+sectionTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  color: '#FFFFFF',
+  marginBottom: 12,
 },
 });
 
