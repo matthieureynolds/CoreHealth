@@ -14,7 +14,9 @@ import {
   Image,
   Animated,
   Easing,
+  Modal,
 } from 'react-native';
+import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../context/HealthDataContext';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +49,96 @@ const HealthAssistantScreen: React.FC = () => {
   const [fabOpen, setFabOpen] = useState(false);
   const fabAnim = useRef(new Animated.Value(0)).current;
   const fabScale = useRef(new Animated.Value(1)).current;
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [deletePreviousChat, setDeletePreviousChat] = useState(false);
+  const [chatHistory, setChatHistory] = useState<Array<{id: string, title: string, timestamp: Date}>>([
+    {
+      id: 'chat_1',
+      title: 'How are my biomarkers looking?',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
+    },
+    {
+      id: 'chat_2', 
+      title: 'What should I eat today?',
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
+    },
+    {
+      id: 'chat_3',
+      title: 'Give me a workout plan',
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+    }
+  ]);
+  const [currentChatId, setCurrentChatId] = useState<string>('default');
+
+  // Modern loading animation values
+  const dot1Anim = useRef(new Animated.Value(0)).current;
+  const dot2Anim = useRef(new Animated.Value(0)).current;
+  const dot3Anim = useRef(new Animated.Value(0)).current;
+
+  // Start loading animation when isLoading changes
+  useEffect(() => {
+    if (isLoading) {
+      const startAnimation = () => {
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(dot1Anim, {
+              toValue: 1,
+              duration: 600,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot2Anim, {
+              toValue: 1,
+              duration: 600,
+              delay: 200,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot3Anim, {
+              toValue: 1,
+              duration: 600,
+              delay: 400,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(dot1Anim, {
+              toValue: 0,
+              duration: 600,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot2Anim, {
+              toValue: 0,
+              duration: 600,
+              delay: 200,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot3Anim, {
+              toValue: 0,
+              duration: 600,
+              delay: 400,
+              easing: Easing.bezier(0.4, 0, 0.2, 1),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start(() => {
+          if (isLoading) {
+            startAnimation(); // Loop animation while loading
+          }
+        });
+      };
+      startAnimation();
+    } else {
+      // Reset animations when loading stops
+      dot1Anim.setValue(0);
+      dot2Anim.setValue(0);
+      dot3Anim.setValue(0);
+    }
+  }, [isLoading]);
 
   // Initialize conversation with personalized greeting
   useEffect(() => {
@@ -126,11 +218,51 @@ const HealthAssistantScreen: React.FC = () => {
     }
   };
 
-  // Voice input handler (using expo-speech-to-text or placeholder)
+  // Voice input handler with speech-to-text simulation
   const handleVoiceInput = async () => {
-    // Placeholder: In production, use a speech-to-text package or API
-    Alert.alert('Voice Input', 'Voice input is not yet implemented.');
-    // Example: setInputText(transcribedText);
+    try {
+      // Show recording indicator
+      setIsRecording(true);
+      
+      // Simulate voice recording with a loading state
+      Alert.alert(
+        'Voice Input',
+        'Voice recording started. Tap "Start Recording" to begin.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setIsRecording(false)
+          },
+          {
+            text: 'Start Recording',
+            onPress: () => {
+              // Simulate recording process
+              setTimeout(() => {
+                // For demo purposes, set a sample transcribed text
+                const sampleTranscriptions = [
+                  "How can I improve my sleep quality?",
+                  "What should I eat for better energy?",
+                  "Can you analyze my recent lab results?",
+                  "What exercises are good for heart health?",
+                  "How do I manage stress better?"
+                ];
+                
+                const randomText = sampleTranscriptions[Math.floor(Math.random() * sampleTranscriptions.length)];
+                setInputText(randomText);
+                setIsRecording(false);
+                
+                // Provide feedback
+                Alert.alert('Voice Input', `Transcribed: "${randomText}"`);
+              }, 2000); // 2 second delay to simulate processing
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      setIsRecording(false);
+      Alert.alert('Error', 'Voice input failed. Please try again.');
+    }
   };
 
   // Image input handler
@@ -351,6 +483,107 @@ const HealthAssistantScreen: React.FC = () => {
     });
   };
 
+  // Chat management functions
+  const startNewChat = (withMemory: boolean) => {
+    const newChatId = `chat_${Date.now()}`;
+    const chatTitle = `Chat ${chatHistory.length + 1}`;
+    
+    if (deletePreviousChat) {
+      setMessages([]);
+      setChatHistory([]);
+    } else {
+      // Save current chat to history if it has messages
+      if (messages.length > 0) {
+        const currentChatTitle = messages[0]?.content.substring(0, 30) + '...' || 'Chat';
+        setChatHistory(prev => [...prev, {
+          id: currentChatId,
+          title: currentChatTitle,
+          timestamp: new Date()
+        }]);
+      }
+    }
+    
+    setCurrentChatId(newChatId);
+    setMessages([]);
+    setShowNewChatModal(false);
+    setDeletePreviousChat(false);
+    
+    // Initialize with welcome message if with memory
+    if (withMemory) {
+      // Add a welcome message for new chat
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: 'Hello! I\'m your health assistant. How can I help you today?',
+        timestamp: new Date()
+      }]);
+    }
+  };
+
+  const loadChat = (chatId: string) => {
+    // For now, we'll just switch to a new chat
+    // In a real app, you'd load the actual chat messages from storage
+    setCurrentChatId(chatId);
+    setMessages([]);
+    setShowChatHistory(false);
+    
+    // Add a placeholder message
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: 'Chat loaded. Previous messages would be restored here.',
+      timestamp: new Date()
+    }]);
+  };
+
+  const deleteChat = (chatId: string) => {
+    setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+  };
+
+  // Swipeable Chat Item Component
+  const SwipeableChatItem = ({ chat, onPress, onDelete }: { 
+    chat: {id: string, title: string, timestamp: Date}, 
+    onPress: () => void, 
+    onDelete: () => void 
+  }) => {
+    const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+      const scale = dragX.interpolate({
+        inputRange: [-100, 0],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      });
+
+      return (
+        <RectButton style={styles.swipeableDeleteButton} onPress={onDelete}>
+          <Animated.View style={[styles.swipeableDeleteContent, { transform: [{ scale }] }]}>
+            <Ionicons name="trash" size={24} color="#fff" />
+            <Text style={styles.swipeableDeleteText}>Delete</Text>
+          </Animated.View>
+        </RectButton>
+      );
+    };
+
+    return (
+      <Swipeable
+        renderRightActions={renderRightActions}
+        rightThreshold={40}
+      >
+        <TouchableOpacity 
+          style={styles.chatHistoryItem}
+          onPress={onPress}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.chatHistoryTitle}>{chat.title}</Text>
+            <Text style={styles.chatHistoryTimestamp}>
+              {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
+
   // Update MessageBubble to show image/document preview
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -477,16 +710,93 @@ const HealthAssistantScreen: React.FC = () => {
       
       {/* Modern Header */}
       <View style={styles.header}>
+        {/* Menu button (top left) */}
+        <TouchableOpacity onPress={() => setShowChatHistory(true)} style={{ marginRight: 12 }}>
+          <Ionicons name="menu" size={28} color="#fff" />
+        </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Health Assistant</Text>
           <Text style={styles.headerSubtitle}>Your AI health companion</Text>
         </View>
-        {/* Remove the headerIcon with sparkles */}
+        {/* New chat button (top right) */}
+        <TouchableOpacity onPress={() => setShowNewChatModal(true)} style={{ marginLeft: 12 }}>
+          <Ionicons name="create-outline" size={26} color="#fff" />
+        </TouchableOpacity>
       </View>
+      {/* Chat History Modal */}
+      <Modal visible={showChatHistory} animationType="slide" transparent onRequestClose={() => setShowChatHistory(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          {/* 75% width panel from left */}
+          <View style={{ 
+            width: '75%', 
+            height: '100%', 
+            backgroundColor: '#181A20',
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            paddingTop: 60,
+            paddingHorizontal: 20
+          }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>Chat History</Text>
+              <TouchableOpacity onPress={() => setShowChatHistory(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            
+            {chatHistory.length > 0 ? (
+              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                {chatHistory.map((chat) => (
+                  <SwipeableChatItem
+                    key={chat.id}
+                    chat={chat}
+                    onPress={() => loadChat(chat.id)}
+                    onDelete={() => deleteChat(chat.id)}
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: '#aaa', fontSize: 16 }}>No previous chats yet.</Text>
+              </View>
+            )}
+          </View>
+          
+          {/* Tap outside to close */}
+          <TouchableOpacity 
+            style={{ position: 'absolute', right: 0, top: 0, width: '25%', height: '100%' }}
+            onPress={() => setShowChatHistory(false)}
+          />
+        </View>
+      </Modal>
+      {/* New Chat Modal */}
+      <Modal visible={showNewChatModal} animationType="fade" transparent onRequestClose={() => setShowNewChatModal(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#181A20', borderRadius: 24, padding: 28, width: 320 }}>
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Start New Chat</Text>
+            <Text style={{ color: '#aaa', fontSize: 16, marginBottom: 24 }}>Would you like this chat to have memory?</Text>
+            <TouchableOpacity style={{ backgroundColor: '#007AFF', borderRadius: 12, padding: 14, marginBottom: 12 }} onPress={() => startNewChat(true)}>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>With Memory</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ backgroundColor: '#232A34', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#444' }} onPress={() => startNewChat(false)}>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>No Memory (Incognito)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }} onPress={() => setDeletePreviousChat(v => !v)}>
+              <Ionicons name={deletePreviousChat ? 'checkbox' : 'square-outline'} size={22} color={deletePreviousChat ? '#007AFF' : '#aaa'} />
+              <Text style={{ color: '#fff', fontSize: 15, marginLeft: 8 }}>Delete previous chat</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowNewChatModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+              <Text style={{ color: '#007AFF', fontWeight: 'bold', fontSize: 16 }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <KeyboardAvoidingView 
         style={styles.keyboardContainer} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Chat Messages */}
         <ScrollView 
@@ -507,8 +817,9 @@ const HealthAssistantScreen: React.FC = () => {
           {isLoading && (
             <View style={styles.loadingContainer}>
               <View style={styles.loadingBubble}>
-                <ActivityIndicator size="small" color="#007AFF" />
-                <Text style={styles.loadingText}>Thinking...</Text>
+                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot1Anim }] }]} />
+                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot2Anim }] }]} />
+                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot3Anim }] }]} />
               </View>
             </View>
           )}
@@ -538,29 +849,38 @@ const HealthAssistantScreen: React.FC = () => {
               <Ionicons name="add" size={24} color="#8E8E93" />
             </TouchableOpacity>
             
-            <View style={styles.textInputContainer}>
+            <View style={[
+              styles.textInputContainer,
+              isRecording && { borderColor: '#FF3B30', borderWidth: 2 }
+            ]}>
               <TextInput
                 style={styles.textInput}
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder="Ask me anything about health..."
-                placeholderTextColor="#8E8E93"
+                placeholder={isRecording ? "Recording..." : "Ask me anything about health..."}
+                placeholderTextColor={isRecording ? "#FF3B30" : "#8E8E93"}
                 multiline
                 maxLength={500}
                 onSubmitEditing={sendMessage}
+                keyboardAppearance="dark"
+                editable={!isRecording}
               />
             </View>
             
             {/* Microphone/Send button on the right */}
             <TouchableOpacity 
-              style={styles.inputActionButton}
+              style={[
+                styles.inputActionButton,
+                isRecording && { backgroundColor: '#FF3B30' }
+              ]}
               onPress={inputText.trim() ? sendMessage : handleVoiceInput}
               activeOpacity={0.7}
+              disabled={isRecording}
             >
               <Ionicons 
-                name={inputText.trim() ? "arrow-up" : "mic"} 
+                name={inputText.trim() ? "arrow-up" : (isRecording ? "radio-button-on" : "mic")} 
                 size={24} 
-                color={inputText.trim() ? "#FFFFFF" : "#8E8E93"} 
+                color={inputText.trim() ? "#FFFFFF" : (isRecording ? "#FFFFFF" : "#8E8E93")} 
               />
             </TouchableOpacity>
           </View>
@@ -702,8 +1022,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    marginLeft: 16,
-    marginRight: 16,
+    marginLeft: 32, // more space from left
+    alignSelf: 'flex-end',
+    width: 'auto', // only as wide as text
   },
   assistantMessageBubble: {
     backgroundColor: 'transparent',
@@ -754,6 +1075,13 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginLeft: 8,
   },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
+    marginHorizontal: 3,
+  },
   messageImage: {
     width: 180,
     height: 180,
@@ -788,6 +1116,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 32,
     margin: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
@@ -882,7 +1211,7 @@ const styles = StyleSheet.create({
   fabActionsContainer: {
     position: 'absolute',
     left: 16,
-    bottom: 80,
+    bottom: 140,
     zIndex: 1000,
     alignItems: 'center',
   },
@@ -898,6 +1227,46 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 6,
+  },
+  // Chat History Styles
+  chatHistoryItem: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#232A34',
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  chatHistoryTitle: {
+    color: '#fff', 
+    fontSize: 16, 
+    fontWeight: '500',
+  },
+  chatHistoryTimestamp: {
+    color: '#aaa', 
+    fontSize: 12, 
+    marginTop: 4,
+  },
+  swipeableDeleteButton: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  swipeableDeleteContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swipeableDeleteText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 4,
   },
 });
 

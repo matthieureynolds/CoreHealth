@@ -254,43 +254,43 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         )}
         {showMore && (
           <>
-            {/* Jet Lag Planning Events */}
-            {jetLagPlanningEvents.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Jet Lag Planning</Text>
-                {jetLagPlanningEvents.map((event, index) => (
-                  <JetLagPlanningCard
-                    key={event.id || index}
-                    event={event}
-                    onPress={() => onJetLagEventPress?.(event)}
-                  />
-                ))}
-              </>
-            )}
-            {/* Closest facilities */}
-            {closestFacilities.map(facility => (
+              {/* Jet Lag Planning Events */}
+              {jetLagPlanningEvents.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Jet Lag Planning</Text>
+                  {jetLagPlanningEvents.map((event, index) => (
+                    <JetLagPlanningCard
+                      key={event.id || index}
+                      event={event}
+                      onPress={() => onJetLagEventPress?.(event)}
+                    />
+                  ))}
+                </>
+              )}
+              {/* Closest facilities */}
+              {closestFacilities.map(facility => (
               <TouchableOpacity
                 key={facility.id}
                 style={styles.facilityCard}
                 onPress={() => handleFacilityPress(facility)}
               >
-                <View style={styles.facilityIconContainer}>
-                  <Ionicons 
-                    name={facility.type === 'Pharmacy' ? 'medkit' : facility.type === 'Hospital' ? 'business' : 'help-circle'}
-                    size={20}
-                    color="#30D158"
-                  />
-                </View>
-                <View style={styles.facilityInfo}>
-                  <Text style={styles.facilityName}>{facility.name}</Text>
-                  <Text style={styles.facilityDetails}>{facility.type} • {facility.distance}</Text>
-                </View>
-                <View style={styles.travelTimeContainer}>
-                  <Ionicons name="car" size={14} color="#8E8E93" />
-                  <Text style={styles.travelTime}>{facility.travelTime}</Text>
-                </View>
+                  <View style={styles.facilityIconContainer}>
+                    <Ionicons 
+                      name={facility.type === 'Pharmacy' ? 'medkit' : facility.type === 'Hospital' ? 'business' : 'help-circle'}
+                      size={20}
+                      color="#30D158"
+                    />
+                  </View>
+                  <View style={styles.facilityInfo}>
+                    <Text style={styles.facilityName}>{facility.name}</Text>
+                    <Text style={styles.facilityDetails}>{facility.type} • {facility.distance}</Text>
+                  </View>
+                  <View style={styles.travelTimeContainer}>
+                    <Ionicons name="car" size={14} color="#8E8E93" />
+                    <Text style={styles.travelTime}>{facility.travelTime}</Text>
+                  </View>
               </TouchableOpacity>
-            ))}
+              ))}
             <TouchableOpacity onPress={() => setShowMore(false)} style={styles.lessTab}>
               <Text style={styles.lessTabText}>Show Less</Text>
             </TouchableOpacity>

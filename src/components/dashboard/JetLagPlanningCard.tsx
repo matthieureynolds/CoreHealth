@@ -117,13 +117,13 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
             return (
               <View key={idx} style={styles.scheduleRow}>
                 <Text style={styles.scheduleDay}>{dayLabel}:</Text>
-                <Text style={styles.scheduleTime}>
+          <Text style={styles.scheduleTime}>
                   {day.bedtime} - {day.wakeTime}
-                </Text>
-                <Text style={styles.scheduleAdjustment}>
+          </Text>
+          <Text style={styles.scheduleAdjustment}>
                   {day.adjustment > 0 ? '+' : ''}{day.adjustment}h
-                </Text>
-              </View>
+          </Text>
+        </View>
             );
           }
           return null;

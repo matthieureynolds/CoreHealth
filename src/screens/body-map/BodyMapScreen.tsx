@@ -655,16 +655,16 @@ const BodyMapScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    backgroundColor: '#F8F9FA',
+    paddingTop: 32, // Match Health Assistant height
+    paddingBottom: 2, // Match Health Assistant height
+    backgroundColor: '#000000',
   },
   headerContent: {
     flex: 1,
@@ -673,11 +673,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#007AFF20',
+    borderColor: '#007AFF30',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -687,25 +687,25 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#8E8E93',
     fontWeight: '400',
     lineHeight: 20,
     flexWrap: 'wrap',
   },
   scrollContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#000000',
   },
   scrollContent: {
     paddingBottom: 20,
   },
   bodyMapContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderRadius: 20,
     marginHorizontal: 16,
     marginVertical: 8,
@@ -727,18 +727,18 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   resultsSubtitle: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   resultsScrollContainer: {
     paddingRight: 16,
   },
   organResultsCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     borderRadius: 16,
     padding: 16,
     marginRight: 12,
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
   organResultsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginLeft: 8,
   },
   biomarkerResultItem: {
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: '#3A3A3C',
   },
   biomarkerResultContent: {
     flex: 1,
@@ -774,12 +774,12 @@ const styles = StyleSheet.create({
   biomarkerResultName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   biomarkerResultValue: {
     fontSize: 12,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   biomarkerResultStatus: {
     flexDirection: 'row',
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   uploadSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderRadius: 20,
     marginHorizontal: 16,
     marginTop: 16,
@@ -808,17 +808,17 @@ const styles = StyleSheet.create({
   uploadTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   uploadDescription: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#8E8E93',
     marginBottom: 4,
   },
   uploadFormats: {
     fontSize: 12,
-    color: '#6C757D',
+    color: '#8E8E93',
     fontStyle: 'italic',
   },
   uploadButtonsContainer: {
@@ -828,11 +828,11 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#2C2C2E',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderColor: '#3A3A3C',
   },
   uploadButtonContent: {
     alignItems: 'center',
@@ -849,12 +849,12 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   uploadButtonSubtext: {
     fontSize: 12,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   documentsList: {
     marginTop: 16,
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
   documentsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   documentItem: {
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: '#3A3A3C',
   },
   documentInfo: {
     flexDirection: 'row',
@@ -885,12 +885,12 @@ const styles = StyleSheet.create({
   documentName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   documentMeta: {
     fontSize: 12,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   documentActions: {
     alignItems: 'flex-end',
@@ -920,7 +920,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '70%',
@@ -938,7 +938,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: '#3A3A3C',
   },
   panelHeaderContent: {
     flex: 1,
@@ -946,22 +946,22 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   panelSubtitle: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#2C2C2E',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderColor: '#3A3A3C',
   },
   panelContent: {
     flex: 1,
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
   biomarkersTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 16,
   },
   biomarkerItem: {
@@ -982,7 +982,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
+    borderBottomColor: '#3A3A3C',
   },
   biomarkerContent: {
     flex: 1,
@@ -990,17 +990,17 @@ const styles = StyleSheet.create({
   biomarkerName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   biomarkerValue: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#8E8E93',
     marginBottom: 2,
   },
   biomarkerRange: {
     fontSize: 12,
-    color: '#6C757D',
+    color: '#8E8E93',
   },
   biomarkerStatus: {
     flexDirection: 'row',
@@ -1017,7 +1017,7 @@ const styles = StyleSheet.create({
   recommendationsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginBottom: 16,
   },
   recommendationItem: {
@@ -1027,7 +1027,7 @@ const styles = StyleSheet.create({
   },
   recommendationText: {
     fontSize: 14,
-    color: '#1A1A1A',
+    color: '#FFFFFF',
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
