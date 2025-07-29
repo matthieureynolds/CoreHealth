@@ -722,7 +722,7 @@ const HealthAssistantScreen: React.FC = () => {
         <TouchableOpacity onPress={() => setShowNewChatModal(true)} style={{ marginLeft: 12 }}>
           <Ionicons name="create-outline" size={26} color="#fff" />
         </TouchableOpacity>
-      </View>
+        </View>
       {/* Chat History Modal */}
       <Modal visible={showChatHistory} animationType="slide" transparent onRequestClose={() => setShowChatHistory(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -743,7 +743,7 @@ const HealthAssistantScreen: React.FC = () => {
               <TouchableOpacity onPress={() => setShowChatHistory(false)}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
-            </View>
+      </View>
             
             {chatHistory.length > 0 ? (
               <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
