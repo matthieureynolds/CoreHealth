@@ -9,6 +9,50 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface PrimaryDoctor {
+  id: string;
+  name: string;
+  specialty: string;
+  phone: string;
+  email?: string;
+  office: string;
+  address?: string;
+  notes?: string;
+}
+
+export interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  phone: string;
+  email?: string;
+  office: string;
+  address?: string;
+  notes?: string;
+  isRegistered: boolean;
+}
+
+export interface MedicalRecord {
+  id: string;
+  name: string;
+  type: 'lab_result' | 'imaging' | 'prescription' | 'consultation' | 'procedure' | 'other';
+  date: Date;
+  fileUrl?: string;
+  fileSize?: number;
+  notes?: string;
+  tags?: string[];
+}
+
+export interface HealthID {
+  id: string;
+  country: string;
+  countryCode: string;
+  idType: string; // e.g., "NHS Number", "Carte Vitale", "Medicare"
+  idNumber: string;
+  isPrimary: boolean;
+  notes?: string;
+}
+
 export interface UserProfile {
   userId: string;
   age: number;
@@ -18,12 +62,24 @@ export interface UserProfile {
   ethnicity?: string;
   bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown';
   medicalHistory: MedicalCondition[];
+  medications: Medication[];
   familyHistory: FamilyCondition[];
   surgeries: Surgery[];
   vaccinations: Vaccination[];
-  allergies: string[];
+  screenings: Screening[];
+  allergies: Array<{
+    id: string;
+    name: string;
+    severity: 'mild' | 'moderate' | 'severe';
+    reaction?: string;
+    notes?: string;
+  }>;
   lifestyle: LifestyleInfo;
   organSpecificConditions: OrganCondition[];
+  primaryDoctor?: PrimaryDoctor;
+  healthIDs?: HealthID[];
+  doctors?: Doctor[];
+  medicalRecords?: MedicalRecord[];
 }
 
 // Health Data Types
@@ -50,6 +106,16 @@ export interface Vaccination {
   nextDue?: Date;
   location?: string;
   batchNumber?: string;
+}
+
+export interface Screening {
+  id: string;
+  name: string;
+  date: Date;
+  nextDue?: Date;
+  result?: 'normal' | 'abnormal' | 'inconclusive';
+  location?: string;
+  notes?: string;
 }
 
 export interface LabResult {
@@ -237,8 +303,22 @@ export type ProfileTabParamList = {
   ProfileDetails: undefined;
   Settings: undefined;
   EditProfile: undefined;
+  EditName: undefined;
+  EditPhysicalStats: undefined;
+  HealthIDs: undefined;
+  Conditions: undefined;
+  Medications: undefined;
+  Allergies: undefined;
+  FamilyHistory: undefined;
+  Vaccinations: undefined;
+  Screenings: undefined;
+  UploadMedicalRecord: undefined;
+  ViewMedicalRecords: undefined;
+  GenerateHealthReport: undefined;
+  ShareWithDoctor: undefined;
   MedicalHistory: undefined;
   EmergencyContacts: undefined;
+  PrimaryDoctor: undefined;
   BiomarkerVisibility: undefined;
   HelpSupport: undefined;
   TermsOfService: undefined;
@@ -489,6 +569,15 @@ export interface TravelMedicationKit {
 }
 
 // New interfaces for enhanced medical history
+export interface Medication {
+  id: string;
+  name: string;
+  dosage?: string;
+  frequency?: string;
+  startDate?: string;
+  notes?: string;
+}
+
 export interface Surgery {
   id: string;
   procedure: string;

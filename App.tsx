@@ -31,7 +31,7 @@ export default function App() {
           <HealthDataProvider>
             <NavigationContainer>
               <RootNavigator />
-              <StatusBar style="auto" />
+              <StatusBar style="light" backgroundColor="#111" />
             </NavigationContainer>
           </HealthDataProvider>
         </AuthProvider>

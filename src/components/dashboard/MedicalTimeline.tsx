@@ -202,12 +202,12 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         <TouchableOpacity onPress={() => setShowMore(!showMore)}>
           <Text style={styles.viewAll}>{showMore ? 'Show Less' : 'View All'}</Text>
         </TouchableOpacity>
-      </View>
+    </View>
 
       {Object.entries(visibleGroupedEvents).map(([category, categoryEvents]) => {
         if (categoryEvents.length === 0) return null;
-        
-        return (
+
+    return (
           <View key={category}>
             <Text style={styles.categoryTitle}>
               {category === 'today' ? 'Today' : 
@@ -216,33 +216,33 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                category === 'nextMonth' ? 'Next Month' : 'Future'}
             </Text>
             {categoryEvents.map((event) => (
-              <Swipeable
-                key={event.id}
+      <Swipeable
+        key={event.id}
                 renderRightActions={() => renderRightActions(event.id)}
                 rightThreshold={40}
-              >
-                <TouchableOpacity
+      >
+      <TouchableOpacity
                   style={styles.eventCard}
-                  onPress={() => handleEventPress(event)}
-                >
+          onPress={() => handleEventPress(event)}
+      >
                   <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
                     <Ionicons name={event.icon} size={20} color={event.iconColor} />
-                  </View>
+          </View>
                   <View style={styles.eventInfo}>
-                    <Text style={styles.eventTitle}>{event.title}</Text>
-                    <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-                    <Text style={styles.eventTime}>{event.time}</Text>
-                  </View>
+              <Text style={styles.eventTitle}>{event.title}</Text>
+            <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+                  <Text style={styles.eventTime}>{event.time}</Text>
+            </View>
                   {event.status === 'DUE' && (
                     <Text style={styles.dueStatus}>{event.status}</Text>
                   )}
                   <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-                </TouchableOpacity>
-              </Swipeable>
+      </TouchableOpacity>
+      </Swipeable>
             ))}
           </View>
-        );
-      })}
+          );
+        })}
 
       {/* Add Appointment Modal */}
       <Modal visible={addModalVisible} transparent animationType="slide">

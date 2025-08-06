@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +21,33 @@ type ProfileDetailsScreenNavigationProp = StackNavigationProp<ProfileTabParamLis
 const ProfileDetailsScreen: React.FC = () => {
   const navigation = useNavigation<ProfileDetailsScreenNavigationProp>();
   const { user } = useAuth();
-  const { profile } = useHealthData();
+  const { profile, updateProfile } = useHealthData();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [showEthnicityPicker, setShowEthnicityPicker] = useState(false);
+
+  // Picker options
+  const genderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+  ];
+
+  const ethnicityOptions = [
+    { value: 'east_asian', label: 'East Asian' },
+    { value: 'south_asian', label: 'South Asian' },
+    { value: 'southeast_asian', label: 'Southeast Asian' },
+    { value: 'middle_eastern', label: 'Middle Eastern' },
+    { value: 'north_african', label: 'North African' },
+    { value: 'sub_saharan_african', label: 'Sub-Saharan African' },
+    { value: 'european', label: 'European' },
+    { value: 'latin_american', label: 'Latin American' },
+    { value: 'caribbean', label: 'Caribbean' },
+    { value: 'pacific_islander', label: 'Pacific Islander' },
+    { value: 'indigenous_american', label: 'Indigenous American' },
+    { value: 'mixed_heritage', label: 'Mixed Heritage' },
+    { value: 'other', label: 'Other' },
+    { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+  ];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -41,79 +68,248 @@ const ProfileDetailsScreen: React.FC = () => {
             <Ionicons name="create-outline" size={16} color="#007AFF" />
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </TouchableOpacity>
-      </View>
+        </View>
 
-      {/* Profile Info Card */}
+      {/* Personal Info Card */}
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>PERSONAL INFORMATION</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
+        <Text style={styles.cardHeader}>PERSONAL INFO</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
           <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Basic Details</Text>
-          <Text style={styles.cardValue}>{profile ? `${profile.age} years old, ${profile.gender}` : 'Not set'}</Text>
+          <Text style={styles.cardLabel}>Name</Text>
+          <Text style={styles.cardValue}>{user?.displayName || 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
-          <Ionicons name="fitness-outline" size={22} color="#4CD964" style={styles.cardIcon} />
+        <TouchableOpacity style={styles.cardRow} onPress={() => setShowDatePicker(true)}>
+          <Ionicons name="calendar-outline" size={22} color="#4CD964" style={styles.cardIcon} />
+                          <Text style={styles.cardLabel}>Date of Birth</Text>
+          <Text style={styles.cardValue}>{profile?.age ? `${profile.age} years old` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => setShowGenderPicker(true)}>
+          <Ionicons name="body-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Gender</Text>
+          <Text style={styles.cardValue}>{profile?.gender ? genderOptions.find(opt => opt.value === profile.gender)?.label || profile.gender : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => setShowEthnicityPicker(true)}>
+          <Ionicons name="globe-outline" size={22} color="#6BCF7F" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Ethnicity</Text>
+          <Text style={styles.cardValue}>{profile?.ethnicity ? ethnicityOptions.find(opt => opt.value === profile.ethnicity)?.label || profile.ethnicity : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditPhysicalStats')}>
+          <Ionicons name="fitness-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Physical Stats</Text>
           <Text style={styles.cardValue}>{profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditProfile')}>
-          <Ionicons name="location-outline" size={22} color="#007AFF" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Ethnicity</Text>
-          <Text style={styles.cardValue}>{profile?.ethnicity || 'Not set'}</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('HealthIDs')}>
+          <Ionicons name="card-outline" size={22} color="#8E44AD" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Linked Health ID</Text>
+          <Text style={styles.cardValue}>{profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
       </View>
 
-      {/* Health Profile Card */}
+      {/* Health Records Card */}
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>HEALTH PROFILE</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+        <Text style={styles.cardHeader}>HEALTH RECORDS</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Conditions')}>
           <Ionicons name="medical-outline" size={22} color="#FF9500" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Medical History</Text>
+          <Text style={styles.cardLabel}>Conditions</Text>
           <Text style={styles.cardValue}>{profile?.medicalHistory?.length ? `${profile.medicalHistory.length} conditions` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
-          <Ionicons name="shield-checkmark-outline" size={22} color="#6BCF7F" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Vaccinations</Text>
-          <Text style={styles.cardValue}>{profile?.vaccinations?.length ? `${profile.vaccinations.length} vaccines` : 'Not set'}</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Medications')}>
+          <Ionicons name="medical-outline" size={22} color="#4CD964" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Medications</Text>
+          <Text style={styles.cardValue}>{profile?.medications?.length ? `${profile.medications.length} medications` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Allergies')}>
           <Ionicons name="warning-outline" size={22} color="#FFD93D" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Allergies</Text>
           <Text style={styles.cardValue}>{profile?.allergies?.length ? `${profile.allergies.length} allergies` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('MedicalHistory')}>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('FamilyHistory')}>
           <Ionicons name="people-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Family History</Text>
           <Text style={styles.cardValue}>{profile?.familyHistory?.length ? `${profile.familyHistory.length} conditions` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-      </View>
-
-      {/* Quick Actions Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardHeader}>QUICK ACTIONS</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
-          <Ionicons name="add-circle-outline" size={22} color="#FF6B6B" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Add Medical Record</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Vaccinations')}>
+          <Ionicons name="shield-checkmark-outline" size={22} color="#6BCF7F" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Vaccinations</Text>
+          <Text style={styles.cardValue}>{profile?.vaccinations?.length ? `${profile.vaccinations.length} vaccines` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
-          <Ionicons name="document-text-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Screenings')}>
+          <Ionicons name="search-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Screenings</Text>
+          <Text style={styles.cardValue}>{profile?.screenings?.length ? `${profile.screenings.length} screenings` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+      </View>
+
+
+
+      {/* Record Management Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>RECORD MANAGEMENT</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('UploadMedicalRecord')}>
+          <Ionicons name="camera-outline" size={22} color="#FF6B6B" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Upload Medical Record</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ViewMedicalRecords')}>
+          <Ionicons name="folder-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>View Medical Records</Text>
+          <Text style={styles.cardValue}>{profile?.medicalRecords?.length ? `${profile.medicalRecords.length} records` : 'No records'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('GenerateHealthReport')}>
+          <Ionicons name="document-text-outline" size={22} color="#45B7D1" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Generate Health Report</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => {}}>
-          <Ionicons name="share-outline" size={22} color="#45B7D1" style={styles.cardIcon} />
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ShareWithDoctor')}>
+          <Ionicons name="share-outline" size={22} color="#FF9500" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Share with Doctor</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
       </View>
+
+      {/* Emergency Info Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>EMERGENCY INFO</Text>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmergencyContacts')}>
+          <Ionicons name="call-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Emergency Contact</Text>
+          <Text style={styles.cardValue}>{profile?.emergencyContact ? 'Set' : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrimaryDoctor')}>
+          <Ionicons name="medical-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Primary Doctor</Text>
+          <Text style={styles.cardValue}>{profile?.primaryDoctor ? 'Set' : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Birthday Date Picker */}
+      {showDatePicker && (
+        <View style={styles.datePickerOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+                              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Ionicons name="close" size={24} color="#007AFF" />
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="spinner"
+              maximumDate={new Date()}
+              style={styles.datePicker}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  // Calculate age from birth date
+                  const today = new Date();
+                  const birthDate = new Date(selectedDate);
+                  const age = today.getFullYear() - birthDate.getFullYear();
+                  const monthDiff = today.getMonth() - birthDate.getMonth();
+                  
+                  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                  }
+
+                  if (age >= 1 && age <= 150) {
+                    updateProfile({
+                      ...profile,
+                      age,
+                    });
+                  } else {
+                    Alert.alert('Error', 'Please select a valid date of birth');
+                  }
+                }
+              }}
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Gender Picker */}
+      {showGenderPicker && (
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Gender</Text>
+              <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+                <Ionicons name="close" size={24} color="#007AFF" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.wheelPickerContainer}>
+              <Picker
+                selectedValue={profile?.gender || 'male'}
+                style={styles.wheelPicker}
+                onValueChange={(itemValue) => {
+                  updateProfile({
+                    ...profile,
+                    gender: itemValue as 'male' | 'female',
+                  });
+                  setShowGenderPicker(false);
+                }}
+              >
+                {genderOptions.map((option) => (
+                  <Picker.Item
+                    key={option.value}
+                    label={option.label}
+                    value={option.value}
+                    color="#fff"
+                  />
+                ))}
+              </Picker>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Ethnicity Picker */}
+      {showEthnicityPicker && (
+        <View style={styles.datePickerOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>Select Ethnicity</Text>
+              <TouchableOpacity onPress={() => setShowEthnicityPicker(false)}>
+                <Ionicons name="close" size={24} color="#007AFF" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
+              {ethnicityOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.ethnicityPickerOption}
+          onPress={() => {
+                    updateProfile({
+                      ...profile,
+                      ethnicity: option.value,
+                    });
+                    setShowEthnicityPicker(false);
+                  }}
+                >
+                  <Text style={styles.ethnicityPickerOptionText}>{option.label}</Text>
+                  {profile?.ethnicity === option.value && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+      </View>
+      </View>
+      )}
     </ScrollView>
   );
 };
@@ -226,6 +422,114 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 8,
+  },
+  pickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  pickerContainer: {
+    backgroundColor: '#181818',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+  },
+  pickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  pickerOptions: {
+    maxHeight: 400,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+  },
+  pickerOptionText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  wheelPickerContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  wheelPicker: {
+    backgroundColor: 'transparent',
+    color: '#fff',
+    width: 200,
+    height: 150,
+  },
+  datePickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    paddingHorizontal: 20,
+  },
+  datePickerContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 20,
+    padding: 20,
+    minWidth: 300,
+    maxWidth: 350,
+    width: '100%',
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  datePicker: {
+    backgroundColor: 'transparent',
+    color: '#fff',
+  },
+  ethnicityPickerOptions: {
+    maxHeight: 300,
+  },
+  ethnicityPickerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  ethnicityPickerOptionText: {
+    color: '#fff',
+    fontSize: 16,
+    flex: 1,
   },
 });
 

@@ -23,7 +23,7 @@ type EditProfileScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 interface FormData {
   displayName: string;
-  age: string;
+  birthDate: Date | null;
   gender: 'male' | 'female';
   height: string;
   weight: string;
@@ -38,7 +38,7 @@ const EditProfileScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     displayName: user?.displayName || '',
-    age: profile?.age?.toString() || '',
+    birthDate: null,
     gender: (profile?.gender === 'other' ? 'male' : profile?.gender) || 'male',
     height: profile?.height?.toString() || '',
     weight: profile?.weight?.toString() || '',
@@ -51,7 +51,7 @@ const EditProfileScreen: React.FC = () => {
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [showEthnicityPicker, setShowEthnicityPicker] = useState(false);
   const [showBloodTypePicker, setShowBloodTypePicker] = useState(false);
-  const [activePicker, setActivePicker] = useState<'age' | 'gender' | 'ethnicity' | 'bloodType' | null>(null);
+  const [activePicker, setActivePicker] = useState<'gender' | 'ethnicity' | 'bloodType' | null>(null);
 
   // Picker options
   const genderOptions = [
@@ -60,14 +60,18 @@ const EditProfileScreen: React.FC = () => {
   ];
 
   const ethnicityOptions = [
-    { value: 'white', label: 'White' },
-    { value: 'black', label: 'Black or African American' },
-    { value: 'hispanic', label: 'Hispanic or Latino' },
-    { value: 'asian', label: 'Asian' },
-    { value: 'pacific_islander', label: 'Native Hawaiian or Pacific Islander' },
-    { value: 'american_indian', label: 'American Indian or Alaska Native' },
-    { value: 'middle_eastern', label: 'Middle Eastern or North African' },
-    { value: 'mixed', label: 'Mixed Race' },
+    { value: 'east_asian', label: 'East Asian' },
+    { value: 'south_asian', label: 'South Asian' },
+    { value: 'southeast_asian', label: 'Southeast Asian' },
+    { value: 'middle_eastern', label: 'Middle Eastern' },
+    { value: 'north_african', label: 'North African' },
+    { value: 'sub_saharan_african', label: 'Sub-Saharan African' },
+    { value: 'european', label: 'European' },
+    { value: 'latin_american', label: 'Latin American' },
+    { value: 'caribbean', label: 'Caribbean' },
+    { value: 'pacific_islander', label: 'Pacific Islander' },
+    { value: 'indigenous_american', label: 'Indigenous American' },
+    { value: 'mixed_heritage', label: 'Mixed Heritage' },
     { value: 'other', label: 'Other' },
     { value: 'prefer_not_to_say', label: 'Prefer not to say' },
   ];
@@ -86,9 +90,16 @@ const EditProfileScreen: React.FC = () => {
 
   useEffect(() => {
     if (profile) {
+      // Calculate birth date from age if available
+      let birthDate = null;
+      if (profile.age) {
+        const today = new Date();
+        birthDate = new Date(today.getFullYear() - profile.age, today.getMonth(), today.getDate());
+      }
+
       setFormData({
         displayName: user?.displayName || '',
-        age: profile.age?.toString() || '',
+        birthDate,
         gender: (profile.gender === 'other' ? 'male' : profile.gender) || 'male',
         height: profile.height?.toString() || '',
         weight: profile.weight?.toString() || '',
@@ -104,14 +115,28 @@ const EditProfileScreen: React.FC = () => {
       return;
     }
 
-    const age = parseInt(formData.age);
-    const height = parseFloat(formData.height);
-    const weight = parseFloat(formData.weight);
-
-    if (isNaN(age) || age < 1 || age > 150) {
-      Alert.alert('Error', 'Please enter a valid age (1-150)');
+    if (!formData.birthDate) {
+      Alert.alert('Error', 'Please select your birthday');
       return;
     }
+
+    // Calculate age from birth date
+    const today = new Date();
+    const birthDate = new Date(formData.birthDate);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 1 || age > 150) {
+      Alert.alert('Error', 'Please enter a valid birthday');
+      return;
+    }
+
+    const height = parseFloat(formData.height);
+    const weight = parseFloat(formData.weight);
 
     if (isNaN(height) || height < 50 || height > 250) {
       Alert.alert('Error', 'Please enter a valid height in cm (50-250)');
@@ -277,13 +302,12 @@ const EditProfileScreen: React.FC = () => {
           />
           
           <PickerField
-            label="Age"
-            value={formData.age}
+            label="Birthday"
+            value={formData.birthDate ? formData.birthDate.toLocaleDateString() : ''}
             onPress={() => {
-              setActivePicker('age');
               setShowDatePicker(true);
             }}
-            placeholder="Select your age"
+            placeholder="Select your birthday"
           />
 
           <PickerField
@@ -303,19 +327,19 @@ const EditProfileScreen: React.FC = () => {
 
         <FormSection title="Physical Stats">
           <FormField
-            label="Height (cm)"
+            label="Height"
             value={formData.height}
             onChangeText={(text) => setFormData({ ...formData, height: text })}
-            placeholder="Enter your height in cm"
+            placeholder="Height in cm (e.g., 175)"
             keyboardType="numeric"
             maxLength={3}
           />
           
           <FormField
-            label="Weight (kg)"
+            label="Weight"
             value={formData.weight}
             onChangeText={(text) => setFormData({ ...formData, weight: text })}
-            placeholder="Enter your weight in kg"
+            placeholder="Weight in kg (e.g., 70)"
             keyboardType="numeric"
             maxLength={3}
           />
@@ -342,17 +366,17 @@ const EditProfileScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Age Date Picker */}
+      {/* Birthday Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={new Date()}
+          value={formData.birthDate || new Date()}
           mode="date"
           display="spinner"
+          maximumDate={new Date()}
           onChange={(event, selectedDate) => {
             setShowDatePicker(false);
             if (selectedDate) {
-              const age = new Date().getFullYear() - selectedDate.getFullYear();
-              setFormData({ ...formData, age: age.toString() });
+              setFormData({ ...formData, birthDate: selectedDate });
             }
           }}
         />

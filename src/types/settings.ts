@@ -59,10 +59,11 @@ export interface HealthEmergencySettings {
 export interface EmergencyContact {
   id: string;
   name: string;
-  phoneNumber: string;
   relationship: string;
-  isEmergencyContact: boolean;
-  hasMedicalInfo: boolean;
+  phone: string;
+  email?: string;
+  isPrimary: boolean;
+  notes?: string;
 }
 
 export interface MedicalIdInfo {

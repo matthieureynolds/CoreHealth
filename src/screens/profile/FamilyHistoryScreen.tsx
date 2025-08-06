@@ -1,0 +1,361 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Modal,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useHealthData } from '../../context/HealthDataContext';
+import { FamilyCondition } from '../../types';
+
+const FamilyHistoryScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const { profile, updateProfile } = useHealthData();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [relation, setRelation] = useState('');
+  const [condition, setCondition] = useState('');
+  const [ageOfOnset, setAgeOfOnset] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const relationOptions = [
+    'Father', 'Mother', 'Brother', 'Sister', 'Son', 'Daughter',
+    'Grandfather', 'Grandmother', 'Uncle', 'Aunt', 'Cousin',
+    'Paternal Grandfather', 'Paternal Grandmother',
+    'Maternal Grandfather', 'Maternal Grandmother'
+  ];
+
+  const addFamilyCondition = () => {
+    if (!relation.trim() || !condition.trim()) {
+      Alert.alert('Error', 'Please enter both relation and condition');
+      return;
+    }
+
+    const newFamilyCondition: FamilyCondition = {
+      id: Date.now().toString(),
+      relation: relation.trim(),
+      condition: condition.trim(),
+      ageOfOnset: ageOfOnset ? parseInt(ageOfOnset) : undefined,
+      notes: notes.trim() || undefined,
+    };
+
+    const updatedFamilyHistory = [...(profile?.familyHistory || []), newFamilyCondition];
+    updateProfile({
+      ...profile,
+      familyHistory: updatedFamilyHistory,
+    });
+
+    setShowAddModal(false);
+    setRelation('');
+    setCondition('');
+    setAgeOfOnset('');
+    setNotes('');
+  };
+
+  const deleteFamilyCondition = (id: string) => {
+    Alert.alert(
+      'Delete Family History',
+      'Are you sure you want to delete this family condition?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updatedFamilyHistory = profile?.familyHistory?.filter(f => f.id !== id) || [];
+            updateProfile({
+              ...profile,
+              familyHistory: updatedFamilyHistory,
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Family History</Text>
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Family History List */}
+        <View style={styles.content}>
+          {profile?.familyHistory?.length ? (
+            profile.familyHistory.map((familyCondition) => (
+              <View key={familyCondition.id} style={styles.familyCard}>
+                <View style={styles.familyHeader}>
+                  <View style={styles.familyInfo}>
+                    <Text style={styles.relation}>{familyCondition.relation}</Text>
+                    <Text style={styles.condition}>{familyCondition.condition}</Text>
+                    {familyCondition.ageOfOnset && (
+                      <Text style={styles.ageOfOnset}>Age of onset: {familyCondition.ageOfOnset} years</Text>
+                    )}
+                    {familyCondition.notes && <Text style={styles.notes}>{familyCondition.notes}</Text>}
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => deleteFamilyCondition(familyCondition.id)}
+                    style={styles.deleteButton}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={64} color="#666" />
+              <Text style={styles.emptyTitle}>No Family History</Text>
+              <Text style={styles.emptySubtitle}>Add family medical conditions to help with risk assessment</Text>
+              <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
+                <Text style={styles.addFirstButtonText}>Add Family History</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Add Family History Modal */}
+      <Modal
+        visible={showAddModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowAddModal(false)}>
+              <Text style={styles.cancelButton}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Add Family History</Text>
+            <TouchableOpacity onPress={addFamilyCondition}>
+              <Text style={styles.saveButton}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            {/* Relation */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Relation *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={relation}
+                onChangeText={setRelation}
+                placeholder="e.g., Father, Mother, Brother"
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            {/* Condition */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Condition *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={condition}
+                onChangeText={setCondition}
+                placeholder="e.g., Diabetes, Heart Disease, Cancer"
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            {/* Age of Onset */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Age of Onset (Optional)</Text>
+              <TextInput
+                style={styles.textInput}
+                value={ageOfOnset}
+                onChangeText={setAgeOfOnset}
+                placeholder="e.g., 45"
+                placeholderTextColor="#666"
+                keyboardType="numeric"
+              />
+            </View>
+
+            {/* Notes */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Add any additional notes about this family condition"
+                placeholderTextColor="#666"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#111',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: '#111',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  addButton: {
+    padding: 8,
+  },
+  content: {
+    padding: 20,
+  },
+  familyCard: {
+    backgroundColor: '#181818',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  familyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  familyInfo: {
+    flex: 1,
+  },
+  relation: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  condition: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  ageOfOnset: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 4,
+  },
+  notes: {
+    fontSize: 12,
+    color: '#888',
+    fontStyle: 'italic',
+  },
+  deleteButton: {
+    padding: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 40,
+  },
+  addFirstButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  addFirstButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#111',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  cancelButton: {
+    fontSize: 16,
+    color: '#007AFF',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  saveButton: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#fff',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+});
+
+export default FamilyHistoryScreen; 

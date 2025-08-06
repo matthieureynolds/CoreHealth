@@ -11,10 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+// import * as Contacts from 'expo-contacts';
 import { useSettings } from '../../context/SettingsContext';
 import { ProfileTabParamList } from '../../types';
 
@@ -44,7 +46,9 @@ const EmergencyContactsScreen: React.FC = () => {
   const { settings, updateHealthEmergencySettings } = useSettings();
   const [contacts, setContacts] = useState<EmergencyContact[]>(settings.healthEmergency.emergencyContacts || []);
   const [modalVisible, setModalVisible] = useState(false);
+  const [contactSelectionModalVisible, setContactSelectionModalVisible] = useState(false);
   const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
+  const [deviceContacts, setDeviceContacts] = useState<any[]>([]);
   const [contactForm, setContactForm] = useState<ContactForm>({
     name: '',
     relationship: '',
@@ -79,9 +83,86 @@ const EmergencyContactsScreen: React.FC = () => {
     setEditingContact(null);
   };
 
+  const requestContactsPermission = async () => {
+    try {
+      // TODO: Uncomment when expo-contacts is installed
+      // const { status } = await Contacts.requestPermissionsAsync();
+      // return status === 'granted';
+      return false;
+    } catch (error) {
+      console.error('Error requesting contacts permission:', error);
+      return false;
+    }
+  };
+
+  const loadDeviceContacts = async () => {
+    try {
+      const hasPermission = await requestContactsPermission();
+      if (!hasPermission) {
+        Alert.alert(
+          'Contacts Access',
+          'To import contacts from your device, please install expo-contacts and configure permissions in app.json.\n\nFor now, you can add contacts manually.',
+          [
+            { text: 'Add Manually', onPress: () => handleAddContact() },
+            { text: 'OK' }
+          ]
+        );
+        return;
+      }
+
+      // TODO: Uncomment when expo-contacts is installed
+      // const { data } = await Contacts.getContactsAsync({
+      //   fields: [
+      //     Contacts.Fields.Name,
+      //     Contacts.Fields.PhoneNumbers,
+      //     Contacts.Fields.Emails,
+      //   ],
+      // });
+
+      // if (data.length > 0) {
+      //   const filteredContacts = data
+      //     .filter(contact => contact.phoneNumbers && contact.phoneNumbers.length > 0)
+      //     .map(contact => ({
+      //       id: contact.id,
+      //       name: contact.name || 'Unknown',
+      //       phoneNumbers: contact.phoneNumbers || [],
+      //       emails: contact.emails || [],
+      //     }));
+      //   setDeviceContacts(filteredContacts);
+      //   setContactSelectionModalVisible(true);
+      // } else {
+      //   Alert.alert('No Contacts', 'No contacts found on your device.');
+      // }
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      Alert.alert('Error', 'Failed to load contacts from your device.');
+    }
+  };
+
   const handleAddContact = () => {
     setModalVisible(true);
     resetForm();
+  };
+
+  const handleImportFromContacts = () => {
+    loadDeviceContacts();
+  };
+
+  const handleSelectContact = (contact: any) => {
+    const phoneNumber = contact.phoneNumbers[0]?.number || '';
+    const email = contact.emails[0]?.email || '';
+    
+    setContactForm({
+      name: contact.name,
+      relationship: '',
+      phone: phoneNumber,
+      email: email,
+      isPrimary: false,
+      notes: '',
+    });
+    
+    setContactSelectionModalVisible(false);
+    setModalVisible(true);
   };
 
   const handleEditContact = (contact: EmergencyContact) => {
@@ -305,7 +386,25 @@ const EmergencyContactsScreen: React.FC = () => {
         </View>
 
         <View style={styles.contactsSection}>
-          <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+          <View style={styles.contactsHeader}>
+            <Text style={styles.sectionTitle}>Contacts ({contacts.length})</Text>
+            <View style={styles.contactsActions}>
+              <TouchableOpacity
+                style={styles.importButton}
+                onPress={handleImportFromContacts}
+              >
+                <Ionicons name="people" size={16} color="#007AFF" />
+                <Text style={styles.importButtonText}>Import</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addContactButton}
+                onPress={handleAddContact}
+              >
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text style={styles.addContactButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
           
           {contacts.length === 0 ? (
             <View style={styles.emptyState}>
@@ -314,12 +413,20 @@ const EmergencyContactsScreen: React.FC = () => {
               <Text style={styles.emptyStateText}>
                 Add emergency contacts who can be reached in case of a medical emergency.
               </Text>
-              <TouchableOpacity
-                style={styles.emptyStateButton}
-                onPress={handleAddContact}
-              >
-                <Text style={styles.emptyStateButtonText}>Add First Contact</Text>
-              </TouchableOpacity>
+              <View style={styles.emptyStateButtons}>
+                <TouchableOpacity
+                  style={styles.emptyStateButton}
+                  onPress={handleAddContact}
+                >
+                  <Text style={styles.emptyStateButtonText}>Add Manually</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.emptyStateButton, styles.emptyStateSecondaryButton]}
+                  onPress={handleImportFromContacts}
+                >
+                  <Text style={styles.emptyStateSecondaryButtonText}>Import from Contacts</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             contacts.map((contact) => (
@@ -452,6 +559,53 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Contact Selection Modal */}
+      <Modal
+        visible={contactSelectionModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setContactSelectionModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select Contact</Text>
+            <View style={{ width: 60 }} />
+          </View>
+
+          <FlatList
+            data={deviceContacts}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.contactSelectionItem}
+                onPress={() => handleSelectContact(item)}
+              >
+                <View style={styles.contactSelectionInfo}>
+                  <Text style={styles.contactSelectionName}>{item.name}</Text>
+                  {item.phoneNumbers.length > 0 && (
+                    <Text style={styles.contactSelectionPhone}>
+                      {item.phoneNumbers[0].number}
+                    </Text>
+                  )}
+                  {item.emails.length > 0 && (
+                    <Text style={styles.contactSelectionEmail}>
+                      {item.emails[0].email}
+                    </Text>
+                  )}
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              </TouchableOpacity>
+            )}
+            style={styles.contactSelectionList}
+          />
+        </View>
       </Modal>
     </View>
   );
@@ -759,6 +913,87 @@ const styles = StyleSheet.create({
   },
   toggleThumbActive: {
     alignSelf: 'flex-end',
+  },
+  contactsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  contactsActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  importButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+  },
+  importButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  addContactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#007AFF',
+  },
+  addContactButtonText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  emptyStateButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  emptyStateSecondaryButton: {
+    backgroundColor: '#F2F2F7',
+  },
+  emptyStateSecondaryButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  contactSelectionList: {
+    flex: 1,
+  },
+  contactSelectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5EA',
+  },
+  contactSelectionInfo: {
+    flex: 1,
+  },
+  contactSelectionName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1C1C1E',
+    marginBottom: 4,
+  },
+  contactSelectionPhone: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  contactSelectionEmail: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 
