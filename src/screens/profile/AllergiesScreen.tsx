@@ -10,17 +10,33 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
+import { Allergy } from '../../types';
 
 const AllergiesScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
   const [allergy, setAllergy] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [severity, setSeverity] = useState<'mild' | 'moderate' | 'severe'>('mild');
+  const [status, setStatus] = useState<'active' | 'resolved'>('active');
   const [reaction, setReaction] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
+
+  const commonAllergies = [
+    'Peanuts', 'Tree Nuts', 'Milk', 'Eggs', 'Soy', 'Wheat', 'Fish', 'Shellfish',
+    'Latex', 'Dust Mites', 'Pollen', 'Pet Dander', 'Mold', 'Grass', 'Ragweed',
+    'Penicillin', 'Sulfa Drugs', 'Aspirin', 'Ibuprofen', 'Codeine', 'Morphine',
+    'Bee Stings', 'Wasp Stings', 'Fire Ants', 'Dairy', 'Gluten', 'Sesame',
+    'Mustard', 'Celery', 'Lupin', 'Molluscs', 'Sulfites', 'Nitrates'
+  ];
 
   const severityOptions = [
     { value: 'mild', label: 'Mild', color: '#4CD964' },
@@ -28,17 +44,25 @@ const AllergiesScreen: React.FC = () => {
     { value: 'severe', label: 'Severe', color: '#FF3B30' },
   ];
 
+  const statusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'resolved', label: 'Resolved' },
+  ];
+
   const addAllergy = () => {
     if (!allergy.trim()) {
-      Alert.alert('Error', 'Please enter an allergy');
+      Alert.alert('Error', 'Please enter an allergy name');
       return;
     }
 
-    const newAllergy = {
+    const newAllergy: Allergy = {
       id: Date.now().toString(),
       name: allergy.trim(),
       severity,
+      status,
       reaction: reaction.trim() || undefined,
+      startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
       notes: notes.trim() || undefined,
     };
 
@@ -51,7 +75,10 @@ const AllergiesScreen: React.FC = () => {
     setShowAddModal(false);
     setAllergy('');
     setSeverity('mild');
+    setStatus('active');
     setReaction('');
+    setStartDate(null);
+    setEndDate(null);
     setNotes('');
   };
 
@@ -83,6 +110,11 @@ const AllergiesScreen: React.FC = () => {
       case 'severe': return '#FF3B30';
       default: return '#888';
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   };
 
   return (
@@ -117,6 +149,10 @@ const AllergiesScreen: React.FC = () => {
                     {allergy.reaction && (
                       <Text style={styles.reaction}>Reaction: {allergy.reaction}</Text>
                     )}
+                    <Text style={styles.allergyDate}>Started: {formatDate(allergy.startDate)}</Text>
+                    {allergy.endDate && (
+                      <Text style={styles.allergyDate}>Ended: {formatDate(allergy.endDate)}</Text>
+                    )}
                     {allergy.notes && <Text style={styles.notes}>{allergy.notes}</Text>}
                   </View>
                   <TouchableOpacity
@@ -132,7 +168,7 @@ const AllergiesScreen: React.FC = () => {
             <View style={styles.emptyState}>
               <Ionicons name="warning-outline" size={64} color="#666" />
               <Text style={styles.emptyTitle}>No Allergies</Text>
-              <Text style={styles.emptySubtitle}>Add your allergies to help healthcare providers</Text>
+              <Text style={styles.emptySubtitle}>Add your allergies to keep track of your sensitivities</Text>
               <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
                 <Text style={styles.addFirstButtonText}>Add Allergy</Text>
               </TouchableOpacity>
@@ -145,7 +181,8 @@ const AllergiesScreen: React.FC = () => {
       <Modal
         visible={showAddModal}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
         onRequestClose={() => setShowAddModal(false)}
       >
         <View style={styles.modalContainer}>
@@ -162,14 +199,36 @@ const AllergiesScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Allergy Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Allergy *</Text>
+              <Text style={styles.inputLabel}>Allergy Name *</Text>
               <TextInput
                 style={styles.textInput}
                 value={allergy}
-                onChangeText={setAllergy}
-                placeholder="e.g., Peanuts, Penicillin, Latex"
+                onChangeText={(text) => {
+                  setAllergy(text);
+                  setShowSuggestions(text.length > 0);
+                }}
+                placeholder="e.g., Peanuts, Penicillin"
                 placeholderTextColor="#666"
               />
+              {showSuggestions && allergy.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {commonAllergies
+                    .filter(a => a.toLowerCase().includes(allergy.toLowerCase()))
+                    .slice(0, 5)
+                    .map((suggestion, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setAllergy(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <Text style={styles.suggestionText}>{suggestion}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              )}
             </View>
 
             {/* Severity */}
@@ -196,6 +255,35 @@ const AllergiesScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* Status */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Status</Text>
+              <View style={styles.optionsContainer}>
+                {statusOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.optionButton,
+                      status === option.value && styles.selectedOption
+                    ]}
+                    onPress={() => {
+                      setStatus(option.value as any);
+                      if (option.value === 'resolved' && !endDate) {
+                        setShowEndDatePicker(true);
+                      }
+                    }}
+                  >
+                    <Text style={[
+                      styles.optionText,
+                      status === option.value && styles.selectedOptionText
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             {/* Reaction */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Reaction (Optional)</Text>
@@ -203,10 +291,40 @@ const AllergiesScreen: React.FC = () => {
                 style={styles.textInput}
                 value={reaction}
                 onChangeText={setReaction}
-                placeholder="e.g., Hives, Difficulty breathing, Swelling"
+                placeholder="e.g., Hives, Swelling, Difficulty Breathing"
                 placeholderTextColor="#666"
               />
             </View>
+
+            {/* Start Date */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Start Date</Text>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>
+                  {startDate ? startDate.toLocaleDateString() : 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
+            </View>
+
+            {/* End Date - Only show when status is resolved */}
+            {status === 'resolved' && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>End Date *</Text>
+                <TouchableOpacity
+                  style={styles.dateInput}
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>
+                    {endDate ? endDate.toLocaleDateString() : 'Select date'}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#888" />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Notes */}
             <View style={styles.inputContainer}>
@@ -224,6 +342,32 @@ const AllergiesScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Start Date Picker */}
+      <IOSDatePicker
+        visible={showStartDatePicker}
+        title="Start Date"
+        value={startDate ?? new Date()}
+        maximumDate={new Date()}
+        onConfirm={(d) => {
+          setStartDate(d);
+          setShowStartDatePicker(false);
+        }}
+        onCancel={() => setShowStartDatePicker(false)}
+      />
+
+      {/* End Date Picker */}
+      <IOSDatePicker
+        visible={showEndDatePicker}
+        title="End Date"
+        value={endDate ?? new Date()}
+        maximumDate={new Date()}
+        onConfirm={(d) => {
+          setEndDate(d);
+          setShowEndDatePicker(false);
+        }}
+        onCancel={() => setShowEndDatePicker(false)}
+      />
     </View>
   );
 };
@@ -294,6 +438,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   reaction: {
+    fontSize: 14,
+    color: '#FF9500',
+    marginBottom: 4,
+  },
+  allergyDate: {
     fontSize: 14,
     color: '#888',
     marginBottom: 4,
@@ -389,6 +538,22 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+  suggestionsContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 150,
+  },
+  suggestionItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  suggestionText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -412,6 +577,80 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     color: '#fff',
+    fontWeight: '600',
+  },
+  dateInput: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  placeholderText: {
+    color: '#666',
+  },
+  datePickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    paddingHorizontal: 20,
+    paddingVertical: 100,
+  },
+  datePickerContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    padding: 20,
+    minWidth: 300,
+    maxWidth: 350,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  datePicker: {
+    backgroundColor: '#333',
+    color: '#fff',
+    borderRadius: 12,
+    padding: 10,
+  },
+  datePickerSaveButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  datePickerSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

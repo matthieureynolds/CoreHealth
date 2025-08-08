@@ -9,32 +9,22 @@ import {
   TextInput,
   Modal,
   StatusBar,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useHealthData } from '../../context/HealthDataContext';
-import { ProfileTabParamList } from '../../types';
+import { ProfileTabParamList, Doctor } from '../../types';
 
 type PrimaryDoctorScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
-
-interface PrimaryDoctor {
-  id: string;
-  name: string;
-  specialty: string;
-  phone: string;
-  email?: string;
-  office: string;
-  address?: string;
-  notes?: string;
-}
 
 const PrimaryDoctorScreen: React.FC = () => {
   const navigation = useNavigation<PrimaryDoctorScreenNavigationProp>();
   const { profile, updateProfile } = useHealthData();
   
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingDoctor, setEditingDoctor] = useState<PrimaryDoctor | null>(null);
+  const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     specialty: '',
@@ -45,7 +35,7 @@ const PrimaryDoctorScreen: React.FC = () => {
     notes: '',
   });
 
-  const primaryDoctor = profile?.primaryDoctor;
+  const doctors = profile?.doctors || [];
 
   const handleAdd = () => {
     setFormData({
@@ -61,20 +51,18 @@ const PrimaryDoctorScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = () => {
-    if (primaryDoctor) {
-      setFormData({
-        name: primaryDoctor.name || '',
-        specialty: primaryDoctor.specialty || '',
-        phone: primaryDoctor.phone || '',
-        email: primaryDoctor.email || '',
-        office: primaryDoctor.office || '',
-        address: primaryDoctor.address || '',
-        notes: primaryDoctor.notes || '',
-      });
-      setEditingDoctor(primaryDoctor);
-      setModalVisible(true);
-    }
+  const handleEdit = (doctor: Doctor) => {
+    setFormData({
+      name: doctor.name || '',
+      specialty: doctor.specialty || '',
+      phone: doctor.phone || '',
+      email: doctor.email || '',
+      office: doctor.office || '',
+      address: doctor.address || '',
+      notes: doctor.notes || '',
+    });
+    setEditingDoctor(doctor);
+    setModalVisible(true);
   };
 
   const handleSave = () => {
@@ -83,33 +71,38 @@ const PrimaryDoctorScreen: React.FC = () => {
       return;
     }
 
-    if (!formData.specialty.trim()) {
-      Alert.alert('Error', 'Please enter the doctor\'s specialty');
-      return;
-    }
-
     if (!formData.phone.trim()) {
       Alert.alert('Error', 'Please enter the doctor\'s phone number');
       return;
     }
 
-    const doctorData: PrimaryDoctor = {
+    const doctorData: Doctor = {
       id: editingDoctor?.id || Date.now().toString(),
       name: formData.name.trim(),
       specialty: formData.specialty.trim(),
       phone: formData.phone.trim(),
-      email: formData.email.trim() || undefined,
+      email: formData.email.trim() || '',
       office: formData.office.trim(),
-      address: formData.address.trim() || undefined,
-      notes: formData.notes.trim() || undefined,
+      address: formData.address.trim() || '',
+      notes: formData.notes.trim() || '',
+      isRegistered: editingDoctor?.isRegistered || false,
     };
 
-    if (profile) {
-      updateProfile({
-        ...profile,
-        primaryDoctor: doctorData,
-      });
+    let updatedDoctors: Doctor[];
+    if (editingDoctor) {
+      // Update existing doctor
+      updatedDoctors = doctors.map(doc => 
+        doc.id === editingDoctor.id ? doctorData : doc
+      );
+    } else {
+      // Add new doctor
+      updatedDoctors = [...doctors, doctorData];
     }
+
+    updateProfile({
+      ...profile,
+      doctors: updatedDoctors,
+    });
 
     setModalVisible(false);
     setFormData({
@@ -123,39 +116,61 @@ const PrimaryDoctorScreen: React.FC = () => {
     });
   };
 
-  const handleDelete = () => {
+  const handleDelete = (doctorId: string) => {
     Alert.alert(
-      'Delete Primary Doctor',
-      'Are you sure you want to remove your primary doctor information?',
+      'Delete Doctor',
+      'Are you sure you want to remove this doctor?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            if (profile) {
-              updateProfile({
-                ...profile,
-                primaryDoctor: undefined,
-              });
-            }
+            const updatedDoctors = doctors.filter(doc => doc.id !== doctorId);
+            updateProfile({
+              ...profile,
+              doctors: updatedDoctors,
+            });
           },
         },
       ]
     );
   };
 
-  const handleCall = () => {
-    if (primaryDoctor?.phone) {
-      // In a real app, you would use Linking to make the call
-      Alert.alert('Call Doctor', `Call ${primaryDoctor.name} at ${primaryDoctor.phone}?`);
+  const handleCall = (doctor: Doctor) => {
+    if (doctor?.phone) {
+      Alert.alert(
+        'Call Doctor',
+        `Call ${doctor.name} at ${doctor.phone}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Call',
+            onPress: () => {
+              const phoneNumber = doctor.phone.replace(/\s/g, '');
+              Linking.openURL(`tel:${phoneNumber}`);
+            },
+          },
+        ]
+      );
     }
   };
 
-  const handleEmail = () => {
-    if (primaryDoctor?.email) {
-      // In a real app, you would use Linking to send email
-      Alert.alert('Email Doctor', `Send email to ${primaryDoctor.email}?`);
+  const handleEmail = (doctor: Doctor) => {
+    if (doctor?.email) {
+      Alert.alert(
+        'Email Doctor',
+        `Send email to ${doctor.email}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Email',
+            onPress: () => {
+              Linking.openURL(`mailto:${doctor.email}`);
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -173,15 +188,15 @@ const PrimaryDoctorScreen: React.FC = () => {
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Primary Doctor</Text>
-            <Text style={styles.headerSubtitle}>Manage your doctor information</Text>
+            <Text style={styles.headerTitle}>Doctors</Text>
+            <Text style={styles.headerSubtitle}>Manage your doctors</Text>
           </View>
         </View>
       </View>
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!primaryDoctor ? (
+        {doctors.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons 
               name="medical-outline" 
@@ -189,101 +204,113 @@ const PrimaryDoctorScreen: React.FC = () => {
               color="#007AFF" 
               style={{ opacity: 0.3 }}
             />
-            <Text style={styles.emptyStateTitle}>No Primary Doctor Set</Text>
+            <Text style={styles.emptyStateTitle}>No Doctors Added</Text>
             <Text style={styles.emptyStateText}>
-              Add your primary doctor information for quick access during emergencies
+              Add your doctors for quick access during emergencies
             </Text>
             <TouchableOpacity 
               style={styles.addButton}
               onPress={handleAdd}
             >
               <Ionicons name="add" size={20} color="#FFFFFF" />
-              <Text style={styles.addButtonText}>Add Primary Doctor</Text>
+              <Text style={styles.addButtonText}>Add Doctor</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.doctorCard}>
-            <View style={styles.doctorHeader}>
-              <View style={styles.doctorIcon}>
-                <Ionicons name="medical-outline" size={24} color="#FFFFFF" />
-              </View>
-              <View style={styles.doctorInfo}>
-                <Text style={styles.doctorName}>{primaryDoctor.name}</Text>
-                <Text style={styles.doctorSpecialty}>{primaryDoctor.specialty}</Text>
-              </View>
-            </View>
-
-            <View style={styles.contactActions}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={handleCall}
-              >
-                <Ionicons name="call-outline" size={20} color="#4CD964" />
-                <Text style={styles.actionText}>Call</Text>
-              </TouchableOpacity>
-              
-              {primaryDoctor.email && (
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={handleEmail}
-                >
-                  <Ionicons name="mail-outline" size={20} color="#007AFF" />
-                  <Text style={styles.actionText}>Email</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailRow}>
-                <Ionicons name="call-outline" size={16} color="#8E8E93" />
-                <Text style={styles.detailText}>{primaryDoctor.phone}</Text>
-              </View>
-              
-              {primaryDoctor.email && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="mail-outline" size={16} color="#8E8E93" />
-                  <Text style={styles.detailText}>{primaryDoctor.email}</Text>
+          <>
+            {doctors.map((doctor) => (
+              <View key={doctor.id} style={styles.doctorCard}>
+                <View style={styles.doctorHeader}>
+                  <View style={styles.doctorIcon}>
+                    <Ionicons name="medical-outline" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.doctorInfo}>
+                    <Text style={styles.doctorName}>{doctor.name}</Text>
+                    <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
+                  </View>
                 </View>
-              )}
-              
-              <View style={styles.detailRow}>
-                <Ionicons name="business-outline" size={16} color="#8E8E93" />
-                <Text style={styles.detailText}>{primaryDoctor.office}</Text>
-              </View>
-              
-              {primaryDoctor.address && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="location-outline" size={16} color="#8E8E93" />
-                  <Text style={styles.detailText}>{primaryDoctor.address}</Text>
-                </View>
-              )}
-              
-              {primaryDoctor.notes && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="document-text-outline" size={16} color="#8E8E93" />
-                  <Text style={styles.detailText}>{primaryDoctor.notes}</Text>
-                </View>
-              )}
-            </View>
 
-            <View style={styles.actionButtons}>
-              <TouchableOpacity 
-                style={styles.editButton}
-                onPress={handleEdit}
-              >
-                <Ionicons name="create-outline" size={20} color="#007AFF" />
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.deleteButton}
-                onPress={handleDelete}
-              >
-                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+                <View style={styles.contactActions}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleCall(doctor)}
+                  >
+                    <Ionicons name="call-outline" size={20} color="#4CD964" />
+                    <Text style={styles.actionText}>Call</Text>
+                  </TouchableOpacity>
+                  
+                  {doctor.email && (
+                    <TouchableOpacity 
+                      style={styles.actionButton}
+                      onPress={() => handleEmail(doctor)}
+                    >
+                      <Ionicons name="mail-outline" size={20} color="#007AFF" />
+                      <Text style={styles.actionText}>Email</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <View style={styles.detailsContainer}>
+                  <View style={styles.detailRow}>
+                    <Ionicons name="call-outline" size={16} color="#8E8E93" />
+                    <Text style={styles.detailText}>{doctor.phone}</Text>
+                  </View>
+                  
+                  {doctor.email && (
+                    <View style={styles.detailRow}>
+                      <Ionicons name="mail-outline" size={16} color="#8E8E93" />
+                      <Text style={styles.detailText}>{doctor.email}</Text>
+                    </View>
+                  )}
+                  
+                  <View style={styles.detailRow}>
+                    <Ionicons name="business-outline" size={16} color="#8E8E93" />
+                    <Text style={styles.detailText}>{doctor.office}</Text>
+                  </View>
+                  
+                  {doctor.address && (
+                    <View style={styles.detailRow}>
+                      <Ionicons name="location-outline" size={16} color="#8E8E93" />
+                      <Text style={styles.detailText}>{doctor.address}</Text>
+                    </View>
+                  )}
+                  
+                  {doctor.notes && (
+                    <View style={styles.detailRow}>
+                      <Ionicons name="document-text-outline" size={16} color="#8E8E93" />
+                      <Text style={styles.detailText}>{doctor.notes}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity 
+                    style={styles.editButton}
+                    onPress={() => handleEdit(doctor)}
+                  >
+                    <Ionicons name="create-outline" size={20} color="#007AFF" />
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(doctor.id)}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+            
+            <TouchableOpacity 
+              style={styles.addMoreButton}
+              onPress={handleAdd}
+            >
+              <Ionicons name="add" size={20} color="#007AFF" />
+              <Text style={styles.addMoreButtonText}>Add Another Doctor</Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
 
@@ -631,6 +658,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  addMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  addMoreButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
   },
 });
 

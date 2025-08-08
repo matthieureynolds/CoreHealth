@@ -3,6 +3,9 @@ export interface User {
   id: string;
   email: string;
   displayName?: string;
+  firstName?: string;
+  surname?: string;
+  preferredName?: string;
   photoURL?: string;
   emailVerified?: boolean;
   createdAt: Date;
@@ -17,6 +20,16 @@ export interface PrimaryDoctor {
   email?: string;
   office: string;
   address?: string;
+  notes?: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string;
+  isPrimary: boolean;
   notes?: string;
 }
 
@@ -59,6 +72,7 @@ export interface UserProfile {
   gender: 'male' | 'female' | 'other';
   height: number; // in cm
   weight: number; // in kg
+  birthDate?: string; // ISO date string
   ethnicity?: string;
   bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown';
   medicalHistory: MedicalCondition[];
@@ -67,16 +81,11 @@ export interface UserProfile {
   surgeries: Surgery[];
   vaccinations: Vaccination[];
   screenings: Screening[];
-  allergies: Array<{
-    id: string;
-    name: string;
-    severity: 'mild' | 'moderate' | 'severe';
-    reaction?: string;
-    notes?: string;
-  }>;
+  allergies: Allergy[];
   lifestyle: LifestyleInfo;
   organSpecificConditions: OrganCondition[];
   primaryDoctor?: PrimaryDoctor;
+  emergencyContacts?: EmergencyContact[];
   healthIDs?: HealthID[];
   doctors?: Doctor[];
   medicalRecords?: MedicalRecord[];
@@ -89,6 +98,18 @@ export interface MedicalCondition {
   diagnosedDate: string;
   severity: 'mild' | 'moderate' | 'severe';
   status: 'active' | 'resolved' | 'managed';
+  resolvedDate?: string;
+  notes?: string;
+}
+
+export interface Allergy {
+  id: string;
+  name: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  status: 'active' | 'resolved';
+  reaction?: string;
+  startDate: string;
+  endDate?: string;
   notes?: string;
 }
 
@@ -106,6 +127,7 @@ export interface Vaccination {
   nextDue?: Date;
   location?: string;
   batchNumber?: string;
+  notes?: string;
 }
 
 export interface Screening {
@@ -113,7 +135,7 @@ export interface Screening {
   name: string;
   date: Date;
   nextDue?: Date;
-  result?: 'normal' | 'abnormal' | 'inconclusive';
+  result: 'normal' | 'abnormal' | 'inconclusive';
   location?: string;
   notes?: string;
 }
@@ -324,6 +346,18 @@ export type ProfileTabParamList = {
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   About: undefined;
+  // New Settings Screens
+  AccountSettings: undefined;
+  ConnectedDevices: undefined;
+  DisplayFormat: undefined;
+  Appearance: undefined;
+  Notifications: undefined;
+  TravelSettings: undefined;
+  DataSync: undefined;
+  PrivacySecurity: undefined;
+  LegalCompliance: undefined;
+  SupportHelp: undefined;
+  AppInfo: undefined;
 };
 
 // Dashboard Types
@@ -575,6 +609,7 @@ export interface Medication {
   dosage?: string;
   frequency?: string;
   startDate?: string;
+  duration?: string;
   notes?: string;
 }
 

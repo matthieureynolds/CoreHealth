@@ -343,32 +343,46 @@ const ShareWithDoctorScreen: React.FC = () => {
 
           <ScrollView style={styles.modalContent}>
             {profile?.doctors && profile.doctors.length > 0 ? (
-              profile.doctors.map((doctor) => (
-                <TouchableOpacity
-                  key={doctor.id}
-                  style={styles.doctorOption}
-                  onPress={() => {
-                    setSelectedDoctor(doctor);
-                    setShowDoctorPicker(false);
-                  }}
-                >
-                  <View style={styles.doctorOptionInfo}>
-                    <Text style={styles.doctorOptionName}>Dr. {doctor.name}</Text>
-                    <Text style={styles.doctorOptionSpecialty}>{doctor.specialty}</Text>
-                    {doctor.office && (
-                      <Text style={styles.doctorOptionOffice}>{doctor.office}</Text>
-                    )}
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#888" />
-                </TouchableOpacity>
-              ))
+              <>
+                <Text style={styles.doctorCountText}>
+                  {profile.doctors.length} doctor{profile.doctors.length > 1 ? 's' : ''} available
+                </Text>
+                {profile.doctors.map((doctor) => (
+                  <TouchableOpacity
+                    key={doctor.id}
+                    style={styles.doctorOption}
+                    onPress={() => {
+                      setSelectedDoctor(doctor);
+                      setShowDoctorPicker(false);
+                    }}
+                  >
+                    <View style={styles.doctorOptionInfo}>
+                      <Text style={styles.doctorOptionName}>Dr. {doctor.name}</Text>
+                      <Text style={styles.doctorOptionSpecialty}>{doctor.specialty}</Text>
+                      {doctor.office && (
+                        <Text style={styles.doctorOptionOffice}>{doctor.office}</Text>
+                      )}
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#888" />
+                  </TouchableOpacity>
+                ))}
+              </>
             ) : (
               <View style={styles.noDoctorsState}>
                 <Ionicons name="people-outline" size={48} color="#666" />
                 <Text style={styles.noDoctorsTitle}>No Doctors Added</Text>
                 <Text style={styles.noDoctorsSubtitle}>
-                  Add a doctor to share your health information
+                  Add a doctor in the "Doctors" tab first, or add a new doctor here
                 </Text>
+                <TouchableOpacity
+                  style={styles.addFromDoctorsButton}
+                  onPress={() => {
+                    setShowDoctorPicker(false);
+                    setShowAddDoctor(true);
+                  }}
+                >
+                  <Text style={styles.addFromDoctorsButtonText}>Add New Doctor</Text>
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>
@@ -808,6 +822,25 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  doctorCountText: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  addFromDoctorsButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  addFromDoctorsButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

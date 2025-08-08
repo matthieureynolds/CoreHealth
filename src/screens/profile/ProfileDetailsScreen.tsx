@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -24,7 +25,6 @@ const ProfileDetailsScreen: React.FC = () => {
   const { profile, updateProfile } = useHealthData();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
-  const [showEthnicityPicker, setShowEthnicityPicker] = useState(false);
 
   // Picker options
   const genderOptions = [
@@ -32,51 +32,19 @@ const ProfileDetailsScreen: React.FC = () => {
     { value: 'female', label: 'Female' },
   ];
 
-  const ethnicityOptions = [
-    { value: 'east_asian', label: 'East Asian' },
-    { value: 'south_asian', label: 'South Asian' },
-    { value: 'southeast_asian', label: 'Southeast Asian' },
-    { value: 'middle_eastern', label: 'Middle Eastern' },
-    { value: 'north_african', label: 'North African' },
-    { value: 'sub_saharan_african', label: 'Sub-Saharan African' },
-    { value: 'european', label: 'European' },
-    { value: 'latin_american', label: 'Latin American' },
-    { value: 'caribbean', label: 'Caribbean' },
-    { value: 'pacific_islander', label: 'Pacific Islander' },
-    { value: 'indigenous_american', label: 'Indigenous American' },
-    { value: 'mixed_heritage', label: 'Mixed Heritage' },
-    { value: 'other', label: 'Other' },
-    { value: 'prefer_not_to_say', label: 'Prefer not to say' },
-  ];
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Profile Header */}
-        <View style={styles.profileHeader}>
-        <View style={styles.avatarContainer}>
-          {user && typeof (user as any).avatar === 'string' && (user as any).avatar.length > 0 ? (
-            <Image source={{ uri: (user as any).avatar }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarInitial}>{user?.displayName?.charAt(0) || 'U'}</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
-        <Text style={styles.profileEmail}>{user?.email}</Text>
-        <TouchableOpacity style={styles.editProfileButton} onPress={() => navigation.navigate('EditProfile')}>
-            <Ionicons name="create-outline" size={16} color="#007AFF" />
-            <Text style={styles.editProfileText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
-
       {/* Personal Info Card */}
       <View style={styles.card}>
         <Text style={styles.cardHeader}>PERSONAL INFO</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
           <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Name</Text>
-          <Text style={styles.cardValue}>{user?.displayName || 'Not set'}</Text>
+          <Text style={styles.cardValue}>
+            {user?.firstName && user?.surname 
+              ? `${user.firstName} ${user.surname}` 
+              : user?.displayName || 'Not set'}
+            </Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => setShowDatePicker(true)}>
@@ -91,25 +59,25 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardValue}>{profile?.gender ? genderOptions.find(opt => opt.value === profile.gender)?.label || profile.gender : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => setShowEthnicityPicker(true)}>
-          <Ionicons name="globe-outline" size={22} color="#6BCF7F" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Ethnicity</Text>
-          <Text style={styles.cardValue}>{profile?.ethnicity ? ethnicityOptions.find(opt => opt.value === profile.ethnicity)?.label || profile.ethnicity : 'Not set'}</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditPhysicalStats')}>
           <Ionicons name="fitness-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Physical Stats</Text>
           <Text style={styles.cardValue}>{profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
+          </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('HealthIDs')}>
           <Ionicons name="card-outline" size={22} color="#8E44AD" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Linked Health ID</Text>
           <Text style={styles.cardValue}>{profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrimaryDoctor')}>
+          <Ionicons name="medical-outline" size={22} color="#E74C3C" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Doctors</Text>
+          <Text style={styles.cardValue}>{profile?.doctors?.length ? `${profile.doctors.length} doctors` : 'Not set'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-      </View>
+        </View>
 
       {/* Health Records Card */}
       <View style={styles.card}>
@@ -185,123 +153,122 @@ const ProfileDetailsScreen: React.FC = () => {
         <Text style={styles.cardHeader}>EMERGENCY INFO</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmergencyContacts')}>
           <Ionicons name="call-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Emergency Contact</Text>
-          <Text style={styles.cardValue}>{profile?.emergencyContact ? 'Set' : 'Not set'}</Text>
+          <Text style={styles.cardLabel}>Emergency Contacts</Text>
+          <Text style={styles.cardValue}>
+            {profile?.emergencyContacts && profile.emergencyContacts.length > 0 
+              ? `${profile.emergencyContacts.length} contact${profile.emergencyContacts.length > 1 ? 's' : ''}` 
+              : 'Not set'}
+          </Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrimaryDoctor')}>
           <Ionicons name="medical-outline" size={22} color="#007AFF" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Primary Doctor</Text>
-          <Text style={styles.cardValue}>{profile?.primaryDoctor ? 'Set' : 'Not set'}</Text>
+          <Text style={styles.cardLabel}>Doctors</Text>
+          <Text style={styles.cardValue}>
+            {profile?.doctors && profile.doctors.length > 0 
+              ? `${profile.doctors.length} doctor${profile.doctors.length > 1 ? 's' : ''}` 
+              : 'Not set'}
+          </Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
       </View>
 
-      {/* Birthday Date Picker */}
-      {showDatePicker && (
+      {/* Date of Birth Picker */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-                              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                 <Ionicons name="close" size={24} color="#007AFF" />
               </TouchableOpacity>
             </View>
             <DateTimePicker
-              value={new Date()}
+              value={profile?.birthDate ? new Date(profile.birthDate) : new Date()}
               mode="date"
               display="spinner"
               maximumDate={new Date()}
+              minimumDate={new Date(1900, 0, 1)}
               style={styles.datePicker}
+              textColor="#fff"
+              themeVariant="dark"
               onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
                 if (selectedDate) {
-                  // Calculate age from birth date
                   const today = new Date();
                   const birthDate = new Date(selectedDate);
-                  const age = today.getFullYear() - birthDate.getFullYear();
+                  let age = today.getFullYear() - birthDate.getFullYear();
                   const monthDiff = today.getMonth() - birthDate.getMonth();
-                  
                   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                     age--;
                   }
-
                   if (age >= 1 && age <= 150) {
-                    updateProfile({
-                      ...profile,
-                      age,
-                    });
+                    try {
+                      updateProfile({
+                        ...profile,
+                        age,
+                        birthDate: selectedDate.toISOString(),
+                      });
+                      // Removed setShowDatePicker(false) here
+                    } catch (error) {
+                      console.error('Error updating birth date:', error);
+                      Alert.alert('Error', 'Failed to save date of birth. Please try again.');
+                    }
                   } else {
                     Alert.alert('Error', 'Please select a valid date of birth');
                   }
                 }
               }}
             />
+            <TouchableOpacity
+              style={styles.datePickerSaveButton}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Text style={styles.datePickerSaveButtonText}>Done</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Gender Picker */}
-      {showGenderPicker && (
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Gender</Text>
+      <Modal
+        visible={showGenderPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGenderPicker(false)}
+      >
+        <View style={styles.datePickerOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>Select Gender</Text>
               <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
                 <Ionicons name="close" size={24} color="#007AFF" />
               </TouchableOpacity>
             </View>
-            <View style={styles.wheelPickerContainer}>
-              <Picker
-                selectedValue={profile?.gender || 'male'}
-                style={styles.wheelPicker}
-                onValueChange={(itemValue) => {
-                  updateProfile({
-                    ...profile,
-                    gender: itemValue as 'male' | 'female',
-                  });
-                  setShowGenderPicker(false);
-                }}
-              >
-                {genderOptions.map((option) => (
-                  <Picker.Item
-                    key={option.value}
-                    label={option.label}
-                    value={option.value}
-                    color="#fff"
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* Ethnicity Picker */}
-      {showEthnicityPicker && (
-        <View style={styles.datePickerOverlay}>
-          <View style={styles.datePickerContainer}>
-            <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Select Ethnicity</Text>
-              <TouchableOpacity onPress={() => setShowEthnicityPicker(false)}>
-                <Ionicons name="close" size={24} color="#007AFF" />
-              </TouchableOpacity>
-            </View>
             <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
-              {ethnicityOptions.map((option) => (
+              {genderOptions.map((option) => (
                 <TouchableOpacity
                   key={option.value}
                   style={styles.ethnicityPickerOption}
           onPress={() => {
-                    updateProfile({
-                      ...profile,
-                      ethnicity: option.value,
-                    });
-                    setShowEthnicityPicker(false);
+                    try {
+                      updateProfile({
+                        ...profile,
+                        gender: option.value as 'male' | 'female',
+                      });
+                      setShowGenderPicker(false);
+                    } catch (error) {
+                      console.error('Error updating gender:', error);
+                      Alert.alert('Error', 'Failed to update gender. Please try again.');
+                    }
                   }}
                 >
                   <Text style={styles.ethnicityPickerOptionText}>{option.label}</Text>
-                  {profile?.ethnicity === option.value && (
+                  {profile?.gender === option.value && (
                     <Ionicons name="checkmark" size={20} color="#007AFF" />
                   )}
                 </TouchableOpacity>
@@ -309,7 +276,7 @@ const ProfileDetailsScreen: React.FC = () => {
             </ScrollView>
       </View>
       </View>
-      )}
+      </Modal>
     </ScrollView>
   );
 };
@@ -480,24 +447,26 @@ const styles = StyleSheet.create({
     height: 150,
   },
   datePickerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
     paddingHorizontal: 20,
   },
   datePickerContainer: {
-    backgroundColor: '#181818',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
     minWidth: 300,
     maxWidth: 350,
     width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   datePickerHeader: {
     flexDirection: 'row',
@@ -511,8 +480,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   datePicker: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#333',
     color: '#fff',
+    borderRadius: 12,
+    padding: 10,
+  },
+  datePickerSaveButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  datePickerSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   ethnicityPickerOptions: {
     maxHeight: 300,

@@ -10,39 +10,51 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { Screening } from '../../types';
 
 const ScreeningsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [nextDue, setNextDue] = useState('');
+  const [screeningName, setScreeningName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [screeningDate, setScreeningDate] = useState<Date | null>(null);
+  const [showScreeningDatePicker, setShowScreeningDatePicker] = useState(false);
   const [result, setResult] = useState<'normal' | 'abnormal' | 'inconclusive'>('normal');
+  const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
+  const [showNextDuePicker, setShowNextDuePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
 
-  const resultOptions = [
-    { value: 'normal', label: 'Normal', color: '#4CD964' },
-    { value: 'abnormal', label: 'Abnormal', color: '#FF3B30' },
-    { value: 'inconclusive', label: 'Inconclusive', color: '#FF9500' },
+  const commonScreenings = [
+    'Blood Pressure', 'Cholesterol', 'Blood Sugar', 'Hemoglobin A1C',
+    'Complete Blood Count (CBC)', 'Comprehensive Metabolic Panel (CMP)',
+    'Thyroid Function Test', 'PSA Test', 'Mammogram', 'Pap Smear',
+    'Colonoscopy', 'Sigmoidoscopy', 'Fecal Occult Blood Test',
+    'Bone Density Test (DEXA)', 'Eye Exam', 'Dental Exam',
+    'Skin Cancer Screening', 'Lung Cancer Screening', 'Prostate Exam',
+    'Breast Exam', 'Pelvic Exam', 'Testicular Exam', 'STI Testing',
+    'HIV Test', 'Hepatitis C Test', 'Tuberculosis Test', 'Allergy Testing',
+    'Sleep Study', 'Stress Test', 'Echocardiogram', 'ECG/EKG',
+    'Chest X-Ray', 'CT Scan', 'MRI', 'Ultrasound', 'Endoscopy',
+    'Colonoscopy', 'Sigmoidoscopy', 'Cystoscopy', 'Cystoscopy'
   ];
 
   const addScreening = () => {
-    if (!name.trim() || !date.trim()) {
-      Alert.alert('Error', 'Please enter screening name and date');
+    if (!screeningName.trim()) {
+      Alert.alert('Error', 'Please enter a screening name');
       return;
     }
 
     const newScreening: Screening = {
       id: Date.now().toString(),
-      name: name.trim(),
-      date: new Date(date),
-      nextDue: nextDue ? new Date(nextDue) : undefined,
+      name: screeningName.trim(),
+      date: screeningDate || new Date(),
       result,
+      nextDue: nextDueDate || undefined,
       location: location.trim() || undefined,
       notes: notes.trim() || undefined,
     };
@@ -54,10 +66,10 @@ const ScreeningsScreen: React.FC = () => {
     });
 
     setShowAddModal(false);
-    setName('');
-    setDate('');
-    setNextDue('');
+    setScreeningName('');
+    setScreeningDate(null);
     setResult('normal');
+    setNextDueDate(null);
     setLocation('');
     setNotes('');
   };
@@ -87,11 +99,6 @@ const ScreeningsScreen: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const isOverdue = (nextDue?: Date) => {
-    if (!nextDue) return false;
-    return new Date() > nextDue;
-  };
-
   const getResultColor = (result: string) => {
     switch (result) {
       case 'normal': return '#4CD964';
@@ -99,6 +106,10 @@ const ScreeningsScreen: React.FC = () => {
       case 'inconclusive': return '#FF9500';
       default: return '#888';
     }
+  };
+
+  const isOverdue = (nextDue: Date) => {
+    return new Date() > nextDue;
   };
 
   return (
@@ -109,7 +120,7 @@ const ScreeningsScreen: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Screenings</Text>
+          <Text style={styles.headerTitle}>Health Screenings</Text>
           <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
             <Ionicons name="add" size={24} color="#007AFF" />
           </TouchableOpacity>
@@ -124,24 +135,24 @@ const ScreeningsScreen: React.FC = () => {
                   <View style={styles.screeningInfo}>
                     <Text style={styles.screeningName}>{screening.name}</Text>
                     <Text style={styles.screeningDate}>Date: {formatDate(screening.date)}</Text>
-                    <View style={styles.screeningTags}>
-                      <View style={[styles.tag, { backgroundColor: getResultColor(screening.result || 'normal') + '20' }]}>
-                        <Text style={[styles.tagText, { color: getResultColor(screening.result || 'normal') }]}>
-                          {screening.result?.charAt(0).toUpperCase() + screening.result?.slice(1) || 'Normal'}
+                    <View style={styles.resultContainer}>
+                      <View style={[styles.resultBadge, { backgroundColor: getResultColor(screening.result) + '20' }]}>
+                        <Text style={[styles.resultText, { color: getResultColor(screening.result) }]}>
+                          {screening.result.charAt(0).toUpperCase() + screening.result.slice(1)}
                         </Text>
                       </View>
                     </View>
                     {screening.nextDue && (
                       <View style={styles.nextDueContainer}>
                         <Text style={[
-                          styles.nextDue,
-                          isOverdue(screening.nextDue) && styles.overdue
+                          styles.nextDueText,
+                          isOverdue(screening.nextDue) && styles.overdueText
                         ]}>
                           Next due: {formatDate(screening.nextDue)}
                         </Text>
                         {isOverdue(screening.nextDue) && (
                           <View style={styles.overdueBadge}>
-                            <Text style={styles.overdueText}>Overdue</Text>
+                            <Text style={styles.overdueBadgeText}>OVERDUE</Text>
                           </View>
                         )}
                       </View>
@@ -162,9 +173,9 @@ const ScreeningsScreen: React.FC = () => {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={64} color="#666" />
+              <Ionicons name="clipboard-outline" size={64} color="#666" />
               <Text style={styles.emptyTitle}>No Screenings</Text>
-              <Text style={styles.emptySubtitle}>Add your health screenings to track preventive care</Text>
+              <Text style={styles.emptySubtitle}>Add your health screenings to keep track of your preventive care</Text>
               <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
                 <Text style={styles.addFirstButtonText}>Add Screening</Text>
               </TouchableOpacity>
@@ -177,7 +188,8 @@ const ScreeningsScreen: React.FC = () => {
       <Modal
         visible={showAddModal}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
         onRequestClose={() => setShowAddModal(false)}
       >
         <View style={styles.modalContainer}>
@@ -197,59 +209,110 @@ const ScreeningsScreen: React.FC = () => {
               <Text style={styles.inputLabel}>Screening Name *</Text>
               <TextInput
                 style={styles.textInput}
-                value={name}
-                onChangeText={setName}
-                placeholder="e.g., Mammogram, Colonoscopy, Blood Test"
+                value={screeningName}
+                onChangeText={(text) => {
+                  setScreeningName(text);
+                  setShowSuggestions(text.length > 0);
+                }}
+                placeholder="e.g., Blood Pressure, Mammogram"
                 placeholderTextColor="#666"
               />
+              {showSuggestions && screeningName.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {commonScreenings
+                    .filter(s => s.toLowerCase().includes(screeningName.toLowerCase()))
+                    .slice(0, 5)
+                    .map((suggestion, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setScreeningName(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <Text style={styles.suggestionText}>{suggestion}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              )}
             </View>
 
-            {/* Date */}
+            {/* Screening Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Date *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={date}
-                onChangeText={setDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#666"
-              />
+              <Text style={styles.inputLabel}>Screening Date *</Text>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowScreeningDatePicker(true)}
+              >
+                <Text style={[styles.dateInputText, !screeningDate && styles.placeholderText]}>
+                  {screeningDate ? screeningDate.toLocaleDateString() : 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
             </View>
 
             {/* Result */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Result</Text>
               <View style={styles.optionsContainer}>
-                {resultOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.optionButton,
-                      result === option.value && styles.selectedOption
-                    ]}
-                    onPress={() => setResult(option.value as any)}
-                  >
-                    <Text style={[
-                      styles.optionText,
-                      result === option.value && styles.selectedOptionText
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'normal' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('normal')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'normal' && styles.selectedOptionText
+                  ]}>
+                    Normal
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'abnormal' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('abnormal')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'abnormal' && styles.selectedOptionText
+                  ]}>
+                    Abnormal
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'inconclusive' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('inconclusive')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'inconclusive' && styles.selectedOptionText
+                  ]}>
+                    Inconclusive
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
-            {/* Next Due */}
+            {/* Next Due Date */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Next Due Date (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={nextDue}
-                onChangeText={setNextDue}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#666"
-              />
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowNextDuePicker(true)}
+              >
+                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>
+                  {nextDueDate ? nextDueDate.toLocaleDateString() : 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
             </View>
 
             {/* Location */}
@@ -259,7 +322,7 @@ const ScreeningsScreen: React.FC = () => {
                 style={styles.textInput}
                 value={location}
                 onChangeText={setLocation}
-                placeholder="e.g., Hospital, Clinic, Lab"
+                placeholder="e.g., Doctor's office, Lab"
                 placeholderTextColor="#666"
               />
             </View>
@@ -280,6 +343,32 @@ const ScreeningsScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Screening Date Picker */}
+      <IOSDatePicker
+        visible={showScreeningDatePicker}
+        title="Screening Date"
+        value={screeningDate ?? new Date()}
+        maximumDate={new Date()}
+        onConfirm={(d) => {
+          setScreeningDate(d);
+          setShowScreeningDatePicker(false);
+        }}
+        onCancel={() => setShowScreeningDatePicker(false)}
+      />
+
+      {/* Next Due Date Picker */}
+      <IOSDatePicker
+        visible={showNextDuePicker}
+        title="Next Due Date"
+        value={nextDueDate ?? new Date()}
+        minimumDate={new Date()}
+        onConfirm={(d) => {
+          setNextDueDate(d);
+          setShowNextDuePicker(false);
+        }}
+        onCancel={() => setShowNextDuePicker(false)}
+      />
     </View>
   );
 };
@@ -340,17 +429,17 @@ const styles = StyleSheet.create({
     color: '#888',
     marginBottom: 8,
   },
-  screeningTags: {
+  resultContainer: {
     flexDirection: 'row',
     marginBottom: 8,
   },
-  tag: {
+  resultBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     marginRight: 8,
   },
-  tagText: {
+  resultText: {
     fontSize: 12,
     fontWeight: '500',
   },
@@ -359,21 +448,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  nextDue: {
+  nextDueText: {
     fontSize: 14,
-    color: '#4CD964',
+    color: '#888',
     marginRight: 8,
   },
-  overdue: {
+  overdueText: {
     color: '#FF3B30',
   },
   overdueBadge: {
     backgroundColor: '#FF3B30',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 4,
   },
-  overdueText: {
+  overdueBadgeText: {
     fontSize: 10,
     color: '#fff',
     fontWeight: '600',
@@ -474,6 +563,22 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+  suggestionsContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 150,
+  },
+  suggestionItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  suggestionText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -497,6 +602,74 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     color: '#fff',
+    fontWeight: '600',
+  },
+  dateInput: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  placeholderText: {
+    color: '#666',
+  },
+  datePickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  datePickerContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    padding: 20,
+    minWidth: 300,
+    maxWidth: 350,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  datePicker: {
+    backgroundColor: '#333',
+    color: '#fff',
+    borderRadius: 12,
+    padding: 10,
+  },
+  datePickerSaveButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  datePickerSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

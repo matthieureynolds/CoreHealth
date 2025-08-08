@@ -10,32 +10,45 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { Vaccination } from '../../types';
 
 const VaccinationsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [nextDue, setNextDue] = useState('');
+  const [vaccineName, setVaccineName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [dateReceived, setDateReceived] = useState<Date | null>(null);
+  const [showDateReceivedPicker, setShowDateReceivedPicker] = useState(false);
+  const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
+  const [showNextDuePicker, setShowNextDuePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [batchNumber, setBatchNumber] = useState('');
   const [notes, setNotes] = useState('');
 
+  const commonVaccines = [
+    'COVID-19', 'Influenza (Flu)', 'Tetanus', 'Diphtheria', 'Pertussis (Whooping Cough)',
+    'Measles', 'Mumps', 'Rubella', 'Varicella (Chickenpox)', 'Hepatitis A',
+    'Hepatitis B', 'HPV (Human Papillomavirus)', 'Meningococcal', 'Pneumococcal',
+    'Rotavirus', 'Haemophilus influenzae type b (Hib)', 'Polio', 'Yellow Fever',
+    'Typhoid', 'Rabies', 'Japanese Encephalitis', 'Cholera', 'Tuberculosis (BCG)',
+    'Shingles (Zoster)', 'Pneumonia', 'Meningitis B', 'Meningitis ACWY'
+  ];
+
   const addVaccination = () => {
-    if (!name.trim() || !date.trim()) {
-      Alert.alert('Error', 'Please enter vaccine name and date');
+    if (!vaccineName.trim()) {
+      Alert.alert('Error', 'Please enter a vaccine name');
       return;
     }
 
     const newVaccination: Vaccination = {
       id: Date.now().toString(),
-      name: name.trim(),
-      date: new Date(date),
-      nextDue: nextDue ? new Date(nextDue) : undefined,
+      name: vaccineName.trim(),
+      date: dateReceived || new Date(),
+      nextDue: nextDueDate || undefined,
       location: location.trim() || undefined,
       batchNumber: batchNumber.trim() || undefined,
       notes: notes.trim() || undefined,
@@ -48,9 +61,9 @@ const VaccinationsScreen: React.FC = () => {
     });
 
     setShowAddModal(false);
-    setName('');
-    setDate('');
-    setNextDue('');
+    setVaccineName('');
+    setDateReceived(null);
+    setNextDueDate(null);
     setLocation('');
     setBatchNumber('');
     setNotes('');
@@ -81,8 +94,7 @@ const VaccinationsScreen: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const isOverdue = (nextDue?: Date) => {
-    if (!nextDue) return false;
+  const isOverdue = (nextDue: Date) => {
     return new Date() > nextDue;
   };
 
@@ -107,19 +119,19 @@ const VaccinationsScreen: React.FC = () => {
               <View key={vaccination.id} style={styles.vaccinationCard}>
                 <View style={styles.vaccinationHeader}>
                   <View style={styles.vaccinationInfo}>
-                    <Text style={styles.vaccinationName}>{vaccination.name}</Text>
-                    <Text style={styles.vaccinationDate}>Date: {formatDate(vaccination.date)}</Text>
+                    <Text style={styles.vaccineName}>{vaccination.name}</Text>
+                    <Text style={styles.vaccinationDate}>Received: {formatDate(vaccination.date)}</Text>
                     {vaccination.nextDue && (
                       <View style={styles.nextDueContainer}>
                         <Text style={[
-                          styles.nextDue,
-                          isOverdue(vaccination.nextDue) && styles.overdue
+                          styles.nextDueText,
+                          isOverdue(vaccination.nextDue) && styles.overdueText
                         ]}>
                           Next due: {formatDate(vaccination.nextDue)}
                         </Text>
                         {isOverdue(vaccination.nextDue) && (
                           <View style={styles.overdueBadge}>
-                            <Text style={styles.overdueText}>Overdue</Text>
+                            <Text style={styles.overdueBadgeText}>OVERDUE</Text>
                           </View>
                         )}
                       </View>
@@ -145,7 +157,7 @@ const VaccinationsScreen: React.FC = () => {
             <View style={styles.emptyState}>
               <Ionicons name="shield-checkmark-outline" size={64} color="#666" />
               <Text style={styles.emptyTitle}>No Vaccinations</Text>
-              <Text style={styles.emptySubtitle}>Add your vaccinations to track your immunization history</Text>
+              <Text style={styles.emptySubtitle}>Add your vaccinations to keep track of your immunization history</Text>
               <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
                 <Text style={styles.addFirstButtonText}>Add Vaccination</Text>
               </TouchableOpacity>
@@ -158,7 +170,8 @@ const VaccinationsScreen: React.FC = () => {
       <Modal
         visible={showAddModal}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
         onRequestClose={() => setShowAddModal(false)}
       >
         <View style={styles.modalContainer}>
@@ -178,35 +191,61 @@ const VaccinationsScreen: React.FC = () => {
               <Text style={styles.inputLabel}>Vaccine Name *</Text>
               <TextInput
                 style={styles.textInput}
-                value={name}
-                onChangeText={setName}
-                placeholder="e.g., COVID-19, Flu Shot, Tetanus"
+                value={vaccineName}
+                onChangeText={(text) => {
+                  setVaccineName(text);
+                  setShowSuggestions(text.length > 0);
+                }}
+                placeholder="e.g., COVID-19, Influenza"
                 placeholderTextColor="#666"
               />
+              {showSuggestions && vaccineName.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {commonVaccines
+                    .filter(v => v.toLowerCase().includes(vaccineName.toLowerCase()))
+                    .slice(0, 5)
+                    .map((suggestion, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setVaccineName(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <Text style={styles.suggestionText}>{suggestion}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              )}
             </View>
 
-            {/* Date */}
+            {/* Date Received */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Date Received *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={date}
-                onChangeText={setDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#666"
-              />
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowDateReceivedPicker(true)}
+              >
+                <Text style={[styles.dateInputText, !dateReceived && styles.placeholderText]}>
+                  {dateReceived ? dateReceived.toLocaleDateString() : 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
             </View>
 
-            {/* Next Due */}
+            {/* Next Due Date */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Next Due Date (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={nextDue}
-                onChangeText={setNextDue}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#666"
-              />
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowNextDuePicker(true)}
+              >
+                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>
+                  {nextDueDate ? nextDueDate.toLocaleDateString() : 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
             </View>
 
             {/* Location */}
@@ -228,7 +267,7 @@ const VaccinationsScreen: React.FC = () => {
                 style={styles.textInput}
                 value={batchNumber}
                 onChangeText={setBatchNumber}
-                placeholder="e.g., ABC123"
+                placeholder="e.g., ABC123456"
                 placeholderTextColor="#666"
               />
             </View>
@@ -249,6 +288,32 @@ const VaccinationsScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Date Received Picker */}
+      <IOSDatePicker
+        visible={showDateReceivedPicker}
+        title="Date Received"
+        value={dateReceived ?? new Date()}
+        maximumDate={new Date()}
+        onConfirm={(d) => {
+          setDateReceived(d);
+          setShowDateReceivedPicker(false);
+        }}
+        onCancel={() => setShowDateReceivedPicker(false)}
+      />
+
+      {/* Next Due Date Picker */}
+      <IOSDatePicker
+        visible={showNextDuePicker}
+        title="Next Due Date"
+        value={nextDueDate ?? new Date()}
+        minimumDate={new Date()}
+        onConfirm={(d) => {
+          setNextDueDate(d);
+          setShowNextDuePicker(false);
+        }}
+        onCancel={() => setShowNextDuePicker(false)}
+      />
     </View>
   );
 };
@@ -298,7 +363,7 @@ const styles = StyleSheet.create({
   vaccinationInfo: {
     flex: 1,
   },
-  vaccinationName: {
+  vaccineName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
@@ -314,21 +379,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  nextDue: {
+  nextDueText: {
     fontSize: 14,
-    color: '#4CD964',
+    color: '#888',
     marginRight: 8,
   },
-  overdue: {
+  overdueText: {
     color: '#FF3B30',
   },
   overdueBadge: {
     backgroundColor: '#FF3B30',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 4,
   },
-  overdueText: {
+  overdueBadgeText: {
     fontSize: 10,
     color: '#fff',
     fontWeight: '600',
@@ -336,7 +401,7 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 14,
     color: '#888',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   batchNumber: {
     fontSize: 14,
@@ -433,6 +498,90 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  suggestionsContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 150,
+  },
+  suggestionItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  suggestionText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  dateInput: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  placeholderText: {
+    color: '#666',
+  },
+  datePickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  datePickerContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    padding: 20,
+    minWidth: 300,
+    maxWidth: 350,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  datePicker: {
+    backgroundColor: '#333',
+    color: '#fff',
+    borderRadius: 12,
+    padding: 10,
+  },
+  datePickerSaveButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  datePickerSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

@@ -27,7 +27,7 @@ interface NameData {
 
 const EditNameScreen: React.FC = () => {
   const navigation = useNavigation<EditNameScreenNavigationProp>();
-  const { user, updateUser } = useAuth();
+  const { user, updateUserName } = useAuth();
   const [nameData, setNameData] = useState<NameData>({
     firstName: '',
     surname: '',
@@ -36,13 +36,11 @@ const EditNameScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.displayName) {
-      // Try to parse existing name into components
-      const nameParts = user.displayName.split(' ');
+    if (user) {
       setNameData({
-        firstName: nameParts[0] || '',
-        surname: nameParts.slice(1).join(' ') || '',
-        preferredName: '',
+        firstName: user.firstName || '',
+        surname: user.surname || '',
+        preferredName: user.preferredName || '',
       });
     }
   }, [user]);
@@ -68,16 +66,18 @@ const EditNameScreen: React.FC = () => {
       return;
     }
 
-    const fullName = `${nameData.firstName.trim()} ${nameData.surname.trim()}`;
-    const displayName = nameData.preferredName.trim() || nameData.firstName.trim();
-
     setIsLoading(true);
     try {
-      await updateUser({ 
-        displayName: displayName,
-        // You might want to store the full name separately in your user object
-        // For now, we'll use the preferred name or first name as display name
-      });
+      // Use preferred name if provided, otherwise use first name
+      const finalPreferredName = nameData.preferredName.trim() || nameData.firstName.trim();
+      
+      // Update the user's full name using AuthContext
+      await updateUserName(
+        nameData.firstName.trim(),
+        nameData.surname.trim(),
+        finalPreferredName
+      );
+      
       Alert.alert('Success', 'Name updated successfully', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
@@ -129,12 +129,11 @@ const EditNameScreen: React.FC = () => {
             onChangeText={(text) => setNameData({ ...nameData, firstName: text })}
             placeholder="Enter your first name"
             placeholderTextColor="#666"
-            autoFocus
+            autoFocus={false}
             maxLength={30}
             autoCapitalize="words"
             autoCorrect={false}
           />
-
         </View>
 
         <View style={styles.inputContainer}>
@@ -149,7 +148,6 @@ const EditNameScreen: React.FC = () => {
             autoCapitalize="words"
             autoCorrect={false}
           />
-
         </View>
 
         <View style={styles.inputContainer}>
@@ -164,10 +162,7 @@ const EditNameScreen: React.FC = () => {
             autoCapitalize="words"
             autoCorrect={false}
           />
-
         </View>
-
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -183,11 +178,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 24,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 50,
+    paddingBottom: 15,
+    backgroundColor: '#111',
   },
   backButton: {
     padding: 8,
@@ -195,7 +188,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   saveButton: {
     paddingHorizontal: 16,
@@ -217,49 +210,26 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
     paddingBottom: 40,
-    paddingTop: 20,
   },
   inputContainer: {
-    marginBottom: 32,
+    marginBottom: 15,
   },
   label: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#222',
+    backgroundColor: '#181818',
     borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: 16,
     color: '#fff',
     borderWidth: 1,
     borderColor: '#333',
-    minHeight: 56,
-  },
-  characterCount: {
-    color: '#666',
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 12,
-  },
-  infoContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
-    padding: 20,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
-    marginTop: 20,
-  },
-  infoText: {
-    color: '#aaa',
-    fontSize: 14,
-    lineHeight: 22,
-    marginLeft: 16,
-    flex: 1,
+    minHeight: 50,
   },
 });
 

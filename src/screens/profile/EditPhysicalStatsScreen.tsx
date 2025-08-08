@@ -60,8 +60,8 @@ const EditPhysicalStatsScreen: React.FC = () => {
     try {
       await updateProfile({
         ...profile,
-        height,
-        weight,
+        height: Math.round(height * 10) / 10, // Round to 1 decimal place
+        weight: Math.round(weight * 10) / 10, // Round to 1 decimal place
       });
 
       Alert.alert('Success', 'Physical stats updated successfully', [
@@ -113,14 +113,14 @@ const EditPhysicalStatsScreen: React.FC = () => {
             style={styles.input}
             value={statsData.height}
             onChangeText={(text) => setStatsData({ ...statsData, height: text })}
-            placeholder="Enter your height (e.g., 175)"
+            placeholder="Enter your height (e.g., 175.5)"
             placeholderTextColor="#666"
-            keyboardType="numeric"
-            maxLength={3}
+            keyboardType="decimal-pad"
+            maxLength={6}
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={styles.characterCount}>{statsData.height.length}/3</Text>
+          <Text style={styles.characterCount}>{statsData.height.length}/6</Text>
         </View>
 
         <View style={styles.inputContainer}>
@@ -129,21 +129,14 @@ const EditPhysicalStatsScreen: React.FC = () => {
             style={styles.input}
             value={statsData.weight}
             onChangeText={(text) => setStatsData({ ...statsData, weight: text })}
-            placeholder="Enter your weight (e.g., 70)"
+            placeholder="Enter your weight (e.g., 75.5)"
             placeholderTextColor="#666"
-            keyboardType="numeric"
-            maxLength={3}
+            keyboardType="decimal-pad"
+            maxLength={6}
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <Text style={styles.characterCount}>{statsData.weight.length}/3</Text>
-        </View>
-
-        <View style={styles.infoContainer}>
-          <Ionicons name="information-circle-outline" size={20} color="#007AFF" />
-          <Text style={styles.infoText}>
-            Your physical stats help provide personalized health insights and recommendations.
-          </Text>
+          <Text style={styles.characterCount}>{statsData.weight.length}/6</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

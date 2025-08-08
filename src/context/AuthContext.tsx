@@ -27,6 +27,8 @@ interface AuthContextType {
   resendVerificationEmail: () => Promise<void>;
   handleEmailVerification: () => Promise<boolean>;
   signInWithGoogle: () => Promise<void>; // Add Google sign-in
+  updateUserDisplayName: (displayName: string) => Promise<void>; // Add update display name
+  updateUserName: (firstName: string, surname: string, preferredName: string) => Promise<void>; // Add update full name
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,6 +101,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       displayName:
         supabaseUser.user_metadata?.display_name ||
         supabaseUser.user_metadata?.full_name,
+      firstName: supabaseUser.user_metadata?.first_name || '',
+      surname: supabaseUser.user_metadata?.surname || '',
+      preferredName: supabaseUser.user_metadata?.preferred_name || '',
       photoURL: supabaseUser.user_metadata?.avatar_url,
       emailVerified: supabaseUser.email_confirmed_at ? true : false,
       createdAt: new Date(supabaseUser.created_at),
@@ -231,6 +236,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUserDisplayName = async (displayName: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          display_name: displayName,
+        },
+      });
+      if (error) throw error;
+      setUser(prevUser => prevUser ? { ...prevUser, displayName } : null);
+      console.log('✅ User display name updated successfully');
+    } catch (error: any) {
+      console.error('Update display name error:', error);
+      throw new Error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateUserName = async (firstName: string, surname: string, preferredName: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          surname: surname,
+          preferred_name: preferredName,
+        },
+      });
+      if (error) throw error;
+      setUser(prevUser => prevUser ? { ...prevUser, firstName, surname, preferredName } : null);
+      console.log('✅ User full name updated successfully');
+    } catch (error: any) {
+      console.error('Update full name error:', error);
+      throw new Error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -242,6 +287,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resendVerificationEmail,
     handleEmailVerification,
     signInWithGoogle, // Add to context
+    updateUserDisplayName, // Add to context
+    updateUserName, // Add to context
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

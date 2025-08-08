@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,15 @@ import { useHealthData } from '../../context/HealthDataContext';
 import { HealthID } from '../../types';
 
 const HealthIDsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedCountryCode, setSelectedCountryCode] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Debug useEffect - removed since we're using Alert
 
   const countries = [
     { name: 'United Kingdom', code: 'GB', idTypes: ['NHS Number', 'NI Number'] },
@@ -119,7 +120,13 @@ const HealthIDsScreen: React.FC = () => {
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Health IDs</Text>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              console.log('Add button pressed');
+              setShowAddModal(true);
+            }}
+          >
             <Ionicons name="add" size={24} color="#007AFF" />
           </TouchableOpacity>
         </View>
@@ -194,7 +201,32 @@ const HealthIDsScreen: React.FC = () => {
             {/* Country Selection */}
             <TouchableOpacity
               style={styles.inputContainer}
-              onPress={() => setShowCountryPicker(true)}
+              onPress={() => {
+                console.log('Country picker tapped, showing alert');
+                // Create country options for Alert
+                const countryOptions = countries.map(country => country.name);
+                Alert.alert(
+                  'Select Country',
+                  'Choose your country:',
+                  [
+                    ...countryOptions.map((countryName, index) => ({
+                      text: countryName,
+                      onPress: () => {
+                        const selectedCountryData = countries.find(c => c.name === countryName);
+                        if (selectedCountryData) {
+                          console.log('Country selected via alert:', countryName);
+                          setSelectedCountry(selectedCountryData.name);
+                          setSelectedCountryCode(selectedCountryData.code);
+                        }
+                      }
+                    })),
+                    {
+                      text: 'Cancel',
+                      style: 'cancel'
+                    }
+                  ]
+                );
+              }}
             >
               <Text style={styles.inputLabel}>Country</Text>
               <View style={styles.inputRow}>
@@ -234,40 +266,7 @@ const HealthIDsScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Country Picker Modal */}
-      <Modal
-        visible={showCountryPicker}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCountryPicker(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Country</Text>
-            <View style={{ width: 60 }} />
-          </View>
-
-          <ScrollView style={styles.modalContent}>
-            {countries.map((country) => (
-              <TouchableOpacity
-                key={country.code}
-                style={styles.countryOption}
-                onPress={() => {
-                  setSelectedCountry(country.name);
-                  setSelectedCountryCode(country.code);
-                  setShowCountryPicker(false);
-                }}
-              >
-                <Text style={styles.countryOptionText}>{country.name}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#888" />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
+      {/* Country selection now uses Alert instead of Modal */}
     </View>
   );
 };
@@ -473,6 +472,42 @@ const styles = StyleSheet.create({
   countryOptionText: {
     fontSize: 16,
     color: '#fff',
+  },
+  countryPickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  countryPickerBottomSheet: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  countryPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  countryPickerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  countryPickerContent: {
+    maxHeight: 300,
   },
 });
 
