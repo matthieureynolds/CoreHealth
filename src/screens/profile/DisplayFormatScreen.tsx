@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,55 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSettings } from '../../context/SettingsContext';
 
 const DisplayFormatScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [selectedUnits, setSelectedUnits] = useState('metric');
-  const [selectedDateFormat, setSelectedDateFormat] = useState('DD/MM/YYYY');
-  const [selectedTimeFormat, setSelectedTimeFormat] = useState('12h');
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const { settings, updateGeneralSettings } = useSettings();
+  const [selectedUnits, setSelectedUnits] = useState(settings.general.units);
+  const [selectedDateFormat, setSelectedDateFormat] = useState(settings.general.dateFormat);
+  const [selectedTimeFormat, setSelectedTimeFormat] = useState(settings.general.timeFormat);
+  const [selectedLanguage, setSelectedLanguage] = useState(mapLanguageToCode(settings.general.language));
   const [showPicker, setShowPicker] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedUnits(settings.general.units);
+    setSelectedDateFormat(settings.general.dateFormat);
+    setSelectedTimeFormat(settings.general.timeFormat);
+    setSelectedLanguage(mapLanguageToCode(settings.general.language));
+  }, [settings.general]);
+
+  function mapLanguageToCode(lang: string): string {
+    switch (lang) {
+      case 'English': return 'en';
+      case 'Español': return 'es';
+      case 'Français': return 'fr';
+      case 'Deutsch': return 'de';
+      case 'Italiano': return 'it';
+      case 'Português': return 'pt';
+      case 'Русский': return 'ru';
+      case '中文': return 'zh';
+      case '日本語': return 'ja';
+      case '한국어': return 'ko';
+      default: return 'en';
+    }
+  }
+
+  function mapCodeToLanguage(code: string): string {
+    switch (code) {
+      case 'en': return 'English';
+      case 'es': return 'Español';
+      case 'fr': return 'Français';
+      case 'de': return 'Deutsch';
+      case 'it': return 'Italiano';
+      case 'pt': return 'Português';
+      case 'ru': return 'Русский';
+      case 'zh': return '中文';
+      case 'ja': return '日本語';
+      case 'ko': return '한국어';
+      default: return 'English';
+    }
+  }
 
   const unitsOptions = [
     { value: 'metric', label: 'Metric', description: 'Celsius, kg, cm' },
@@ -34,6 +75,11 @@ const DisplayFormatScreen: React.FC = () => {
     { value: '24h', label: '24-Hour', description: '13:30' },
   ];
 
+  const themeOptions = [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+  ];
+
   const languageOptions = [
     { value: 'en', label: 'English' },
     { value: 'es', label: 'Español' },
@@ -49,6 +95,7 @@ const DisplayFormatScreen: React.FC = () => {
 
   const getCurrentValue = (type: string) => {
     switch (type) {
+      case 'theme': return settings.general.theme === 'dark' ? 'Dark' : 'Light';
       case 'units': return unitsOptions.find(opt => opt.value === selectedUnits)?.label || '';
       case 'dateFormat': return dateFormatOptions.find(opt => opt.value === selectedDateFormat)?.label || '';
       case 'timeFormat': return timeFormatOptions.find(opt => opt.value === selectedTimeFormat)?.label || '';
@@ -67,19 +114,26 @@ const DisplayFormatScreen: React.FC = () => {
     }
   };
 
-  const handleSelect = (type: string, value: string) => {
+  const handleSelect = async (type: string, value: string) => {
     switch (type) {
+      case 'theme':
+        await updateGeneralSettings({ theme: value as any });
+        break;
       case 'units':
-        setSelectedUnits(value);
+        setSelectedUnits(value as 'metric' | 'imperial');
+        await updateGeneralSettings({ units: value as any });
         break;
       case 'dateFormat':
-        setSelectedDateFormat(value);
+        setSelectedDateFormat(value as any);
+        await updateGeneralSettings({ dateFormat: value as any });
         break;
       case 'timeFormat':
-        setSelectedTimeFormat(value);
+        setSelectedTimeFormat(value as any);
+        await updateGeneralSettings({ timeFormat: value as any });
         break;
       case 'language':
         setSelectedLanguage(value);
+        await updateGeneralSettings({ language: mapCodeToLanguage(value) });
         break;
     }
     setShowPicker(null);
@@ -87,6 +141,7 @@ const DisplayFormatScreen: React.FC = () => {
 
   const getOptions = (type: string) => {
     switch (type) {
+      case 'theme': return themeOptions;
       case 'units': return unitsOptions;
       case 'dateFormat': return dateFormatOptions;
       case 'timeFormat': return timeFormatOptions;
@@ -97,12 +152,22 @@ const DisplayFormatScreen: React.FC = () => {
 
   const formatItems = [
     {
+      title: 'Theme',
+      subtitle: 'Light or Dark appearance',
+      icon: 'color-palette-outline',
+      type: 'theme',
+      value: getCurrentValue('theme'),
+      description: '',
+      color: '#8E44AD',
+    },
+    {
       title: 'Units',
       subtitle: 'Choose your preferred measurement system',
       icon: 'scale-outline',
       type: 'units',
       value: getCurrentValue('units'),
       description: getCurrentDescription('units'),
+      color: '#FF9500',
     },
     {
       title: 'Date Format',
@@ -111,6 +176,7 @@ const DisplayFormatScreen: React.FC = () => {
       type: 'dateFormat',
       value: getCurrentValue('dateFormat'),
       description: getCurrentDescription('dateFormat'),
+      color: '#34C759',
     },
     {
       title: 'Time Format',
@@ -119,6 +185,7 @@ const DisplayFormatScreen: React.FC = () => {
       type: 'timeFormat',
       value: getCurrentValue('timeFormat'),
       description: getCurrentDescription('timeFormat'),
+      color: '#5856D6',
     },
     {
       title: 'Language',
@@ -127,45 +194,31 @@ const DisplayFormatScreen: React.FC = () => {
       type: 'language',
       value: getCurrentValue('language'),
       description: '',
+      color: '#4CD964',
     },
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Display & Format</Text>
+        <View style={{ width: 24 }} />
+      </View>
+      <View style={styles.card}>
+        <Text style={styles.cardHeader}>DISPLAY & FORMAT</Text>
+        {formatItems.map((item, index) => (
+          <TouchableOpacity key={index} style={styles.cardRow} onPress={() => setShowPicker(item.type)}>
+            <Ionicons name={item.icon as any} size={22} color={item.color as any} style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>{item.title}</Text>
+            <Text style={styles.cardValue}>{item.value}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Display & Format</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          {formatItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.settingsItem}
-              onPress={() => setShowPicker(item.type)}
-            >
-              <Ionicons name={item.icon as any} size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-                {item.description && (
-                  <Text style={styles.itemDescription}>{item.description}</Text>
-                )}
-              </View>
-              <View style={styles.itemRight}>
-                <Text style={styles.itemValue}>{item.value}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+        ))}
+      </View>
 
       {/* Picker Modal */}
       <Modal
@@ -201,7 +254,8 @@ const DisplayFormatScreen: React.FC = () => {
                     <Text style={styles.optionDescription}>{option.description}</Text>
                   )}
                 </View>
-                {(showPicker === 'units' && selectedUnits === option.value) ||
+                {(showPicker === 'theme' && settings.general.theme === option.value) ||
+                 (showPicker === 'units' && selectedUnits === option.value) ||
                  (showPicker === 'dateFormat' && selectedDateFormat === option.value) ||
                  (showPicker === 'timeFormat' && selectedTimeFormat === option.value) ||
                  (showPicker === 'language' && selectedLanguage === option.value) ? (
@@ -212,17 +266,14 @@ const DisplayFormatScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
-  },
-  scrollView: {
-    flex: 1,
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -230,8 +281,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingBottom: 16,
+    backgroundColor: '#000000',
   },
   backButton: {
     padding: 8,
@@ -239,47 +290,47 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
+    color: '#FFFFFF',
   },
-  content: {
-    padding: 20,
+  card: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginTop: 20,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  settingsItem: {
+  cardHeader: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginBottom: 16,
+    marginHorizontal: 20,
+    letterSpacing: 0.5,
+  },
+  cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    marginBottom: 12,
   },
-  itemIcon: {
+  cardIcon: {
     marginRight: 12,
   },
-  itemContent: {
+  cardLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FFFFFF',
     flex: 1,
   },
-  itemTitle: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 2,
-  },
-  itemSubtitle: {
+  cardValue: {
     fontSize: 14,
-    color: '#888',
-    marginBottom: 2,
-  },
-  itemDescription: {
-    fontSize: 12,
-    color: '#666',
-  },
-  itemRight: {
-    alignItems: 'flex-end',
-  },
-  itemValue: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 2,
+    color: '#8E8E93',
+    marginRight: 8,
   },
   chevron: {
     marginLeft: 'auto',

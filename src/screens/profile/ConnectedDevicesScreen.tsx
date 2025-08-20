@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,86 +12,178 @@ import { useNavigation } from '@react-navigation/native';
 
 const ConnectedDevicesScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [syncEnabled, setSyncEnabled] = useState(true);
   
-  const connectedDevices = [
+  // Mock connected devices data
+  const [connectedDevices, setConnectedDevices] = useState([
     {
       id: '1',
-      name: 'WHOOP Strap',
-      type: 'Fitness Tracker',
+      name: 'WHOOP®',
+      logo: 'fitness-outline',
+      color: '#4CD964',
       status: 'Connected',
       lastSync: '2 hours ago',
-      icon: 'fitness-outline',
-      color: '#4CD964',
     },
     {
       id: '2',
-      name: 'Oura Ring',
-      type: 'Sleep Tracker',
+      name: 'Apple Health',
+      logo: 'logo-apple',
+      color: '#007AFF',
       status: 'Connected',
       lastSync: '1 hour ago',
-      icon: 'bed-outline',
+    },
+  ]);
+
+  // Available devices to connect (sorted alphabetically, official names with trademarks)
+  const availableDevices = [
+    {
+      id: 'apple-health',
+      name: 'Apple Health',
+      logo: 'logo-apple',
       color: '#007AFF',
+      description: 'iOS aggregator',
     },
     {
-      id: '3',
-      name: 'Smart Toilet',
-      type: 'Health Monitor',
-      status: 'Connected',
-      lastSync: '30 minutes ago',
-      icon: 'water-outline',
+      id: 'dexcom',
+      name: 'Dexcom®',
+      logo: 'medical-outline',
       color: '#FF9500',
+      description: 'Continuous glucose monitoring',
     },
     {
-      id: '4',
-      name: 'Apple Watch',
-      type: 'Smartwatch',
-      status: 'Connected',
-      lastSync: '5 minutes ago',
-      icon: 'watch-outline',
+      id: 'eight-sleep',
+      name: 'Eight Sleep™',
+      logo: 'bed-outline',
+      color: '#34C759',
+      description: 'Smart mattress & sleep tracking',
+    },
+    {
+      id: 'fitbit',
+      name: 'Fitbit®',
+      logo: 'fitness-outline',
       color: '#FF3B30',
+      description: 'Activity & health tracking',
+    },
+    {
+      id: 'freestyle-libre',
+      name: 'FreeStyle Libre®',
+      logo: 'medical-outline',
+      color: '#007AFF',
+      description: 'Glucose monitoring system',
+    },
+    {
+      id: 'garmin',
+      name: 'Garmin® Connect',
+      logo: 'watch-outline',
+      color: '#FF9500',
+      description: 'Fitness devices & wearables',
+    },
+    {
+      id: 'oura',
+      name: 'Oura Ring™',
+      logo: 'bed-outline',
+      color: '#AF52DE',
+      description: 'Sleep & recovery tracking',
+    },
+    {
+      id: 'withings-bp',
+      name: 'Withings® BPM Connect',
+      logo: 'heart-outline',
+      color: '#FF3B30',
+      description: 'Systolic, diastolic, heart rate',
+    },
+    {
+      id: 'withings-scale',
+      name: 'Withings® Body+',
+      logo: 'scale-outline',
+      color: '#34C759',
+      description: 'Weight, body fat, muscle mass',
+    },
+    {
+      id: 'withings-sleep',
+      name: 'Withings® Sleep Tracker',
+      logo: 'bed-outline',
+      color: '#AF52DE',
+      description: 'Sleep stages, HR, breathing',
+    },
+    {
+      id: 'withings-thermometer',
+      name: 'Withings® Thermo',
+      logo: 'thermometer-outline',
+      color: '#FF9500',
+      description: 'Body temperature readings',
+    },
+    {
+      id: 'withings-uscan',
+      name: 'Withings® U-Scan',
+      logo: 'water-outline',
+      color: '#007AFF',
+      description: 'Toilet urine analyzer',
+    },
+    {
+      id: 'withings-watch',
+      name: 'Withings® ScanWatch',
+      logo: 'watch-outline',
+      color: '#34C759',
+      description: 'HR, steps, workouts, sleep',
+    },
+    {
+      id: 'zoe',
+      name: 'ZOE™',
+      logo: 'restaurant-outline',
+      color: '#FF3B30',
+      description: 'Nutrition & gut health insights',
     },
   ];
 
-  const apiTokens = [
-    {
-      id: '1',
-      name: 'WHOOP API',
-      status: 'Active',
-      expires: '2024-12-31',
-      icon: 'key-outline',
-    },
-    {
-      id: '2',
-      name: 'Oura API',
-      status: 'Active',
-      expires: '2024-11-15',
-      icon: 'key-outline',
-    },
-  ];
+  // Filter out already connected devices from available list
+  const filteredAvailableDevices = availableDevices.filter(availableDevice => 
+    !connectedDevices.some(connectedDevice => 
+      connectedDevice.name.toLowerCase().includes(availableDevice.name.toLowerCase().replace(/[®™]/g, '').trim())
+    )
+  );
 
-  const handleDisconnectDevice = (deviceId: string) => {
+  const handleConnectDevice = (device: any) => {
     Alert.alert(
-      'Disconnect Device',
-      'Are you sure you want to disconnect this device?',
+      `Connect ${device.name}`,
+      `Would you like to connect your ${device.name} account?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: () => {
-          Alert.alert('Success', 'Device disconnected successfully');
-        }},
+        { 
+          text: 'Connect', 
+          onPress: () => {
+            // Simulate connection process
+            setTimeout(() => {
+              const newDevice = {
+                id: Date.now().toString(),
+                name: device.name,
+                logo: device.logo,
+                color: device.color,
+                status: 'Connected',
+                lastSync: 'Just now',
+              };
+              setConnectedDevices([...connectedDevices, newDevice]);
+              Alert.alert('Success', `${device.name} connected successfully!`);
+            }, 1000);
+          }
+        },
       ]
     );
   };
 
-  const handleRevokeToken = (tokenId: string) => {
+  const handleDisconnectDevice = (deviceId: string, deviceName: string) => {
     Alert.alert(
-      'Revoke Token',
-      'Are you sure you want to revoke this API token?',
+      'Disconnect Device',
+      `Are you sure you want to disconnect ${deviceName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Revoke', style: 'destructive', onPress: () => {
-          Alert.alert('Success', 'API token revoked successfully');
-        }},
+        { 
+          text: 'Disconnect', 
+          style: 'destructive',
+          onPress: () => {
+            setConnectedDevices(connectedDevices.filter(device => device.id !== deviceId));
+            Alert.alert('Success', `${deviceName} disconnected successfully`);
+          }
+        },
       ]
     );
   };
@@ -111,100 +202,63 @@ const ConnectedDevicesScreen: React.FC = () => {
         
         {/* Content */}
         <View style={styles.content}>
-          {/* Sync Status */}
-          <View style={styles.section}>
-            <View style={styles.syncHeader}>
-              <Text style={styles.sectionTitle}>Sync Status</Text>
-              <Switch
-                value={syncEnabled}
-                onValueChange={setSyncEnabled}
-                trackColor={{ false: '#333', true: '#007AFF' }}
-                thumbColor="#FFFFFF"
-              />
+          {/* Currently Connected Section */}
+          {connectedDevices.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Currently Connected</Text>
+              {connectedDevices.map((device) => (
+                <View key={device.id} style={styles.deviceCard}>
+                  <View style={styles.deviceInfo}>
+                    <View style={[styles.deviceLogo, { backgroundColor: device.color + '20' }]}>
+                      <Ionicons name={device.logo as any} size={24} color={device.color} />
+                    </View>
+                    <View style={styles.deviceDetails}>
+                      <Text style={styles.deviceName}>{device.name}</Text>
+                      <Text style={styles.deviceStatus}>{device.status}</Text>
+                      <Text style={styles.deviceLastSync}>Last sync: {device.lastSync}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.disconnectButton}
+                    onPress={() => handleDisconnectDevice(device.id, device.name)}
+                  >
+                    <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-            <Text style={styles.syncSubtitle}>
-              {syncEnabled ? 'Auto-sync enabled' : 'Auto-sync disabled'}
-            </Text>
-          </View>
-          
-          {/* Connected Devices */}
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="phone-portrait-outline" size={48} color="#666" />
+              <Text style={styles.emptyStateText}>No devices connected yet</Text>
+              <Text style={styles.emptyStateSubtext}>Connect your first device to start syncing health data</Text>
+            </View>
+          )}
+
+          {/* Available to Connect Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Connected Devices</Text>
-            {connectedDevices.map((device) => (
-              <View key={device.id} style={styles.deviceItem}>
+            <Text style={styles.sectionTitle}>Available to Connect</Text>
+            {filteredAvailableDevices.map((device) => (
+              <View key={device.id} style={styles.deviceCard}>
                 <View style={styles.deviceInfo}>
-                  <View style={[styles.deviceIcon, { backgroundColor: device.color + '20' }]}>
-                    <Ionicons name={device.icon as any} size={20} color={device.color} />
-            </View>
+                  <View style={[styles.deviceLogo, { backgroundColor: device.color + '20' }]}>
+                    <Ionicons name={device.logo as any} size={24} color={device.color} />
+                  </View>
                   <View style={styles.deviceDetails}>
                     <Text style={styles.deviceName}>{device.name}</Text>
-                    <Text style={styles.deviceType}>{device.type}</Text>
-                    <Text style={styles.deviceStatus}>
-                      {device.status} • Last sync: {device.lastSync}
-                    </Text>
-        </View>
-      </View>
-          <TouchableOpacity
-                  style={styles.disconnectButton}
-                  onPress={() => handleDisconnectDevice(device.id)}
+                    {device.description && (
+                      <Text style={styles.deviceDescription}>{device.description}</Text>
+                    )}
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.connectButtonSmall}
+                  onPress={() => handleConnectDevice(device)}
                 >
-                  <Ionicons name="close-circle-outline" size={20} color="#FF3B30" />
-          </TouchableOpacity>
-        </View>
+                  <Text style={styles.connectButtonSmallText}>Connect</Text>
+                </TouchableOpacity>
+              </View>
             ))}
-            <TouchableOpacity style={styles.addDeviceButton}>
-              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-              <Text style={styles.addDeviceText}>Add New Device</Text>
-        </TouchableOpacity>
-      </View>
-
-          {/* API Access Tokens */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>API Access Tokens</Text>
-            {apiTokens.map((token) => (
-              <View key={token.id} style={styles.tokenItem}>
-                <View style={styles.tokenInfo}>
-                  <Ionicons name={token.icon as any} size={20} color="#007AFF" style={styles.tokenIcon} />
-                  <View style={styles.tokenDetails}>
-                    <Text style={styles.tokenName}>{token.name}</Text>
-                    <Text style={styles.tokenStatus}>
-                      {token.status} • Expires: {token.expires}
-            </Text>
-          </View>
-        </View>
-              <TouchableOpacity
-                  style={styles.revokeButton}
-                  onPress={() => handleRevokeToken(token.id)}
-              >
-                  <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-            ))}
-            <TouchableOpacity style={styles.addTokenButton}>
-              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-              <Text style={styles.addTokenText}>Add New API Token</Text>
-            </TouchableOpacity>
-        </View>
-
-          {/* Troubleshooting */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Troubleshooting</Text>
-            <TouchableOpacity style={styles.troubleshootItem}>
-              <Ionicons name="refresh-outline" size={20} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Force Sync All Devices</Text>
-                <Text style={styles.itemSubtitle}>Manually sync all connected devices</Text>
-            </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.troubleshootItem}>
-              <Ionicons name="bug-outline" size={20} color="#FF9500" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Connection Diagnostics</Text>
-                <Text style={styles.itemSubtitle}>Test device connections and troubleshoot issues</Text>
-            </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -215,7 +269,7 @@ const ConnectedDevicesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000',
   },
   scrollView: {
     flex: 1,
@@ -227,64 +281,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: '#111',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   backButton: {
     padding: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#fff',
   },
   content: {
     padding: 20,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 30,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  syncHeader: {
+  deviceCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-  syncSubtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginLeft: 20,
-  },
-  deviceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   deviceInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    marginRight: 16,
   },
-  deviceIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  deviceLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   deviceDetails: {
     flex: 1,
@@ -293,113 +336,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  deviceType: {
+  deviceDescription: {
     fontSize: 14,
     color: '#888',
-    marginBottom: 2,
+    marginTop: 2,
   },
   deviceStatus: {
+    fontSize: 14,
+    color: '#34C759',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  deviceLastSync: {
     fontSize: 12,
-    color: '#4CD964',
+    color: '#888',
   },
   disconnectButton: {
     padding: 8,
   },
-  addDeviceButton: {
-    flexDirection: 'row',
+  connectButtonSmall: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  connectButtonSmallText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyState: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF20',
-    borderRadius: 12,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
+    paddingVertical: 40,
+    marginBottom: 30,
   },
-  addDeviceText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  tokenItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  tokenInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  tokenIcon: {
-    marginRight: 12,
-  },
-  tokenDetails: {
-    flex: 1,
-  },
-  tokenName: {
-    fontSize: 16,
+  emptyStateText: {
+    fontSize: 18,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 2,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  tokenStatus: {
-    fontSize: 12,
-    color: '#888',
-  },
-  revokeButton: {
-    padding: 8,
-  },
-  addTokenButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF20',
-    borderRadius: 12,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
-  },
-  addTokenText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  troubleshootItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  itemIcon: {
-    marginRight: 12,
-  },
-  itemContent: {
-    flex: 1,
-  },
-  itemTitle: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 2,
-  },
-  itemSubtitle: {
+  emptyStateSubtext: {
     fontSize: 14,
     color: '#888',
-  },
-  chevron: {
-    marginLeft: 'auto',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

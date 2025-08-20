@@ -76,7 +76,7 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardLabel}>Doctors</Text>
           <Text style={styles.cardValue}>{profile?.doctors?.length ? `${profile.doctors.length} doctors` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
+          </TouchableOpacity>
         </View>
 
       {/* Health Records Card */}

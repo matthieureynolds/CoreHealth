@@ -261,17 +261,16 @@ const EmailPasswordScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: '#000000',
   },
   backButton: {
     width: 40,
@@ -282,7 +281,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
@@ -291,16 +290,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    color: '#8E8E93',
+    marginBottom: 12,
     marginLeft: 20,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1C1C1E',
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 12,
@@ -310,11 +309,11 @@ const styles = StyleSheet.create({
   },
   currentEmail: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1C1C1E',
     marginHorizontal: 20,
     padding: 20,
     borderRadius: 12,
@@ -322,7 +321,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginBottom: 8,
     marginTop: 16,
   },
@@ -331,12 +330,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: '#333',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#1C1C1E',
-    backgroundColor: '#fff',
+    color: '#FFFFFF',
+    backgroundColor: '#111',
   },
   eyeButton: {
     position: 'absolute',
@@ -360,23 +359,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  tipsCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 12,
-  },
-  tipItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  tipText: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
+  // Removed extra tips block for a cleaner flow
 });
 
 export default EmailPasswordScreen; 

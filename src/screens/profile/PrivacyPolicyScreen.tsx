@@ -1,232 +1,173 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import LegalDocTemplate from './LegalDocTemplate';
 
-const PrivacyPolicyScreen: React.FC = () => {
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Privacy Policy</Text>
-        <Text style={styles.lastUpdated}>Last updated: December 2024</Text>
-
-        <Text style={styles.sectionTitle}>1. Introduction</Text>
-        <Text style={styles.text}>
-          CoreHealth ("we", "our", "us") is committed to protecting your privacy and health information. This Privacy Policy explains how we collect, use, store, and protect your personal and health data in compliance with GDPR, HIPAA, CCPA, and other applicable privacy laws.
-        </Text>
-
-        <Text style={styles.sectionTitle}>2. Information We Collect</Text>
-        <Text style={styles.text}>
-          <Text style={styles.bold}>Personal Information:</Text>
-          {'\n'}• Name, email address, date of birth
-          {'\n'}• Account credentials and profile information
-          {'\n'}• Device information and app usage data
-          {'\n\n'}<Text style={styles.bold}>Health Information:</Text>
-          {'\n'}• Vital signs (heart rate, blood pressure, temperature)
-          {'\n'}• Lab results and medical test data
-          {'\n'}• Medications and treatment information
-          {'\n'}• Symptoms and health observations
-          {'\n'}• Sleep patterns and activity data
-          {'\n'}• Emergency contact information
-        </Text>
-
-        <Text style={styles.sectionTitle}>3. How We Use Your Information</Text>
-        <Text style={styles.text}>
-          We use your information to:
-          {'\n'}• Provide personalized health tracking and insights
-          {'\n'}• Send important health reminders and notifications
-          {'\n'}• Sync data across your devices
-          {'\n'}• Improve app functionality and user experience
-          {'\n'}• Provide customer support
-          {'\n'}• Comply with legal obligations
-          {'\n\n'}We do NOT use your health data for advertising or marketing purposes.
-        </Text>
-
-        <Text style={styles.sectionTitle}>4. Data Security</Text>
-        <Text style={styles.text}>
-          Your health data security is our top priority:
-          {'\n'}• <Text style={styles.bold}>End-to-end encryption</Text> for all health data
-          {'\n'}• <Text style={styles.bold}>HIPAA-compliant</Text> data storage and transmission
-          {'\n'}• <Text style={styles.bold}>Multi-factor authentication</Text> options
-          {'\n'}• <Text style={styles.bold}>Regular security audits</Text> and penetration testing
-          {'\n'}• <Text style={styles.bold}>Zero-knowledge architecture</Text> - we cannot access your unencrypted health data
-        </Text>
-
-        <Text style={styles.sectionTitle}>5. Data Sharing</Text>
-        <Text style={styles.text}>
-          We do NOT sell your personal or health information. We may share data only in these limited circumstances:
-          {'\n\n'}<Text style={styles.bold}>With Your Consent:</Text>
-          {'\n'}• Healthcare providers you authorize
-          {'\n'}• Family members or caregivers you designate
-          {'\n'}• Third-party health apps you connect
-          {'\n\n'}<Text style={styles.bold}>For Safety:</Text>
-          {'\n'}• Emergency contacts during medical emergencies
-          {'\n'}• Healthcare professionals if required by law
-          {'\n\n'}<Text style={styles.bold}>Anonymized Data:</Text>
-          {'\n'}• Aggregated, non-identifiable data for medical research (opt-in only)
-        </Text>
-
-        <Text style={styles.sectionTitle}>6. Your Rights (GDPR/CCPA)</Text>
-        <Text style={styles.text}>
-          You have the right to:
-          {'\n'}• <Text style={styles.bold}>Access</Text> your personal data
-          {'\n'}• <Text style={styles.bold}>Rectify</Text> inaccurate information
-          {'\n'}• <Text style={styles.bold}>Erase</Text> your data ("right to be forgotten")
-          {'\n'}• <Text style={styles.bold}>Port</Text> your data to another service
-          {'\n'}• <Text style={styles.bold}>Restrict</Text> processing of your data
-          {'\n'}• <Text style={styles.bold}>Object</Text> to data processing
-          {'\n'}• <Text style={styles.bold}>Withdraw consent</Text> at any time
-          {'\n\n'}To exercise these rights, contact us at privacy@corehealth.app
-        </Text>
-
-        <Text style={styles.sectionTitle}>7. Data Retention</Text>
-        <Text style={styles.text}>
-          We retain your data only as long as necessary:
-          {'\n'}• <Text style={styles.bold}>Active accounts:</Text> Data retained while account is active
-          {'\n'}• <Text style={styles.bold}>Deleted accounts:</Text> Data permanently deleted within 30 days
-          {'\n'}• <Text style={styles.bold}>Legal requirements:</Text> Some data may be retained longer if required by law
-          {'\n'}• <Text style={styles.bold}>Backup systems:</Text> Data removed from backups within 90 days
-        </Text>
-
-        <Text style={styles.sectionTitle}>8. International Transfers</Text>
-        <Text style={styles.text}>
-          Your data may be processed in countries other than your own. We ensure adequate protection through:
-          {'\n'}• Standard Contractual Clauses (SCCs)
-          {'\n'}• Adequacy decisions by relevant authorities
-          {'\n'}• Appropriate safeguards under GDPR Article 46
-        </Text>
-
-        <Text style={styles.sectionTitle}>9. Third-Party Integrations</Text>
-        <Text style={styles.text}>
-          CoreHealth may integrate with:
-          {'\n'}• <Text style={styles.bold}>Apple Health:</Text> Subject to Apple's privacy policy
-          {'\n'}• <Text style={styles.bold}>Google Fit:</Text> Subject to Google's privacy policy
-          {'\n'}• <Text style={styles.bold}>Healthcare providers:</Text> Subject to their privacy policies
-          {'\n\n'}You control which integrations to enable and can revoke access at any time.
-        </Text>
-
-        <Text style={styles.sectionTitle}>10. Children's Privacy</Text>
-        <Text style={styles.text}>
-          CoreHealth is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we become aware of such collection, we will delete the information immediately.
-        </Text>
-
-        <Text style={styles.sectionTitle}>11. Data Breach Notification</Text>
-        <Text style={styles.text}>
-          In the unlikely event of a data breach affecting your personal information, we will:
-          {'\n'}• Notify relevant authorities within 72 hours (GDPR requirement)
-          {'\n'}• Notify affected users without undue delay
-          {'\n'}• Provide clear information about the breach and our response
-          {'\n'}• Take immediate steps to secure the data and prevent further breaches
-        </Text>
-
-        <Text style={styles.sectionTitle}>12. Updates to This Policy</Text>
-        <Text style={styles.text}>
-          We may update this Privacy Policy to reflect changes in our practices or legal requirements. Material changes will be communicated through:
-          {'\n'}• In-app notifications
-          {'\n'}• Email notifications
-          {'\n'}• Prominent notice on our website
-        </Text>
-
-        <Text style={styles.sectionTitle}>13. Contact Information</Text>
-        <Text style={styles.text}>
-          For privacy-related questions or concerns:
-          {'\n\n'}<Text style={styles.bold}>Privacy Officer:</Text>
-          {'\n'}Email: privacy@corehealth.app
-          {'\n'}Address: [Your Company Address]
-          {'\n\n'}<Text style={styles.bold}>Data Protection Officer (EU):</Text>
-          {'\n'}Email: dpo@corehealth.app
-          {'\n\n'}<Text style={styles.bold}>General Support:</Text>
-          {'\n'}Email: support@corehealth.app
-        </Text>
-
-        <View style={styles.hipaaNotice}>
-          <Text style={styles.noticeTitle}>HIPAA Compliance</Text>
-          <Text style={styles.noticeText}>
-            CoreHealth is designed to be HIPAA-compliant. We implement appropriate administrative, physical, and technical safeguards to protect your health information as required by the Health Insurance Portability and Accountability Act.
-          </Text>
-        </View>
-
-        <View style={styles.gdprNotice}>
-          <Text style={styles.noticeTitle}>GDPR Compliance</Text>
-          <Text style={styles.noticeText}>
-            For users in the European Union, we comply with the General Data Protection Regulation (GDPR). You have enhanced rights regarding your personal data, including the right to data portability and the right to be forgotten.
-          </Text>
-        </View>
-
-        <View style={styles.bottomSpacing} />
-      </View>
-    </ScrollView>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  content: {
-    padding: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  lastUpdated: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginTop: 24,
-    marginBottom: 12,
-  },
-  text: {
-    fontSize: 16,
-    color: '#3C3C43',
-    lineHeight: 24,
-    marginBottom: 16,
-  },
-  bold: {
-    fontWeight: '600',
-  },
-  hipaaNotice: {
-    backgroundColor: '#E8F5E8',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 24,
-  },
-  gdprNotice: {
-    backgroundColor: '#E3F2FD',
-    borderWidth: 1,
-    borderColor: '#2196F3',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
-  },
-  noticeTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#2E7D32',
-    marginBottom: 8,
-  },
-  noticeText: {
-    fontSize: 15,
-    color: '#2E7D32',
-    lineHeight: 20,
-  },
-  bottomSpacing: {
-    height: 50,
-  },
-});
+const PrivacyPolicyScreen: React.FC = () => (
+  <LegalDocTemplate
+    title="Privacy Policy"
+    content={[
+      'Effective Date: 1 January 2025',
+      '',
+      'This Privacy Policy explains how CoreHealth ("we", "us", "our") collects, uses, discloses, and protects your personal information when you use our mobile application and related services. This policy is designed to comply with the UK General Data Protection Regulation (UK GDPR), the Data Protection Act 2018, and other applicable privacy laws.',
+      '',
+      '1. INFORMATION WE COLLECT',
+      '',
+      'Personal Information:',
+      '• Name, email address, date of birth, and contact details',
+      '• Account credentials and authentication information',
+      '• Profile information and preferences',
+      '• Device information and app usage analytics',
+      '',
+      'Health Information:',
+      '• Vital signs (heart rate, blood pressure, temperature, oxygen saturation)',
+      '• Laboratory results and medical test data',
+      '• Medications, dosages, and treatment schedules',
+      '• Symptoms, health observations, and medical history',
+      '• Sleep patterns, activity levels, and fitness data',
+      '• Emergency contact information and medical alerts',
+      '• Family medical history and genetic information',
+      '',
+      '2. HOW WE USE YOUR INFORMATION',
+      '',
+      'We use your information for the following purposes:',
+      '• Providing personalized health tracking and insights',
+      '• Sending health reminders, medication alerts, and notifications',
+      '• Enabling data synchronization across your devices',
+      '• Improving app functionality and user experience',
+      '• Providing customer support and technical assistance',
+      '• Complying with legal obligations and regulatory requirements',
+      '• Conducting research and development (using anonymized data only)',
+      '',
+      'We do NOT use your health data for advertising, marketing, or commercial purposes unrelated to your health.',
+      '',
+      '3. LEGAL BASIS FOR PROCESSING (UK GDPR)',
+      '',
+      'We process your personal data based on the following legal grounds:',
+      '• Consent: When you explicitly agree to data processing',
+      '• Contract Performance: To provide the services you requested',
+      '• Legitimate Interests: For security, fraud prevention, and service improvement',
+      '• Legal Obligations: To comply with applicable laws and regulations',
+      '• Vital Interests: To protect your health and safety in emergencies',
+      '',
+      '4. DATA SECURITY AND PROTECTION',
+      '',
+      'Your health data security is our highest priority:',
+      '• End-to-end encryption for all data in transit and at rest',
+      '• HIPAA-compliant data storage and transmission protocols',
+      '• Multi-factor authentication and secure access controls',
+      '• Regular security audits, penetration testing, and vulnerability assessments',
+      '• Zero-knowledge architecture - we cannot access your unencrypted health data',
+      '• Role-based access controls and comprehensive audit logging',
+      '• Regular security training for all staff and contractors',
+      '',
+      '5. DATA SHARING AND DISCLOSURE',
+      '',
+      'We do NOT sell, rent, or trade your personal or health information. We may share data only in these limited circumstances:',
+      '',
+      'With Your Explicit Consent:',
+      '• Healthcare providers you authorize',
+      '• Family members or caregivers you designate',
+      '• Third-party health applications you connect',
+      '• Research institutions (using anonymized data only)',
+      '',
+      'For Safety and Legal Compliance:',
+      '• Emergency contacts during medical emergencies',
+      '• Healthcare professionals when required by law',
+      '• Regulatory authorities for compliance purposes',
+      '• Law enforcement when required by court order',
+      '',
+      'Service Providers:',
+      '• Cloud storage providers under strict data processing agreements',
+      '• Analytics services using anonymized data only',
+      '• Customer support tools with limited access',
+      '',
+      '6. INTERNATIONAL DATA TRANSFERS',
+      '',
+      'If your data is transferred outside the UK or European Economic Area (EEA), we ensure adequate protection through:',
+      '• Standard Contractual Clauses (SCCs) approved by the UK Information Commissioner',
+      '• Adequacy decisions by the UK government',
+      '• Binding corporate rules for multinational transfers',
+      '• Other appropriate safeguards as required by UK GDPR',
+      '',
+      '7. YOUR RIGHTS UNDER UK GDPR',
+      '',
+      'You have the following rights regarding your personal data:',
+      '• Right of Access: Request a copy of your personal data',
+      '• Right to Rectification: Correct inaccurate or incomplete data',
+      '• Right to Erasure: Request deletion of your personal data',
+      '• Right to Restrict Processing: Limit how we use your data',
+      '• Right to Data Portability: Receive your data in a portable format',
+      '• Right to Object: Object to processing based on legitimate interests',
+      '• Right to Withdraw Consent: Withdraw consent at any time',
+      '• Right to Lodge a Complaint: Complain to the Information Commissioner\'s Office (ICO)',
+      '',
+      '8. DATA RETENTION',
+      '',
+      'We retain your personal data only as long as necessary to:',
+      '• Provide the services you requested',
+      '• Comply with legal and regulatory obligations',
+      '• Resolve disputes and enforce agreements',
+      '• Maintain security and prevent fraud',
+      '',
+      'Health data is typically retained for 7 years from your last activity, unless you request deletion earlier. Anonymized data may be retained indefinitely for research purposes.',
+      '',
+      '9. CHILDREN\'S PRIVACY',
+      '',
+      'Our services are not intended for children under 16 years of age. We do not knowingly collect personal information from children under 16. If you believe we have collected information from a child under 16, please contact us immediately.',
+      '',
+      '10. COOKIES AND TRACKING TECHNOLOGIES',
+      '',
+      'Our app uses limited tracking technologies for:',
+      '• Essential functionality and security',
+      '• Performance monitoring and crash diagnostics',
+      '• Analytics to improve user experience (anonymized only)',
+      '',
+      'We do NOT use third-party advertising or tracking cookies that process your health data.',
+      '',
+      '11. DATA BREACH NOTIFICATION',
+      '',
+      'In the event of a data breach that poses a risk to your rights and freedoms, we will:',
+      '• Notify the Information Commissioner\'s Office within 72 hours',
+      '• Notify affected users without undue delay',
+      '• Provide detailed information about the breach and mitigation steps',
+      '• Cooperate fully with regulatory investigations',
+      '',
+      '12. CHANGES TO THIS PRIVACY POLICY',
+      '',
+      'We may update this Privacy Policy periodically to reflect changes in our practices or applicable laws. We will notify you of material changes through:',
+      '• In-app notifications',
+      '• Email communications',
+      '• Updates to our website',
+      '',
+      'Continued use of our services after changes become effective indicates acceptance of the updated policy.',
+      '',
+      '13. CONTACT INFORMATION',
+      '',
+      'For privacy-related questions, concerns, or to exercise your rights:',
+      '',
+      'Data Protection Officer:',
+      'Email: dpo@corehealth.app',
+      'Phone: +44 (0) 20 7123 4567',
+      '',
+      'Privacy Team:',
+      'Email: privacy@corehealth.app',
+      'Address: CoreHealth Ltd, 123 Health Street, London, EC1A 1BB, United Kingdom',
+      '',
+      'Information Commissioner\'s Office:',
+      'Website: https://ico.org.uk',
+      'Phone: 0303 123 1113',
+      '',
+      '14. COMPLIANCE AND CERTIFICATIONS',
+      '',
+      'CoreHealth maintains the following compliance certifications:',
+      '• UK GDPR compliance',
+      '• ISO 27001 Information Security Management',
+      '• SOC 2 Type II Security and Privacy',
+      '• HIPAA compliance for US healthcare data',
+      '• NHS Digital Data Security and Protection Toolkit',
+      '',
+      'We regularly review and update our privacy practices to ensure ongoing compliance with evolving regulations and best practices.',
+    ]}
+  />
+);
 
 export default PrivacyPolicyScreen; 

@@ -30,19 +30,28 @@ import PrimaryDoctorScreen from '../screens/profile/PrimaryDoctorScreen';
 import BiomarkerVisibilityScreen from '../screens/profile/BiomarkerVisibilityScreen';
 import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
 import TermsOfServiceScreen from '../screens/profile/TermsOfServiceScreen';
-import PrivacyPolicyScreen from '../screens/profile/PrivacyPolicyScreen';
 import AboutScreen from '../screens/profile/AboutScreen';
 // New Settings Screens
 import AccountSettingsScreen from '../screens/profile/AccountSettingsScreen';
+import EmailPasswordScreen from '../screens/profile/EmailPasswordScreen';
+import ConnectedAccountsScreen from '../screens/profile/ConnectedAccountsScreen';
+import TwoFactorAuthScreen from '../screens/profile/TwoFactorAuthScreen';
 import ConnectedDevicesScreen from '../screens/profile/ConnectedDevicesScreen';
 import DisplayFormatScreen from '../screens/profile/DisplayFormatScreen';
-import AppearanceScreen from '../screens/profile/AppearanceScreen';
 import NotificationsScreen from '../screens/profile/NotificationsScreen';
-import TravelSettingsScreen from '../screens/profile/TravelSettingsScreen';
+
 import DataSyncScreen from '../screens/profile/DataSyncScreen';
 import PrivacySecurityScreen from '../screens/profile/PrivacySecurityScreen';
 import LegalComplianceScreen from '../screens/profile/LegalComplianceScreen';
+import TermsScreen from '../screens/profile/TermsScreen';
+import PrivacyPolicyScreen from '../screens/profile/PrivacyPolicyScreen';
+// Duplicate import removed
+import ConsentFormsScreen from '../screens/profile/ConsentFormsScreen';
+import ComplianceNoticesScreen from '../screens/profile/ComplianceNoticesScreen';
+import DataProcessingAgreementScreen from '../screens/profile/DataProcessingAgreementScreen';
+import DataRetentionPolicyScreen from '../screens/profile/DataRetentionPolicyScreen';
 import SupportHelpScreen from '../screens/profile/SupportHelpScreen';
+import FAQScreen from '../screens/profile/FAQScreen';
 import AppInfoScreen from '../screens/profile/AppInfoScreen';
 
 const Tab = createMaterialTopTabNavigator();
@@ -510,20 +519,7 @@ const ProfileTabNavigator: React.FC = () => {
           title: 'Help & Support',
         }}
       />
-      <Stack.Screen
-        name="TermsOfService"
-        component={TermsOfServiceScreen}
-        options={{
-          title: 'Terms of Service',
-        }}
-      />
-      <Stack.Screen
-        name="PrivacyPolicy"
-        component={PrivacyPolicyScreen}
-        options={{
-          title: 'Privacy Policy',
-        }}
-      />
+      {/* Legacy screens removed; using new legal document screens below */}
       <Stack.Screen
         name="About"
         component={AboutScreen}
@@ -537,6 +533,30 @@ const ProfileTabNavigator: React.FC = () => {
         component={AccountSettingsScreen}
         options={{
           title: 'Account Settings',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EmailPassword"
+        component={EmailPasswordScreen}
+        options={{
+          title: 'Email & Password',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="ConnectedAccounts"
+        component={ConnectedAccountsScreen}
+        options={{
+          title: 'Connected Accounts',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="TwoFactorAuth"
+        component={TwoFactorAuthScreen}
+        options={{
+          title: 'Two-Factor Authentication',
           headerShown: false,
         }}
       />
@@ -557,14 +577,6 @@ const ProfileTabNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen
-        name="Appearance"
-        component={AppearanceScreen}
-        options={{
-          title: 'Appearance',
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
         options={{
@@ -572,14 +584,7 @@ const ProfileTabNavigator: React.FC = () => {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="TravelSettings"
-        component={TravelSettingsScreen}
-        options={{
-          title: 'Travel Settings',
-          headerShown: false,
-        }}
-      />
+
       <Stack.Screen
         name="DataSync"
         component={DataSyncScreen}
@@ -604,11 +609,25 @@ const ProfileTabNavigator: React.FC = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="TermsOfService" component={TermsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ConsentForms" component={ConsentFormsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ComplianceNotices" component={ComplianceNoticesScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="DataProcessingAgreement" component={DataProcessingAgreementScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="DataRetentionPolicy" component={DataRetentionPolicyScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="SupportHelp"
         component={SupportHelpScreen}
         options={{
           title: 'Support & Help',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="FAQ"
+        component={FAQScreen}
+        options={{
+          title: 'FAQs',
           headerShown: false,
         }}
       />

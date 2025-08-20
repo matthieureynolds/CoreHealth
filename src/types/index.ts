@@ -348,6 +348,9 @@ export type ProfileTabParamList = {
   About: undefined;
   // New Settings Screens
   AccountSettings: undefined;
+  EmailPassword: undefined;
+  ConnectedAccounts: undefined;
+  TwoFactorAuth: undefined;
   ConnectedDevices: undefined;
   DisplayFormat: undefined;
   Appearance: undefined;
@@ -357,7 +360,13 @@ export type ProfileTabParamList = {
   PrivacySecurity: undefined;
   LegalCompliance: undefined;
   SupportHelp: undefined;
+  FAQ: undefined;
   AppInfo: undefined;
+  // Legal document detail screens
+  ConsentForms: undefined;
+  ComplianceNotices: undefined; // HIPAA / GDPR Region-Based Notices
+  DataProcessingAgreement: undefined;
+  DataRetentionPolicy: undefined;
 };
 
 // Dashboard Types

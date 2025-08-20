@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,29 +12,64 @@ import { useNavigation } from '@react-navigation/native';
 
 const DataSyncScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [wifiOnly, setWifiOnly] = useState(true);
-  const [autoSync, setAutoSync] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Never');
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const syncItems = [
-    {
-      title: 'Export Health Data',
-      subtitle: 'Download your health data as a file',
-      icon: 'download-outline',
-      onPress: () => Alert.alert('Export', 'Exporting your health data...'),
-    },
-    {
-      title: 'Import Health Data',
-      subtitle: 'Import health data from other sources',
-      icon: 'upload-outline',
-      onPress: () => Alert.alert('Import', 'Importing health data...'),
-    },
-    {
-      title: 'Sync Frequency',
-      subtitle: 'How often to sync your data',
-      icon: 'sync-outline',
-      onPress: () => Alert.alert('Sync Frequency', 'Configure sync frequency...'),
-    },
-  ];
+  useEffect(() => {
+    // Load last sync time from storage or set default
+    loadLastSyncTime();
+  }, []);
+
+  const loadLastSyncTime = () => {
+    // In a real app, this would load from AsyncStorage or database
+    // For now, we'll use a mock time
+    const mockLastSync = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2 hours ago
+    setLastSyncTime(formatDateTime(mockLastSync));
+  };
+
+  const formatDateTime = (date: Date): string => {
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    }
+  };
+
+  const handleSyncNow = async () => {
+    try {
+      setIsSyncing(true);
+      console.log('🔄 DataSyncScreen: Starting sync...');
+      
+      // Simulate sync process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update last sync time
+      const now = new Date();
+      setLastSyncTime(formatDateTime(now));
+      
+      console.log('✅ DataSyncScreen: Sync completed successfully');
+      Alert.alert(
+        'Sync Complete',
+        'Your health data has been successfully synchronized.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('❌ DataSyncScreen: Sync failed:', error);
+      Alert.alert(
+        'Sync Failed',
+        'There was an error syncing your data. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -51,99 +85,32 @@ const DataSyncScreen: React.FC = () => {
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Data Management */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Data Management</Text>
-            {syncItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.syncItem}
-                onPress={item.onPress}
-              >
-                <Ionicons name={item.icon as any} size={22} color="#007AFF" style={styles.itemIcon} />
-                <View style={styles.itemContent}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Sync Settings */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sync Settings</Text>
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
-                <Ionicons name="wifi-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-                <View style={styles.itemContent}>
-                  <Text style={styles.itemTitle}>Wi-Fi Only Sync</Text>
-                  <Text style={styles.itemSubtitle}>Only sync when connected to Wi-Fi</Text>
-                </View>
-              </View>
-              <Switch
-                value={wifiOnly}
-                onValueChange={setWifiOnly}
-                trackColor={{ false: '#333', true: '#007AFF' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
-                <Ionicons name="refresh-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-                <View style={styles.itemContent}>
-                  <Text style={styles.itemTitle}>Auto Sync</Text>
-                  <Text style={styles.itemSubtitle}>Automatically sync data in background</Text>
-                </View>
-              </View>
-              <Switch
-                value={autoSync}
-                onValueChange={setAutoSync}
-                trackColor={{ false: '#333', true: '#007AFF' }}
-                thumbColor="#FFFFFF"
-              />
+          {/* Last Sync Info */}
+          <View style={styles.syncInfoCard}>
+            <View style={styles.syncInfoRow}>
+              <Ionicons name="time-outline" size={20} color="#888" style={styles.syncIcon} />
+              <Text style={styles.syncLabel}>Last Sync:</Text>
+              <Text style={styles.syncTime}>{lastSyncTime}</Text>
             </View>
           </View>
 
-          {/* Storage Info */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Storage</Text>
-            <View style={styles.storageCard}>
-              <View style={styles.storageItem}>
-                <Text style={styles.storageLabel}>Used Space</Text>
-                <Text style={styles.storageValue}>2.4 GB</Text>
-              </View>
-              <View style={styles.storageItem}>
-                <Text style={styles.storageLabel}>Available</Text>
-                <Text style={styles.storageValue}>45.6 GB</Text>
-              </View>
-              <View style={styles.storageItem}>
-                <Text style={styles.storageLabel}>Last Sync</Text>
-                <Text style={styles.storageValue}>2 hours ago</Text>
-              </View>
+          {/* Sync Now Button */}
+          <TouchableOpacity
+            style={[styles.syncButton, isSyncing && styles.syncButtonDisabled]}
+            onPress={handleSyncNow}
+            disabled={isSyncing}
+          >
+            <View style={styles.syncButtonContent}>
+              {isSyncing ? (
+                <Ionicons name="sync" size={24} color="#fff" style={styles.syncSpinner} />
+              ) : (
+                <Ionicons name="sync-outline" size={24} color="#fff" style={styles.syncIcon} />
+              )}
+              <Text style={styles.syncButtonText}>
+                {isSyncing ? 'Syncing...' : 'Sync Now'}
+              </Text>
             </View>
-          </View>
-
-          {/* Advanced */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Advanced</Text>
-            <TouchableOpacity style={styles.advancedItem}>
-              <Ionicons name="trash-outline" size={22} color="#FF3B30" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Clear Cache</Text>
-                <Text style={styles.itemSubtitle}>Free up storage space</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.advancedItem}>
-              <Ionicons name="settings-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Sync Settings</Text>
-                <Text style={styles.itemSubtitle}>Configure advanced sync options</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -177,86 +144,54 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  syncItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  itemIcon: {
-    marginRight: 12,
-  },
-  itemContent: {
     flex: 1,
+    justifyContent: 'center',
   },
-  itemTitle: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 2,
-  },
-  itemSubtitle: {
-    fontSize: 14,
-    color: '#888',
-  },
-  chevron: {
-    marginLeft: 'auto',
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  storageCard: {
+  syncInfoCard: {
     backgroundColor: '#181818',
     borderRadius: 12,
     padding: 20,
+    marginBottom: 30,
   },
-  storageItem: {
+  syncInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
   },
-  storageLabel: {
-    fontSize: 14,
+  syncIcon: {
+    marginRight: 8,
+  },
+  syncLabel: {
+    fontSize: 16,
     color: '#888',
+    marginRight: 8,
   },
-  storageValue: {
-    fontSize: 14,
+  syncTime: {
+    fontSize: 16,
     color: '#fff',
     fontWeight: '600',
   },
-  advancedItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
+  syncButton: {
+    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    marginBottom: 12,
+    alignItems: 'center',
+  },
+  syncButtonDisabled: {
+    backgroundColor: '#666',
+  },
+  syncButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  syncButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 8,
+  },
+  syncSpinner: {
+    // Add rotation animation for the spinner
   },
 });
 

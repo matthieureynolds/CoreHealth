@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 const TravelSettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [autoLocation, setAutoLocation] = useState(true);
-  const [jetLagPlanner, setJetLagPlanner] = useState(true);
   const [timeZoneSync, setTimeZoneSync] = useState(true);
 
   const travelItems = [
@@ -25,15 +24,8 @@ const TravelSettingsScreen: React.FC = () => {
       onToggle: setAutoLocation,
     },
     {
-      title: 'Jet Lag Planner',
-      subtitle: 'Plan your sleep schedule for travel',
-      icon: 'bed-outline',
-      value: jetLagPlanner,
-      onToggle: setJetLagPlanner,
-    },
-    {
       title: 'Time Zone Sync',
-      subtitle: 'Automatically adjust to local time zones',
+      subtitle: 'Automatically adjust reminders to local time zones',
       icon: 'time-outline',
       value: timeZoneSync,
       onToggle: setTimeZoneSync,
@@ -75,55 +67,12 @@ const TravelSettingsScreen: React.FC = () => {
               </View>
             ))}
           </View>
-
-          {/* Advanced Settings */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Advanced Settings</Text>
-            <TouchableOpacity style={styles.advancedItem}>
-              <Ionicons name="settings-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Travel Health Alerts</Text>
-                <Text style={styles.itemSubtitle}>Configure health warnings for destinations</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.advancedItem}>
-              <Ionicons name="medical-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Vaccination Reminders</Text>
-                <Text style={styles.itemSubtitle}>Get reminders for required vaccinations</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.advancedItem}>
-              <Ionicons name="water-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Water Safety Alerts</Text>
-                <Text style={styles.itemSubtitle}>Warnings about water safety at destinations</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Trip Management */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Trip Management</Text>
-            <TouchableOpacity style={styles.tripItem}>
-              <Ionicons name="add-circle-outline" size={22} color="#4CD964" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Add New Trip</Text>
-                <Text style={styles.itemSubtitle}>Create a new travel itinerary</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tripItem}>
-              <Ionicons name="list-outline" size={22} color="#007AFF" style={styles.itemIcon} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>View All Trips</Text>
-                <Text style={styles.itemSubtitle}>Manage your travel history</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
+          {/* Explanation Card */}
+          <View style={styles.section}> 
+            <Text style={styles.sectionTitle}>How it works</Text>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoText}>Auto-Detect Location updates where you are. Time Zone Sync adjusts when reminders fire to local time.</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -206,6 +155,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     marginBottom: 12,
+  },
+  infoCard: {
+    backgroundColor: '#181818',
+    borderRadius: 12,
+    padding: 16,
+  },
+  infoText: {
+    color: '#8E8E93',
+    fontSize: 14,
+    lineHeight: 20,
   },
   chevron: {
     marginLeft: 'auto',

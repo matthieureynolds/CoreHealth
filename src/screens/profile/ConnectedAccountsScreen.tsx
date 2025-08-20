@@ -18,7 +18,7 @@ type ConnectedAccountsScreenNavigationProp = StackNavigationProp<ProfileTabParam
 
 interface ConnectedAccount {
   id: string;
-  provider: 'google' | 'apple';
+  provider: 'google';
   email: string;
   name: string;
   isConnected: boolean;
@@ -27,7 +27,7 @@ interface ConnectedAccount {
 
 const ConnectedAccountsScreen: React.FC = () => {
   const navigation = useNavigation<ConnectedAccountsScreenNavigationProp>();
-  const { user, signInWithGoogle, signInWithApple, unlinkAccount } = useAuth();
+  const { user, signInWithGoogle, unlinkAccount } = useAuth();
   
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([
     {
@@ -37,14 +37,6 @@ const ConnectedAccountsScreen: React.FC = () => {
       name: 'Google Account',
       isConnected: true,
       lastUsed: '2024-01-15',
-    },
-    {
-      id: '2',
-      provider: 'apple',
-      email: 'user@icloud.com',
-      name: 'Apple ID',
-      isConnected: false,
-      lastUsed: 'Never',
     },
   ]);
 
@@ -65,22 +57,7 @@ const ConnectedAccountsScreen: React.FC = () => {
     }
   };
 
-  const handleConnectApple = async () => {
-    try {
-      await signInWithApple();
-      Alert.alert('Success', 'Apple ID connected successfully');
-      // Update the connected accounts state
-      setConnectedAccounts(prev => 
-        prev.map(account => 
-          account.provider === 'apple' 
-            ? { ...account, isConnected: true, lastUsed: new Date().toISOString().split('T')[0] }
-            : account
-        )
-      );
-    } catch (error) {
-      Alert.alert('Error', 'Failed to connect Apple ID. Please try again.');
-    }
-  };
+  // Apple login removed
 
   const handleDisconnectAccount = (accountId: string) => {
     const account = connectedAccounts.find(acc => acc.id === accountId);
@@ -118,8 +95,6 @@ const ConnectedAccountsScreen: React.FC = () => {
     switch (provider) {
       case 'google':
         return 'logo-google';
-      case 'apple':
-        return 'logo-apple';
       default:
         return 'person';
     }
@@ -129,8 +104,6 @@ const ConnectedAccountsScreen: React.FC = () => {
     switch (provider) {
       case 'google':
         return '#4285F4';
-      case 'apple':
-        return '#000000';
       default:
         return '#666';
     }
@@ -164,7 +137,7 @@ const ConnectedAccountsScreen: React.FC = () => {
         ) : (
           <TouchableOpacity
             style={styles.connectButton}
-            onPress={account.provider === 'google' ? handleConnectGoogle : handleConnectApple}
+            onPress={handleConnectGoogle}
           >
             <Text style={styles.connectButtonText}>Connect</Text>
           </TouchableOpacity>
