@@ -8,6 +8,8 @@ import {
   Modal,
   TextInput,
   Platform,
+  ScrollView,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
@@ -43,6 +45,72 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const [isDraft, setIsDraft] = useState(false);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<MedicalEvent | null>(null);
+  
+  // Autocomplete states
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+  // Predefined appointment types
+  const appointmentTypes = [
+    'Dentist',
+    'GP / Primary Care',
+    'Cardiologist',
+    'Eye Test / Ophthalmologist',
+    'Blood Test',
+    'Vaccination',
+    'Physiotherapist',
+    'Dermatologist',
+    'Gynecologist',
+    'Urologist',
+    'Orthopedic',
+    'Neurologist',
+    'Psychiatrist',
+    'Nutritionist',
+    'Chiropractor',
+    'Acupuncturist',
+    'Massage Therapy',
+    'X-Ray / Imaging',
+    'Surgery Consultation',
+    'Follow-up Appointment',
+    'Emergency Room',
+    'Urgent Care',
+    'Specialist Consultation',
+    'Lab Work',
+    'Physical Therapy',
+    'Mental Health',
+    'Dental Cleaning',
+    'Root Canal',
+    'Crown / Bridge',
+    'Wisdom Teeth',
+    'Cancer Screening',
+    'Mammogram',
+    'Colonoscopy',
+    'Endoscopy',
+    'Biopsy',
+    'Allergy Testing',
+    'Sleep Study',
+    'Cardiac Stress Test',
+    'Echocardiogram',
+    'MRI Scan',
+    'CT Scan',
+    'Ultrasound',
+    'Bone Density Test',
+    'Hormone Testing',
+    'Thyroid Function',
+    'Diabetes Management',
+    'Hypertension Check',
+    'Cholesterol Screening',
+    'Liver Function Test',
+    'Kidney Function Test',
+    'Vitamin D Test',
+    'Iron Studies',
+    'Pregnancy Test',
+    'STI Testing',
+    'Travel Vaccination',
+    'Flu Shot',
+    'COVID-19 Vaccine',
+    'Other'
+  ];
 
   // Simplified events data with proper date categorization
   const [events, setEvents] = useState<MedicalEvent[]>([
@@ -123,6 +191,44 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     setDetailsModalVisible(true);
   };
 
+  // Handle appointment type input with autocomplete
+  const handleAppointmentTypeChange = (text: string) => {
+    setNewTitle(text);
+    if (text.length > 0) {
+      const filtered = appointmentTypes.filter(type => 
+        type.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+      setFilteredSuggestions([]);
+    }
+  };
+
+  const selectAppointmentType = (type: string) => {
+    setNewTitle(type);
+    setShowSuggestions(false);
+    setFilteredSuggestions([]);
+  };
+
+  // Handle file attachment
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+      
+      if (result.canceled === false) {
+        setAttachedDoc(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to attach file');
+    }
+  };
+
   const renderRightActions = (eventId: string) => (
     <View style={styles.swipeActions}>
       <RectButton style={[styles.swipeAction, styles.doneAction]} onPress={() => handleEventAction(eventId, 'done')}>
@@ -181,12 +287,12 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     if (showMore) {
       return groupedEvents;
     } else {
-      // Show limited events: 2 today, 2 tomorrow, 1 this week, 2 next month
+      // Show only today and tomorrow by default
       return {
-        today: groupedEvents.today.slice(0, 2),
-        tomorrow: groupedEvents.tomorrow.slice(0, 2),
-        thisWeek: groupedEvents.thisWeek.slice(0, 1),
-        nextMonth: groupedEvents.nextMonth.slice(0, 2),
+        today: groupedEvents.today,
+        tomorrow: groupedEvents.tomorrow,
+        thisWeek: [],
+        nextMonth: [],
         future: []
       };
     }
@@ -248,71 +354,139 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       <Modal visible={addModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Appointment</Text>
-            
-              <TextInput
-              placeholder="Appointment Title"
-              placeholderTextColor="#888"
-              value={newTitle}
-              onChangeText={setNewTitle}
-              style={styles.modalInput}
-            />
-            
-              <TextInput
-              placeholder="Doctor Name (optional)"
-              placeholderTextColor="#888"
-              value={newDoctor}
-              onChangeText={setNewDoctor}
-              style={styles.modalInput}
-            />
-            
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
-              style={styles.modalInput}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Appointment</Text>
+              <TouchableOpacity 
+                onPress={() => setAddModalVisible(false)}
+                style={styles.closeButton}
               >
-              <Text style={{ color: newDate ? '#fff' : '#888', fontSize: 16 }}>
-                {newDate ? newDate.toLocaleString() : 'Select Date & Time'}
-                </Text>
+                <Ionicons name="close" size={24} color="#8E8E93" />
               </TouchableOpacity>
+            </View>
             
-            {showDatePicker && (
-              <DateTimePicker
-                value={newDate || new Date()}
-                mode="datetime"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) setNewDate(selectedDate);
-                }}
-              />
-            )}
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Appointment Type with Autocomplete */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Appointment Type *</Text>
+                <TextInput
+                  placeholder="Start typing appointment type..."
+                  placeholderTextColor="#888"
+                  value={newTitle}
+                  onChangeText={handleAppointmentTypeChange}
+                  style={styles.modalInput}
+                />
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <View style={styles.suggestionsContainer}>
+                    <FlatList
+                      data={filteredSuggestions.slice(0, 8)}
+                      keyExtractor={(item) => item}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.suggestionItem}
+                          onPress={() => selectAppointmentType(item)}
+                        >
+                          <Text style={styles.suggestionText}>{item}</Text>
+                        </TouchableOpacity>
+                      )}
+                      style={styles.suggestionsList}
+                    />
+                  </View>
+                )}
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Doctor Name (optional)</Text>
+                <TextInput
+                  placeholder="Doctor Name"
+                  placeholderTextColor="#888"
+                  value={newDoctor}
+                  onChangeText={setNewDoctor}
+                  style={styles.modalInput}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Date & Time *</Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  style={styles.datePickerButton}
+                >
+                  <Ionicons name="calendar" size={20} color="#007AFF" />
+                  <Text style={[styles.datePickerText, { color: newDate ? '#fff' : '#888' }]}>
+                    {newDate ? format(newDate, 'MMM d, yyyy • h:mm a') : 'Select Date & Time'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             
-              <TextInput
-              placeholder="Notes (optional)"
-              placeholderTextColor="#888"
-              value={newNotes}
-              onChangeText={setNewNotes}
-                multiline
-              numberOfLines={3}
-              style={[styles.modalInput, { textAlignVertical: 'top' }]}
-            />
+              {showDatePicker && (
+                <DateTimePicker
+                  value={newDate || new Date()}
+                  mode="datetime"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) setNewDate(selectedDate);
+                  }}
+                />
+              )}
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Notes (optional)</Text>
+                <TextInput
+                  placeholder="Add notes about the appointment..."
+                  placeholderTextColor="#888"
+                  value={newNotes}
+                  onChangeText={setNewNotes}
+                  multiline
+                  numberOfLines={3}
+                  style={[styles.modalInput, { textAlignVertical: 'top' }]}
+                />
+              </View>
+
+              {/* File Attachment */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Attach Files (optional)</Text>
+                <TouchableOpacity
+                  style={styles.attachButton}
+                  onPress={handleAttachFile}
+                >
+                  <Ionicons name="attach" size={20} color="#007AFF" />
+                  <Text style={styles.attachButtonText}>
+                    {attachedDoc ? 'File Attached' : 'Attach File'}
+                  </Text>
+                </TouchableOpacity>
+                {attachedDoc && (
+                  <View style={styles.attachedFile}>
+                    <Ionicons name="document" size={16} color="#30D158" />
+                    <Text style={styles.attachedFileName}>{attachedDoc.name}</Text>
+                    <TouchableOpacity
+                      onPress={() => setAttachedDoc(null)}
+                      style={styles.removeFileButton}
+                    >
+                      <Ionicons name="close-circle" size={16} color="#FF3B30" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
             
             <View style={styles.modalButtons}>
-                      <TouchableOpacity 
-                  onPress={() => {
+              <TouchableOpacity 
+                onPress={() => {
                   setAddModalVisible(false);
                   setNewTitle('');
                   setNewDoctor('');
                   setNewDate(null);
                   setNewNotes('');
+                  setAttachedDoc(null);
                 }}
                 style={styles.modalButton}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
+              </TouchableOpacity>
               
-                <TouchableOpacity 
-                  onPress={() => {
+              <TouchableOpacity 
+                onPress={() => {
                   if (newTitle.trim() && newDate) {
                     const newEvent: MedicalEvent = {
                       id: Date.now().toString(),
@@ -331,39 +505,54 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                     setNewDoctor('');
                     setNewDate(null);
                     setNewNotes('');
+                    setAttachedDoc(null);
                   }
                 }}
                 style={styles.modalButton}
               >
                 <Text style={styles.addButtonText}>Add</Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
       {/* Event Details Modal */}
       <Modal visible={detailsModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedEvent?.title}</Text>
-            <Text style={styles.modalSubtitle}>{selectedEvent?.subtitle}</Text>
-            <Text style={styles.modalText}>Date: {selectedEvent?.time}</Text>
-            {selectedEvent?.doctor && (
-              <Text style={styles.modalText}>Doctor: {selectedEvent.doctor}</Text>
-            )}
-            {selectedEvent?.notes && (
-              <Text style={styles.modalText}>Notes: {selectedEvent.notes}</Text>
-            )}
-                <TouchableOpacity 
-              onPress={() => setDetailsModalVisible(false)}
-              style={styles.modalButton}
-            >
-              <Text style={styles.addButtonText}>Close</Text>
-                </TouchableOpacity>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{selectedEvent?.title}</Text>
+              <TouchableOpacity 
+                onPress={() => setDetailsModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalSubtitle}>{selectedEvent?.subtitle}</Text>
+              <Text style={styles.modalText}>Date: {selectedEvent?.time}</Text>
+              {selectedEvent?.doctor && (
+                <Text style={styles.modalText}>Doctor: {selectedEvent.doctor}</Text>
+              )}
+              {selectedEvent?.notes && (
+                <Text style={styles.modalText}>Notes: {selectedEvent.notes}</Text>
+              )}
+            </ScrollView>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                onPress={() => setDetailsModalVisible(false)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.addButtonText}>Close</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
       <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
         <Text style={styles.addButtonText}>+ Add Appointment</Text>
@@ -482,15 +671,28 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#2C2C2E',
     borderRadius: 16,
-    padding: 24,
     width: '90%',
     maxWidth: 400,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3A3A3C',
   },
   modalTitle: {
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
   },
   modalSubtitle: {
     color: '#8E8E93',
@@ -502,22 +704,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 8,
   },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   modalInput: {
     backgroundColor: '#3A3A3C',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
     color: '#FFFFFF',
     fontSize: 16,
+  },
+  datePickerButton: {
+    backgroundColor: '#3A3A3C',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  datePickerText: {
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  suggestionsContainer: {
+    backgroundColor: '#3A3A3C',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 200,
+  },
+  suggestionsList: {
+    maxHeight: 200,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  suggestionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  attachButton: {
+    backgroundColor: '#3A3A3C',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attachButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  attachedFile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+  },
+  attachedFileName: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  removeFileButton: {
+    padding: 4,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   modalButton: {
     flex: 1,
     marginHorizontal: 4,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
   },
   cancelButtonText: {
     color: '#8E8E93',

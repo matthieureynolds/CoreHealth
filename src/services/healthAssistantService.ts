@@ -7,6 +7,7 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 const CONVERSATION_HISTORY_KEY = 'healthAssistant_conversationHistory';
 const USER_CONTEXT_KEY = 'healthAssistant_userContext';
+const CHAT_SESSIONS_KEY = 'healthAssistant_chatSessions';
 
 export interface HealthChatMessage {
   id: string;
@@ -18,6 +19,14 @@ export interface HealthChatMessage {
     userIntent?: string;
     topics?: string[];
   };
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: HealthChatMessage[];
+  timestamp: Date;
+  lastUpdated: Date;
 }
 
 export interface UserHealthContext {
@@ -161,7 +170,7 @@ export class HealthAssistantService {
    */
   static async clearConversationMemory(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([CONVERSATION_HISTORY_KEY, USER_CONTEXT_KEY]);
+      await AsyncStorage.multiRemove([CONVERSATION_HISTORY_KEY, USER_CONTEXT_KEY, CHAT_SESSIONS_KEY]);
     } catch (error) {
       console.error('Failed to clear conversation memory:', error);
     }
@@ -962,5 +971,94 @@ Make them actionable, friendly, and relevant to their health situation. Focus on
         actionable: true
       }
     ];
+  }
+
+
+
+  /**
+   * Save a chat session with all its messages
+   */
+  static async saveChatSession(session: ChatSession): Promise<void> {
+    try {
+      const existingSessions = await this.loadAllChatSessions();
+      const updatedSessions = existingSessions.filter(s => s.id !== session.id);
+      updatedSessions.push(session);
+      
+      await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(updatedSessions));
+    } catch (error) {
+      console.error('Failed to save chat session:', error);
+    }
+  }
+
+  /**
+   * Load a specific chat session by ID
+   */
+  static async loadChatSession(sessionId: string): Promise<ChatSession | null> {
+    try {
+      const sessions = await this.loadAllChatSessions();
+      return sessions.find(session => session.id === sessionId) || null;
+    } catch (error) {
+      console.error('Failed to load chat session:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Load all chat sessions (for history list)
+   */
+  static async loadAllChatSessions(): Promise<ChatSession[]> {
+    try {
+      const stored = await AsyncStorage.getItem(CHAT_SESSIONS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.map((session: any) => ({
+          ...session,
+          timestamp: new Date(session.timestamp),
+          lastUpdated: new Date(session.lastUpdated),
+          messages: session.messages.map((message: any) => ({
+            ...message,
+            timestamp: new Date(message.timestamp)
+          }))
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to load chat sessions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete a specific chat session
+   */
+  static async deleteChatSession(sessionId: string): Promise<void> {
+    try {
+      const sessions = await this.loadAllChatSessions();
+      const updatedSessions = sessions.filter(session => session.id !== sessionId);
+      await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(updatedSessions));
+    } catch (error) {
+      console.error('Failed to delete chat session:', error);
+    }
+  }
+
+  /**
+   * Update chat session title and messages
+   */
+  static async updateChatSession(sessionId: string, updates: Partial<ChatSession>): Promise<void> {
+    try {
+      const sessions = await this.loadAllChatSessions();
+      const sessionIndex = sessions.findIndex(session => session.id === sessionId);
+      
+      if (sessionIndex !== -1) {
+        sessions[sessionIndex] = {
+          ...sessions[sessionIndex],
+          ...updates,
+          lastUpdated: new Date()
+        };
+        await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+      }
+    } catch (error) {
+      console.error('Failed to update chat session:', error);
+    }
   }
 } 

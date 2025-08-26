@@ -183,7 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         firstName: 'Test',
         surname: 'User',
         preferredName: 'Test',
-        photoURL: null,
+        photoURL: undefined,
         emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),

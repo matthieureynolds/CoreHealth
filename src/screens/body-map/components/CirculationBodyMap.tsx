@@ -153,8 +153,8 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
         {[
           // Heart (center chest)
           { id: 'heart', x: 50, y: 30 },
-          // Arteries/Vessels & Blood (bicep location)
-          { id: 'arteries_vessels_blood', x: 23, y: 35 },
+          // Arteries/Vessels & Blood (properly positioned on arm)
+          { id: 'arteries_vessels_blood', x: 42, y: 40 },
           // Oxygenation (upper chest)
           { id: 'oxygenation', x: 50, y: 22 },
         ].map(dot => (
@@ -237,7 +237,7 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: 'transparent',
     paddingVertical: 0,
   },
   bodyOutline: {
@@ -253,28 +253,28 @@ const styles = StyleSheet.create({
   },
   zoneDot: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#2196F3', // Modern blue
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#7FDBFF', // Lighter blue border
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateX: -22 }, { translateY: -22 }],
+    transform: [{ translateX: -14 }, { translateY: -14 }],
     zIndex: 10,
     shadowColor: '#2196F3',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   dotInner: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#00BFFF', // Lighter blue for inner dot
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#E3F2FD', // Very light blue border
   },
   infoPanel: {
@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    width: '100%',
     height: '70%',
     backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,

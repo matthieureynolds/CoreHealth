@@ -60,11 +60,12 @@ const BodyMapScreen: React.FC = () => {
   const { height, width } = getWindowDimensions();
 
   const handleOrganPress = (organId: string) => {
-    setSelectedOrgan(organId);
-    Animated.spring(panelAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    // Disabled old popup - new popup is handled in BodyMap component
+    // setSelectedOrgan(organId);
+    // Animated.spring(panelAnim, {
+    //   toValue: 1,
+    //   useNativeDriver: true,
+    // }).start();
   };
 
   const handleClosePanel = () => {
@@ -637,7 +638,7 @@ const BodyMapScreen: React.FC = () => {
       </ScrollView>
 
       {/* Info Panel */}
-      {renderInfoPanel()}
+      {/* {renderInfoPanel()} */}
 
       {/* Biomarker Modal */}
       <BiomarkerModal

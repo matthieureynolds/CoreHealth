@@ -93,6 +93,10 @@ const TravelScreen: React.FC = () => {
     arrivalTime: '15:00',
     timeZoneDifference: 0,
   });
+  const [showDirectionsModal, setShowDirectionsModal] = useState<string | null>(null);
+  const [lastDirectionsChoice, setLastDirectionsChoice] = useState<'google' | 'apple' | null>(null);
+  const [alwaysUseChoice, setAlwaysUseChoice] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
   const { travelHealth, updateLocation, getCurrentLocation, updateTravelHealthData } = useHealthData();
 
@@ -328,6 +332,77 @@ const TravelScreen: React.FC = () => {
       default: return 'help-circle';
     }
   };
+
+  const getCountryFromCity = (city: string): string => {
+    // Simple mapping for demo purposes
+    const cityCountryMap: { [key: string]: string } = {
+      'Tokyo': 'Japan',
+      'Paris': 'France',
+      'New York': 'USA',
+      'London': 'UK',
+      'Sydney': 'Australia',
+      'Bangkok': 'Thailand',
+      'Singapore': 'Singapore',
+      'Dubai': 'UAE',
+      'Hong Kong': 'Hong Kong',
+      'Barcelona': 'Spain',
+      'Rome': 'Italy',
+      'Amsterdam': 'Netherlands',
+      'Vienna': 'Austria',
+      'Prague': 'Czech Republic',
+      'Budapest': 'Hungary',
+      'Copenhagen': 'Denmark',
+      'Stockholm': 'Sweden',
+      'Oslo': 'Norway',
+      'Helsinki': 'Finland',
+      'Reykjavik': 'Iceland',
+      'Current Location': 'Your Location'
+    };
+    
+    // Try to find exact match first
+    if (cityCountryMap[city]) {
+      return cityCountryMap[city];
+    }
+    
+    // Try to find partial match
+    for (const [cityName, country] of Object.entries(cityCountryMap)) {
+      if (city.toLowerCase().includes(cityName.toLowerCase()) || cityName.toLowerCase().includes(city.toLowerCase())) {
+        return country;
+      }
+    }
+    
+    // Default fallback
+    return 'Unknown';
+  };
+
+  const getCountryFlag = (country: string): string => {
+    const countryFlags: { [key: string]: string } = {
+      'Japan': '🇯🇵',
+      'France': '🇫🇷',
+      'USA': '🇺🇸',
+      'UK': '🇬🇧',
+      'Australia': '🇦🇺',
+      'Thailand': '🇹🇭',
+      'Singapore': '🇸🇬',
+      'UAE': '🇦🇪',
+      'Hong Kong': '🇭🇰',
+      'Spain': '🇪🇸',
+      'Italy': '🇮🇹',
+      'Netherlands': '🇳🇱',
+      'Austria': '🇦🇹',
+      'Czech Republic': '🇨🇿',
+      'Hungary': '🇭🇺',
+      'Denmark': '🇩🇰',
+      'Sweden': '🇸🇪',
+      'Norway': '🇳🇴',
+      'Finland': '🇫🇮',
+      'Iceland': '🇮🇸',
+      'Your Location': '📍',
+      'Unknown': '🌍'
+    };
+    
+    return countryFlags[country] || '🌍';
+  };
     
     return (
     <View style={styles.container}>
@@ -336,37 +411,33 @@ const TravelScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View style={styles.headerIcon}>
-            <Ionicons name="airplane" size={24} color="#FFFFFF" />
-              </View>
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Travel Health</Text>
-            <Text style={styles.headerSubtitle}>Destination health insights</Text>
-              </View>
-          <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-            <Ionicons name="refresh" size={20} color="#007AFF" />
-          </TouchableOpacity>
-            </View>
-              </View>
+          <Text style={styles.headerTitle}>Travel Health</Text>
+          <Text style={styles.headerSubtitle}>Destination health insights and safety information</Text>
+        </View>
+      </View>
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'health' && styles.activeTab]} 
-          onPress={() => setActiveTab('health')}
-        >
-          <Text style={[styles.tabText, activeTab === 'health' && styles.activeTabText]}>
-            Health Overview
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'trips' && styles.activeTab]} 
-          onPress={() => setActiveTab('trips')}
-        >
-          <Text style={[styles.tabText, activeTab === 'trips' && styles.activeTabText]}>
-            Trips Planned
-          </Text>
-        </TouchableOpacity>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScrollContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'health' && styles.activeTab]} 
+            onPress={() => setActiveTab('health')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'health' && styles.activeTabText]}>
+              Current Location
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'trips' && styles.activeTab]} 
+            onPress={() => setActiveTab('trips')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'trips' && styles.activeTabText]}>
+              Search City
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Main Content */}
@@ -396,31 +467,109 @@ const TravelScreen: React.FC = () => {
                     <TouchableOpacity onPress={() => setShowLocationSearch(false)}>
                       <Ionicons name="close" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-      </View>
+                  </View>
                   
                   <TextInput
                     style={styles.searchInput}
                     value={searchLocation}
-                    onChangeText={setSearchLocation}
+                    onChangeText={(text) => {
+                      setSearchLocation(text);
+                      if (text.trim()) {
+                        const filtered = popularCities.filter(city => 
+                          city.toLowerCase().includes(text.toLowerCase())
+                        );
+                        setFilteredCities(filtered.slice(0, 8));
+                      } else {
+                        setFilteredCities([]);
+                      }
+                    }}
                     placeholder="Enter city or country..."
                     placeholderTextColor="#8E8E93"
                     autoFocus
+                    onSubmitEditing={() => {
+                      if (searchLocation.trim()) {
+                        handleLocationSelect(searchLocation.trim());
+                      }
+                    }}
                   />
                   
-                  <ScrollView style={styles.suggestionsContainer}>
-                    {filteredCities.map((city, index) => (
-        <TouchableOpacity 
-                        key={index}
-                        style={styles.suggestionItem}
-                        onPress={() => handleLocationSelect(city)}
-                      >
-                        <Ionicons name="location" size={16} color="#007AFF" />
-                        <Text style={styles.suggestionText}>{city}</Text>
-        </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-            </View>
-          </View>
+                  {/* City Suggestions */}
+                  {filteredCities.length > 0 && (
+                    <ScrollView style={styles.suggestionsContainer} showsVerticalScrollIndicator={false}>
+                      {filteredCities.map((city, index) => (
+                        <TouchableOpacity 
+                          key={index}
+                          style={styles.suggestionItem}
+                          onPress={() => handleLocationSelect(city)}
+                        >
+                          <Ionicons name="location" size={16} color="#007AFF" />
+                          <Text style={styles.suggestionText}>{city}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
+                  
+                  {/* Empty State */}
+                  {searchLocation.trim() && filteredCities.length === 0 && (
+                    <View style={styles.emptyStateContainer}>
+                      <Text style={styles.emptyStateText}>No matches. Try full city name.</Text>
+                    </View>
+                  )}
+                  
+                  {/* Use Current Location Option */}
+                  <TouchableOpacity 
+                    style={styles.useCurrentLocationButton}
+                    onPress={async () => {
+                      try {
+                        setIsGettingLocation(true);
+                        const location = await getCurrentLocation();
+                        if (location) {
+                          // Simulate getting city name from coordinates
+                          const cityName = "Current Location";
+                          setSearchLocation(cityName);
+                          setShowLocationSearch(false);
+                          setFilteredCities([]);
+                          await handleLocationSelect(cityName);
+                        }
+                      } catch (error) {
+                        Alert.alert(
+                          'Location Permission Required',
+                          'Please enable location access in Settings to use this feature.',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Settings', onPress: () => {
+                              // Deep link to settings (platform specific)
+                              if (Platform.OS === 'ios') {
+                                // iOS settings deep link
+                              } else {
+                                // Android settings deep link
+                              }
+                            }}
+                          ]
+                        );
+                      } finally {
+                        setIsGettingLocation(false);
+                      }
+                    }}
+                    disabled={isGettingLocation}
+                  >
+                    <Ionicons 
+                      name="location" 
+                      size={20} 
+                      color={isGettingLocation ? "#8E8E93" : "#007AFF"} 
+                    />
+                    <Text style={[
+                      styles.useCurrentLocationText,
+                      isGettingLocation && styles.useCurrentLocationTextDisabled
+                    ]}>
+                      {isGettingLocation ? 'Getting location...' : 'Use current location'}
+                    </Text>
+                    {isGettingLocation && (
+                      <ActivityIndicator size="small" color="#8E8E93" style={{ marginLeft: 8 }} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
 
             {/* Loading State */}
@@ -434,11 +583,12 @@ const TravelScreen: React.FC = () => {
             {/* Health Metrics */}
             {searchLocation && !isLoading ? (
               <View style={styles.metricsContainer}>
-                {/* Travel Health Header */}
-                <View style={styles.travelHealthHeader}>
-                  <Text style={styles.travelHealthTitle}>Travel Health</Text>
-                  <Text style={styles.countryName}>{searchLocation}</Text>
-        </View>
+                {/* Result Title Row */}
+                <View style={styles.resultTitleRow}>
+                  <Text style={styles.resultTitle}>
+                    {searchLocation}, {getCountryFromCity(searchLocation)} {getCountryFlag(getCountryFromCity(searchLocation))}
+                  </Text>
+                </View>
 
                 {/* Health Summary */}
                 <View style={styles.summaryCard}>
@@ -457,53 +607,62 @@ const TravelScreen: React.FC = () => {
                   <View style={styles.metricRow}>
                     <View style={styles.metricIcon}>
                       <Ionicons name="cloud" size={20} color={getStatusColor('good')} />
-            </View>
+                    </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Air Quality</Text>
                       <Text style={styles.metricValueText}>Good</Text>
                       <Text style={styles.metricDescriptionText}>AQI: 45 - Healthy for most people</Text>
                     </View>
                     <Ionicons name="checkmark-circle" size={16} color={getStatusColor('good')} />
-          </View>
+                  </View>
+
+                  {/* Separator */}
+                  <View style={styles.metricSeparator} />
 
                   {/* Water Safety */}
                   <View style={styles.metricRow}>
                     <View style={styles.metricIcon}>
                       <Ionicons name="water" size={20} color={getStatusColor('good')} />
-        </View>
+                    </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Water Safety</Text>
                       <Text style={styles.metricValueText}>Safe</Text>
                       <Text style={styles.metricDescriptionText}>Tap water is safe to drink</Text>
-      </View>
+                    </View>
                     <Ionicons name="checkmark-circle" size={16} color={getStatusColor('good')} />
-    </View>
+                  </View>
+
+                  {/* Separator */}
+                  <View style={styles.metricSeparator} />
 
                   {/* UV Index */}
                   <View style={styles.metricRow}>
                     <View style={styles.metricIcon}>
                       <Ionicons name="sunny" size={20} color={getStatusColor('moderate')} />
-              </View>
+                    </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>UV Index</Text>
                       <Text style={styles.metricValueText}>Moderate</Text>
                       <Text style={styles.metricDescriptionText}>UV Index: 6 - Use sunscreen</Text>
-                  </View>
+                    </View>
                     <Ionicons name="warning" size={16} color={getStatusColor('moderate')} />
-          </View>
+                  </View>
+
+                  {/* Separator */}
+                  <View style={styles.metricSeparator} />
 
                   {/* Food Safety */}
                   <View style={styles.metricRow}>
                     <View style={styles.metricIcon}>
                       <Ionicons name="restaurant" size={20} color={getStatusColor('good')} />
-          </View>
+                    </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Food Safety</Text>
                       <Text style={styles.metricValueText}>Good</Text>
                       <Text style={styles.metricDescriptionText}>Low risk of foodborne illness</Text>
-        </View>
+                    </View>
                     <Ionicons name="checkmark-circle" size={16} color={getStatusColor('good')} />
-            </View>
+                  </View>
 
                   {/* Pollen Level */}
                   <View style={styles.metricRow}>
@@ -654,30 +813,16 @@ const TravelScreen: React.FC = () => {
                 {/* Emergency Contact */}
                 <View style={styles.emergencySection}>
                   <Text style={styles.sectionTitle}>Emergency Contact</Text>
-                  <View style={styles.emergencyCard}>
+                  <TouchableOpacity 
+                    style={styles.emergencyCard}
+                    onPress={() => setShowEmergencyModal(true)}
+                  >
                     <View style={styles.emergencyHeader}>
                       <Ionicons name="call" size={20} color="#FF3B30" />
-                      <Text style={styles.emergencyTitle}>Emergency Numbers</Text>
-                </View>
-                    <View style={styles.emergencyList}>
-                      <View style={styles.emergencyItem}>
-                        <Text style={styles.emergencyLabel}>Police:</Text>
-                        <Text style={styles.emergencyNumber}>112</Text>
-        </View>
-                      <View style={styles.emergencyItem}>
-                        <Text style={styles.emergencyLabel}>Ambulance:</Text>
-                        <Text style={styles.emergencyNumber}>112</Text>
-      </View>
-                      <View style={styles.emergencyItem}>
-                        <Text style={styles.emergencyLabel}>Fire:</Text>
-                        <Text style={styles.emergencyNumber}>112</Text>
-      </View>
-                      <View style={styles.emergencyItem}>
-                        <Text style={styles.emergencyLabel}>Tourist Police:</Text>
-                        <Text style={styles.emergencyNumber}>+1-234-567-8900</Text>
-    </View>
-        </View>
-                  </View>
+                      <Text style={styles.emergencyTitle}>Emergency: 112</Text>
+                    </View>
+                    <Text style={styles.emergencyDescription}>Tap to call emergency services</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ) : !isLoading ? (
@@ -779,6 +924,88 @@ const TravelScreen: React.FC = () => {
     </View>
         )}
       </ScrollView>
+
+      {/* Directions Choice Modal */}
+      {showDirectionsModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.directionsModal}>
+            <Text style={styles.directionsModalTitle}>Open directions in:</Text>
+            <TouchableOpacity 
+              style={styles.directionsButton}
+              onPress={() => {
+                console.log('Opening Google Maps for:', showDirectionsModal);
+                setShowDirectionsModal(null);
+                if (alwaysUseChoice) {
+                  setLastDirectionsChoice('google');
+                }
+              }}
+            >
+              <Ionicons name="logo-google" size={24} color="#4285F4" />
+              <Text style={styles.directionsButtonText}>Google Maps</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.directionsButton}
+              onPress={() => {
+                console.log('Opening Apple Maps for:', showDirectionsModal);
+                setShowDirectionsModal(null);
+                if (alwaysUseChoice) {
+                  setLastDirectionsChoice('apple');
+                }
+              }}
+            >
+              <Ionicons name="map" size={24} color="#007AFF" />
+              <Text style={styles.directionsButtonText}>Apple Maps</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => setShowDirectionsModal(null)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.alwaysUseCheckbox}
+              onPress={() => setAlwaysUseChoice(!alwaysUseChoice)}
+            >
+              <Ionicons 
+                name={alwaysUseChoice ? 'checkbox' : 'square-outline'} 
+                size={20} 
+                color={alwaysUseChoice ? '#007AFF' : '#8E8E93'} 
+              />
+              <Text style={styles.alwaysUseText}>Always use this</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Emergency Call Confirm Modal */}
+      {showEmergencyModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.emergencyModal}>
+            <Text style={styles.emergencyModalTitle}>Call 112?</Text>
+            <View style={styles.emergencyModalButtons}>
+              <TouchableOpacity 
+                style={styles.emergencyCallButton}
+                onPress={() => {
+                  console.log('Calling emergency number: 112');
+                  setShowEmergencyModal(false);
+                }}
+              >
+                <Text style={styles.emergencyCallButtonText}>Call</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.emergencyCancelButton}
+                onPress={() => setShowEmergencyModal(false)}
+              >
+                <Text style={styles.emergencyCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Add Trip Modal */}
       {showAddTripModal && (
@@ -1092,65 +1319,69 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingTop: 32,
-    paddingBottom: 2,
-    backgroundColor: '#1C1C1E',
-  },
-  headerContent: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 32,
+    paddingBottom: 2,
+    backgroundColor: '#000000',
   },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#2C2C2E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  headerText: {
+  headerContent: {
     flex: 1,
   },
+
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#8E8E93',
-    marginTop: 2,
+    fontWeight: '400',
+    lineHeight: 20,
+    flexWrap: 'wrap',
   },
-  refreshButton: {
-    padding: 8,
-  },
+
   tabContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    backgroundColor: '#000000',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1C1C1E',
+  },
+  tabScrollContainer: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
   },
   tab: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    gap: 8,
+    minWidth: 110,
     borderRadius: 8,
-    marginHorizontal: 4,
   },
   activeTab: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#007AFF20',
+    borderBottomWidth: 2,
+    borderBottomColor: '#007AFF',
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
     color: '#8E8E93',
-    textAlign: 'center',
+    maxWidth: 100,
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: '#007AFF',
+    fontWeight: '600',
   },
   scrollContainer: {
     flex: 1,
@@ -1707,6 +1938,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8E8E93',
   },
+  metricSeparator: {
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    opacity: 0.3,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
   hospitalsSection: {
     marginBottom: 20,
   },
@@ -1792,6 +2030,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginLeft: 8,
+  },
+  emergencyDescription: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 4,
   },
   emergencyList: {
     marginLeft: 16,
@@ -2002,6 +2245,144 @@ jetLagTitle: {
   borderWidth: 1,
   borderColor: '#3A3A3C',
 },
+  useCurrentLocationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  useCurrentLocationText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  useCurrentLocationTextDisabled: {
+    color: '#8E8E93',
+  },
+  emptyStateContainer: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  directionsModal: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  directionsModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
+  },
+  directionsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  directionsButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#8E8E93',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  alwaysUseCheckbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  alwaysUseText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginLeft: 8,
+  },
+  emergencyModal: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  emergencyModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
+  },
+  emergencyModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 12,
+  },
+  emergencyCallButton: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  emergencyCallButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  emergencyCancelButton: {
+    backgroundColor: '#8E8E93',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  emergencyCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  resultTitleRow: {
+    marginBottom: 16,
+  },
+  resultTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
 });
 
 export default TravelScreen;

@@ -452,10 +452,10 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
           { id: 'general_systemic', x: 50, y: 28 },
           // Spine (just below rib cage, moved up)
           { id: 'spine', x: 50, y: 39 },
-          // Left Hip (positioned at actual hip bone)
-          { id: 'left_hip', x: 27, y: 52 },
-          // Right Hip (positioned at actual hip bone)
-          { id: 'right_hip', x: 73, y: 52 },
+          // Left Hip (positioned at actual hip bone - adjusted for better positioning)
+          { id: 'left_hip', x: 30, y: 62 },
+          // Right Hip (positioned at actual hip bone - adjusted for better positioning)
+          { id: 'right_hip', x: 70, y: 62 },
         ].map(dot => (
           <TouchableOpacity
             key={dot.id}
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: 'transparent',
     paddingVertical: 0,
   },
   bodyOutline: {
@@ -556,28 +556,28 @@ const styles = StyleSheet.create({
   },
   zoneDot: {
     position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#2196F3', // Modern blue
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#7FDBFF', // Lighter blue border
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateX: -22 }, { translateY: -22 }],
+    transform: [{ translateX: -14 }, { translateY: -14 }],
     zIndex: 10,
     shadowColor: '#2196F3',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   dotInner: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#00BFFF', // Lighter blue for inner dot
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#E3F2FD', // Very light blue border
   },
   infoPanel: {

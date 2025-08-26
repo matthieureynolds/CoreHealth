@@ -31,10 +31,10 @@ const HealthMetricsDashboard: React.FC<HealthMetricsDashboardProps> = ({
     return '#FF3B30';
   };
 
-  const getScoreGradient = (score: number): string[] => {
-    if (score >= 80) return ['#30D158', '#34C759'];
-    if (score >= 60) return ['#FF9500', '#FF9F0A'];
-    return ['#FF3B30', '#FF453A'];
+  const getScoreGradient = (score: number): readonly [string, string] => {
+    if (score >= 80) return ['#30D158', '#34C759'] as const;
+    if (score >= 60) return ['#FF9500', '#FF9F0A'] as const;
+    return ['#FF3B30', '#FF453A'] as const;
   };
 
   const renderHealthScoreCard = () => {

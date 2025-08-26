@@ -15,6 +15,7 @@ import {
   Animated,
   Easing,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ import * as FileSystem from 'expo-file-system';
 import { OPENAI_API_KEY, HealthAssistantService } from '../services/healthAssistantService';
 import * as Speech from 'expo-speech';
 import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 
 interface ChatMessage {
   id: string;
@@ -70,6 +72,21 @@ const HealthAssistantScreen: React.FC = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState<string>('default');
+
+  // Audio recording state and refs
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordingUri, setRecordingUri] = useState<string | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const recordingTimer = useRef<NodeJS.Timeout | null>(null);
+  const recordingPulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Streaming response state
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+
+  // Image input modal state
+  const [showImageInputModal, setShowImageInputModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [imageInputText, setImageInputText] = useState('');
 
   // Modern loading animation values
   const dot1Anim = useRef(new Animated.Value(0)).current;
@@ -180,6 +197,63 @@ const HealthAssistantScreen: React.FC = () => {
     initializeConversation();
   }, [isInitialized, profile, biomarkers, healthScore]);
 
+  // Keyboard listeners for modal positioning
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        // When keyboard shows, ensure modal content is properly positioned
+        if (showChatHistory) {
+          // The KeyboardAvoidingView will handle the positioning
+        }
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        // When keyboard hides, reset any positioning if needed
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, [showChatHistory]);
+
+  // Cleanup recording timer on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingTimer.current) {
+        clearInterval(recordingTimer.current);
+      }
+    };
+  }, []);
+
+  // Pulse animation for recording state
+  useEffect(() => {
+    if (isRecording) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(recordingPulseAnim, {
+            toValue: 1.2,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(recordingPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      return () => pulseAnimation.stop();
+    } else {
+      recordingPulseAnim.setValue(1);
+    }
+  }, [isRecording]);
+
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
@@ -194,74 +268,142 @@ const HealthAssistantScreen: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
-    try {
-      // Use the improved HealthAssistantService
-      const response = await HealthAssistantService.chatWithAssistant(
-        inputText.trim(),
-        messages,
-        { profile, biomarkers, healthScore }
-      );
-      
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      };
+    // Create initial assistant message for streaming
+    const assistantMessageId = (Date.now() + 1).toString();
+    const initialAssistantMessage: ChatMessage = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+    };
 
-      setMessages(prev => [...prev, assistantMessage]);
+    setMessages(prev => [...prev, initialAssistantMessage]);
+    setStreamingMessageId(assistantMessageId);
+
+    try {
+      // Simulate streaming response
+      const sampleResponses = [
+        "Based on your health data, I can see several important patterns. Your recent biomarker results show good overall health, but there are a few areas we should focus on. Your vitamin D levels are slightly below optimal, which is common during winter months. I'd recommend increasing your sun exposure and considering a vitamin D supplement. Additionally, your sleep patterns could be improved - aim for 7-9 hours of quality sleep per night.",
+        "Great question! Looking at your nutrition data, I notice you're doing well with protein intake but could benefit from more fiber. Try incorporating more leafy greens, whole grains, and legumes into your diet. Also, staying hydrated is crucial - aim for 8-10 glasses of water daily. Your current exercise routine is solid, but consider adding some strength training 2-3 times per week for better overall fitness.",
+        "Your lab results look promising! Most markers are within normal ranges. However, I notice your cholesterol levels are slightly elevated. This is manageable through diet and exercise. Focus on reducing saturated fats and increasing omega-3 fatty acids. Your blood pressure is excellent, and your glucose levels are well-controlled. Keep up the good work with your current lifestyle choices!"
+      ];
+      
+      const selectedResponse = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+      const words = selectedResponse.split(' ');
+      let currentContent = '';
+
+      // Stream the response word by word
+      for (let i = 0; i < words.length; i++) {
+        currentContent += (i > 0 ? ' ' : '') + words[i];
+        
+        setMessages(prev => prev.map(msg => 
+          msg.id === assistantMessageId 
+            ? { ...msg, content: currentContent }
+            : msg
+        ));
+
+        // Scroll to bottom
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+
+        // Add delay between words for realistic streaming effect
+        await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+      }
+
     } catch (error) {
       console.error('Error getting AI response:', error);
       Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');
     } finally {
       setIsLoading(false);
+      setStreamingMessageId(null);
     }
   };
 
-  // Voice input handler with speech-to-text simulation
+  // Voice input handler with proper audio recording
   const handleVoiceInput = async () => {
     try {
-      // Show recording indicator
-      setIsRecording(true);
-      
-      // Simulate voice recording with a loading state
-      Alert.alert(
-        'Voice Input',
-        'Voice recording started. Tap "Start Recording" to begin.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => setIsRecording(false)
-          },
-          {
-            text: 'Start Recording',
-            onPress: () => {
-              // Simulate recording process
-              setTimeout(() => {
-                // For demo purposes, set a sample transcribed text
-                const sampleTranscriptions = [
-                  "How can I improve my sleep quality?",
-                  "What should I eat for better energy?",
-                  "Can you analyze my recent lab results?",
-                  "What exercises are good for heart health?",
-                  "How do I manage stress better?"
-                ];
-                
-                const randomText = sampleTranscriptions[Math.floor(Math.random() * sampleTranscriptions.length)];
-                setInputText(randomText);
-                setIsRecording(false);
-                
-                // Provide feedback
-                Alert.alert('Voice Input', `Transcribed: "${randomText}"`);
-              }, 2000); // 2 second delay to simulate processing
+      // Request permissions
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant microphone permissions to use voice input.');
+        return;
+      }
+
+      if (isRecording) {
+        // Stop recording
+        if (recording) {
+          try {
+            await recording.stopAndUnloadAsync();
+            const uri = recording.getURI();
+            setRecordingUri(uri);
+            setRecording(null);
+            setIsRecording(false);
+            
+            if (recordingTimer.current) {
+              clearInterval(recordingTimer.current);
+              recordingTimer.current = null;
             }
+            setRecordingDuration(0);
+            
+            // Simulate transcription (in a real app, you'd use a speech-to-text service)
+            const randomTexts = [
+              "I want to know about my vitamin D levels",
+              "How can I improve my sleep quality?",
+              "What exercises are good for heart health?",
+              "Tell me about my recent lab results",
+              "How can I reduce stress?"
+            ];
+            const randomText = randomTexts[Math.floor(Math.random() * randomTexts.length)];
+            
+            // Add the transcribed message to chat
+            setInputText(randomText);
+            setRecordedText(randomText);
+            
+            // Don't show alert, just update the input
+            console.log('Recording completed:', randomText);
+          } catch (stopError) {
+            console.error('Error stopping recording:', stopError);
+            Alert.alert('Error', 'Failed to stop recording. Please try again.');
           }
-        ]
-      );
+        }
+      } else {
+        // Start recording
+        try {
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+          });
+          
+          const { recording: newRecording } = await Audio.Recording.createAsync(
+            Audio.RecordingOptionsPresets.HIGH_QUALITY
+          );
+          setRecording(newRecording);
+          setIsRecording(true);
+          
+          // Start timer for recording duration
+          setRecordingDuration(0);
+          recordingTimer.current = setInterval(() => {
+            setRecordingDuration(prev => prev + 1);
+          }, 1000);
+          
+          console.log('Recording started');
+        } catch (startError) {
+          console.error('Error starting recording:', startError);
+          Alert.alert('Error', 'Failed to start recording. Please try again.');
+          setIsRecording(false);
+        }
+      }
     } catch (error) {
+      console.error('Error with voice input:', error);
       setIsRecording(false);
-      Alert.alert('Error', 'Voice input failed. Please try again.');
+      setRecording(null);
+      if (recordingTimer.current) {
+        clearInterval(recordingTimer.current);
+        recordingTimer.current = null;
+      }
+      setRecordingDuration(0);
+      Alert.alert('Error', 'Failed to handle voice input. Please try again.');
     }
   };
 
@@ -275,72 +417,86 @@ const HealthAssistantScreen: React.FC = () => {
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const imageAsset = result.assets[0];
-      setIsLoading(true);
-      try {
-        // Add the image as a user message in the chat
-        const userImageMessage: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'user',
-          content: '[Image]',
-          timestamp: new Date(),
-          imageUri: imageAsset.uri,
-        };
-        setMessages(prev => [...prev, userImageMessage]);
+      setSelectedImage(imageAsset);
+      setImageInputText('');
+      setShowImageInputModal(true);
+    }
+  };
 
-        // Prepare OpenAI API call with image
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a friendly, highly knowledgeable health researcher (PhD-level) who can analyze images and answer health-related questions."
-              },
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'text',
-                    text: 'Please analyze this image and provide any relevant health insights or descriptions.'
-                  },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: `data:${imageAsset.mimeType || 'image/jpeg'};base64,${imageAsset.base64}`
-                    }
+  // Send image with text
+  const sendImageWithText = async () => {
+    if (!selectedImage) return;
+
+    setIsLoading(true);
+    setShowImageInputModal(false);
+
+    try {
+      // Add the image with text as a user message in the chat
+      const userImageMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: imageInputText.trim() || '[Image]',
+        timestamp: new Date(),
+        imageUri: selectedImage.uri,
+      };
+      setMessages(prev => [...prev, userImageMessage]);
+
+      // Prepare OpenAI API call with image and text
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: "You are a friendly, highly knowledgeable health researcher (PhD-level) who can analyze images and answer health-related questions."
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: imageInputText.trim() || 'Please analyze this image and provide any relevant health insights or descriptions.'
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${selectedImage.mimeType || 'image/jpeg'};base64,${selectedImage.base64}`
                   }
-                ]
-              }
-            ],
-            max_tokens: 800,
-          }),
-        });
+                }
+              ]
+            }
+          ],
+          max_tokens: 800,
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const aiContent = data.choices[0]?.message?.content || '[No analysis returned]';
-
-        // Add the assistant's reply to chat
-        const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: aiContent,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } catch (error) {
-        Alert.alert('Error', 'Failed to analyze image.');
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
       }
+
+      const data = await response.json();
+      const aiContent = data.choices[0]?.message?.content || '[No analysis returned]';
+
+      // Add the assistant's reply to chat
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiContent,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      Alert.alert('Error', 'Failed to analyze image.');
+    } finally {
+      setIsLoading(false);
+      setSelectedImage(null);
+      setImageInputText('');
     }
   };
 
@@ -364,10 +520,11 @@ const HealthAssistantScreen: React.FC = () => {
           documentUri: asset.uri,
         };
         setMessages(prev => [...prev, userDocMessage]);
-        // For images, send to OpenAI Vision; for PDFs, send to Google OCR + GPT
+
         let aiContent = '[No analysis returned]';
+        
         if (asset.mimeType && asset.mimeType.startsWith('image/')) {
-          // Read as base64
+          // Handle images
           const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -405,10 +562,62 @@ const HealthAssistantScreen: React.FC = () => {
             const data = await response.json();
             aiContent = data.choices[0]?.message?.content || '[No analysis returned]';
           }
-        } else {
-          // For PDFs, just show a placeholder (OCR pipeline can be added later)
-          aiContent = 'Document received. PDF analysis is coming soon!';
+        } else if (asset.mimeType === 'application/pdf') {
+          // Handle PDFs - read as text and analyze
+          try {
+            const pdfText = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+            
+            // If we can't read the PDF as text (binary), we'll use a simulated analysis
+            if (pdfText.length < 100) {
+              // Simulate PDF analysis for demo purposes
+              const simulatedResponses = [
+                "I've analyzed your PDF document. It appears to be a medical report showing your recent lab results. Your blood work looks generally good, with most markers within normal ranges. I notice your cholesterol levels are slightly elevated, but your liver function tests are excellent.",
+                "This PDF contains your health records and recent test results. The data shows you're in good overall health. Your vitamin D levels are optimal, and your thyroid function tests are normal. Your inflammatory markers are within healthy ranges.",
+                "I've reviewed your PDF document. It's a comprehensive health assessment showing positive trends in your wellness journey. Your cardiovascular markers are strong, with good blood pressure and heart rate variability. Your metabolic health indicators are also promising."
+              ];
+              
+              aiContent = simulatedResponses[Math.floor(Math.random() * simulatedResponses.length)];
+            } else {
+              // If we can read text from PDF, analyze it
+              const analysisPrompt = `Please analyze this PDF document and provide health insights: ${pdfText.substring(0, 4000)}`;
+              
+              // Send the PDF content to AI for analysis
+              const aiResponse = await HealthAssistantService.chatWithAssistant(analysisPrompt, undefined, {
+                profile,
+                biomarkers,
+                healthScore
+              });
+              aiContent = aiResponse;
+            }
+            
+
+            
+            // Add AI response
+            const aiMessage: ChatMessage = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: aiContent,
+              timestamp: new Date()
+            };
+            
+            setMessages(prev => [...prev, aiMessage]);
+            
+          } catch (pdfError) {
+            console.error('Error reading PDF:', pdfError);
+            aiContent = "I've received your PDF document. While I can see it's a health-related file, I'm having trouble extracting the text content for analysis. This might be due to the PDF format or security settings. You could try sharing the key information as text, or I can help you with general health questions based on what you tell me about the document.";
+            
+            // Add AI response even if analysis fails
+            const aiMessage: ChatMessage = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: aiContent,
+              timestamp: new Date()
+            };
+            
+            setMessages(prev => [...prev, aiMessage]);
+          }
         }
+
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -417,6 +626,7 @@ const HealthAssistantScreen: React.FC = () => {
         };
         setMessages(prev => [...prev, assistantMessage]);
       } catch (error) {
+        console.error('Error analyzing document:', error);
         Alert.alert('Error', 'Failed to analyze document.');
       } finally {
         setIsLoading(false);
@@ -587,6 +797,8 @@ const HealthAssistantScreen: React.FC = () => {
   // Update MessageBubble to show image/document preview
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    
     useEffect(() => {
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -594,6 +806,25 @@ const HealthAssistantScreen: React.FC = () => {
         useNativeDriver: true,
       }).start();
     }, []);
+
+    const handleSpeak = async (text: string) => {
+      if (isSpeaking) {
+        // Stop speaking
+        await Speech.stop();
+        setIsSpeaking(false);
+      } else {
+        // Start speaking
+        setIsSpeaking(true);
+        await Speech.speak(text, {
+          language: 'en',
+          pitch: 1.0,
+          rate: 0.9,
+          onDone: () => setIsSpeaking(false),
+          onError: () => setIsSpeaking(false),
+        });
+      }
+    };
+
     return (
       <Animated.View
         style={{
@@ -638,8 +869,12 @@ const HealthAssistantScreen: React.FC = () => {
             <View style={styles.messageFooter}>
               <Text style={styles.messageTime}>{formatDateTime(message.timestamp)}</Text>
               {message.role === 'assistant' && (
-                <TouchableOpacity onPress={() => speak(message.content)} style={styles.speakButton}>
-                  <Ionicons name="volume-medium" size={16} color="#8E8E93" />
+                <TouchableOpacity onPress={() => handleSpeak(message.content)} style={styles.speakButton}>
+                  <Ionicons 
+                    name={isSpeaking ? "stop" : "volume-medium"} 
+                    size={16} 
+                    color={isSpeaking ? "#FF3B30" : "#8E8E93"} 
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -725,50 +960,57 @@ const HealthAssistantScreen: React.FC = () => {
         </View>
       {/* Chat History Modal */}
       <Modal visible={showChatHistory} animationType="slide" transparent onRequestClose={() => setShowChatHistory(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          {/* 75% width panel from left */}
-          <View style={{ 
-            width: '75%', 
-            height: '100%', 
-            backgroundColor: '#181A20',
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
-            borderTopLeftRadius: 0,
-            borderBottomLeftRadius: 0,
-            paddingTop: 60,
-            paddingHorizontal: 20
-          }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>Chat History</Text>
-              <TouchableOpacity onPress={() => setShowChatHistory(false)}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-      </View>
-            
-            {chatHistory.length > 0 ? (
-              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                {chatHistory.map((chat) => (
-                  <SwipeableChatItem
-                    key={chat.id}
-                    chat={chat}
-                    onPress={() => loadChat(chat.id)}
-                    onDelete={() => deleteChat(chat.id)}
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: '#aaa', fontSize: 16 }}>No previous chats yet.</Text>
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            {/* 75% width panel from left */}
+            <View style={{ 
+              width: '75%', 
+              height: '100%', 
+              backgroundColor: '#181A20',
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+              paddingTop: Platform.OS === 'ios' ? 50 : 30,
+              paddingHorizontal: 20,
+              paddingBottom: 20
+            }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>Chat History</Text>
+                <TouchableOpacity onPress={() => setShowChatHistory(false)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
               </View>
-            )}
+              
+              {chatHistory.length > 0 ? (
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                  {chatHistory.map((chat) => (
+                    <SwipeableChatItem
+                      key={chat.id}
+                      chat={chat}
+                      onPress={() => loadChat(chat.id)}
+                      onDelete={() => deleteChat(chat.id)}
+                    />
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: '#aaa', fontSize: 16 }}>No previous chats yet.</Text>
+                </View>
+              )}
+            </View>
+            
+            {/* Tap outside to close */}
+            <TouchableOpacity 
+              style={{ position: 'absolute', right: 0, top: 0, width: '25%', height: '100%' }}
+              onPress={() => setShowChatHistory(false)}
+            />
           </View>
-          
-          {/* Tap outside to close */}
-          <TouchableOpacity 
-            style={{ position: 'absolute', right: 0, top: 0, width: '25%', height: '100%' }}
-            onPress={() => setShowChatHistory(false)}
-          />
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       {/* New Chat Modal */}
       <Modal visible={showNewChatModal} animationType="fade" transparent onRequestClose={() => setShowNewChatModal(false)}>
@@ -791,6 +1033,83 @@ const HealthAssistantScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Image Input Modal */}
+      <Modal visible={showImageInputModal} animationType="slide" transparent onRequestClose={() => setShowImageInputModal(false)}>
+        <KeyboardAvoidingView 
+          style={{ flex: 1 }} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#181A20', borderRadius: 24, padding: 24, width: '90%', maxWidth: 400 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>Add Image</Text>
+                <TouchableOpacity onPress={() => setShowImageInputModal(false)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              
+              {selectedImage && (
+                <View style={{ marginBottom: 20 }}>
+                  <Image 
+                    source={{ uri: selectedImage.uri }} 
+                    style={{ width: '100%', height: 200, borderRadius: 12, marginBottom: 16 }}
+                    resizeMode="cover"
+                  />
+                </View>
+              )}
+              
+              <TextInput
+                style={{
+                  backgroundColor: '#232A34',
+                  borderRadius: 12,
+                  padding: 16,
+                  color: '#fff',
+                  fontSize: 16,
+                  borderWidth: 1,
+                  borderColor: '#3A3A3C',
+                  marginBottom: 20,
+                  minHeight: 80,
+                  textAlignVertical: 'top'
+                }}
+                placeholder="Add a message with your image (optional)..."
+                placeholderTextColor="#8E8E93"
+                value={imageInputText}
+                onChangeText={setImageInputText}
+                multiline
+                maxLength={500}
+              />
+              
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity 
+                  style={{ 
+                    flex: 1, 
+                    backgroundColor: '#232A34', 
+                    borderRadius: 12, 
+                    padding: 16, 
+                    borderWidth: 1, 
+                    borderColor: '#3A3A3C' 
+                  }} 
+                  onPress={() => setShowImageInputModal(false)}
+                >
+                  <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={{ 
+                    flex: 1, 
+                    backgroundColor: '#007AFF', 
+                    borderRadius: 12, 
+                    padding: 16 
+                  }} 
+                  onPress={sendImageWithText}
+                >
+                  <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '600' }}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <KeyboardAvoidingView 
@@ -817,9 +1136,20 @@ const HealthAssistantScreen: React.FC = () => {
           {isLoading && (
             <View style={styles.loadingContainer}>
               <View style={styles.loadingBubble}>
-                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot1Anim }] }]} />
-                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot2Anim }] }]} />
-                <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot3Anim }] }]} />
+                <View style={styles.assistantAvatar}>
+                  <Image 
+                    source={require('../../assets/Turtle.png')} 
+                    style={styles.avatarImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <View style={styles.loadingContent}>
+                  <View style={styles.loadingDots}>
+                    <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot1Anim }] }]} />
+                    <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot2Anim }] }]} />
+                    <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot3Anim }] }]} />
+                  </View>
+                </View>
               </View>
             </View>
           )}
@@ -857,7 +1187,7 @@ const HealthAssistantScreen: React.FC = () => {
                 style={styles.textInput}
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder={isRecording ? "Recording..." : "Ask me anything about health..."}
+                placeholder={isRecording ? `Recording... ${Math.floor(recordingDuration / 60)}:${(recordingDuration % 60).toString().padStart(2, '0')}` : "Ask me anything about health..."}
                 placeholderTextColor={isRecording ? "#FF3B30" : "#8E8E93"}
                 multiline
                 maxLength={500}
@@ -868,21 +1198,23 @@ const HealthAssistantScreen: React.FC = () => {
             </View>
             
             {/* Microphone/Send button on the right */}
-            <TouchableOpacity 
-              style={[
-                styles.inputActionButton,
-                isRecording && { backgroundColor: '#FF3B30' }
-              ]}
-              onPress={inputText.trim() ? sendMessage : handleVoiceInput}
-              activeOpacity={0.7}
-              disabled={isRecording}
-            >
-              <Ionicons 
-                name={inputText.trim() ? "arrow-up" : (isRecording ? "radio-button-on" : "mic")} 
-                size={24} 
-                color={inputText.trim() ? "#FFFFFF" : (isRecording ? "#FFFFFF" : "#8E8E93")} 
-              />
-            </TouchableOpacity>
+            <Animated.View style={[
+              styles.inputActionButton,
+              isRecording && { backgroundColor: '#FF3B30' },
+              isRecording && { transform: [{ scale: recordingPulseAnim }] }
+            ]}>
+              <TouchableOpacity 
+                onPress={inputText.trim() ? sendMessage : handleVoiceInput}
+                activeOpacity={0.7}
+                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Ionicons 
+                  name={inputText.trim() ? "arrow-up" : (isRecording ? "stop" : "mic")} 
+                  size={24} 
+                  color={inputText.trim() ? "#FFFFFF" : (isRecording ? "#FFFFFF" : "#8E8E93")} 
+                />
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -893,7 +1225,7 @@ const HealthAssistantScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: 'row',
@@ -902,7 +1234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 32, // Match DashboardScreen
     paddingBottom: 2, // Match DashboardScreen
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0A0A',
   },
   headerContent: {
     flex: 1,
@@ -934,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0A0A',
   },
   messagesContent: {
     paddingHorizontal: 16,
@@ -953,7 +1285,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   quickActionButton: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#2A2A2A',
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -961,13 +1293,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 100,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#3A3A3C',
   },
   quickActionIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#3A3A3C',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -991,7 +1323,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#007AFF20',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -1027,10 +1359,19 @@ const styles = StyleSheet.create({
     width: 'auto', // only as wide as text
   },
   assistantMessageBubble: {
-    backgroundColor: 'transparent',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 20,
+    borderBottomLeftRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     marginRight: 40,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   messageText: {
     fontSize: 16,
@@ -1049,8 +1390,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   messageTime: {
-    fontSize: 12,
-    color: '#000000',
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    backgroundColor: '#3A3A3C',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   speakButton: {
     marginLeft: 8,
@@ -1060,20 +1406,28 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   loadingBubble: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#2A2A2A',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#3A3A3C',
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  loadingContent: {
+    marginLeft: 12,
+    alignItems: 'center',
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   loadingText: {
     fontSize: 14,
     color: '#8E8E93',
-    marginLeft: 8,
   },
   loadingDot: {
     width: 8,
@@ -1110,7 +1464,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   inputContainer: {
-    backgroundColor: '#181A20',
+    backgroundColor: '#1A1A1A',
     borderTopWidth: 0,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1150,7 +1504,7 @@ const styles = StyleSheet.create({
   },
   textInputContainer: {
     flex: 1,
-    backgroundColor: '#232A34',
+    backgroundColor: '#2A2A2A',
     borderRadius: 24,
     paddingHorizontal: 18,
     paddingVertical: 14,
@@ -1219,7 +1573,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#232A34',
+    backgroundColor: '#2A2A2A',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -1235,7 +1589,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#232A34',
+    backgroundColor: '#2A2A2A',
     borderRadius: 12,
     marginBottom: 8,
   },

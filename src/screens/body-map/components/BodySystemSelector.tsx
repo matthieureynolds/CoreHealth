@@ -32,7 +32,7 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
     },
     {
       id: 'circulation' as BodySystemType,
-      name: 'Circulation',
+      name: 'Circulatory',
       icon: 'heart' as const,
     },
     {
@@ -71,6 +71,8 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.8}
             >
               {system.name}
             </Text>
@@ -83,35 +85,38 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
-    paddingHorizontal: 0, // Remove side padding for edge-to-edge scroll
-    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    backgroundColor: '#000000',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#1C1C1E',
   },
   tabScrollContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20, // More padding for touch area
+    paddingHorizontal: 16,
     gap: 8,
-    minWidth: 100, // Prevents wrapping for long names
+    minWidth: 110,
+    borderRadius: 8,
   },
   selectedTab: {
+    backgroundColor: '#007AFF20',
     borderBottomWidth: 2,
     borderBottomColor: '#007AFF',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: '#8E8E93',
-    maxWidth: 120,
+    maxWidth: 100,
   },
   selectedTabText: {
     color: '#007AFF',

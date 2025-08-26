@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import NutritionModal, { NutritionInfo } from '../../../components/common/NutritionModal';
@@ -292,11 +293,16 @@ interface NutritionBodyMapProps {
   onNutritionItemPress?: (item: NutritionItem) => void;
 }
 
+const { width, height } = Dimensions.get('window');
+
 const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
   onNutritionItemPress,
 }) => {
   const [selectedNutrition, setSelectedNutrition] = useState<NutritionInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [panelAnim] = useState(new Animated.Value(0));
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'normal':
@@ -337,85 +343,177 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
     ['Iron', 'Zinc', 'Copper', 'Iodine', 'Selenium', 'Manganese', 'Chromium', 'Molybdenum', 'Fluoride'].includes(item.name)
   );
 
-  const renderNutritionSection = (items: NutritionItem[], title: string, icon: string) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name={icon as any} size={20} color="#007AFF" />
-        <Text style={styles.sectionTitle}>{title}</Text>
-      </View>
-      <View style={styles.itemsContainer}>
-        {items.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.nutritionItem}
-            onPress={() => {
-              const nutritionInfo = getNutritionInfo(item.name);
-              if (nutritionInfo) {
-                setSelectedNutrition(nutritionInfo);
-                setModalVisible(true);
-              }
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={styles.itemHeader}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <View style={styles.statusContainer}>
-                <Ionicons
-                  name={getStatusIcon(item.status) as any}
-                  size={16}
-                  color={getStatusColor(item.status)}
-                />
-                <Text
-                  style={[
-                    styles.statusText,
-                    { color: getStatusColor(item.status) },
-                  ]}
-                >
-                  {item.status.toUpperCase()}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemValue}>
-                {item.value} {item.unit}
-              </Text>
-              <Text style={styles.itemRange}>Range: {item.range}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+  const handleCategoryPress = (category: string) => {
+    setSelectedCategory(category);
+    Animated.spring(panelAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleClosePanel = () => {
+    Animated.spring(panelAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedCategory(null);
+    });
+  };
+
+  const getCategoryData = (category: string) => {
+    switch (category) {
+      case 'vitamins':
+        return vitamins;
+      case 'majorMinerals':
+        return majorMinerals;
+      case 'traceMinerals':
+        return traceMinerals;
+      default:
+        return [];
+    }
+  };
+
+  const getCategoryTitle = (category: string) => {
+    switch (category) {
+      case 'vitamins':
+        return 'Vitamins';
+      case 'majorMinerals':
+        return 'Major Minerals';
+      case 'traceMinerals':
+        return 'Trace Minerals';
+      default:
+        return '';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'vitamins':
+        return 'leaf';
+      case 'majorMinerals':
+        return 'diamond';
+      case 'traceMinerals':
+        return 'diamond';
+      default:
+        return 'nutrition';
+    }
+  };
 
   return (
-    <>
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
-      >
-      <View style={styles.header}>
-        <Text style={styles.title}>Nutrition Profile</Text>
-        <Text style={styles.subtitle}>
-          Track your vitamin and mineral levels for optimal health
-        </Text>
+    <View style={styles.container}>
+      {/* Main Content */}
+      <View style={styles.mainContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Nutrition Profile</Text>
+          <Text style={styles.subtitle}>
+            Track your vitamin and mineral levels for optimal health
+          </Text>
+        </View>
+
+        {/* Category Cards */}
+        <View style={styles.categoriesContainer}>
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={() => handleCategoryPress('vitamins')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconContainer}>
+              <Ionicons name="leaf" size={32} color="#30D158" />
+            </View>
+            <Text style={styles.categoryTitle}>Vitamins</Text>
+            <Text style={styles.categorySubtitle}>{vitamins.length} nutrients</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={() => handleCategoryPress('majorMinerals')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconContainer}>
+              <Ionicons name="diamond" size={32} color="#007AFF" />
+            </View>
+            <Text style={styles.categoryTitle}>Major Minerals</Text>
+            <Text style={styles.categorySubtitle}>{majorMinerals.length} nutrients</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.categoryCard}
+            onPress={() => handleCategoryPress('traceMinerals')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.categoryIconContainer}>
+              <Ionicons name="diamond" size={32} color="#FF9500" />
+            </View>
+            <Text style={styles.categoryTitle}>Trace Minerals</Text>
+            <Text style={styles.categorySubtitle}>{traceMinerals.length} nutrients</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {renderNutritionSection(vitamins, 'Vitamins', 'leaf')}
-      {renderNutritionSection(majorMinerals, 'Major Minerals', 'diamond')}
-      {renderNutritionSection(traceMinerals, 'Trace Minerals', 'diamond')}
-    </ScrollView>
+      {/* Info Panel */}
+      {selectedCategory && (
+        <Animated.View
+          style={[
+            styles.infoPanel,
+            {
+              transform: [{ translateY: panelAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [height, 0],
+              })}],
+            },
+          ]}
+        >
+          <View style={styles.panelHeader}>
+            <Text style={styles.panelTitle}>{getCategoryTitle(selectedCategory)}</Text>
+            <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#8E8E93" />
+            </TouchableOpacity>
+          </View>
 
-    <NutritionModal
-      visible={modalVisible}
-      nutrition={selectedNutrition}
-      onClose={() => {
-        setModalVisible(false);
-        setSelectedNutrition(null);
-      }}
-    />
-    </>
+          <Text style={styles.panelSubtitle}>
+            Essential {getCategoryTitle(selectedCategory).toLowerCase()} for optimal health
+          </Text>
+
+          <ScrollView
+            style={styles.biomarkerScrollView}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+          >
+            <View style={styles.biomarkerList}>
+              {getCategoryData(selectedCategory).map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.biomarkerItem}
+                  onPress={() => {
+                    const nutritionInfo = getNutritionInfo(item.name);
+                    if (nutritionInfo) {
+                      setSelectedNutrition(nutritionInfo);
+                      setModalVisible(true);
+                    }
+                  }}
+                >
+                  <Text style={styles.biomarkerName}>{item.name}</Text>
+                  <Text style={[styles.biomarkerValue, { color: getStatusColor(item.status) }]}>
+                    {item.value} {item.unit}
+                  </Text>
+                  <Text style={styles.biomarkerRange}>({item.range})</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </Animated.View>
+      )}
+
+      {/* Nutrition Modal */}
+      <NutritionModal
+        visible={modalVisible}
+        nutrition={selectedNutrition}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedNutrition(null);
+        }}
+      />
+    </View>
   );
 };
 
@@ -423,89 +521,121 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+    position: 'relative',
   },
-  contentContainer: {
-    paddingBottom: 20,
+  mainContent: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 16,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#8E8E93',
-    lineHeight: 20,
+    lineHeight: 22,
   },
-  section: {
-    marginTop: 16,
-    marginHorizontal: 16,
+  categoriesContainer: {
+    gap: 16,
   },
-  sectionHeader: {
-    flexDirection: 'row',
+  categoryCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
   },
-  sectionTitle: {
+  categoryIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  categoryTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginLeft: 8,
+    marginBottom: 4,
   },
-  itemsContainer: {
+  categorySubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  infoPanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: '70%',
     backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    overflow: 'hidden',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
   },
-  nutritionItem: {
-    padding: 16,
+  panelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  panelTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  panelSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginBottom: 20,
+  },
+  biomarkerScrollView: {
+    flex: 1,
+  },
+  biomarkerList: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  biomarkerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#2C2C2E',
   },
-  itemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  biomarkerName: {
+    flex: 1,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
-  itemName: {
+  biomarkerValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
-    flex: 1,
+    marginRight: 8,
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  itemDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  itemValue: {
+  biomarkerRange: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-  itemRange: {
-    fontSize: 12,
     color: '#8E8E93',
   },
 });
