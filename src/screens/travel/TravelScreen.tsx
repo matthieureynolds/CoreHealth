@@ -97,6 +97,7 @@ const TravelScreen: React.FC = () => {
   const [lastDirectionsChoice, setLastDirectionsChoice] = useState<'google' | 'apple' | null>(null);
   const [alwaysUseChoice, setAlwaysUseChoice] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [expandedTrips, setExpandedTrips] = useState(new Set<string>());
 
   const { travelHealth, updateLocation, getCurrentLocation, updateTravelHealthData } = useHealthData();
 
@@ -222,19 +223,39 @@ const TravelScreen: React.FC = () => {
     }
   };
 
-  const handleLocationSelect = async (location: string) => {
-    setIsLoading(true);
-    setSearchLocation(location);
+  const handleLocationSelect = async (city: string) => {
+    setSearchLocation(city);
     setShowLocationSearch(false);
     setFilteredCities([]);
+    setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // Here you would call your actual location update function
-      console.log('Location selected:', location);
-      } catch (error) {
-      Alert.alert('Error', 'Failed to load location data');
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo purposes, we'll use mock data
+      const mockHealthData = {
+        name: city,
+        location: city,
+        country: getCountryFromCity(city),
+        coordinates: { latitude: 0, longitude: 0 },
+        timezone: 'UTC',
+        elevation: 0,
+        airQuality: { value: 'Good', status: 'good', description: 'AQI: 45 - Healthy for most people' },
+        waterSafety: { value: 'Safe', status: 'good', description: 'Tap water is safe to drink' },
+        uvIndex: { value: 'Moderate', status: 'moderate', description: 'UV Index: 6 - Use sunscreen' },
+        foodSafety: { value: 'Good', status: 'good', description: 'Low risk of foodborne illness' },
+        pollenLevel: { value: 'Low', status: 'good', description: 'Pollen count: 2.3 - Minimal allergy risk' },
+        altitudeRisk: { value: 'Low', status: 'good', description: 'Sea level - No altitude sickness risk' },
+        diseaseOutbreaks: { value: 'None', status: 'good', description: 'No current disease outbreaks reported' }
+      };
+      
+      // Update context
+      await updateTravelHealthData(mockHealthData);
+      
+    } catch (error) {
+      console.error('Error fetching health data:', error);
+      setApiErrors(prev => ({ ...prev, general: 'Failed to fetch health data. Please try again.' }));
     } finally {
       setIsLoading(false);
     }
@@ -313,6 +334,45 @@ const TravelScreen: React.FC = () => {
     setTripSuggestions([]);
     setDepartureSuggestions([]);
     Alert.alert('Success', 'Trip added successfully!');
+  };
+
+  const toggleTripExpansion = (tripId: string) => {
+    const newExpandedTrips = new Set(expandedTrips);
+    if (newExpandedTrips.has(tripId)) {
+      newExpandedTrips.delete(tripId);
+    } else {
+      newExpandedTrips.add(tripId);
+    }
+    setExpandedTrips(newExpandedTrips);
+  };
+
+  const handleTripChecklistToggle = (tripId: string, type: 'vaccines' | 'medicines', index: number) => {
+    setTrips(prevTrips => prevTrips.map(trip => {
+      if (trip.id === tripId) {
+        const updatedTrip = { ...trip };
+        if (!updatedTrip.checklist) {
+          updatedTrip.checklist = {
+            vaccines: [],
+            medicines: []
+          };
+        }
+        
+        if (type === 'vaccines') {
+          if (!updatedTrip.checklist.vaccines[index]) {
+            updatedTrip.checklist.vaccines[index] = { name: '', completed: false };
+          }
+          updatedTrip.checklist.vaccines[index].completed = !updatedTrip.checklist.vaccines[index].completed;
+        } else {
+          if (!updatedTrip.checklist.medicines[index]) {
+            updatedTrip.checklist.medicines[index] = { name: '', completed: false };
+          }
+          updatedTrip.checklist.medicines[index].completed = !updatedTrip.checklist.medicines[index].completed;
+        }
+        
+        return updatedTrip;
+      }
+      return trip;
+    }));
   };
 
   const getStatusColor = (status: string) => {
@@ -418,14 +478,14 @@ const TravelScreen: React.FC = () => {
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScrollContainer}>
+        <View style={styles.tabScrollContainer}>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'health' && styles.activeTab]} 
             onPress={() => setActiveTab('health')}
             activeOpacity={0.7}
           >
             <Text style={[styles.tabText, activeTab === 'health' && styles.activeTabText]}>
-              Current Location
+              Search
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -434,10 +494,10 @@ const TravelScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <Text style={[styles.tabText, activeTab === 'trips' && styles.activeTabText]}>
-              Search City
+              Trip Planning
             </Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </View>
 
       {/* Main Content */}
@@ -645,7 +705,7 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricValueText}>Moderate</Text>
                       <Text style={styles.metricDescriptionText}>UV Index: 6 - Use sunscreen</Text>
                     </View>
-                    <Ionicons name="warning" size={16} color={getStatusColor('moderate')} />
+                    <Ionicons name="warning" size={16} color="#FFFFFF" />
                   </View>
 
                   {/* Separator */}
@@ -844,84 +904,182 @@ const TravelScreen: React.FC = () => {
           </View>
         ) : (
           <View style={styles.content}>
-            {/* Add Trip Section */}
-            <View style={styles.addTripSection}>
-      <TouchableOpacity 
-                style={styles.addTripButton}
-                onPress={() => setShowAddTripModal(true)}
-              >
-                <Ionicons name="add" size={24} color="#FFFFFF" />
-                <Text style={styles.addTripButtonText}>+ Add a Trip</Text>
-      </TouchableOpacity>
-    </View>
-            
             {trips.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="airplane" size={48} color="#8E8E93" />
                 <Text style={styles.emptyStateTitle}>No trips planned</Text>
                 <Text style={styles.emptyStateText}>
                   Add your first trip to get personalized health recommendations
-          </Text>
-        </View>
+                </Text>
+                
+                {/* Add Trip Button - positioned below description like Vaccinations page */}
+                <TouchableOpacity 
+                  style={styles.addTripButton}
+                  onPress={() => setShowAddTripModal(true)}
+                >
+                  <Ionicons name="add" size={24} color="#FFFFFF" />
+                  <Text style={styles.addTripButtonText}>Add a Trip</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View style={styles.tripsContainer}>
+                {/* Add Another Trip Button - positioned above trips */}
+                <TouchableOpacity 
+                  style={styles.addTripButton}
+                  onPress={() => setShowAddTripModal(true)}
+                >
+                  <Ionicons name="add" size={24} color="#FFFFFF" />
+                  <Text style={styles.addTripButtonText}>Add Another Trip</Text>
+                </TouchableOpacity>
+                
                 {trips.map((trip) => (
-        <TouchableOpacity 
-                    key={trip.id} 
-                    style={styles.tripCard}
-                    onPress={() => {
-                      setSelectedTrip(trip);
-                      setShowTripDetails(true);
-                    }}
-                  >
-                    {/* Trip Header with Flag and City */}
-                    <View style={styles.tripCardHeader}>
-                      <View style={styles.tripFlagContainer}>
-                        <Text style={styles.tripFlag}>🏳️</Text>
-      </View>
-                      <View style={styles.tripInfo}>
-                        <Text style={styles.tripName}>{trip.name}</Text>
-                        <Text style={styles.tripDestination}>{trip.destination}</Text>
-              </View>
-                      <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-          </View>
-          
-                    {/* Dates and Countdown */}
-                    <View style={styles.tripDatesSection}>
-                      <View style={styles.dateItem}>
-                        <Ionicons name="calendar" size={16} color="#007AFF" />
-                        <Text style={styles.dateText}>
-                          {trip.departureDate.toLocaleDateString()} - {trip.returnDate?.toLocaleDateString() || 'One way'}
-          </Text>
-                      </View>
-                      <View style={styles.countdownContainer}>
-                        <Text style={styles.countdownText}>
-                          {Math.ceil((trip.departureDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days
-          </Text>
-                      </View>
-                    </View>
+                  <View key={trip.id}>
+                    <View style={styles.tripCard}>
+                      {/* Orange accent line on left */}
+                      <View style={styles.tripCardAccent} />
+                      
+                      {/* Main content */}
+                      <View style={styles.tripCardContent}>
+                        {/* Title */}
+                        <Text style={styles.tripCardTitle}>Jet Lag Planning</Text>
+                        
+                        {/* Destination with status */}
+                        <View style={styles.tripDestinationRow}>
+                          <View style={styles.tripDestinationLeft}>
+                            <View style={styles.tripDestinationDot} />
+                            <View>
+                              <Text style={styles.tripDestinationText}>{trip.destination}</Text>
+                              <Text style={styles.tripStatusText}>URGENT</Text>
+                            </View>
+                          </View>
+                          <View style={styles.tripDestinationRight}>
+                            <Ionicons name="chevron-forward" size={20} color="#FF9500" />
+                            <Text style={styles.tripDirectionText}>Eastward</Text>
+                          </View>
+                        </View>
+                        
+                        {/* Key Metrics Row */}
+                        <View style={styles.tripMetricsRow}>
+                          <View style={styles.tripMetric}>
+                            <Ionicons name="time" size={16} color="#8E8E93" />
+                            <Text style={styles.tripMetricLabel}>Time Difference</Text>
+                            <Text style={styles.tripMetricValue}>5h</Text>
+                          </View>
+                          <View style={styles.tripMetric}>
+                            <Ionicons name="calendar" size={16} color="#8E8E93" />
+                            <Text style={styles.tripMetricLabel}>Departure</Text>
+                            <Text style={styles.tripMetricValue}>
+                              {trip.departureDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
+                            </Text>
+                          </View>
+                          <View style={styles.tripMetric}>
+                            <Ionicons name="bed" size={16} color="#8E8E93" />
+                            <Text style={styles.tripMetricLabel}>Days to Adjust</Text>
+                            <Text style={styles.tripMetricValue}>4</Text>
+                          </View>
+                        </View>
+                        
+                        {/* Sleep Adjustment Schedule */}
+                        <View style={styles.sleepScheduleSection}>
+                          <Text style={styles.sleepScheduleTitle}>Sleep Adjustment Schedule</Text>
+                          <View style={styles.sleepScheduleItem}>
+                            <Text style={styles.sleepScheduleDate}>31/08: 21:30 - 06:30</Text>
+                            <Text style={styles.sleepScheduleAdjustment}>+1.5h</Text>
+                          </View>
+                          <View style={styles.sleepScheduleItem}>
+                            <Text style={styles.sleepScheduleDate}>01/09: 21:00 - 06:00</Text>
+                            <Text style={styles.sleepScheduleAdjustment}>+1.5h</Text>
+                          </View>
+                          <Text style={styles.sleepScheduleMore}>+2 more days...</Text>
+                        </View>
+                        
+                        {/* Action Banner */}
+                        <View style={styles.tripActionBanner}>
+                          <Ionicons name="warning" size={16} color="#FFFFFF" />
+                          <Text style={styles.tripActionText}>
+                            Start adjusting sleep schedule from {trip.departureDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })}
+                          </Text>
+                        </View>
 
-                    {/* Jet Lag Planner Preview */}
-                    <View style={styles.jetLagPreview}>
-                      <View style={styles.jetLagHeader}>
-                        <Ionicons name="time" size={16} color="#FF9500" />
-                        <Text style={styles.jetLagTitle}>Jet Lag Planner</Text>
+                        {/* + View More Button */}
+                        <TouchableOpacity 
+                          style={styles.viewMoreButton}
+                          onPress={() => toggleTripExpansion(trip.id)}
+                        >
+                          <Text style={styles.viewMoreButtonText}>
+                            {expandedTrips.has(trip.id) ? "View Less" : "+ View More"}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
-                      <Text style={styles.jetLagInfo}>
-                        Departure: {trip.jetLagPlanner?.departureTime} | Arrival: {trip.jetLagPlanner?.arrivalTime}
-            </Text>
                     </View>
+                    
+                    {/* Expandable Checklist Section */}
+                    {expandedTrips.has(trip.id) && (
+                      <View style={styles.tripChecklist}>
+                        <Text style={styles.checklistTitle}>Vaccination Requirements</Text>
+                        {trip.checklist?.vaccines?.map((vaccine, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={styles.checklistItem}
+                            onPress={() => handleTripChecklistToggle(trip.id, 'vaccines', index)}
+                          >
+                            <View style={styles.checklistItemLeft}>
+                              <View style={[
+                                styles.checkbox,
+                                vaccine.completed && styles.checkboxCompleted
+                              ]}>
+                                {vaccine.completed && (
+                                  <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                                )}
+                              </View>
+                              <Text style={[
+                                styles.checklistItemText,
+                                vaccine.completed && styles.checklistItemCompleted
+                              ]}>
+                                {vaccine.name}
+                              </Text>
+                            </View>
+                            <Text style={styles.checklistItemStatus}>
+                              {vaccine.completed ? 'Completed' : 'Required'}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
 
-                    {/* Tap to View */}
-                    <View style={styles.tapToView}>
-                      <Text style={styles.tapToViewText}>Tap to view trip health plan</Text>
-                      <Ionicons name="arrow-forward" size={16} color="#007AFF" />
-                    </View>
-                  </TouchableOpacity>
+                        <Text style={styles.checklistTitle}>Medication Requirements</Text>
+                        {trip.checklist?.medicines?.map((medicine, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={styles.checklistItem}
+                            onPress={() => handleTripChecklistToggle(trip.id, 'medicines', index)}
+                          >
+                            <View style={styles.checklistItemLeft}>
+                              <View style={[
+                                styles.checkbox,
+                                medicine.completed && styles.checkboxCompleted
+                              ]}>
+                                {medicine.completed && (
+                                  <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                                )}
+                              </View>
+                              <Text style={[
+                                styles.checklistItemText,
+                                medicine.completed && styles.checklistItemCompleted
+                              ]}>
+                                {medicine.name}
+                              </Text>
+                            </View>
+                            <Text style={styles.checklistItemStatus}>
+                              {medicine.completed ? 'Completed' : 'Required'}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
                 ))}
-        </View>
-      )}
-    </View>
+              </View>
+            )}
+          </View>
         )}
       </ScrollView>
 
@@ -1192,7 +1350,7 @@ const TravelScreen: React.FC = () => {
         </View>
                   <View style={styles.tripInfo}>
                     <Text style={styles.tripName}>{selectedTrip.name}</Text>
-                    <Text style={styles.tripDestination}>{selectedTrip.destination}</Text>
+                    <Text style={styles.tripDestinationText}>{selectedTrip.destination}</Text>
         </View>
       </View>
                 <Text style={styles.dateText}>
@@ -1357,6 +1515,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 8,
+    justifyContent: 'space-between',
   },
   tab: {
     flexDirection: 'row',
@@ -1365,8 +1524,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 8,
-    minWidth: 110,
     borderRadius: 8,
+    flex: 1,
   },
   activeTab: {
     backgroundColor: '#007AFF20',
@@ -1377,7 +1536,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: '#8E8E93',
-    maxWidth: 100,
   },
   activeTabText: {
     color: '#007AFF',
@@ -1464,13 +1622,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginTop: 16,
+    marginTop: 24,
+    marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 16,
     color: '#8E8E93',
-    marginTop: 4,
+    marginTop: 8,
     textAlign: 'center',
+    marginBottom: 16,
   },
   tripsContainer: {
     marginTop: 20,
@@ -1482,27 +1642,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  tripHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  tripDestination: {
-    fontSize: 18,
+  tripDestinationText: {
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginLeft: 8,
   },
-  tripDates: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  tripTimezone: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
+
   addTripButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2163,39 +2311,52 @@ jetLagTitle: {
     fontWeight: 'bold',
   color: '#FFFFFF',
 },
+  checklistSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  checklistTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 16,
+    marginTop: 8,
+  },
   checklistSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   checklistItem: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#2C2C2E',
-  borderRadius: 8,
-  padding: 12,
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3A3A3C',
   },
   checklistCheckbox: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 4,
     borderWidth: 2,
     borderColor: '#007AFF',
     marginRight: 12,
     justifyContent: 'center',
-  alignItems: 'center',
-},
-  checklistText: {
-  fontSize: 16,
-  color: '#FFFFFF',
-    flex: 1,
+    alignItems: 'center',
   },
   completedCheckbox: {
     backgroundColor: '#007AFF',
   },
+  checklistText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
   completedText: {
+    color: '#8E8E93',
     textDecorationLine: 'line-through',
-  color: '#8E8E93',
-},
+  },
   datePickerModalOverlay: {
     position: 'absolute',
     top: 0,
@@ -2382,6 +2543,181 @@ jetLagTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  tripCardAccent: {
+    width: 4,
+    height: '100%',
+    backgroundColor: '#FF9500',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+  },
+  tripCardContent: {
+    paddingLeft: 20,
+    paddingRight: 16,
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
+  tripCardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 20,
+  },
+  tripDestinationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  tripDestinationLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  tripDestinationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF9500',
+    marginRight: 12,
+    marginTop: 4,
+  },
+  tripDestinationRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  tripDirectionText: {
+    fontSize: 14,
+    color: '#FF9500',
+    marginTop: 8,
+  },
+  tripMetricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  tripMetric: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  tripMetricLabel: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  tripMetricValue: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sleepScheduleSection: {
+    marginBottom: 20,
+  },
+  sleepScheduleTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  sleepScheduleItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sleepScheduleDate: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  sleepScheduleAdjustment: {
+    fontSize: 14,
+    color: '#34C759',
+    fontWeight: '600',
+  },
+  sleepScheduleMore: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 8,
+  },
+  tripActionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF9500',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 16,
+  },
+  tripActionText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginLeft: 12,
+    fontWeight: '500',
+  },
+  tripStatusText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  viewMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  viewMoreButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#007AFF',
+    marginLeft: 4,
+  },
+  tripChecklist: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  checklistItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  checkbox: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    marginRight: 4,
+  },
+  checkboxCompleted: {
+    backgroundColor: '#007AFF',
+  },
+  checklistItemText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  checklistItemCompleted: {
+    color: '#8E8E93',
+    textDecorationLine: 'line-through',
+  },
+  checklistItemStatus: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginLeft: 8,
   },
 });
 
