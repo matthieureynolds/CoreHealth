@@ -20,10 +20,7 @@ const SettingsScreen: React.FC = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={{ width: 24 }} />
         <View style={{ width: 24 }} />
       </View>
 
@@ -63,7 +60,7 @@ const SettingsScreen: React.FC = () => {
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrivacySecurity' as any)}>
-            <Ionicons name="shield-checkmark-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+            <Ionicons name="lock-closed-outline" size={22} color="#007AFF" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Privacy & Security</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>

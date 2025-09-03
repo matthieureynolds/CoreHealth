@@ -1,115 +1,120 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 
-type IOSDatePickerProps = {
+interface IOSDatePickerProps {
   visible: boolean;
-  title?: string;
-  value?: Date | null;
-  minimumDate?: Date;
-  maximumDate?: Date;
+  value: Date;
   onConfirm: (date: Date) => void;
   onCancel: () => void;
-};
+  title?: string;
+  maximumDate?: Date;
+}
 
 const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
   visible,
-  title = 'Select Date',
   value,
-  minimumDate,
-  maximumDate,
   onConfirm,
   onCancel,
+  title = 'Select Date',
+  maximumDate
 }) => {
-  const [tempDate, setTempDate] = useState<Date>(value ?? new Date());
+  const [tempDate, setTempDate] = useState(value);
 
   useEffect(() => {
-    if (value) setTempDate(value);
-  }, [value, visible]);
+    if (visible) {
+      setTempDate(value);
+    }
+  }, [visible, value]);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      presentationStyle="overFullScreen"
-      statusBarTranslucent
-      onRequestClose={onCancel}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onCancel}>
-              <Text style={styles.headerButton}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity onPress={() => onConfirm(tempDate)}>
-              <Text style={styles.headerButton}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.pickerArea}>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              maximumDate={maximumDate}
-              minimumDate={minimumDate}
-              onChange={(event: DateTimePickerEvent, selected?: Date) => {
-                if (selected) setTempDate(selected);
-              }}
-              themeVariant={Platform.OS === 'ios' ? 'dark' : undefined as any}
-              style={{ alignSelf: 'center' }}
-            />
-          </View>
+  if (!visible) {
+    return null;
+  }
+
+  if (Platform.OS === 'ios') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onCancel} style={styles.headerButton}>
+            <Text style={styles.headerButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>{title}</Text>
+          <TouchableOpacity onPress={() => onConfirm(tempDate)} style={styles.headerButton}>
+            <Text style={styles.headerButtonText}>Done</Text>
+          </TouchableOpacity>
         </View>
+        
+        <DateTimePicker
+          value={tempDate}
+          mode="date"
+          display="spinner"
+          onChange={(_, date) => {
+            if (date) {
+              setTempDate(date);
+            }
+          }}
+          maximumDate={maximumDate}
+          style={styles.datePicker}
+        />
       </View>
-    </Modal>
+    );
+  }
+
+  // Fallback for Android
+  return (
+    <DateTimePicker
+      value={tempDate}
+      mode="date"
+      onChange={(_, date) => {
+        if (date) {
+          setTempDate(date);
+          onConfirm(date);
+        }
+      }}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    width: '100%',
-    borderRadius: 16,
-    backgroundColor: '#111',
-    overflow: 'hidden',
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34, // Safe area for home indicator
+    zIndex: 1000,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  headerButton: {
-    color: '#0A84FF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   title: {
-    color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
+    color: '#fff',
   },
-  pickerArea: {
+  headerButton: {
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#111',
+  },
+  headerButtonText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  datePicker: {
+    width: '100%',
+    height: 200,
+    backgroundColor: 'transparent',
   },
 });
 

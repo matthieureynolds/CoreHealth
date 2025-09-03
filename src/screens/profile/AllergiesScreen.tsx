@@ -340,34 +340,37 @@ const AllergiesScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Date Pickers - Now inside the modal */}
+          {showStartDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Start Date"
+              value={startDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setStartDate(d);
+                setShowStartDatePicker(false);
+              }}
+              onCancel={() => setShowStartDatePicker(false)}
+            />
+          )}
+
+          {showEndDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="End Date"
+              value={endDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setEndDate(d);
+                setShowEndDatePicker(false);
+              }}
+              onCancel={() => setShowEndDatePicker(false)}
+            />
+          )}
         </View>
       </Modal>
-
-      {/* Start Date Picker */}
-      <IOSDatePicker
-        visible={showStartDatePicker}
-        title="Start Date"
-        value={startDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setStartDate(d);
-          setShowStartDatePicker(false);
-        }}
-        onCancel={() => setShowStartDatePicker(false)}
-      />
-
-      {/* End Date Picker */}
-      <IOSDatePicker
-        visible={showEndDatePicker}
-        title="End Date"
-        value={endDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setEndDate(d);
-          setShowEndDatePicker(false);
-        }}
-        onCancel={() => setShowEndDatePicker(false)}
-      />
     </View>
   );
 };

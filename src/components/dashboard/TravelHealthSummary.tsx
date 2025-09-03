@@ -8,6 +8,7 @@ import {
   Linking,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import JetLagPlanningCard from './JetLagPlanningCard';
@@ -168,23 +169,168 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     );
   };
 
-  // Modal content for environmental metric details
+  // Get detailed information for each environmental metric
+  const getMetricDetails = (metric: EnvironmentalMetric) => {
+    const details: { [key: string]: any } = {
+      'air_quality': {
+        description: 'Air Quality Index (AQI) measures the concentration of pollutants in the air, including particulate matter, ozone, nitrogen dioxide, and sulfur dioxide.',
+        normalRange: '0-50 (Good)',
+        optimalRange: '0-25 (Excellent)',
+        whatItMeans: getAirQualityExplanation(metric.status),
+        healthImpacts: getAirQualityHealthImpacts(metric.status),
+        recommendations: getAirQualityRecommendations(metric.status),
+        riskFactors: [
+          'Outdoor exercise during high pollution',
+          'Living near busy roads or industrial areas',
+          'Pre-existing respiratory conditions',
+          'Age (children and elderly more vulnerable)',
+          'Smoking or secondhand smoke exposure'
+        ]
+      },
+      'pollen': {
+        description: 'Pollen count measures the concentration of pollen grains in the air. Different types of pollen (tree, grass, weed) can trigger allergic reactions.',
+        normalRange: '0-9 (Low)',
+        optimalRange: '0-4 (Very Low)',
+        whatItMeans: getPollenExplanation(metric.status),
+        healthImpacts: getPollenHealthImpacts(metric.status),
+        recommendations: getPollenRecommendations(metric.status),
+        riskFactors: [
+          'Seasonal allergies (hay fever)',
+          'Asthma or respiratory conditions',
+          'Outdoor activities during peak pollen times',
+          'Living in areas with high vegetation',
+          'Family history of allergies'
+        ]
+      },
+      'water_quality': {
+        description: 'Water quality measures the safety and cleanliness of local water sources, including chemical contaminants, bacteria, and mineral content.',
+        normalRange: 'Safe for consumption',
+        optimalRange: 'Excellent quality with beneficial minerals',
+        whatItMeans: getWaterQualityExplanation(metric.status),
+        healthImpacts: getWaterQualityHealthImpacts(metric.status),
+        recommendations: getWaterQualityRecommendations(metric.status),
+        riskFactors: [
+          'Drinking untreated water',
+          'Traveling to areas with poor sanitation',
+          'Compromised immune system',
+          'Pregnancy or young children',
+          'Local water treatment issues'
+        ]
+      }
+    };
+    return details[metric.id] || {
+      description: 'This metric provides important information about your travel environment.',
+      whatItMeans: 'Monitor this metric for potential health impacts.',
+      recommendations: ['Stay informed about local conditions', 'Take appropriate precautions']
+    };
+  };
+
+  const getAirQualityExplanation = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'Air quality is excellent with minimal pollutants. Perfect for outdoor activities and exercise.';
+      case 'good': return 'Air quality is good with low levels of pollutants. Safe for most people, including sensitive groups.';
+      case 'moderate': return 'Air quality is moderate with some pollutants present. Sensitive individuals may experience minor irritation.';
+      case 'poor': return 'Air quality is poor with elevated pollutant levels. Sensitive groups should limit outdoor activities.';
+      case 'hazardous': return 'Air quality is hazardous with very high pollutant levels. Everyone should avoid outdoor activities.';
+      default: return 'Air quality status is being monitored.';
+    }
+  };
+
+  const getAirQualityHealthImpacts = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['No health impacts expected', 'Ideal for outdoor exercise', 'Safe for all age groups'];
+      case 'good': return ['Minimal health impacts', 'Safe for most activities', 'Sensitive individuals may notice slight irritation'];
+      case 'moderate': return ['Possible irritation for sensitive individuals', 'Consider reducing outdoor exercise', 'Monitor for respiratory symptoms'];
+      case 'poor': return ['Increased risk of respiratory irritation', 'Avoid outdoor exercise', 'Sensitive groups should stay indoors'];
+      case 'hazardous': return ['Serious health risks for everyone', 'Avoid all outdoor activities', 'Use air purifiers indoors'];
+      default: return ['Monitor for any respiratory symptoms'];
+    }
+  };
+
+  const getAirQualityRecommendations = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['Enjoy outdoor activities', 'Great time for exercise', 'Open windows for fresh air'];
+      case 'good': return ['Outdoor activities are generally safe', 'Monitor sensitive individuals', 'Consider air purifiers if needed'];
+      case 'moderate': return ['Limit outdoor exercise', 'Close windows during peak hours', 'Use air purifiers', 'Wear masks if sensitive'];
+      case 'poor': return ['Avoid outdoor activities', 'Keep windows closed', 'Use air purifiers', 'Wear N95 masks if going outside'];
+      case 'hazardous': return ['Stay indoors with windows closed', 'Use high-efficiency air purifiers', 'Wear N95 masks if necessary', 'Postpone outdoor plans'];
+      default: return ['Monitor air quality updates', 'Take appropriate precautions'];
+    }
+  };
+
+  const getPollenExplanation = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'Pollen levels are very low. Minimal risk of allergic reactions for most people.';
+      case 'good': return 'Pollen levels are low. Most people with mild allergies should be comfortable.';
+      case 'moderate': return 'Pollen levels are moderate. People with allergies may experience symptoms.';
+      case 'poor': return 'Pollen levels are high. Significant risk of allergic reactions for sensitive individuals.';
+      case 'hazardous': return 'Pollen levels are very high. Severe allergic reactions possible for sensitive individuals.';
+      default: return 'Pollen levels are being monitored.';
+    }
+  };
+
+  const getPollenHealthImpacts = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['No allergy symptoms expected', 'Safe for outdoor activities', 'Ideal for allergy sufferers'];
+      case 'good': return ['Minimal allergy symptoms', 'Most people comfortable outdoors', 'Mild symptoms possible for very sensitive individuals'];
+      case 'moderate': return ['Allergy symptoms likely for sensitive individuals', 'Sneezing, runny nose, itchy eyes possible', 'Consider allergy medications'];
+      case 'poor': return ['Significant allergy symptoms expected', 'Severe reactions possible', 'Avoid outdoor activities if possible'];
+      case 'hazardous': return ['Severe allergic reactions likely', 'Asthma attacks possible', 'Stay indoors with windows closed'];
+      default: return ['Monitor for allergy symptoms'];
+    }
+  };
+
+  const getPollenRecommendations = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['Enjoy outdoor activities', 'Great time for gardening', 'Open windows for fresh air'];
+      case 'good': return ['Outdoor activities generally safe', 'Take allergy medications if needed', 'Shower after outdoor activities'];
+      case 'moderate': return ['Take allergy medications before going out', 'Avoid outdoor activities in early morning', 'Wear sunglasses and hat', 'Shower and change clothes after being outside'];
+      case 'poor': return ['Take allergy medications', 'Limit outdoor activities', 'Keep windows closed', 'Use air purifiers with HEPA filters'];
+      case 'hazardous': return ['Stay indoors with windows closed', 'Use air purifiers', 'Take allergy medications', 'Consider seeing an allergist'];
+      default: return ['Monitor pollen forecasts', 'Take appropriate allergy precautions'];
+    }
+  };
+
+  const getWaterQualityExplanation = (status: string) => {
+    switch (status) {
+      case 'excellent': return 'Water quality is excellent with no contaminants and beneficial minerals. Safe and healthy for all uses.';
+      case 'good': return 'Water quality is good with minimal contaminants. Safe for drinking and cooking.';
+      case 'moderate': return 'Water quality is moderate with some contaminants present. Generally safe but may have taste or odor issues.';
+      case 'poor': return 'Water quality is poor with elevated contaminant levels. Consider using filtered or bottled water.';
+      case 'hazardous': return 'Water quality is hazardous with high contaminant levels. Avoid drinking tap water.';
+      default: return 'Water quality is being monitored.';
+    }
+  };
+
+  const getWaterQualityHealthImpacts = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['No health risks', 'Provides beneficial minerals', 'Supports optimal hydration'];
+      case 'good': return ['Minimal health risks', 'Safe for daily consumption', 'Good for hydration'];
+      case 'moderate': return ['Possible gastrointestinal issues', 'May affect taste and odor', 'Consider filtration for sensitive individuals'];
+      case 'poor': return ['Increased risk of gastrointestinal illness', 'May cause nausea or diarrhea', 'Avoid drinking untreated water'];
+      case 'hazardous': return ['High risk of serious illness', 'Potential for severe gastrointestinal problems', 'Do not drink tap water'];
+      default: return ['Monitor for any digestive symptoms'];
+    }
+  };
+
+  const getWaterQualityRecommendations = (status: string) => {
+    switch (status) {
+      case 'excellent': return ['Drink tap water freely', 'Great for cooking and hydration', 'No additional treatment needed'];
+      case 'good': return ['Tap water is safe to drink', 'Good for daily use', 'Consider filtration for taste preferences'];
+      case 'moderate': return ['Use water filters for drinking', 'Boil water for cooking', 'Consider bottled water for sensitive individuals'];
+      case 'poor': return ['Use high-quality water filters', 'Drink bottled or filtered water', 'Avoid ice made from tap water'];
+      case 'hazardous': return ['Use only bottled or filtered water', 'Avoid tap water completely', 'Use bottled water for cooking and brushing teeth'];
+      default: return ['Check local water quality reports', 'Use appropriate water treatment methods'];
+    }
+  };
+
+  // Enhanced modal content for environmental metric details
   const renderMetricModal = () => {
     if (!selectedMetric) return null;
-    let description = '';
-    switch (selectedMetric.id) {
-      case 'air_quality':
-        description = 'Air quality is measured by the concentration of pollutants in the air. Good air quality is important for respiratory and cardiovascular health.';
-        break;
-      case 'pollen':
-        description = 'Pollen levels indicate the amount of pollen in the air, which can affect allergies and respiratory conditions.';
-        break;
-      case 'water_quality':
-        description = 'Water quality reflects the safety and cleanliness of local water sources. Excellent water quality is important for hydration and health.';
-        break;
-      default:
-        description = 'This metric provides important information about your travel environment.';
-    }
+    
+    const details = getMetricDetails(selectedMetric);
+    const statusColor = getStatusColor(selectedMetric.status);
+
     return (
       <Modal
         visible={modalVisible}
@@ -192,15 +338,96 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ backgroundColor: '#1C1C1E', borderRadius: 16, padding: 24, width: 320, alignItems: 'center' }}>
-            <Ionicons name={selectedMetric.icon} size={40} color={getStatusColor(selectedMetric.status)} style={{ marginBottom: 12 }} />
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 8 }}>{selectedMetric.label}</Text>
-            <Text style={{ fontSize: 16, color: getStatusColor(selectedMetric.status), marginBottom: 8 }}>{selectedMetric.value} (Score: {selectedMetric.score})</Text>
-            <Text style={{ fontSize: 15, color: '#EBEBF5', textAlign: 'center', marginBottom: 16 }}>{description}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 8, paddingVertical: 8, paddingHorizontal: 24, backgroundColor: '#007AFF', borderRadius: 8 }}>
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Close</Text>
-            </TouchableOpacity>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <View style={[styles.modalIconContainer, { backgroundColor: `${statusColor}20` }]}>
+                  <Ionicons name={selectedMetric.icon} size={32} color={statusColor} />
+                </View>
+                <View style={styles.modalTitleContainer}>
+                  <Text style={styles.modalTitle}>{selectedMetric.label}</Text>
+                  <Text style={[styles.modalStatus, { color: statusColor }]}>
+                    {selectedMetric.value} • Score: {selectedMetric.score}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Description */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>What is this?</Text>
+                <Text style={styles.sectionContent}>{details.description}</Text>
+              </View>
+
+              {/* Ranges */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>Normal & Optimal Ranges</Text>
+                <View style={styles.rangeContainer}>
+                  <View style={styles.rangeItem}>
+                    <Text style={styles.rangeLabel}>Normal Range:</Text>
+                    <Text style={styles.rangeValue}>{details.normalRange}</Text>
+                  </View>
+                  <View style={styles.rangeItem}>
+                    <Text style={styles.rangeLabel}>Optimal Range:</Text>
+                    <Text style={[styles.rangeValue, { color: '#30D158' }]}>{details.optimalRange}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* What it means */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>What this means for you</Text>
+                <Text style={styles.sectionContent}>{details.whatItMeans}</Text>
+              </View>
+
+              {/* Health impacts */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>Potential Health Impacts</Text>
+                {details.healthImpacts.map((impact: string, index: number) => (
+                  <View key={index} style={styles.impactItem}>
+                    <Ionicons name="checkmark-circle" size={16} color={statusColor} />
+                    <Text style={styles.impactText}>{impact}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Recommendations */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>Recommendations</Text>
+                {details.recommendations.map((recommendation: string, index: number) => (
+                  <View key={index} style={styles.recommendationItem}>
+                    <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+                    <Text style={styles.recommendationText}>{recommendation}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Risk factors */}
+              <View style={styles.modalSection}>
+                <Text style={styles.sectionTitle}>Risk Factors</Text>
+                {details.riskFactors.map((risk: string, index: number) => (
+                  <View key={index} style={styles.riskItem}>
+                    <Ionicons name="warning" size={16} color="#FF9500" />
+                    <Text style={styles.riskText}>{risk}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Close button */}
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalCloseButtonText}>Close</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -468,13 +695,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 4,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 12,
-    marginTop: 4,
-  },
+
   facilityCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -528,6 +749,140 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '600',
     fontSize: 13,
+  },
+  // Enhanced modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '90%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  modalIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  modalTitleContainer: {
+    flex: 1,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  modalStatus: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  modalSection: {
+    padding: 20,
+    paddingTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  sectionContent: {
+    fontSize: 15,
+    color: '#EBEBF5',
+    lineHeight: 22,
+  },
+  rangeContainer: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    padding: 16,
+  },
+  rangeItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  rangeLabel: {
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
+  rangeValue: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  impactItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  impactText: {
+    fontSize: 14,
+    color: '#EBEBF5',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  recommendationItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: '#EBEBF5',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  riskItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  riskText: {
+    fontSize: 14,
+    color: '#EBEBF5',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  modalCloseButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    margin: 20,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

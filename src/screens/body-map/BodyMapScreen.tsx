@@ -34,6 +34,7 @@ import NutritionBodyMap from './components/NutritionBodyMap';
 
 const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
+  const [selectedOrganData, setSelectedOrganData] = useState<any>(null);
   const [panelAnim] = useState(new Animated.Value(0));
   const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
   const [processedDocuments, setProcessedDocuments] = useState<
@@ -68,12 +69,24 @@ const BodyMapScreen: React.FC = () => {
     // }).start();
   };
 
+  const handleOrganSelect = (organ: any) => {
+    setSelectedOrganData(organ);
+    setSelectedOrgan(organ.id);
+    
+    // Show the panel
+    Animated.spring(panelAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleClosePanel = () => {
     Animated.spring(panelAnim, {
       toValue: 0,
       useNativeDriver: true,
     }).start(() => {
       setSelectedOrgan(null);
+      setSelectedOrganData(null);
     });
   };
 
@@ -260,7 +273,7 @@ const BodyMapScreen: React.FC = () => {
 
   const groupBiomarkersByOrgan = (biomarkers: ExtractedBiomarker[]) => {
     return biomarkers.reduce((groups, biomarker) => {
-      const organ = biomarker.organ || 'Other';
+      const organ = biomarker.organSystem || 'Other';
       if (!groups[organ]) {
         groups[organ] = [];
       }
@@ -309,7 +322,7 @@ const BodyMapScreen: React.FC = () => {
   const renderBodyMap = () => {
     switch (selectedSystem) {
       case 'organs':
-        return <BodyMap onOrganPress={handleOrganPress} />;
+        return <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />;
       case 'skeleton':
         return <SkeletonBodyMap onPartPress={handleSkeletonPartPress} />;
       case 'circulation':
@@ -317,7 +330,7 @@ const BodyMapScreen: React.FC = () => {
       case 'nutrition':
         return <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />;
       default:
-        return <BodyMap onOrganPress={handleOrganPress} />;
+        return <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />;
     }
   };
 
@@ -500,11 +513,10 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const renderInfoPanel = () => {
-    if (!selectedOrgan) return null;
+    if (!selectedOrganData) return null;
 
-    const organ = organsList.find(o => o.id === selectedOrgan);
-    if (!organ) return null;
-
+    const organ = selectedOrganData;
+    
     return (
       <Animated.View
         style={[
@@ -532,64 +544,35 @@ const BodyMapScreen: React.FC = () => {
         </View>
 
         <ScrollView
-          style={styles.panelContent}
-          showsVerticalScrollIndicator={false}
+          style={styles.biomarkerScrollView}
+          showsVerticalScrollIndicator={true}
+          bounces={true}
         >
-          <View style={styles.biomarkersSection}>
-            <Text style={styles.biomarkersTitle}>Key Biomarkers</Text>
-            {organ.data.biomarkers.map((biomarker, index) => (
+          <View style={styles.biomarkerList}>
+            {organ.data.biomarkers.map((biomarker: any, index: number) => (
               <TouchableOpacity
                 key={index}
                 style={styles.biomarkerItem}
-                onPress={() =>
-                  handleBiomarkerPress(
+                onPress={() => {
+                  const biomarkerInfo = getBiomarkerInfo(
                     biomarker.name,
                     biomarker.value,
-                    biomarker.status,
-                  )
-                }
-                activeOpacity={0.7}
+                    biomarker.status
+                  );
+                  if (biomarkerInfo) {
+                    setSelectedBiomarker(biomarkerInfo);
+                    setModalVisible(true);
+                  }
+                }}
               >
-                <View style={styles.biomarkerContent}>
                 <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                <Text style={styles.biomarkerValue}>
+                <Text style={[styles.biomarkerValue, { color: getBiomarkerStatusColor(biomarker.status) }]}>
                   {biomarker.value} {biomarker.unit}
                 </Text>
-                  <Text style={styles.biomarkerRange}>
-                    ({biomarker.referenceRange})
-                  </Text>
-                </View>
-                
-                <View style={styles.biomarkerStatus}>
-                  <Ionicons
-                    name={getBiomarkerStatusIcon(biomarker.status)}
-                    size={16}
-                    color={getBiomarkerStatusColor(biomarker.status)}
-                  />
-                  <Text
-                    style={[
-                      styles.biomarkerStatusText,
-                      { color: getBiomarkerStatusColor(biomarker.status) },
-                    ]}
-                  >
-                    {biomarker.status?.toUpperCase() || 'NORMAL'}
-                  </Text>
-                </View>
+                <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
               </TouchableOpacity>
             ))}
           </View>
-
-          {organ.recommendations && organ.recommendations.length > 0 && (
-            <View style={styles.recommendationsSection}>
-              <Text style={styles.recommendationsTitle}>Recommendations</Text>
-              {organ.recommendations.map((recommendation, index) => (
-                <View key={index} style={styles.recommendationItem}>
-                  <Ionicons name="checkmark-circle" size={16} color="#30D158" />
-                  <Text style={styles.recommendationText}>{recommendation}</Text>
-                </View>
-              ))}
-            </View>
-          )}
         </ScrollView>
       </Animated.View>
     );
@@ -623,7 +606,18 @@ const BodyMapScreen: React.FC = () => {
           renderBodyMap()
         ) : (
           <View style={styles.bodyMapContainer}>
-            {renderBodyMap()}
+            {selectedSystem === 'organs' ? (
+              <BodyMap 
+                onOrganPress={handleOrganPress} 
+                onOrganSelect={handleOrganSelect}
+              />
+            ) : selectedSystem === 'skeleton' ? (
+              <SkeletonBodyMap onPartPress={handleOrganPress} />
+            ) : selectedSystem === 'circulation' ? (
+              <CirculationBodyMap onPointPress={handleOrganPress} />
+            ) : (
+              <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
+            )}
           </View>
         )}
 
@@ -638,7 +632,7 @@ const BodyMapScreen: React.FC = () => {
       </ScrollView>
 
       {/* Info Panel */}
-      {/* {renderInfoPanel()} */}
+      {renderInfoPanel()}
 
       {/* Biomarker Modal */}
       <BiomarkerModal
@@ -708,7 +702,6 @@ const styles = StyleSheet.create({
   bodyMapContainer: {
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
-    marginHorizontal: 16,
     marginVertical: 8,
     padding: 20,
     alignItems: 'center',
@@ -1035,6 +1028,12 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 40,
+  },
+  biomarkerScrollView: {
+    flex: 1,
+  },
+  biomarkerList: {
+    paddingHorizontal: 20,
   },
 });
 

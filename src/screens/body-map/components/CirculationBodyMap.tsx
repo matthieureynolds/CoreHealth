@@ -152,9 +152,9 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
         {/* Always-visible biomarker dots for each zone */}
         {[
           // Heart (center chest)
-          { id: 'heart', x: 50, y: 30 },
-          // Arteries/Vessels & Blood (properly positioned on arm)
-          { id: 'arteries_vessels_blood', x: 42, y: 40 },
+          { id: 'heart', x: 52, y: 31 },
+          // Arteries/Vessels & Blood (moved much more to the left)
+          { id: 'arteries_vessels_blood', x: 31.5, y: 30 },
           // Oxygenation (upper chest)
           { id: 'oxygenation', x: 50, y: 22 },
         ].map(dot => (

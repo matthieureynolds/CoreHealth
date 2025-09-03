@@ -268,21 +268,23 @@ const MedicationsScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Start Date Picker - Now inside the modal */}
+          {showStartDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Start Date"
+              value={startDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setStartDate(d);
+                setShowStartDatePicker(false);
+              }}
+              onCancel={() => setShowStartDatePicker(false)}
+            />
+          )}
         </View>
       </Modal>
-
-      {/* Start Date Picker */}
-      <IOSDatePicker
-        visible={showStartDatePicker}
-        title="Start Date"
-        value={startDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setStartDate(d);
-          setShowStartDatePicker(false);
-        }}
-        onCancel={() => setShowStartDatePicker(false)}
-      />
     </View>
   );
 };

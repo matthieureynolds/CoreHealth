@@ -636,13 +636,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
-    height: '100%',
+    height: 70,
+    borderRadius: 12,
   },
   doneAction: {
     backgroundColor: '#34C759',
   },
   ignoreAction: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#FF9500',
   },
   swipeActionText: {
     color: '#FFFFFF',

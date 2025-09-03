@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +23,7 @@ type EditPhysicalStatsScreenNavigationProp = StackNavigationProp<ProfileTabParam
 interface PhysicalStatsData {
   height: string;
   weight: string;
+  bloodType: string;
 }
 
 const EditPhysicalStatsScreen: React.FC = () => {
@@ -30,6 +32,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
   const [statsData, setStatsData] = useState<PhysicalStatsData>({
     height: '',
     weight: '',
+    bloodType: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,6 +41,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
       setStatsData({
         height: profile.height?.toString() || '',
         weight: profile.weight?.toString() || '',
+        bloodType: profile.bloodType || '',
       });
     }
   }, [profile]);
@@ -56,12 +60,18 @@ const EditPhysicalStatsScreen: React.FC = () => {
       return;
     }
 
+    if (!statsData.bloodType.trim()) {
+      Alert.alert('Error', 'Please select your blood type');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await updateProfile({
         ...profile,
         height: Math.round(height * 10) / 10, // Round to 1 decimal place
         weight: Math.round(weight * 10) / 10, // Round to 1 decimal place
+        bloodType: statsData.bloodType,
       });
 
       Alert.alert('Success', 'Physical stats updated successfully', [
@@ -73,6 +83,17 @@ const EditPhysicalStatsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const bloodTypeOptions = [
+    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'
+  ];
+
+  const [showBloodTypePicker, setShowBloodTypePicker] = useState(false);
+
+  const handleBloodTypeSelect = (bloodType: string) => {
+    setStatsData({ ...statsData, bloodType });
+    setShowBloodTypePicker(false);
   };
 
   return (
@@ -138,7 +159,59 @@ const EditPhysicalStatsScreen: React.FC = () => {
           />
           <Text style={styles.characterCount}>{statsData.weight.length}/6</Text>
         </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Blood Type *</Text>
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={() => setShowBloodTypePicker(true)}
+          >
+            <Text style={[styles.pickerButtonText, !statsData.bloodType && styles.placeholderText]}>
+              {statsData.bloodType || 'Select your blood type'}
+            </Text>
+            <Ionicons name="chevron-down" size={20} color="#666" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+
+      {/* Blood Type Picker Modal */}
+      <Modal
+        visible={showBloodTypePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowBloodTypePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Blood Type</Text>
+              <TouchableOpacity onPress={() => setShowBloodTypePicker(false)}>
+                <Ionicons name="close" size={24} color="#007AFF" />
+              </TouchableOpacity>
+            </View>
+            
+            {bloodTypeOptions.map((bloodType) => (
+              <TouchableOpacity
+                key={bloodType}
+                style={styles.bloodTypeOption}
+                onPress={() => handleBloodTypeSelect(bloodType)}
+              >
+                <Text style={styles.bloodTypeText}>{bloodType}</Text>
+                {statsData.bloodType === bloodType && (
+                  <Ionicons name="checkmark" size={20} color="#007AFF" />
+                )}
+              </TouchableOpacity>
+            ))}
+            
+            <TouchableOpacity 
+              style={styles.cancelButton} 
+              onPress={() => setShowBloodTypePicker(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -230,6 +303,75 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginLeft: 16,
     flex: 1,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#222',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: '#333',
+    minHeight: 56,
+  },
+  pickerButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  placeholderText: {
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 16,
+    width: '80%',
+    maxHeight: '70%',
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  bloodTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  bloodTypeText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    marginTop: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

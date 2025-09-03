@@ -43,7 +43,7 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
   const getStatusText = () => {
     const daysUntil = getDaysUntilDeparture();
     if (daysUntil <= 0) return 'Active';
-    if (daysUntil <= 7) return 'Urgent';
+    if (daysUntil <= 7) return 'Work';
     return 'Upcoming';
   };
 
@@ -116,14 +116,11 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
           if (idx < 2) {
             return (
               <View key={idx} style={styles.scheduleRow}>
-                <Text style={styles.scheduleDay}>{dayLabel}:</Text>
-          <Text style={styles.scheduleTime}>
-                  {day.bedtime} - {day.wakeTime}
-          </Text>
-          <Text style={styles.scheduleAdjustment}>
+                <Text style={styles.scheduleDay}>{dayLabel}: {day.bedtime} - {day.wakeTime}</Text>
+                <Text style={styles.scheduleAdjustment}>
                   {day.adjustment > 0 ? '+' : ''}{day.adjustment}h
-          </Text>
-        </View>
+                </Text>
+              </View>
             );
           }
           return null;
@@ -230,14 +227,8 @@ const styles = StyleSheet.create({
   },
   scheduleDay: {
     fontSize: 13,
-    color: '#8E8E93',
-    width: 40,
-  },
-  scheduleTime: {
-    fontSize: 13,
     color: '#FFFFFF',
     flex: 1,
-    marginLeft: 8,
   },
   scheduleAdjustment: {
     fontSize: 13,

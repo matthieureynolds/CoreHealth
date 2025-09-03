@@ -17,12 +17,13 @@ import { getBiomarkerInfo } from '../../../data/biomarkerDatabase';
 
 interface BodyMapProps {
   onOrganPress: (organId: string) => void;
+  onOrganSelect?: (organ: Organ) => void;
 }
 
 const BODY_IMAGE = require('../../../../assets/bodymaptransparent.png');
 const { width, height } = Dimensions.get('window');
 
-const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress }) => {
+const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect }) => {
   const [selectedOrgan, setSelectedOrgan] = useState<Organ | null>(null);
   const [showBiomarkerModal, setShowBiomarkerModal] = useState(false);
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
@@ -36,6 +37,11 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress }) => {
     if (organ) {
       setSelectedOrgan(organ);
       onOrganPress(organId);
+      
+      // Call the callback to notify parent component
+      if (onOrganSelect) {
+        onOrganSelect(organ);
+      }
       
       // Show the panel
       Animated.spring(panelAnim, {
@@ -103,51 +109,7 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress }) => {
         ))}
       </ImageBackground>
 
-      {/* Info Panel */}
-      {selectedOrgan && (
-        <Animated.View
-          style={[
-            styles.infoPanel,
-            {
-              transform: [{ translateY: panelAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [height, 0],
-              })}],
-            },
-          ]}
-        >
-          <View style={styles.panelHeader}>
-            <Text style={styles.organTitle}>{selectedOrgan.data.name}</Text>
-            <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.organDescription}>{selectedOrgan.data.description}</Text>
-
-          <ScrollView
-            style={styles.biomarkerScrollView}
-            showsVerticalScrollIndicator={true}
-            bounces={true}
-          >
-            <View style={styles.biomarkerList}>
-              {selectedOrgan.data.biomarkers.map((biomarker, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.biomarkerItem}
-                  onPress={() => handleBiomarkerPress(biomarker.name)}
-                >
-                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                  <Text style={[styles.biomarkerValue, { color: getBiomarkerStatusColor(biomarker.status) }]}>
-                    {biomarker.value} {biomarker.unit}
-                  </Text>
-                  <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </Animated.View>
-      )}
+      {/* Info Panel - Moved to BodyMapScreen for full width */}
 
       {/* Biomarker Modal */}
       <BiomarkerModal
@@ -165,6 +127,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   imageBackground: {
     alignItems: 'center',
@@ -197,7 +161,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    width: '100%',
     height: '70%',
     backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,

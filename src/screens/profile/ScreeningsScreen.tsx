@@ -341,34 +341,37 @@ const ScreeningsScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Date Pickers - Now inside the modal */}
+          {showScreeningDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Screening Date"
+              value={screeningDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setScreeningDate(d);
+                setShowScreeningDatePicker(false);
+              }}
+              onCancel={() => setShowScreeningDatePicker(false)}
+            />
+          )}
+
+          {showNextDuePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Next Due Date"
+              value={nextDueDate ?? new Date()}
+              minimumDate={new Date()}
+              onConfirm={(d) => {
+                setNextDueDate(d);
+                setShowNextDuePicker(false);
+              }}
+              onCancel={() => setShowNextDuePicker(false)}
+            />
+          )}
         </View>
       </Modal>
-
-      {/* Screening Date Picker */}
-      <IOSDatePicker
-        visible={showScreeningDatePicker}
-        title="Screening Date"
-        value={screeningDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setScreeningDate(d);
-          setShowScreeningDatePicker(false);
-        }}
-        onCancel={() => setShowScreeningDatePicker(false)}
-      />
-
-      {/* Next Due Date Picker */}
-      <IOSDatePicker
-        visible={showNextDuePicker}
-        title="Next Due Date"
-        value={nextDueDate ?? new Date()}
-        minimumDate={new Date()}
-        onConfirm={(d) => {
-          setNextDueDate(d);
-          setShowNextDuePicker(false);
-        }}
-        onCancel={() => setShowNextDuePicker(false)}
-      />
     </View>
   );
 };

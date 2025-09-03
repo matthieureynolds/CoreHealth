@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
 
@@ -392,24 +394,55 @@ const GenerateHealthReportScreen: React.FC = () => {
     try {
       const html = generateHTML();
       
+      // Generate PDF with better options
       const { uri } = await Print.printToFileAsync({
         html: html,
-        base64: false
+        base64: false,
+        width: 612, // Standard letter size width
+        height: 792, // Standard letter size height
+        margins: {
+          left: 36,
+          right: 36,
+          top: 36,
+          bottom: 36,
+        },
       });
 
       setIsGenerating(false);
 
+      // Create a more user-friendly filename
+      const patientName = user?.displayName || user?.firstName || 'User';
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `CoreHealth_Report_${patientName.replace(/\s+/g, '_')}_${date}.pdf`;
+
+      // Show options for what to do with the PDF
       Alert.alert(
-        'Report Generated Successfully!',
-        'Your health report has been created as a PDF file.',
+        'Health Report Generated! 📄',
+        'Your comprehensive health report has been created successfully.',
         [
           { 
-            text: 'View Report', 
+            text: 'Save to Device', 
             onPress: async () => {
               try {
-                await Print.printAsync({ uri });
+                // For iOS, we'll use the share sheet which includes save options
+                if (Platform.OS === 'ios') {
+                  if (await Sharing.isAvailableAsync()) {
+                    await Sharing.shareAsync(uri, {
+                      mimeType: 'application/pdf',
+                      dialogTitle: 'Save Health Report',
+                      UTI: 'com.adobe.pdf'
+                    });
+                  }
+                } else {
+                  // For Android, try to save to Downloads
+                  const downloadsDir = FileSystem.documentDirectory + 'Downloads/';
+                  await FileSystem.makeDirectoryAsync(downloadsDir, { intermediates: true });
+                  const newUri = downloadsDir + filename;
+                  await FileSystem.copyAsync({ from: uri, to: newUri });
+                  Alert.alert('Saved!', `Report saved as ${filename} in Downloads folder.`);
+                }
               } catch (error) {
-                Alert.alert('Error', 'Could not open the report');
+                Alert.alert('Error', 'Could not save the report. Please try sharing instead.');
               }
             }
           },
@@ -420,7 +453,8 @@ const GenerateHealthReportScreen: React.FC = () => {
                 if (await Sharing.isAvailableAsync()) {
                   await Sharing.shareAsync(uri, {
                     mimeType: 'application/pdf',
-                    dialogTitle: 'Share Health Report'
+                    dialogTitle: 'Share Health Report',
+                    UTI: 'com.adobe.pdf'
                   });
                 } else {
                   Alert.alert('Sharing not available', 'Sharing is not available on this device');
@@ -430,7 +464,33 @@ const GenerateHealthReportScreen: React.FC = () => {
               }
             }
           },
-          { text: 'OK', style: 'cancel' }
+          { 
+            text: 'View Report', 
+            onPress: async () => {
+              try {
+                // Use Linking to open the PDF directly in the default PDF viewer
+                const { Linking } = require('react-native');
+                const canOpen = await Linking.canOpenURL(uri);
+                if (canOpen) {
+                  await Linking.openURL(uri);
+                } else {
+                  // Fallback to sharing if direct opening fails
+                  if (await Sharing.isAvailableAsync()) {
+                    await Sharing.shareAsync(uri, {
+                      mimeType: 'application/pdf',
+                      dialogTitle: 'View Health Report',
+                      UTI: 'com.adobe.pdf'
+                    });
+                  } else {
+                    Alert.alert('Viewing not available', 'PDF viewing is not available on this device');
+                  }
+                }
+              } catch (error) {
+                Alert.alert('Error', 'Could not open the report');
+              }
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
         ]
       );
     } catch (error) {
@@ -557,34 +617,6 @@ const GenerateHealthReportScreen: React.FC = () => {
                 {isGenerating ? 'Generating Report...' : 'Generate Health Report'}
               </Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Report Preview */}
-          <View style={styles.previewSection}>
-            <Text style={styles.previewTitle}>Report Preview</Text>
-            <View style={styles.previewCard}>
-              <Text style={styles.previewHeader}>CoreHealth Health Report</Text>
-              <Text style={styles.previewDate}>
-                Generated on {new Date().toLocaleDateString()}
-              </Text>
-              <Text style={styles.previewPatient}>
-                Patient: {user?.displayName || user?.firstName || 'User'}
-              </Text>
-              <View style={styles.previewSections}>
-                <Text style={styles.previewSectionsTitle}>Included Sections:</Text>
-                {selectedSections.map(sectionId => {
-                  const section = reportSections.find(s => s.id === sectionId);
-                  return (
-                    <Text key={sectionId} style={styles.previewSectionItem}>
-                      • {section?.label}
-                    </Text>
-                  );
-                })}
-              </View>
-              <Text style={styles.previewNote}>
-                This report contains confidential health information. Please handle with care.
-              </Text>
-            </View>
           </View>
         </View>
       </ScrollView>
@@ -723,57 +755,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
-  },
-  previewSection: {
-    marginBottom: 32,
-  },
-  previewTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  previewCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 20,
-  },
-  previewHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  previewDate: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  previewPatient: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 16,
-  },
-  previewSections: {
-    marginBottom: 16,
-  },
-  previewSectionsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  previewSectionItem: {
-    fontSize: 14,
-    color: '#ccc',
-    marginBottom: 4,
-    marginLeft: 8,
-  },
-  previewNote: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
-    textAlign: 'center',
   },
 });
 

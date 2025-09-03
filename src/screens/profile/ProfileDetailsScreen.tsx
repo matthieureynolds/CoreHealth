@@ -70,14 +70,8 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardLabel}>Linked Health ID</Text>
           <Text style={styles.cardValue}>{profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-          </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrimaryDoctor')}>
-          <Ionicons name="medical-outline" size={22} color="#E74C3C" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Doctors</Text>
-          <Text style={styles.cardValue}>{profile?.doctors?.length ? `${profile.doctors.length} doctors` : 'Not set'}</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+      </View>
 
       {/* Health Records Card */}
       <View style={styles.card}>

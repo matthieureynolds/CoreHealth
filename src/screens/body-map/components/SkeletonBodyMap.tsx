@@ -452,10 +452,10 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
           { id: 'general_systemic', x: 50, y: 28 },
           // Spine (just below rib cage, moved up)
           { id: 'spine', x: 50, y: 39 },
-          // Left Hip (positioned at actual hip bone - adjusted for better positioning)
-          { id: 'left_hip', x: 30, y: 62 },
-          // Right Hip (positioned at actual hip bone - adjusted for better positioning)
-          { id: 'right_hip', x: 70, y: 62 },
+          // Left Hip (positioned at actual hip bone - moved higher)
+          { id: 'left_hip', x: 42, y: 49.2 },
+          // Right Hip (positioned at actual hip bone - moved higher)
+          { id: 'right_hip', x: 58.7, y: 49.2 },
         ].map(dot => (
           <TouchableOpacity
             key={dot.id}

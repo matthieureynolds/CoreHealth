@@ -286,34 +286,37 @@ const VaccinationsScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Date Pickers - Now inside the modal */}
+          {showDateReceivedPicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Date Received"
+              value={dateReceived ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setDateReceived(d);
+                setShowDateReceivedPicker(false);
+              }}
+              onCancel={() => setShowDateReceivedPicker(false)}
+            />
+          )}
+
+          {showNextDuePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Next Due Date"
+              value={nextDueDate ?? new Date()}
+              minimumDate={new Date()}
+              onConfirm={(d) => {
+                setNextDueDate(d);
+                setShowNextDuePicker(false);
+              }}
+              onCancel={() => setShowNextDuePicker(false)}
+            />
+          )}
         </View>
       </Modal>
-
-      {/* Date Received Picker */}
-      <IOSDatePicker
-        visible={showDateReceivedPicker}
-        title="Date Received"
-        value={dateReceived ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setDateReceived(d);
-          setShowDateReceivedPicker(false);
-        }}
-        onCancel={() => setShowDateReceivedPicker(false)}
-      />
-
-      {/* Next Due Date Picker */}
-      <IOSDatePicker
-        visible={showNextDuePicker}
-        title="Next Due Date"
-        value={nextDueDate ?? new Date()}
-        minimumDate={new Date()}
-        onConfirm={(d) => {
-          setNextDueDate(d);
-          setShowNextDuePicker(false);
-        }}
-        onCancel={() => setShowNextDuePicker(false)}
-      />
     </View>
   );
 };

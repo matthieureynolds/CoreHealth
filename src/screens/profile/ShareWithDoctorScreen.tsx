@@ -9,9 +9,13 @@ import {
   Alert,
   Modal,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../../context/AuthContext';
 import { useHealthData } from '../../context/HealthDataContext';
 import { Doctor } from '../../types';
@@ -63,6 +67,359 @@ const ShareWithDoctorScreen: React.FC = () => {
         ? prev.filter(id => id !== sectionId)
         : [...prev, sectionId]
     );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const generateHTML = () => {
+    const patientName = user?.displayName || user?.firstName || 'User';
+    const currentDate = new Date().toLocaleDateString();
+    const doctorName = selectedDoctor?.name || 'Healthcare Provider';
+    const doctorSpecialty = selectedDoctor?.specialty || 'Medical Professional';
+    
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>CoreHealth Health Report - Shared with Doctor</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #007AFF;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 10px;
+          }
+          .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+          .doctor-info {
+            background-color: #f0f8ff;
+            border: 1px solid #007AFF;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+          }
+          .doctor-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 5px;
+          }
+          .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+          }
+          .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007AFF;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .item {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007AFF;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+          }
+          .item-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+          }
+          .item-detail {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 3px;
+          }
+          .empty-section {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+          }
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+          }
+          .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">CoreHealth Health Report</div>
+          <div class="subtitle">Generated on ${currentDate}</div>
+          <div class="subtitle">Patient: ${patientName}</div>
+        </div>
+        
+        <div class="doctor-info">
+          <div class="doctor-title">Shared with Healthcare Provider</div>
+          <div class="subtitle">Dr. ${doctorName} - ${doctorSpecialty}</div>
+          ${selectedDoctor?.office ? `<div class="subtitle">${selectedDoctor.office}</div>` : ''}
+        </div>
+        
+        <div class="warning">
+          <strong>⚠️ Confidential Medical Information</strong><br>
+          This report contains sensitive health information shared with your healthcare provider. Please handle with appropriate care and only share with authorized medical professionals.
+        </div>
+    `;
+
+    // Personal Information Section
+    if (selectedSections.includes('personal_info')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Personal Information</div>
+          <div class="item">
+            <div class="item-title">Basic Information</div>
+            <div class="item-detail">Name: ${patientName}</div>
+            <div class="item-detail">Age: ${profile?.age || 'Not specified'} years</div>
+            <div class="item-detail">Gender: ${profile?.gender || 'Not specified'}</div>
+            ${profile?.height ? `<div class="item-detail">Height: ${profile.height} cm</div>` : ''}
+            ${profile?.weight ? `<div class="item-detail">Weight: ${profile.weight} kg</div>` : ''}
+            ${profile?.bloodType ? `<div class="item-detail">Blood Type: ${profile.bloodType}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // Medical Conditions Section
+    if (selectedSections.includes('medical_conditions') && profile?.medicalHistory && profile.medicalHistory.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Medical Conditions</div>
+      `;
+      profile.medicalHistory.forEach((condition, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${condition.condition}</div>
+            <div class="item-detail">Diagnosed: ${formatDate(condition.diagnosedDate)}</div>
+            <div class="item-detail">Severity: ${condition.severity}</div>
+            <div class="item-detail">Status: ${condition.status}</div>
+            ${condition.resolvedDate ? `<div class="item-detail">Resolved: ${formatDate(condition.resolvedDate)}</div>` : ''}
+            ${condition.notes ? `<div class="item-detail">Notes: ${condition.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('medical_conditions')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Medical Conditions</div>
+          <div class="empty-section">No medical conditions recorded</div>
+        </div>
+      `;
+    }
+
+    // Medications Section
+    if (selectedSections.includes('medications') && profile?.medications && profile.medications.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Current Medications</div>
+      `;
+      profile.medications.forEach((medication, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${medication.name}</div>
+            ${medication.dosage ? `<div class="item-detail">Dosage: ${medication.dosage}</div>` : ''}
+            ${medication.frequency ? `<div class="item-detail">Frequency: ${medication.frequency}</div>` : ''}
+            ${medication.startDate ? `<div class="item-detail">Started: ${formatDate(medication.startDate)}</div>` : ''}
+            ${medication.duration ? `<div class="item-detail">Duration: ${medication.duration}</div>` : ''}
+            ${medication.notes ? `<div class="item-detail">Notes: ${medication.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('medications')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Current Medications</div>
+          <div class="empty-section">No medications recorded</div>
+        </div>
+      `;
+    }
+
+    // Allergies Section
+    if (selectedSections.includes('allergies') && profile?.allergies && profile.allergies.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Allergies</div>
+      `;
+      profile.allergies.forEach((allergy, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${allergy.name}</div>
+            <div class="item-detail">Severity: ${allergy.severity}</div>
+            <div class="item-detail">Status: ${allergy.status}</div>
+            <div class="item-detail">Started: ${formatDate(allergy.startDate)}</div>
+            ${allergy.endDate ? `<div class="item-detail">Resolved: ${formatDate(allergy.endDate)}</div>` : ''}
+            ${allergy.reaction ? `<div class="item-detail">Reaction: ${allergy.reaction}</div>` : ''}
+            ${allergy.notes ? `<div class="item-detail">Notes: ${allergy.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('allergies')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Allergies</div>
+          <div class="empty-section">No allergies recorded</div>
+        </div>
+      `;
+    }
+
+    // Family History Section
+    if (selectedSections.includes('family_history') && profile?.familyHistory && profile.familyHistory.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Family Medical History</div>
+      `;
+      profile.familyHistory.forEach((condition, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${condition.condition}</div>
+            <div class="item-detail">Relation: ${condition.relation}</div>
+            ${condition.ageOfOnset ? `<div class="item-detail">Age of Onset: ${condition.ageOfOnset} years</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('family_history')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Family Medical History</div>
+          <div class="empty-section">No family history recorded</div>
+        </div>
+      `;
+    }
+
+    // Vaccinations Section
+    if (selectedSections.includes('vaccinations') && profile?.vaccinations?.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Vaccinations</div>
+      `;
+      profile.vaccinations.forEach((vaccination, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${vaccination.name}</div>
+            <div class="item-detail">Date Received: ${formatDate(vaccination.date.toISOString())}</div>
+            ${vaccination.nextDue ? `<div class="item-detail">Next Due: ${formatDate(vaccination.nextDue.toISOString())}</div>` : ''}
+            ${vaccination.location ? `<div class="item-detail">Location: ${vaccination.location}</div>` : ''}
+            ${vaccination.batchNumber ? `<div class="item-detail">Batch Number: ${vaccination.batchNumber}</div>` : ''}
+            ${vaccination.notes ? `<div class="item-detail">Notes: ${vaccination.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('vaccinations')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Vaccinations</div>
+          <div class="empty-section">No vaccinations recorded</div>
+        </div>
+      `;
+    }
+
+    // Screenings Section
+    if (selectedSections.includes('screenings') && profile?.screenings?.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Health Screenings</div>
+      `;
+      profile.screenings.forEach((screening, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${screening.name}</div>
+            <div class="item-detail">Date: ${formatDate(screening.date.toISOString())}</div>
+            <div class="item-detail">Result: ${screening.result}</div>
+            ${screening.nextDue ? `<div class="item-detail">Next Due: ${formatDate(screening.nextDue.toISOString())}</div>` : ''}
+            ${screening.location ? `<div class="item-detail">Location: ${screening.location}</div>` : ''}
+            ${screening.notes ? `<div class="item-detail">Notes: ${screening.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('screenings')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Health Screenings</div>
+          <div class="empty-section">No screenings recorded</div>
+        </div>
+      `;
+    }
+
+    // Medical Records Section
+    if (selectedSections.includes('medical_records') && profile?.medicalRecords?.length > 0) {
+      html += `
+        <div class="section">
+          <div class="section-title">Medical Records</div>
+      `;
+      profile.medicalRecords.forEach((record, index) => {
+        html += `
+          <div class="item">
+            <div class="item-title">${record.name}</div>
+            <div class="item-detail">Type: ${record.type}</div>
+            <div class="item-detail">Date: ${formatDate(record.date.toISOString())}</div>
+            ${record.fileSize ? `<div class="item-detail">File Size: ${record.fileSize} KB</div>` : ''}
+            ${record.notes ? `<div class="item-detail">Notes: ${record.notes}</div>` : ''}
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (selectedSections.includes('medical_records')) {
+      html += `
+        <div class="section">
+          <div class="section-title">Medical Records</div>
+          <div class="empty-section">No medical records uploaded</div>
+        </div>
+      `;
+    }
+
+    html += `
+        <div class="footer">
+          <p>Generated by CoreHealth App</p>
+          <p>This report is for informational purposes only and should not replace professional medical advice.</p>
+          <p>Shared with Dr. ${doctorName} on ${currentDate}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return html;
   };
 
   const addNewDoctor = () => {
@@ -117,27 +474,114 @@ const ShareWithDoctorScreen: React.FC = () => {
 
     setIsGenerating(true);
 
-    // Simulate report generation and sharing
-    setTimeout(() => {
+    try {
+      const html = generateHTML();
+      
+      // Generate PDF with better options
+      const { uri } = await Print.printToFileAsync({
+        html: html,
+        base64: false,
+        width: 612, // Standard letter size width
+        height: 792, // Standard letter size height
+        margins: {
+          left: 36,
+          right: 36,
+          top: 36,
+          bottom: 36,
+        },
+      });
+
       setIsGenerating(false);
+
+      // Create a more user-friendly filename
+      const patientName = user?.displayName || user?.firstName || 'User';
+      const date = new Date().toISOString().split('T')[0];
+      const doctorName = selectedDoctor.name.replace(/\s+/g, '_');
+      const filename = `CoreHealth_Report_${patientName.replace(/\s+/g, '_')}_Dr_${doctorName}_${date}.pdf`;
+
+      // Show options for what to do with the PDF
       Alert.alert(
-        'Report Shared',
-        `Health report has been generated and shared with Dr. ${selectedDoctor.name}`,
+        'Health Report Generated! 📄',
+        `Your health report has been created and is ready to share with Dr. ${selectedDoctor.name}.`,
         [
-          { text: 'View Report', onPress: () => viewReport() },
-          { text: 'Share Again', onPress: () => shareAgain() },
-          { text: 'OK', style: 'cancel' }
+          { 
+            text: 'Share with Doctor', 
+            onPress: async () => {
+              try {
+                if (await Sharing.isAvailableAsync()) {
+                  await Sharing.shareAsync(uri, {
+                    mimeType: 'application/pdf',
+                    dialogTitle: `Share Health Report with Dr. ${selectedDoctor.name}`,
+                    UTI: 'com.adobe.pdf'
+                  });
+                } else {
+                  Alert.alert('Sharing not available', 'Sharing is not available on this device');
+                }
+              } catch (error) {
+                Alert.alert('Error', 'Could not share the report');
+              }
+            }
+          },
+          { 
+            text: 'Save to Device', 
+            onPress: async () => {
+              try {
+                // For iOS, we'll use the share sheet which includes save options
+                if (Platform.OS === 'ios') {
+                  if (await Sharing.isAvailableAsync()) {
+                    await Sharing.shareAsync(uri, {
+                      mimeType: 'application/pdf',
+                      dialogTitle: 'Save Health Report',
+                      UTI: 'com.adobe.pdf'
+                    });
+                  }
+                } else {
+                  // For Android, try to save to Downloads
+                  const downloadsDir = FileSystem.documentDirectory + 'Downloads/';
+                  await FileSystem.makeDirectoryAsync(downloadsDir, { intermediates: true });
+                  const newUri = downloadsDir + filename;
+                  await FileSystem.copyAsync({ from: uri, to: newUri });
+                  Alert.alert('Saved!', `Report saved as ${filename} in Downloads folder.`);
+                }
+              } catch (error) {
+                Alert.alert('Error', 'Could not save the report. Please try sharing instead.');
+              }
+            }
+          },
+          { 
+            text: 'View Report', 
+            onPress: async () => {
+              try {
+                // Use Linking to open the PDF directly in the default PDF viewer
+                const { Linking } = require('react-native');
+                const canOpen = await Linking.canOpenURL(uri);
+                if (canOpen) {
+                  await Linking.openURL(uri);
+                } else {
+                  // Fallback to sharing if direct opening fails
+                  if (await Sharing.isAvailableAsync()) {
+                    await Sharing.shareAsync(uri, {
+                      mimeType: 'application/pdf',
+                      dialogTitle: 'View Health Report',
+                      UTI: 'com.adobe.pdf'
+                    });
+                  } else {
+                    Alert.alert('Viewing not available', 'PDF viewing is not available on this device');
+                  }
+                }
+              } catch (error) {
+                Alert.alert('Error', 'Could not open the report');
+              }
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
         ]
       );
-    }, 3000);
-  };
-
-  const viewReport = () => {
-    Alert.alert('View Report', 'PDF viewer would open here to display the shared report');
-  };
-
-  const shareAgain = () => {
-    Alert.alert('Share Again', 'Share options would appear here (email, messaging, etc.)');
+    } catch (error) {
+      setIsGenerating(false);
+      Alert.alert('Error', 'Failed to generate the health report. Please try again.');
+      console.error('PDF generation error:', error);
+    }
   };
 
   const getSectionCount = (sectionId: string) => {
@@ -289,39 +733,6 @@ const ShareWithDoctorScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Report Preview */}
-          {selectedDoctor && (
-            <View style={styles.previewSection}>
-              <Text style={styles.previewTitle}>Report Preview</Text>
-              <View style={styles.previewCard}>
-                <Text style={styles.previewHeader}>CoreHealth Health Report</Text>
-                <Text style={styles.previewDate}>
-                  Generated on {new Date().toLocaleDateString()}
-                </Text>
-                <Text style={styles.previewPatient}>
-                  Patient: {user?.displayName || 'User'}
-                </Text>
-                <Text style={styles.previewDoctor}>
-                  Shared with: Dr. {selectedDoctor.name} ({selectedDoctor.specialty})
-                </Text>
-                <View style={styles.previewSections}>
-                  <Text style={styles.previewSectionsTitle}>Included Sections:</Text>
-                  {selectedSections.map(sectionId => {
-                    const section = reportSections.find(s => s.id === sectionId);
-                    return (
-                      <Text key={sectionId} style={styles.previewSectionItem}>
-                        • {section?.label}
-                      </Text>
-                    );
-                  })}
-                </View>
-                <Text style={styles.previewNote}>
-                  This report contains confidential health information shared with your healthcare provider.
-                </Text>
-              </View>
-            </View>
-          )}
         </View>
       </ScrollView>
 
@@ -669,62 +1080,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
-  },
-  previewSection: {
-    marginBottom: 32,
-  },
-  previewTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  previewCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 20,
-  },
-  previewHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  previewDate: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  previewPatient: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  previewDoctor: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 16,
-  },
-  previewSections: {
-    marginBottom: 16,
-  },
-  previewSectionsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  previewSectionItem: {
-    fontSize: 14,
-    color: '#ccc',
-    marginBottom: 4,
-    marginLeft: 8,
-  },
-  previewNote: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
-    textAlign: 'center',
   },
   modalContainer: {
     flex: 1,

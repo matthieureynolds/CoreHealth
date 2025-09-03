@@ -229,29 +229,6 @@ const EmailPasswordScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Security Tips */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Security Tips</Text>
-            <View style={styles.tipsCard}>
-              <View style={styles.tipItem}>
-                <Ionicons name="shield-checkmark" size={16} color="#4CD964" />
-                <Text style={styles.tipText}>Use a strong, unique password</Text>
-              </View>
-              <View style={styles.tipItem}>
-                <Ionicons name="key" size={16} color="#4CD964" />
-                <Text style={styles.tipText}>Enable two-factor authentication</Text>
-              </View>
-              <View style={styles.tipItem}>
-                <Ionicons name="refresh" size={16} color="#4CD964" />
-                <Text style={styles.tipText}>Update your password regularly</Text>
-              </View>
-              <View style={styles.tipItem}>
-                <Ionicons name="mail" size={16} color="#4CD964" />
-                <Text style={styles.tipText}>Keep your email address up to date</Text>
-              </View>
-            </View>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

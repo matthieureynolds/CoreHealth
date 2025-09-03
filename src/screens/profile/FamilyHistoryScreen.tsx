@@ -247,6 +247,22 @@ const FamilyHistoryScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Age of Onset Picker - Now inside the modal */}
+          {showAgeOfOnsetPicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Age of Onset"
+              value={ageOfOnset ?? new Date()}
+              minimumDate={new Date(1900, 0, 1)}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setAgeOfOnset(d);
+                setShowAgeOfOnsetPicker(false);
+              }}
+              onCancel={() => setShowAgeOfOnsetPicker(false)}
+            />
+          )}
         </View>
       </Modal>
 
@@ -287,20 +303,6 @@ const FamilyHistoryScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-
-      {/* Age of Onset Picker */}
-      <IOSDatePicker
-        visible={showAgeOfOnsetPicker}
-        title="Age of Onset"
-        value={ageOfOnset ?? new Date()}
-        minimumDate={new Date(1900, 0, 1)}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setAgeOfOnset(d);
-          setShowAgeOfOnsetPicker(false);
-        }}
-        onCancel={() => setShowAgeOfOnsetPicker(false)}
-      />
     </View>
   );
 };

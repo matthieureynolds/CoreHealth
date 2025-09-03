@@ -29,6 +29,15 @@ const ConditionsScreen: React.FC = () => {
   const [showResolvedDatePicker, setShowResolvedDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
 
+  // Debug logging for date picker state changes
+  React.useEffect(() => {
+    console.log('Diagnosed date picker state changed:', showDiagnosedDatePicker);
+  }, [showDiagnosedDatePicker]);
+
+  React.useEffect(() => {
+    console.log('Resolved date picker state changed:', showResolvedDatePicker);
+  }, [showResolvedDatePicker]);
+
   const commonConditions = [
     'Diabetes Type 1', 'Diabetes Type 2', 'Hypertension', 'Asthma', 'Depression',
     'Anxiety', 'Arthritis', 'Heart Disease', 'Cancer', 'Thyroid Disorder',
@@ -246,13 +255,17 @@ const ConditionsScreen: React.FC = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Diagnosed Date</Text>
               <TouchableOpacity
-                style={styles.dateInput}
-                onPress={() => setShowDiagnosedDatePicker(true)}
+                style={[styles.dateInput, { borderColor: showDiagnosedDatePicker ? '#007AFF' : '#333' }]}
+                onPress={() => {
+                  console.log('Diagnosed date pressed, current state:', showDiagnosedDatePicker);
+                  setShowDiagnosedDatePicker(true);
+                }}
+                activeOpacity={0.7}
               >
                 <Text style={[styles.dateInputText, !diagnosedDate && styles.placeholderText]}>
                   {diagnosedDate ? diagnosedDate.toLocaleDateString() : 'Select date'}
                 </Text>
-                <Ionicons name="calendar-outline" size={20} color="#888" />
+                <Ionicons name="calendar-outline" size={20} color={showDiagnosedDatePicker ? '#007AFF' : '#888'} />
               </TouchableOpacity>
             </View>
 
@@ -314,13 +327,17 @@ const ConditionsScreen: React.FC = () => {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Resolved Date</Text>
                 <TouchableOpacity
-                  style={styles.dateInput}
-                  onPress={() => setShowResolvedDatePicker(true)}
+                  style={[styles.dateInput, { borderColor: showResolvedDatePicker ? '#007AFF' : '#333' }]}
+                  onPress={() => {
+                    console.log('Resolved date pressed, current state:', showResolvedDatePicker);
+                    setShowResolvedDatePicker(true);
+                  }}
+                  activeOpacity={0.7}
                 >
                   <Text style={[styles.dateInputText, !resolvedDate && styles.placeholderText]}>
                     {resolvedDate ? resolvedDate.toLocaleDateString() : 'Select date'}
                   </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#888" />
+                  <Ionicons name="calendar-outline" size={20} color={showResolvedDatePicker ? '#007AFF' : '#888'} />
                 </TouchableOpacity>
               </View>
             )}
@@ -339,34 +356,45 @@ const ConditionsScreen: React.FC = () => {
               />
             </View>
           </ScrollView>
+
+          {/* Date Pickers - Now inside the modal */}
+          {showDiagnosedDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Diagnosed Date"
+              value={diagnosedDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                console.log('Diagnosed date confirmed:', d);
+                setDiagnosedDate(d);
+                setShowDiagnosedDatePicker(false);
+              }}
+              onCancel={() => {
+                console.log('Diagnosed date cancelled');
+                setShowDiagnosedDatePicker(false);
+              }}
+            />
+          )}
+
+          {showResolvedDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Resolved Date"
+              value={resolvedDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                console.log('Resolved date confirmed:', d);
+                setResolvedDate(d);
+                setShowResolvedDatePicker(false);
+              }}
+              onCancel={() => {
+                console.log('Resolved date cancelled');
+                setShowResolvedDatePicker(false);
+              }}
+            />
+          )}
         </View>
       </Modal>
-
-      {/* Diagnosed Date Picker */}
-      <IOSDatePicker
-        visible={showDiagnosedDatePicker}
-        title="Diagnosed Date"
-        value={diagnosedDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setDiagnosedDate(d);
-          setShowDiagnosedDatePicker(false);
-        }}
-        onCancel={() => setShowDiagnosedDatePicker(false)}
-      />
-
-      {/* Resolved Date Picker */}
-      <IOSDatePicker
-        visible={showResolvedDatePicker}
-        title="Resolved Date"
-        value={resolvedDate ?? new Date()}
-        maximumDate={new Date()}
-        onConfirm={(d) => {
-          setResolvedDate(d);
-          setShowResolvedDatePicker(false);
-        }}
-        onCancel={() => setShowResolvedDatePicker(false)}
-      />
     </View>
   );
 };
@@ -556,10 +584,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#333',
+    minHeight: 48,
   },
   dateInputText: {
     fontSize: 16,
     color: '#fff',
+    flex: 1,
   },
   placeholderText: {
     color: '#666',
