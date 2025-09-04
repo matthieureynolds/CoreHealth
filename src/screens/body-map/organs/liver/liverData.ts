@@ -3,7 +3,7 @@ import { Organ } from '../types';
 export const liverOrgan: Organ = {
   id: 'liver',
   label: 'Liver',
-  position: { x: 0.58, y: 0.38 },
+  position: { x: 0.38, y: 0.365 },
   data: {
     name: 'Liver',
     description: 'Filters blood and metabolises drugs.',

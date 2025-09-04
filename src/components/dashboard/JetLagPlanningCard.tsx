@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
   event, 
   onPress 
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', { 
@@ -113,10 +114,13 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
           const prepStart = new Date(event.preparationStartDate);
           const thisDate = new Date(prepStart.getTime() + idx * 24 * 60 * 60 * 1000);
           const dayLabel = thisDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-          if (idx < 2) {
+          if (idx < 2 || isExpanded) {
             return (
               <View key={idx} style={styles.scheduleRow}>
-                <Text style={styles.scheduleDay}>{dayLabel}: {day.bedtime} - {day.wakeTime}</Text>
+                <View style={styles.scheduleLeft}>
+                  <Text style={styles.scheduleDay}>{dayLabel}:</Text>
+                  <Text style={styles.scheduleTime}>{day.bedtime} - {day.wakeTime}</Text>
+                </View>
                 <Text style={styles.scheduleAdjustment}>
                   {day.adjustment > 0 ? '+' : ''}{day.adjustment}h
                 </Text>
@@ -125,10 +129,25 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
           }
           return null;
         })}
-        {event.sleepAdjustment.dailySchedule.length > 2 && (
-          <Text style={styles.scheduleMore}>
-            +{event.sleepAdjustment.dailySchedule.length - 2} more days...
-          </Text>
+        {event.sleepAdjustment.dailySchedule.length > 2 && !isExpanded && (
+          <TouchableOpacity 
+            style={styles.scheduleMoreContainer}
+            onPress={() => setIsExpanded(true)}
+          >
+            <Text style={styles.scheduleMore}>
+              +{event.sleepAdjustment.dailySchedule.length - 2} more days
+            </Text>
+          </TouchableOpacity>
+        )}
+        {isExpanded && (
+          <TouchableOpacity 
+            style={styles.scheduleMoreContainer}
+            onPress={() => setIsExpanded(false)}
+          >
+            <Text style={styles.scheduleMore}>
+              Show less
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -219,15 +238,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 8,
+    textAlign: 'center',
   },
   scheduleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
   },
+  scheduleLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   scheduleDay: {
     fontSize: 13,
     color: '#FFFFFF',
+    textAlign: 'right',
+    marginRight: 8,
+    minWidth: 40,
+  },
+  scheduleTime: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    textAlign: 'center',
     flex: 1,
   },
   scheduleAdjustment: {
@@ -235,11 +268,14 @@ const styles = StyleSheet.create({
     color: '#30D158',
     fontWeight: '600',
   },
+  scheduleMoreContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
   scheduleMore: {
     fontSize: 12,
     color: '#8E8E93',
     fontStyle: 'italic',
-    marginTop: 4,
   },
   preparationInfo: {
     flexDirection: 'row',

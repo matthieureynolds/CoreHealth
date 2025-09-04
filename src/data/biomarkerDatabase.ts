@@ -8,10 +8,25 @@ export const biomarkerDatabase: {
     unit: 'mg/dL',
     referenceRange: '0.6-1.2',
     category: 'Kidney Health',
+    organSystem: 'Kidney',
+    lastTested: 'Dec 15, 2024',
+    percentile: 68,
     explanation:
       "Creatinine is a waste product made by your muscles during normal activity. Your kidneys filter it out of your blood and remove it through urine. It's like checking how well your body's filtration system is working.",
     whatItMeans:
       "Normal levels mean your kidneys are filtering waste properly. High levels might mean your kidneys aren't working as well as they should. Low levels are usually not a concern.",
+    whyItMatters:
+      "Creatinine levels are crucial for monitoring kidney function. Early detection of kidney problems can prevent serious complications like kidney failure, which affects millions of people worldwide.",
+    levelMeaning: {
+      low: "Low creatinine levels are generally not concerning and may indicate lower muscle mass or good kidney function.",
+      normal: "Your creatinine levels are within the healthy range, indicating good kidney function and proper waste filtration.",
+      high: "Elevated creatinine levels may indicate reduced kidney function, dehydration, or muscle breakdown. This requires medical attention.",
+    },
+    historyData: [0.8, 0.85, 0.9, 0.88, 0.93, 0.95, 0.92, 0.89, 0.91, 0.93, 0.94, 0.93],
+    comparisonData: {
+      allPopulation: 68,
+      ageSexGroup: 72,
+    },
     tips: [
       'Stay well hydrated by drinking plenty of water',
       'Limit protein supplements if levels are high',
@@ -25,10 +40,25 @@ export const biomarkerDatabase: {
     unit: 'mL/min/1.73m²',
     referenceRange: '>90',
     category: 'Kidney Health',
+    organSystem: 'Kidney',
+    lastTested: 'Dec 15, 2024',
+    percentile: 75,
     explanation:
       "eGFR measures how well your kidneys filter blood. Think of it as a percentage score for your kidney function - the higher the better. It's calculated using your creatinine level, age, and gender.",
     whatItMeans:
       'Above 90 is excellent kidney function. 60-89 is mildly decreased but usually normal for age. Below 60 may indicate kidney disease and should be monitored closely.',
+    whyItMatters:
+      "eGFR is the gold standard for assessing kidney function. It helps detect kidney disease early, when treatment is most effective, and guides medication dosing.",
+    levelMeaning: {
+      low: "Low eGFR indicates reduced kidney function and may require medical monitoring and lifestyle changes.",
+      normal: "Your eGFR shows excellent kidney function, indicating your kidneys are filtering waste effectively.",
+      high: "High eGFR is generally good, showing strong kidney function and efficient waste filtration.",
+    },
+    historyData: [95, 98, 102, 99, 105, 103, 101, 97, 100, 102, 104, 103],
+    comparisonData: {
+      allPopulation: 75,
+      ageSexGroup: 78,
+    },
     tips: [
       'Control blood pressure and diabetes if you have them',
       'Eat a balanced diet with less salt and processed foods',
@@ -42,10 +72,25 @@ export const biomarkerDatabase: {
     unit: 'U/L',
     referenceRange: '7-56',
     category: 'Liver Health',
+    organSystem: 'Liver',
+    lastTested: 'Dec 10, 2024',
+    percentile: 45,
     explanation:
       "ALT is an enzyme found mainly in your liver. When liver cells are damaged, they release ALT into your blood. It's like a smoke alarm for your liver - higher levels suggest liver stress or damage.",
     whatItMeans:
       'Normal levels mean your liver is healthy. Elevated levels might indicate liver inflammation, fatty liver, or damage from medications, alcohol, or infections.',
+    whyItMatters:
+      "ALT is a sensitive marker for liver health. Early detection of liver problems can prevent serious conditions like cirrhosis and liver failure.",
+    levelMeaning: {
+      low: "Low ALT levels are generally good and indicate healthy liver function with minimal cell damage.",
+      normal: "Your ALT levels are within the healthy range, indicating good liver health and minimal liver cell damage.",
+      high: "Elevated ALT levels suggest liver stress or damage and may require further investigation and lifestyle changes.",
+    },
+    historyData: [28, 32, 35, 30, 38, 42, 40, 36, 34, 32, 30, 28],
+    comparisonData: {
+      allPopulation: 45,
+      ageSexGroup: 48,
+    },
     tips: [
       'Limit alcohol consumption or avoid it completely',
       'Maintain a healthy weight to prevent fatty liver',

@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -50,6 +51,9 @@ const BodyMapScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSystem, setSelectedSystem] =
     useState<BodySystemType>('organs');
+  const [slideAnim] = useState(new Animated.Value(0));
+
+  const systems: BodySystemType[] = ['organs', 'skeleton', 'circulation', 'nutrition'];
   const getWindowDimensions = () => {
     try {
       return Dimensions.get('window');
@@ -301,9 +305,38 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const handleSystemChange = (system: BodySystemType) => {
-    setSelectedSystem(system);
-    setSelectedOrgan(null);
-    panelAnim.setValue(0);
+    const currentIndex = systems.indexOf(selectedSystem);
+    const newIndex = systems.indexOf(system);
+    
+    // Animate slide transition
+    slideAnim.setValue(0);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedSystem(system);
+      setSelectedOrgan(null);
+      panelAnim.setValue(0);
+    });
+  };
+
+  const handleSwipeGesture = (event: any) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX } = event.nativeEvent;
+      const currentIndex = systems.indexOf(selectedSystem);
+      
+      // Swipe right (positive translationX) - go to previous system
+      if (translationX > 50 && currentIndex > 0) {
+        const newSystem = systems[currentIndex - 1];
+        handleSystemChange(newSystem);
+      }
+      // Swipe left (negative translationX) - go to next system
+      else if (translationX < -50 && currentIndex < systems.length - 1) {
+        const newSystem = systems[currentIndex + 1];
+        handleSystemChange(newSystem);
+      }
+    }
   };
 
   const handleSkeletonPartPress = (partId: string) => {
@@ -320,18 +353,42 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const renderBodyMap = () => {
-    switch (selectedSystem) {
-      case 'organs':
-        return <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />;
-      case 'skeleton':
-        return <SkeletonBodyMap onPartPress={handleSkeletonPartPress} />;
-      case 'circulation':
-        return <CirculationBodyMap onPointPress={handleCirculationPointPress} />;
-      case 'nutrition':
-        return <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />;
-      default:
-        return <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />;
-    }
+    const currentIndex = systems.indexOf(selectedSystem);
+    
+    return (
+      <Animated.View
+        style={[
+          styles.bodyMapWrapper,
+          {
+            transform: [
+              {
+                translateX: slideAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0],
+                }),
+              },
+            ],
+            opacity: slideAnim.interpolate({
+              inputRange: [0, 0.5, 1],
+              outputRange: [1, 0.3, 1],
+            }),
+          },
+        ]}
+      >
+        {selectedSystem === 'organs' && (
+          <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
+        )}
+        {selectedSystem === 'skeleton' && (
+          <SkeletonBodyMap onPartPress={handleSkeletonPartPress} onZoneSelect={handleOrganSelect} />
+        )}
+        {selectedSystem === 'circulation' && (
+          <CirculationBodyMap onPointPress={handleCirculationPointPress} onZoneSelect={handleOrganSelect} />
+        )}
+        {selectedSystem === 'nutrition' && (
+          <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />
+        )}
+      </Animated.View>
+    );
   };
 
   const renderBiomarkerResults = () => {
@@ -565,11 +622,17 @@ const BodyMapScreen: React.FC = () => {
                   }
                 }}
               >
-                <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                <Text style={[styles.biomarkerValue, { color: getBiomarkerStatusColor(biomarker.status) }]}>
-                  {biomarker.value} {biomarker.unit}
-                </Text>
-                <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
+                <View style={styles.biomarkerColumn1}>
+                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
+                </View>
+                <View style={styles.biomarkerColumn2}>
+                  <Text style={[styles.biomarkerValue, { color: getBiomarkerStatusColor(biomarker.status), fontWeight: 'bold' }]}>
+                    {biomarker.value} {biomarker.unit}
+                  </Text>
+                </View>
+                <View style={styles.biomarkerColumn3}>
+                  <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -596,40 +659,34 @@ const BodyMapScreen: React.FC = () => {
           onSystemChange={handleSystemChange}
         />
 
-      <ScrollView
-        style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <PanGestureHandler
+        onHandlerStateChange={handleSwipeGesture}
+        minDist={10}
       >
-        {/* Body Map */}
-        {selectedSystem === 'nutrition' ? (
-          renderBodyMap()
-        ) : (
-          <View style={styles.bodyMapContainer}>
-            {selectedSystem === 'organs' ? (
-              <BodyMap 
-                onOrganPress={handleOrganPress} 
-                onOrganSelect={handleOrganSelect}
-              />
-            ) : selectedSystem === 'skeleton' ? (
-              <SkeletonBodyMap onPartPress={handleOrganPress} />
-            ) : selectedSystem === 'circulation' ? (
-              <CirculationBodyMap onPointPress={handleOrganPress} />
-            ) : (
-              <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
-            )}
-          </View>
-        )}
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Body Map */}
+          {selectedSystem === 'nutrition' ? (
+            renderBodyMap()
+          ) : (
+            <View style={styles.bodyMapContainer}>
+              {renderBodyMap()}
+            </View>
+          )}
 
-        {/* Biomarker Results */}
-        {renderBiomarkerResults()}
+          {/* Biomarker Results */}
+          {renderBiomarkerResults()}
 
-        {/* Document Upload Section */}
-        {renderDocumentUploadSection()}
+          {/* Document Upload Section */}
+          {renderDocumentUploadSection()}
 
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          {/* Bottom spacing */}
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </PanGestureHandler>
 
       {/* Info Panel */}
       {renderInfoPanel()}
@@ -710,6 +767,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+  },
+  bodyMapWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resultsContainer: {
     marginTop: 16,
@@ -845,10 +907,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 4,
+    textAlign: 'center',
   },
   uploadButtonSubtext: {
     fontSize: 12,
     color: '#8E8E93',
+    textAlign: 'center',
   },
   documentsList: {
     marginTop: 16,
@@ -973,28 +1037,39 @@ const styles = StyleSheet.create({
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A3C',
+    minHeight: 48,
   },
-  biomarkerContent: {
+  biomarkerColumn1: {
+    flex: 1.5,
+    alignItems: 'flex-start',
+  },
+  biomarkerColumn2: {
     flex: 1,
+    alignItems: 'center',
+    paddingLeft: -10,
+  },
+  biomarkerColumn3: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   biomarkerName: {
     fontSize: 16,
     fontWeight: '500',
     color: '#FFFFFF',
-    marginBottom: 4,
+    textAlign: 'left',
   },
   biomarkerValue: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 2,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   biomarkerRange: {
     fontSize: 12,
     color: '#8E8E93',
+    textAlign: 'right',
   },
   biomarkerStatus: {
     flexDirection: 'row',

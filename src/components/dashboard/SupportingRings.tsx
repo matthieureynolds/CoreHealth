@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   Dimensions,
   Modal,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -37,11 +38,61 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<RingMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  
+  // Animation values for each ring
+  const animatedRecovery = useRef(new Animated.Value(0)).current;
+  const animatedBiomarkers = useRef(new Animated.Value(0)).current;
+  const animatedLifestyle = useRef(new Animated.Value(0)).current;
   
   const ringSize = (width - 48) / 3 - 16; // Responsive sizing
   const strokeWidth = 6;
   const radius = (ringSize - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
+
+  // Animation effect - runs first, before main health score
+  useEffect(() => {
+    if (!hasAnimated) {
+      // Reset animations
+      animatedRecovery.setValue(0);
+      animatedBiomarkers.setValue(0);
+      animatedLifestyle.setValue(0);
+
+      // Animate all rings simultaneously
+      Animated.parallel([
+        Animated.timing(animatedRecovery, {
+          toValue: recovery,
+          duration: 1200, // Faster than main score
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedBiomarkers, {
+          toValue: biomarkers,
+          duration: 1200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedLifestyle, {
+          toValue: lifestyle,
+          duration: 1200,
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
+        // Ensure final values are set and mark as animated
+        animatedRecovery.setValue(recovery);
+        animatedBiomarkers.setValue(biomarkers);
+        animatedLifestyle.setValue(lifestyle);
+        setHasAnimated(true);
+      });
+    }
+  }, [recovery, biomarkers, lifestyle, hasAnimated]);
+
+  // Ensure final values are maintained after animation
+  useEffect(() => {
+    if (hasAnimated) {
+      animatedRecovery.setValue(recovery);
+      animatedBiomarkers.setValue(biomarkers);
+      animatedLifestyle.setValue(lifestyle);
+    }
+  }, [recovery, biomarkers, lifestyle, hasAnimated]);
 
   const metrics: RingMetric[] = [
     {
@@ -117,13 +168,27 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
     }
   };
 
-  const renderRing = (metric: RingMetric) => {
+  // Create animated ring component
+  const AnimatedRing = ({ metric, animatedValue }: { metric: RingMetric, animatedValue: Animated.Value }) => {
+    const [displayValue, setDisplayValue] = useState(0);
+    const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
+    
+    useEffect(() => {
+      const listener = animatedValue.addListener(({ value }) => {
+        const roundedValue = Math.round(value);
+        setDisplayValue(roundedValue);
+        setStrokeDashoffset(circumference - (roundedValue / 100) * circumference);
+      });
+      
+      return () => {
+        animatedValue.removeListener(listener);
+      };
+    }, []);
+
     const strokeDasharray = `${circumference} ${circumference}`;
-    const strokeDashoffset = circumference - (metric.value / 100) * circumference;
 
     return (
       <TouchableOpacity
-        key={metric.id}
         style={styles.ringContainer}
         onPress={() => {
           setSelectedMetric(metric);
@@ -159,25 +224,36 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
           </Svg>
           
           <View style={styles.ringCenter}>
-            <View style={[styles.iconContainer, { backgroundColor: `${metric.color}20` }]}>
-              <Ionicons 
-                name={metric.icon} 
-                size={20} 
-                color={metric.color} 
-              />
-            </View>
+            <Ionicons name={metric.icon} size={20} color={metric.color} />
             <Text style={[styles.ringValue, { color: metric.color }]}>
-              {metric.value}%
+              {displayValue}
             </Text>
           </View>
         </View>
         
-        <Text style={styles.ringTitle}>{metric.title}</Text>
-        {metric.subtitle && (
-          <Text style={styles.ringSubtitle}>{metric.subtitle}</Text>
-        )}
+        {/* Labels below the circle */}
+        <View style={styles.ringLabels}>
+          <Text style={styles.ringTitle}>{metric.title}</Text>
+          {metric.subtitle && (
+            <Text style={styles.ringSubtitle}>{metric.subtitle}</Text>
+          )}
+        </View>
       </TouchableOpacity>
     );
+  };
+
+  const renderRing = (metric: RingMetric) => {
+    // Use animated component for each metric
+    switch (metric.id) {
+      case 'recovery':
+        return <AnimatedRing key={metric.id} metric={metric} animatedValue={animatedRecovery} />;
+      case 'biomarkers':
+        return <AnimatedRing key={metric.id} metric={metric} animatedValue={animatedBiomarkers} />;
+      case 'lifestyle':
+        return <AnimatedRing key={metric.id} metric={metric} animatedValue={animatedLifestyle} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -199,7 +275,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectedMetric?.title} Details</Text>
+              <Text style={styles.modalTitle}>{selectedMetric?.title} Score</Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
@@ -214,21 +290,41 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
                 <View style={styles.scoreDisplay}>
                   <View style={[styles.scoreCircle, { borderColor: selectedMetric.color }]}>
                     <Text style={[styles.modalScoreValue, { color: selectedMetric.color }]}>
-                      {selectedMetric.value}%
+                      {selectedMetric.value}
                     </Text>
                     <Text style={styles.modalScoreLabel}>{selectedMetric.subtitle}</Text>
                   </View>
                 </View>
 
-                {/* Comparison Section */}
+                {/* Distribution Curve Section */}
                 <View style={styles.section}>
-                  <Text style={styles.modalSectionTitle}>How You Compare</Text>
-                  <View style={styles.comparisonCard}>
-                    <Ionicons name="trending-up" size={24} color={selectedMetric.color} />
-                    <Text style={styles.comparisonText}>
-                      {getComparisonText(selectedMetric.value)}
+                  <Text style={styles.modalSectionTitle}>Distribution</Text>
+                  <View style={styles.distributionContainer}>
+                    <Svg height="120" width="100%">
+                      {/* Bell curve distribution */}
+                      <Path
+                        d="M 20 100 Q 50 20 80 100 Q 110 20 140 100 Q 170 20 200 100 Q 230 20 260 100 Q 290 20 320 100"
+                        stroke={selectedMetric.color}
+                        strokeWidth="3"
+                        fill="none"
+                      />
+                      {/* User's position marker */}
+                      <Circle
+                        cx={20 + (selectedMetric.value / 100) * 300}
+                        cy={100 - (selectedMetric.value / 100) * 60}
+                        r="6"
+                        fill={selectedMetric.color}
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                      />
+                      {/* X-axis labels */}
+                      <SvgText x="20" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">0</SvgText>
+                      <SvgText x="170" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">50</SvgText>
+                      <SvgText x="320" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">100</SvgText>
+                    </Svg>
+                    <Text style={styles.distributionText}>
+                      You're in the {Math.round(selectedMetric.value)}th percentile
                     </Text>
-                    <Text style={styles.comparisonSubtext}>of CoreHealth users</Text>
                   </View>
                 </View>
 
@@ -310,6 +406,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  ringLabels: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
   iconContainer: {
     width: 32,
     height: 32,
@@ -373,17 +473,17 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     backgroundColor: '#2C2C2E',
-    borderWidth: 3,
+    borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   modalScoreValue: {
-    fontSize: 36,
+    fontSize: 48,
     fontWeight: 'bold',
     marginBottom: 4,
   },
@@ -442,6 +542,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     lineHeight: 20,
+  },
+  distributionContainer: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  distributionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: 12,
+    textAlign: 'center',
   },
 });
 

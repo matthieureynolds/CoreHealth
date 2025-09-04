@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   biomarkerValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginRight: 8,
   },
   biomarkerRange: {

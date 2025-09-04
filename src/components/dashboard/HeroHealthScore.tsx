@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Path, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -23,15 +24,62 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
   onPress 
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const animatedScore = useRef(new Animated.Value(0)).current;
+  const animatedProgress = useRef(new Animated.Value(0)).current;
   
   // Use consistent, responsive sizing
   const circleSize = Math.min(width * 0.45, 180); // Max 180px, responsive to screen
   const strokeWidth = 8;
   const radius = (circleSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.max(0, Math.min(score, 100)) / 100;
+  
+  // Custom easing function for faster start, much slower finish
+  const easeOutExpo = (t: number): number => {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  };
+
+  // Animation effect - only run once when component mounts, with delay for supporting rings
+  useEffect(() => {
+    if (!hasAnimated) {
+      // Wait for supporting rings to finish (1200ms) then start main score animation
+      const timer = setTimeout(() => {
+        // Reset animations
+        animatedScore.setValue(0);
+        animatedProgress.setValue(0);
+
+        // Animate the score number with custom easing
+        Animated.timing(animatedScore, {
+          toValue: score,
+          duration: 1800, // Faster overall duration
+          useNativeDriver: false,
+        }).start();
+
+        // Animate the progress ring with custom easing
+        Animated.timing(animatedProgress, {
+          toValue: Math.max(0, Math.min(score, 100)) / 100,
+          duration: 1800, // Faster overall duration
+          useNativeDriver: false,
+        }).start(() => {
+          // Mark animation as completed
+          setHasAnimated(true);
+        });
+      }, 1300); // Start 100ms after supporting rings finish
+
+      return () => clearTimeout(timer);
+    }
+  }, [score, hasAnimated]);
+
+  // Restore final values when modal closes (if animation was already shown)
+  useEffect(() => {
+    if (!modalVisible && hasAnimated) {
+      // Set final values immediately when modal closes
+      animatedScore.setValue(score);
+      animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
+    }
+  }, [modalVisible, score, hasAnimated]);
+
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference * (1 - progress);
 
   const getScoreColor = (score: number): string => {
     if (score >= 80) return '#30D158'; // Green - Excellent
@@ -42,11 +90,11 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
   };
 
   const getScoreLabel = (score: number): string => {
-    if (score >= 80) return 'EXCELLENT';
-    if (score >= 65) return 'GOOD';
-    if (score >= 50) return 'FAIR';
-    if (score >= 35) return 'POOR';
-    return 'CRITICAL';
+    if (score >= 80) return 'Sleep & HRV';
+    if (score >= 65) return 'Sleep & HRV';
+    if (score >= 50) return 'Sleep & HRV';
+    if (score >= 35) return 'Sleep & HRV';
+    return 'Sleep & HRV';
   };
 
   const getScoreDescription = (score: number): string => {
@@ -65,12 +113,221 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
     return 'Top 90%';
   };
 
+  const getPercentile = (score: number): number => {
+    if (score >= 80) return 85; // Top 15%
+    if (score >= 65) return 65; // Top 35%
+    if (score >= 50) return 50; // Top 50%
+    if (score >= 35) return 25; // Top 75%
+    return 10; // Top 90%
+  };
+
+  const renderDistributionCurve = () => {
+    const chartWidth = 280;
+    const chartHeight = 120;
+    const padding = 20;
+    const curveWidth = chartWidth - (padding * 2);
+    const curveHeight = chartHeight - (padding * 2);
+    
+    // Bell curve parameters
+    const mean = 50; // Center of distribution
+    const stdDev = 15; // Standard deviation
+    const userPercentile = getPercentile(score);
+    const userPosition = (userPercentile / 100) * curveWidth;
+    
+    // Generate bell curve points
+    const points = [];
+    for (let x = 0; x <= curveWidth; x += 2) {
+      const normalizedX = (x / curveWidth) * 100; // Convert to 0-100 scale
+      const y = Math.exp(-0.5 * Math.pow((normalizedX - mean) / stdDev, 2));
+      const chartY = curveHeight - (y * curveHeight * 0.8) - 10; // Scale and position
+      points.push(`${x + padding},${chartY}`);
+    }
+    
+    const pathData = `M ${points.join(' L ')}`;
+    
+    // Area under curve for user's percentile and above
+    const areaPoints = [];
+    for (let x = userPosition; x <= curveWidth; x += 2) {
+      const normalizedX = (x / curveWidth) * 100;
+      const y = Math.exp(-0.5 * Math.pow((normalizedX - mean) / stdDev, 2));
+      const chartY = curveHeight - (y * curveHeight * 0.8) - 10;
+      areaPoints.push(`${x + padding},${chartY}`);
+    }
+    
+    const areaPathData = `M ${userPosition + padding},${curveHeight - 10} L ${areaPoints.join(' L ')} L ${curveWidth + padding},${curveHeight - 10} Z`;
+    
+    return (
+      <View style={styles.distributionContainer}>
+        <Svg width={chartWidth} height={chartHeight}>
+          <Defs>
+            <LinearGradient id="areaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor="#FF9500" stopOpacity="0.3" />
+              <Stop offset="100%" stopColor="#FF9500" stopOpacity="0.1" />
+            </LinearGradient>
+          </Defs>
+          
+          {/* Bell curve */}
+          <Path
+            d={pathData}
+            stroke="#8E8E93"
+            strokeWidth="2"
+            fill="none"
+          />
+          
+          {/* Shaded area for user's percentile */}
+          <Path
+            d={areaPathData}
+            fill="url(#areaGradient)"
+          />
+          
+          {/* User position marker */}
+          <Circle
+            cx={userPosition + padding}
+            cy={curveHeight - (Math.exp(-0.5 * Math.pow((userPercentile - mean) / stdDev, 2)) * curveHeight * 0.8) - 10}
+            r="4"
+            fill="#FF9500"
+            stroke="#FFFFFF"
+            strokeWidth="2"
+          />
+          
+          {/* X-axis labels */}
+          <SvgText x={padding} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="start">0</SvgText>
+          <SvgText x={padding + curveWidth/2} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="middle">50</SvgText>
+          <SvgText x={padding + curveWidth} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="end">100</SvgText>
+          
+          {/* Mean line */}
+          <Path
+            d={`M ${padding + curveWidth/2},${padding} L ${padding + curveWidth/2},${curveHeight - 10}`}
+            stroke="#8E8E93"
+            strokeWidth="1"
+            strokeDasharray="2,2"
+            opacity="0.5"
+          />
+          
+          {/* User percentile line */}
+          <Path
+            d={`M ${userPosition + padding},${padding} L ${userPosition + padding},${curveHeight - 10}`}
+            stroke="#FF9500"
+            strokeWidth="1"
+            strokeDasharray="2,2"
+            opacity="0.7"
+          />
+        </Svg>
+        
+        {/* Legend */}
+        <View style={styles.distributionLegend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#8E8E93' }]} />
+            <Text style={styles.legendText}>Mean</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
+            <Text style={styles.legendText}>You (P{userPercentile})</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const scoreColor = getScoreColor(score);
   const scoreLabel = getScoreLabel(score);
 
   const handlePress = () => {
     setModalVisible(true);
     onPress?.();
+  };
+
+  // Create animated text component for the score with dynamic color
+  const AnimatedScoreText = () => {
+    const [displayScore, setDisplayScore] = useState(0);
+    const [currentColor, setCurrentColor] = useState('#FF3B30'); // Start with red
+    
+    useEffect(() => {
+      const listener = animatedScore.addListener(({ value }) => {
+        const roundedScore = Math.round(value);
+        setDisplayScore(roundedScore);
+        // Update color based on current animated score
+        setCurrentColor(getScoreColor(roundedScore));
+      });
+      
+      return () => {
+        animatedScore.removeListener(listener);
+      };
+    }, []);
+
+    return (
+      <Text style={[styles.scoreValue, { color: currentColor }]}>
+        {displayScore}
+      </Text>
+    );
+  };
+
+  // Create animated score label with dynamic color
+  const AnimatedScoreLabel = () => {
+    const [currentLabel, setCurrentLabel] = useState('CRITICAL');
+    const [currentColor, setCurrentColor] = useState('#FF3B30'); // Start with red
+    
+    useEffect(() => {
+      const listener = animatedScore.addListener(({ value }) => {
+        const roundedScore = Math.round(value);
+        // Update label and color based on current animated score
+        setCurrentLabel(getScoreLabel(roundedScore));
+        setCurrentColor(getScoreColor(roundedScore));
+      });
+      
+      return () => {
+        animatedScore.removeListener(listener);
+      };
+    }, []);
+
+    return (
+      <Text style={[styles.scoreLabel, { color: currentColor }]}>
+        {currentLabel}
+      </Text>
+    );
+  };
+
+  // Create animated progress circle with dynamic color
+  const AnimatedProgressCircle = () => {
+    const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
+    const [currentColor, setCurrentColor] = useState('#FF3B30'); // Start with red
+    
+    useEffect(() => {
+      const listener = animatedProgress.addListener(({ value }) => {
+        setStrokeDashoffset(circumference * (1 - value));
+      });
+      
+      return () => {
+        animatedProgress.removeListener(listener);
+      };
+    }, []);
+
+    useEffect(() => {
+      const listener = animatedScore.addListener(({ value }) => {
+        const roundedScore = Math.round(value);
+        // Update color based on current animated score
+        setCurrentColor(getScoreColor(roundedScore));
+      });
+      
+      return () => {
+        animatedScore.removeListener(listener);
+      };
+    }, []);
+
+    return (
+      <Circle
+        stroke={currentColor}
+        fill="none"
+        cx={circleSize / 2}
+        cy={circleSize / 2}
+        r={radius}
+        strokeWidth={strokeWidth}
+        strokeDasharray={strokeDasharray}
+        strokeDashoffset={strokeDashoffset}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${circleSize / 2} ${circleSize / 2})`}
+      />
+    );
   };
 
   return (
@@ -97,24 +354,13 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
                 strokeWidth={strokeWidth}
               />
               {/* Progress circle */}
-              <Circle
-                stroke={scoreColor}
-                fill="none"
-                cx={circleSize / 2}
-                cy={circleSize / 2}
-                r={radius}
-                strokeWidth={strokeWidth}
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                transform={`rotate(-90 ${circleSize / 2} ${circleSize / 2})`}
-              />
+              <AnimatedProgressCircle />
             </Svg>
             
             <View style={styles.scoreContent}>
               <Text style={styles.brandText}>COREHEALTH</Text>
-              <Text style={[styles.scoreValue, { color: scoreColor }]}>{score}</Text>
-              <Text style={[styles.scoreLabel, { color: scoreColor }]}>{scoreLabel}</Text>
+              <AnimatedScoreText />
+              <AnimatedScoreLabel />
               <Text style={styles.scoreSubtitle}>HEALTH SCORE</Text>
             </View>
           </View>
@@ -143,15 +389,47 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Score Display */}
               <View style={styles.scoreDisplay}>
-                <View style={styles.scoreCircle}>
-                  <Text style={[styles.modalScoreValue, { color: scoreColor }]}>{score}</Text>
-                  <Text style={[styles.modalScoreLabel, { color: scoreColor }]}>{scoreLabel}</Text>
+                <View style={[styles.circleWrapper, { width: 140, height: 140 }]}>
+                  <Svg 
+                    width={140} 
+                    height={140} 
+                    style={styles.svg}
+                  >
+                    {/* Background circle */}
+                    <Circle
+                      stroke="#2C2C2E"
+                      fill="none"
+                      cx={70}
+                      cy={70}
+                      r={60}
+                      strokeWidth={6}
+                    />
+                    {/* Progress circle */}
+                    <Circle
+                      stroke={scoreColor}
+                      fill="none"
+                      cx={70}
+                      cy={70}
+                      r={60}
+                      strokeWidth={6}
+                      strokeDasharray={376.99}
+                      strokeDashoffset={376.99 - (376.99 * (score / 100))}
+                      strokeLinecap="round"
+                      transform="rotate(-90 70 70)"
+                    />
+                  </Svg>
+                  
+                  <View style={styles.scoreContent}>
+                    <Text style={[styles.modalScoreValue, { color: scoreColor }]}>{score}</Text>
+                    <Text style={[styles.modalScoreLabel, { color: scoreColor }]}>{scoreLabel}</Text>
+                  </View>
                 </View>
               </View>
 
               {/* Comparison Section */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>How You Compare</Text>
+                {renderDistributionCurve()}
                 <View style={styles.comparisonCard}>
                   <Ionicons name="trending-up" size={24} color={scoreColor} />
                   <Text style={styles.comparisonText}>{getComparisonText(score)}</Text>
@@ -294,21 +572,40 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  distributionContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    padding: 16,
+  },
+  distributionLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 20,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
   modalBody: {
     padding: 20,
   },
   scoreDisplay: {
     alignItems: 'center',
     marginBottom: 24,
-  },
-  scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
   },
   modalScoreValue: {
     fontSize: 36,

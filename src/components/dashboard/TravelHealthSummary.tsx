@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Rect, Polygon, Text as SvgText } from 'react-native-svg';
 import JetLagPlanningCard from './JetLagPlanningCard';
 
 interface EnvironmentalMetric {
@@ -174,8 +175,8 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     const details: { [key: string]: any } = {
       'air_quality': {
         description: 'Air Quality Index (AQI) measures the concentration of pollutants in the air, including particulate matter, ozone, nitrogen dioxide, and sulfur dioxide.',
-        normalRange: '0-50 (Good)',
-        optimalRange: '0-25 (Excellent)',
+        normalRange: '0-50 (Good) • 51-100 (Moderate) • 101-150 (Unhealthy for Sensitive) • 151-200 (Unhealthy) • 201+ (Hazardous)',
+        optimalRange: '0-25 (Excellent) - Perfect for outdoor activities',
         whatItMeans: getAirQualityExplanation(metric.status),
         healthImpacts: getAirQualityHealthImpacts(metric.status),
         recommendations: getAirQualityRecommendations(metric.status),
@@ -189,8 +190,8 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
       },
       'pollen': {
         description: 'Pollen count measures the concentration of pollen grains in the air. Different types of pollen (tree, grass, weed) can trigger allergic reactions.',
-        normalRange: '0-9 (Low)',
-        optimalRange: '0-4 (Very Low)',
+        normalRange: '0-9 (Low) • 10-49 (Moderate) • 50-149 (High) • 150+ (Very High)',
+        optimalRange: '0-4 (Very Low) - Minimal allergy risk',
         whatItMeans: getPollenExplanation(metric.status),
         healthImpacts: getPollenHealthImpacts(metric.status),
         recommendations: getPollenRecommendations(metric.status),
@@ -204,8 +205,8 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
       },
       'water_quality': {
         description: 'Water quality measures the safety and cleanliness of local water sources, including chemical contaminants, bacteria, and mineral content.',
-        normalRange: 'Safe for consumption',
-        optimalRange: 'Excellent quality with beneficial minerals',
+        normalRange: 'Safe for consumption • Meets health standards • May have taste/odor issues',
+        optimalRange: 'Excellent quality with beneficial minerals - Perfect for all uses',
         whatItMeans: getWaterQualityExplanation(metric.status),
         healthImpacts: getWaterQualityHealthImpacts(metric.status),
         recommendations: getWaterQualityRecommendations(metric.status),
@@ -293,12 +294,12 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
   const getWaterQualityExplanation = (status: string) => {
     switch (status) {
-      case 'excellent': return 'Water quality is excellent with no contaminants and beneficial minerals. Safe and healthy for all uses.';
-      case 'good': return 'Water quality is good with minimal contaminants. Safe for drinking and cooking.';
-      case 'moderate': return 'Water quality is moderate with some contaminants present. Generally safe but may have taste or odor issues.';
-      case 'poor': return 'Water quality is poor with elevated contaminant levels. Consider using filtered or bottled water.';
-      case 'hazardous': return 'Water quality is hazardous with high contaminant levels. Avoid drinking tap water.';
-      default: return 'Water quality is being monitored.';
+      case 'excellent': return 'Water is completely safe to drink with no harmful contaminants. Contains beneficial minerals and meets all health standards. Perfect for drinking, cooking, and all household uses.';
+      case 'good': return 'Water is safe to drink with minimal contaminants well below harmful levels. Meets health standards and is suitable for all daily uses including drinking and cooking.';
+      case 'moderate': return 'Water is generally safe to drink but may have taste, odor, or minor quality issues. Contaminants are present but below dangerous levels. Consider filtration for better taste.';
+      case 'poor': return 'Water has elevated contaminant levels that may pose health risks. Not recommended for drinking without treatment. Use filtered or bottled water for consumption.';
+      case 'hazardous': return 'Water is unsafe to drink with high contaminant levels that pose serious health risks. Do not consume tap water. Use only bottled or properly filtered water.';
+      default: return 'Water quality is being monitored for safety.';
     }
   };
 
@@ -324,6 +325,141 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     }
   };
 
+  const renderRangeIndicator = (metric: EnvironmentalMetric) => {
+    const ranges = {
+      'air_quality': {
+        segments: [
+          { label: 'Good', color: '#30D158', range: '0-50' },
+          { label: 'Moderate', color: '#FF9F0A', range: '51-100', isBold: true },
+          { label: 'Unhealthy for Sensitive', color: '#FF6B35', range: '101-150' },
+          { label: 'Unhealthy', color: '#FF3B30', range: '151-200' },
+          { label: 'Hazardous', color: '#8B0000', range: '201+' }
+        ],
+        currentValue: 75, // Mock value in Moderate range
+        currentLabel: 'Moderate'
+      },
+      'pollen': {
+        segments: [
+          { label: 'Very Low', color: '#30D158', range: '0-4' },
+          { label: 'Low', color: '#32D74B', range: '5-9' },
+          { label: 'Moderate', color: '#FF9F0A', range: '10-49' },
+          { label: 'High', color: '#FF6B35', range: '50-149' },
+          { label: 'Very High', color: '#FF3B30', range: '150+' }
+        ],
+        currentValue: 25, // Mock value
+        currentLabel: 'Moderate'
+      },
+      'water_quality': {
+        segments: [
+          { label: 'Poor', color: '#FF3B30', range: '0-44' },
+          { label: 'Marginal', color: '#FF6B35', range: '45-64' },
+          { label: 'Good', color: '#FF9F0A', range: '65-79', isBold: true },
+          { label: 'Very Good', color: '#32D74B', range: '80-94' },
+          { label: 'Excellent', color: '#30D158', range: '95-100' }
+        ],
+        currentValue: 87, // Mock value in Very Good range
+        currentLabel: 'Very Good'
+      }
+    };
+
+    const rangeData = ranges[metric.id as keyof typeof ranges];
+    if (!rangeData) return null;
+
+    const barWidth = 300;
+    const barHeight = 20;
+    const segmentWidth = barWidth / rangeData.segments.length;
+    
+    // Calculate pointer position based on current value
+    let pointerPosition;
+    if (metric.id === 'air_quality') {
+      // For air quality: 0-300 scale (AQI)
+      pointerPosition = Math.min((rangeData.currentValue / 300) * barWidth, barWidth - 10);
+    } else if (metric.id === 'pollen') {
+      // For pollen: 0-200 scale
+      pointerPosition = Math.min((rangeData.currentValue / 200) * barWidth, barWidth - 10);
+    } else {
+      // For water quality: 0-100 scale
+      pointerPosition = (rangeData.currentValue / 100) * barWidth;
+    }
+
+    return (
+      <View style={styles.rangeIndicatorContainer}>
+        <Svg width={barWidth} height={45}>
+          {/* Range bar segments with gaps */}
+          {rangeData.segments.map((segment, index) => {
+            const gap = 2; // Gap between segments
+            const totalGaps = (rangeData.segments.length - 1) * gap;
+            const availableWidth = barWidth - totalGaps;
+            const segmentWidth = availableWidth / rangeData.segments.length;
+            const x = index * (segmentWidth + gap);
+            
+            return (
+              <Rect
+                key={index}
+                x={x}
+                y={2}
+                width={segmentWidth}
+                height={barHeight}
+                fill={segment.color}
+                rx={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0} // First segment: left curve, Last segment: right curve
+                ry={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0}
+              />
+            );
+          })}
+          
+          {/* White triangle pointer */}
+          <Polygon
+            points={`${Math.min(Math.max(pointerPosition, 10), barWidth - 10)},0 ${Math.min(Math.max(pointerPosition - 6, 4), barWidth - 16)},15 ${Math.min(Math.max(pointerPosition + 6, 16), barWidth - 4)},15`}
+            fill="#FFFFFF"
+            stroke="#FFFFFF"
+            strokeWidth="1"
+          />
+          
+          {/* Range labels directly in SVG */}
+          {rangeData.segments.map((segment, index) => {
+            const gap = 2;
+            const totalGaps = (rangeData.segments.length - 1) * gap;
+            const availableWidth = barWidth - totalGaps;
+            const segmentWidth = availableWidth / rangeData.segments.length;
+            const x = index * (segmentWidth + gap);
+            const centerX = x + (segmentWidth / 2);
+            
+            return (
+              <g key={index}>
+                <SvgText
+                  x={centerX}
+                  y={32}
+                  fontSize="10"
+                  fill="#FFFFFF"
+                  fontWeight={segment.isBold ? "bold" : "600"}
+                  textAnchor="middle"
+                >
+                  {segment.label}
+                </SvgText>
+                <SvgText
+                  x={centerX}
+                  y={42}
+                  fontSize="10"
+                  fill="#8E8E93"
+                  textAnchor="middle"
+                >
+                  {segment.range}
+                </SvgText>
+              </g>
+            );
+          })}
+        </Svg>
+        
+        {/* Current score info */}
+        <View style={styles.currentScoreContainer}>
+          <Text style={styles.currentScoreText}>
+            Your score is in the {rangeData.currentLabel} range ({rangeData.currentValue}).
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   // Enhanced modal content for environmental metric details
   const renderMetricModal = () => {
     if (!selectedMetric) return null;
@@ -340,25 +476,27 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Header */}
-              <View style={styles.modalHeader}>
-                <View style={[styles.modalIconContainer, { backgroundColor: `${statusColor}20` }]}>
-                  <Ionicons name={selectedMetric.icon} size={32} color={statusColor} />
-                </View>
-                <View style={styles.modalTitleContainer}>
-                  <Text style={styles.modalTitle}>{selectedMetric.label}</Text>
-                  <Text style={[styles.modalStatus, { color: statusColor }]}>
-                    {selectedMetric.value} • Score: {selectedMetric.score}
-                  </Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.closeButton}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Ionicons name="close" size={24} color="#8E8E93" />
-                </TouchableOpacity>
+            {/* Fixed Header */}
+            <View style={styles.modalHeader}>
+              <View style={[styles.modalIconContainer, { backgroundColor: `${statusColor}20` }]}>
+                <Ionicons name={selectedMetric.icon} size={32} color={statusColor} />
               </View>
+              <View style={styles.modalTitleContainer}>
+                <Text style={styles.modalTitle}>{selectedMetric.label}</Text>
+                <Text style={[styles.modalStatus, { color: statusColor }]}>
+                  {selectedMetric.value} • Score: {selectedMetric.score}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={24} color="#8E8E93" />
+            </TouchableOpacity>
+            </View>
+
+            {/* Scrollable Content */}
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollContent}>
 
               {/* Description */}
               <View style={styles.modalSection}>
@@ -366,19 +504,10 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
                 <Text style={styles.sectionContent}>{details.description}</Text>
               </View>
 
-              {/* Ranges */}
+              {/* Range Indicator */}
               <View style={styles.modalSection}>
-                <Text style={styles.sectionTitle}>Normal & Optimal Ranges</Text>
-                <View style={styles.rangeContainer}>
-                  <View style={styles.rangeItem}>
-                    <Text style={styles.rangeLabel}>Normal Range:</Text>
-                    <Text style={styles.rangeValue}>{details.normalRange}</Text>
-                  </View>
-                  <View style={styles.rangeItem}>
-                    <Text style={styles.rangeLabel}>Optimal Range:</Text>
-                    <Text style={[styles.rangeValue, { color: '#30D158' }]}>{details.optimalRange}</Text>
-                  </View>
-                </View>
+                <Text style={styles.sectionTitle}>Range Indicator</Text>
+                {renderRangeIndicator(selectedMetric)}
               </View>
 
               {/* What it means */}
@@ -410,7 +539,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
               </View>
 
               {/* Risk factors */}
-              <View style={styles.modalSection}>
+              <View style={[styles.modalSection, { borderBottomWidth: 0 }]}>
                 <Text style={styles.sectionTitle}>Risk Factors</Text>
                 {details.riskFactors.map((risk: string, index: number) => (
                   <View key={index} style={styles.riskItem}>
@@ -420,13 +549,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
                 ))}
               </View>
 
-              {/* Close button */}
-              <TouchableOpacity 
-                style={styles.modalCloseButton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalCloseButtonText}>Close</Text>
-              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
@@ -764,6 +886,10 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '90%',
     maxWidth: 400,
+    flex: 1,
+  },
+  modalScrollContent: {
+    flex: 1,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -871,18 +997,20 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  modalCloseButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    margin: 20,
-    marginTop: 8,
+  rangeIndicatorContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  currentScoreContainer: {
+    marginTop: 16,
     alignItems: 'center',
   },
-  modalCloseButtonText: {
-    color: '#FFFFFF',
+  currentScoreText: {
     fontSize: 16,
+    color: '#FFFFFF',
     fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
   },
 });
 

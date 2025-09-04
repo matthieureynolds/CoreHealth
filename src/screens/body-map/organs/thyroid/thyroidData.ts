@@ -3,7 +3,7 @@ import { Organ } from '../types';
 export const thyroidOrgan: Organ = {
   id: 'thyroid',
   label: 'Thyroid',
-  position: { x: 0.5, y: 0.15 },
+  position: { x: 0.49, y: 0.18 },
   data: {
     name: 'Thyroid',
     description: 'Regulates metabolism and energy production.',

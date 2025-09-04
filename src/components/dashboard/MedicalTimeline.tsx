@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   FlatList,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
@@ -27,6 +28,7 @@ interface MedicalEvent {
   iconColor: string;
   doctor?: string;
   notes?: string;
+  attachedFile?: any;
 }
 
 interface MedicalTimelineProps {
@@ -45,6 +47,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const [isDraft, setIsDraft] = useState(false);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<MedicalEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<MedicalEvent | null>(null);
   
   // Autocomplete states
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -134,6 +137,17 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     },
     {
       id: '3',
+      title: 'Physical Therapy',
+      subtitle: 'Dr. Lisa Johnson, PT',
+      time: 'Today • 10:00 AM',
+      status: 'DUE',
+      icon: 'medical',
+      iconColor: '#007AFF',
+      doctor: 'Dr. Lisa Johnson, PT',
+      notes: 'Wellness Center, 456 Health Ave, New York, NY 10002',
+    },
+    {
+      id: '4',
       title: 'Dental Checkup',
       subtitle: 'Dr. Michael Brown, DDS',
       time: 'Tomorrow • 2:00 PM',
@@ -141,44 +155,49 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Michael Brown, DDS',
+      notes: 'Downtown Dental Clinic, 123 Main Street, New York, NY 10001',
     },
     {
-      id: '4',
+      id: '5',
       title: 'Flu Vaccination',
       subtitle: 'CVS Pharmacy',
       time: 'Tomorrow • 4:30 PM',
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
+      notes: 'CVS Pharmacy, 789 Broadway, New York, NY 10003',
     },
     {
-      id: '5',
+      id: '6',
       title: 'Annual Physical',
       subtitle: 'Dr. Sarah Chen, MD',
-      time: 'Dec 15, 2024 • 10:00 AM',
+      time: 'Sep 8, 2025 • 10:00 AM',
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Sarah Chen, MD',
+      notes: 'Manhattan Medical Center, 321 Park Ave, New York, NY 10010',
     },
     {
-      id: '6',
+      id: '7',
       title: 'Eye Exam',
       subtitle: 'Dr. Emily Davis, OD',
-      time: 'Dec 20, 2024 • 11:00 AM',
+      time: 'Sep 10, 2025 • 11:00 AM',
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Emily Davis, OD',
+      notes: 'Vision Care Associates, 654 5th Avenue, New York, NY 10019',
     },
     {
-      id: '7',
+      id: '8',
       title: 'Blood Test',
       subtitle: 'LabCorp - Fasting Required',
-      time: 'Dec 25, 2024 • 9:00 AM',
+      time: 'Oct 25, 2025 • 9:00 AM',
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
+      notes: 'LabCorp Patient Service Center, 987 Madison Ave, New York, NY 10021',
     },
   ]);
 
@@ -189,6 +208,38 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const handleEventPress = (event: MedicalEvent) => {
       setSelectedEvent(event);
     setDetailsModalVisible(true);
+  };
+
+  const handleEditEvent = (event: MedicalEvent) => {
+    setEditingEvent(event);
+    setNewTitle(event.title);
+    setNewDoctor(event.doctor || '');
+    setNewNotes(event.notes || '');
+    setAttachedDoc(event.attachedFile || null);
+    setDetailsModalVisible(false);
+    setAddModalVisible(true);
+  };
+
+  const openMaps = (location: string) => {
+    const encodedLocation = encodeURIComponent(location);
+    const url = Platform.OS === 'ios' 
+      ? `maps://maps.google.com/maps?daddr=${encodedLocation}`
+      : `geo:0,0?q=${encodedLocation}`;
+    
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        // Fallback to Google Maps web
+        const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+        Linking.openURL(webUrl);
+      }
+    }).catch(err => {
+      console.error('Error opening maps:', err);
+      // Fallback to Google Maps web
+      const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+      Linking.openURL(webUrl);
+    });
   };
 
   // Handle appointment type input with autocomplete
@@ -355,7 +406,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Appointment</Text>
+              <Text style={styles.modalTitle}>{editingEvent ? 'Edit Appointment' : 'Add Appointment'}</Text>
               <TouchableOpacity 
                 onPress={() => setAddModalVisible(false)}
                 style={styles.closeButton}
@@ -479,6 +530,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                   setNewDate(null);
                   setNewNotes('');
                   setAttachedDoc(null);
+                  setEditingEvent(null);
                 }}
                 style={styles.modalButton}
               >
@@ -488,18 +540,37 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <TouchableOpacity 
                 onPress={() => {
                   if (newTitle.trim() && newDate) {
-                    const newEvent: MedicalEvent = {
-                      id: Date.now().toString(),
-                      title: newTitle,
-                      subtitle: newDoctor || 'Appointment',
-                      time: format(newDate, 'MMM d, yyyy • h:mm a'),
-                      status: 'UPCOMING',
-                      icon: 'medical',
-                      iconColor: '#007AFF',
-                      doctor: newDoctor,
-                      notes: newNotes,
-                    };
-                    setEvents([newEvent, ...events]);
+                    if (editingEvent) {
+                      // Update existing event
+                      const updatedEvent: MedicalEvent = {
+                        ...editingEvent,
+                        title: newTitle,
+                        subtitle: newDoctor || 'Appointment',
+                        time: format(newDate, 'MMM d, yyyy • h:mm a'),
+                        doctor: newDoctor,
+                        notes: newNotes,
+                        attachedFile: attachedDoc,
+                      };
+                      setEvents(events.map(event => 
+                        event.id === editingEvent.id ? updatedEvent : event
+                      ));
+                      setEditingEvent(null);
+                    } else {
+                      // Add new event
+                      const newEvent: MedicalEvent = {
+                        id: Date.now().toString(),
+                        title: newTitle,
+                        subtitle: newDoctor || 'Appointment',
+                        time: format(newDate, 'MMM d, yyyy • h:mm a'),
+                        status: 'UPCOMING',
+                        icon: 'medical',
+                        iconColor: '#007AFF',
+                        doctor: newDoctor,
+                        notes: newNotes,
+                        attachedFile: attachedDoc,
+                      };
+                      setEvents([newEvent, ...events]);
+                    }
                     setAddModalVisible(false);
                     setNewTitle('');
                     setNewDoctor('');
@@ -510,7 +581,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 }}
                 style={styles.modalButton}
               >
-                <Text style={styles.addButtonText}>Add</Text>
+                <Text style={styles.addButtonText}>{editingEvent ? 'Update' : 'Add'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -534,20 +605,28 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.modalSubtitle}>{selectedEvent?.subtitle}</Text>
               <Text style={styles.modalText}>Date: {selectedEvent?.time}</Text>
-              {selectedEvent?.doctor && (
-                <Text style={styles.modalText}>Doctor: {selectedEvent.doctor}</Text>
-              )}
               {selectedEvent?.notes && (
-                <Text style={styles.modalText}>Notes: {selectedEvent.notes}</Text>
+                <TouchableOpacity onPress={() => openMaps(selectedEvent.notes)}>
+                  <Text style={styles.modalText}>Location: {selectedEvent.notes}</Text>
+                </TouchableOpacity>
+              )}
+              {selectedEvent?.attachedFile && (
+                <View style={styles.attachedFileContainer}>
+                  <Text style={styles.modalText}>Attached File:</Text>
+                  <View style={styles.attachedFile}>
+                    <Ionicons name="document" size={16} color="#30D158" />
+                    <Text style={styles.attachedFileName}>{selectedEvent.attachedFile.name}</Text>
+                  </View>
+                </View>
               )}
             </ScrollView>
             
             <View style={styles.modalButtons}>
               <TouchableOpacity 
-                onPress={() => setDetailsModalVisible(false)}
-                style={styles.modalButton}
+                onPress={() => selectedEvent && handleEditEvent(selectedEvent)}
+                style={[styles.modalButton, { backgroundColor: '#007AFF' }]}
               >
-                <Text style={styles.addButtonText}>Close</Text>
+                <Text style={styles.addButtonText}>Edit</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -763,6 +842,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
+  attachedFileContainer: {
+    marginTop: 12,
+  },
   attachedFile: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -801,12 +883,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 8,
     marginTop: 16,
-    paddingHorizontal: 16,
+    marginLeft: 16,
+    textAlign: 'left',
   },
 });
 

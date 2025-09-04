@@ -48,14 +48,30 @@ interface BoneHealthZone {
 
 interface SkeletonBodyMapProps {
   onPartPress: (partId: string) => void;
+  onZoneSelect?: (zone: any) => void;
 }
 
-const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
+const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress, onZoneSelect }) => {
   const [selectedZone, setSelectedZone] = useState<BoneHealthZone | null>(null);
   const [showBiomarkerModal, setShowBiomarkerModal] = useState(false);
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [animatedValue] = useState(new Animated.Value(1));
   const [panelAnim] = useState(new Animated.Value(0));
+
+  const getBiomarkerStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'normal':
+        return '#30D158';
+      case 'low':
+        return '#FF9F0A';
+      case 'high':
+        return '#FF6B35';
+      case 'critical':
+        return '#FF3B30';
+      default:
+        return '#8E8E93';
+    }
+  };
 
   const boneHealthZones: BoneHealthZone[] = [
     {
@@ -407,11 +423,22 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
       }),
     ]).start();
 
-    // Show the panel
-    Animated.spring(panelAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    // Pass zone data to parent for full-width panel
+    if (onZoneSelect) {
+      onZoneSelect({
+        data: {
+          name: zone.name,
+          description: zone.anatomicalFocus,
+          biomarkers: zone.biomarkers.map(biomarker => ({
+            name: biomarker.name,
+            value: typeof biomarker.value === 'number' ? biomarker.value : 0,
+            unit: biomarker.unit,
+            range: biomarker.referenceRange,
+            status: biomarker.status === 'optimal' ? 'normal' : biomarker.status
+          }))
+        }
+      });
+    }
   };
 
   const handleBiomarkerPress = (biomarker: BoneHealthBiomarker) => {
@@ -449,9 +476,9 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
         {/* Always-visible biomarker dots for each zone */}
         {[
           // General/Systemic (heart area, moved up)
-          { id: 'general_systemic', x: 50, y: 28 },
+          { id: 'general_systemic', x: 50.2, y: 28 },
           // Spine (just below rib cage, moved up)
-          { id: 'spine', x: 50, y: 39 },
+          { id: 'spine', x: 50.2, y: 39 },
           // Left Hip (positioned at actual hip bone - moved higher)
           { id: 'left_hip', x: 42, y: 49.2 },
           // Right Hip (positioned at actual hip bone - moved higher)
@@ -479,51 +506,7 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress }) => {
         ))}
       </View>
       
-      {/* Info Panel */}
-      {selectedZone && (
-        <Animated.View
-          style={[
-            styles.infoPanel,
-            {
-              transform: [{ translateY: panelAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [height, 0],
-              })}],
-            },
-          ]}
-        >
-          <View style={styles.panelHeader}>
-            <Text style={styles.zoneTitle}>{selectedZone.name}</Text>
-            <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
 
-          <Text style={styles.zoneDescription}>{selectedZone.anatomicalFocus}</Text>
-
-          <ScrollView
-            style={styles.biomarkerScrollView}
-            showsVerticalScrollIndicator={true}
-            bounces={true}
-          >
-            <View style={styles.biomarkerList}>
-              {selectedZone.biomarkers.map((biomarker, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.biomarkerItem}
-                  onPress={() => handleBiomarkerPress(biomarker)}
-                >
-                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                  <Text style={styles.biomarkerValue}>
-                    {biomarker.value} {biomarker.unit}
-                  </Text>
-                  <Text style={styles.biomarkerRange}>({biomarker.referenceRange})</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </Animated.View>
-      )}
 
       {/* Biomarker Modal */}
       <BiomarkerModal
@@ -626,25 +609,39 @@ const styles = StyleSheet.create({
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#3A3A3C',
+    minHeight: 48,
+  },
+  biomarkerColumn1: {
+    flex: 1.5,
+    alignItems: 'flex-start',
+  },
+  biomarkerColumn2: {
+    flex: 1,
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  biomarkerColumn3: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   biomarkerName: {
-    flex: 1,
     fontSize: 16,
+    fontWeight: '500',
     color: '#FFFFFF',
+    textAlign: 'left',
   },
   biomarkerValue: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#34C759',
-    marginRight: 8,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   biomarkerRange: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#8E8E93',
+    textAlign: 'right',
   },
 });
 

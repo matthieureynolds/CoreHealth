@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectedTab: {
-    backgroundColor: '#007AFF20',
     borderBottomWidth: 2,
     borderBottomColor: '#007AFF',
   },

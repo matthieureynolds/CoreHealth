@@ -36,15 +36,32 @@ interface CirculationZone {
 
 interface CirculationBodyMapProps {
   onPointPress: (pointId: string) => void;
+  onZoneSelect?: (zone: any) => void;
 }
 
 const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
   onPointPress,
+  onZoneSelect,
 }) => {
   const [selectedZone, setSelectedZone] = useState<CirculationZone | null>(null);
   const [showBiomarkerModal, setShowBiomarkerModal] = useState(false);
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [panelAnim] = useState(new Animated.Value(0));
+
+  const getBiomarkerStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'normal':
+        return '#30D158';
+      case 'low':
+        return '#FF9F0A';
+      case 'high':
+        return '#FF6B35';
+      case 'critical':
+        return '#FF3B30';
+      default:
+        return '#8E8E93';
+    }
+  };
 
   const circulationZones: CirculationZone[] = [
     {
@@ -111,11 +128,22 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
     setSelectedZone(zone);
     onPointPress(zone.id);
     
-    // Show the panel
-    Animated.spring(panelAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    // Pass zone data to parent for full-width panel
+    if (onZoneSelect) {
+      onZoneSelect({
+        data: {
+          name: zone.name,
+          description: zone.description,
+          biomarkers: zone.biomarkers.map(name => ({
+            name,
+            value: 85, // Mock value
+            unit: 'mg/dL', // Mock unit
+            range: '70-100', // Mock range
+            status: 'normal'
+          }))
+        }
+      });
+    }
   };
 
   const handleBiomarkerPress = (biomarkerName: string) => {
@@ -180,49 +208,7 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
         ))}
       </View>
 
-      {/* Info Panel */}
-      {selectedZone && (
-        <Animated.View
-          style={[
-            styles.infoPanel,
-            {
-              transform: [{ translateY: panelAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [height, 0],
-              })}],
-            },
-          ]}
-        >
-          <View style={styles.panelHeader}>
-            <Text style={styles.zoneTitle}>{selectedZone.name}</Text>
-            <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
 
-          <Text style={styles.zoneDescription}>{selectedZone.description}</Text>
-
-          <ScrollView
-            style={styles.biomarkerScrollView}
-            showsVerticalScrollIndicator={true}
-            bounces={true}
-          >
-            <View style={styles.biomarkerList}>
-              {selectedZone.biomarkers.map((biomarkerName, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.biomarkerItem}
-                  onPress={() => handleBiomarkerPress(biomarkerName)}
-                >
-                  <Text style={styles.biomarkerName}>{biomarkerName}</Text>
-                  <Text style={styles.biomarkerValue}>85 mg/dL</Text>
-                  <Text style={styles.biomarkerRange}>(70-100)</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </Animated.View>
-      )}
 
       {/* Biomarker Modal */}
       <BiomarkerModal
@@ -239,6 +225,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     paddingVertical: 0,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bodyOutline: {
     width: width * 0.99,
@@ -324,25 +313,39 @@ const styles = StyleSheet.create({
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#3A3A3C',
+    minHeight: 48,
+  },
+  biomarkerColumn1: {
+    flex: 1.5,
+    alignItems: 'flex-start',
+  },
+  biomarkerColumn2: {
+    flex: 1,
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  biomarkerColumn3: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   biomarkerName: {
-    flex: 1,
     fontSize: 16,
+    fontWeight: '500',
     color: '#FFFFFF',
+    textAlign: 'left',
   },
   biomarkerValue: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#34C759',
-    marginRight: 8,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   biomarkerRange: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#8E8E93',
+    textAlign: 'right',
   },
 });
 

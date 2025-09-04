@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,10 +23,67 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
   const [insights, setInsights] = useState<HealthAssistantResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'insights' | 'recommendations' | 'actions'>('insights');
+  
+  // Modern loading animation values
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     loadHealthInsights();
   }, [profile, biomarkers, healthScore]);
+
+  // Start loading animation when isLoading changes
+  useEffect(() => {
+    if (isLoading) {
+      const startAnimation = () => {
+        Animated.loop(
+          Animated.parallel([
+            Animated.sequence([
+              Animated.timing(pulseAnim, {
+                toValue: 1.2,
+                duration: 1000,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+              }),
+              Animated.timing(pulseAnim, {
+                toValue: 1,
+                duration: 1000,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+              }),
+            ]),
+            Animated.timing(rotateAnim, {
+              toValue: 1,
+              duration: 2000,
+              easing: Easing.linear,
+              useNativeDriver: true,
+            }),
+            Animated.sequence([
+              Animated.timing(scaleAnim, {
+                toValue: 1,
+                duration: 800,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+              }),
+              Animated.timing(scaleAnim, {
+                toValue: 0.8,
+                duration: 800,
+                easing: Easing.bezier(0.4, 0, 0.2, 1),
+                useNativeDriver: true,
+              }),
+            ]),
+          ])
+        ).start();
+      };
+      startAnimation();
+    } else {
+      // Reset animations when loading stops
+      pulseAnim.setValue(1);
+      rotateAnim.setValue(0);
+      scaleAnim.setValue(1);
+    }
+  }, [isLoading]);
 
   const loadHealthInsights = async () => {
     try {
@@ -139,6 +198,46 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
     }
   };
 
+  // Modern loading component
+  const ModernLoadingIndicator = () => {
+    const spin = rotateAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    });
+
+    return (
+      <View style={styles.modernLoadingContainer}>
+        <Animated.View 
+          style={[
+            styles.loadingIconContainer,
+            {
+              transform: [
+                { scale: pulseAnim },
+                { rotate: spin },
+                { scale: scaleAnim }
+              ]
+            }
+          ]}
+        >
+          <LinearGradient
+            colors={['#007AFF', '#5AC8FA', '#007AFF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.loadingGradient}
+          >
+            <Ionicons name="sparkles" size={32} color="#FFFFFF" />
+          </LinearGradient>
+        </Animated.View>
+        <Text style={styles.modernLoadingText}>Analyzing your health data...</Text>
+        <View style={styles.loadingDots}>
+          <Animated.View style={[styles.loadingDot, { opacity: pulseAnim }]} />
+          <Animated.View style={[styles.loadingDot, { opacity: pulseAnim }]} />
+          <Animated.View style={[styles.loadingDot, { opacity: pulseAnim }]} />
+        </View>
+      </View>
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -146,10 +245,7 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
           <Ionicons name="sparkles" size={24} color="#007AFF" />
           <Text style={styles.title}>AI Health Insights</Text>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Analyzing your health data...</Text>
-        </View>
+        <ModernLoadingIndicator />
       </View>
     );
   }
@@ -236,6 +332,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     marginTop: 12,
+  },
+  // Modern loading styles
+  modernLoadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  loadingGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modernLoadingText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
+    marginHorizontal: 4,
   },
   tabContainer: {
     flexDirection: 'row',
