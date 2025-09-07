@@ -78,9 +78,7 @@ const EditNameScreen: React.FC = () => {
         finalPreferredName
       );
       
-      Alert.alert('Success', 'Name updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      Alert.alert('Success', 'Name updated successfully');
     } catch (error) {
       console.error('Error updating name:', error);
       Alert.alert('Error', 'Failed to update name. Please try again.');
@@ -178,23 +176,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 15,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   saveButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: 'transparent',
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   saveButtonDisabled: {
     opacity: 0.5,

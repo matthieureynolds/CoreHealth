@@ -15,8 +15,8 @@ const LegalComplianceScreen: React.FC = () => {
   const openPlaceholder = (title: string) => Alert.alert(title, 'This will open the document in a web view or PDF viewer.');
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Legal Documents */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <View style={styles.header}> 
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -25,24 +25,26 @@ const LegalComplianceScreen: React.FC = () => {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.card}>
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>LEGAL DOCUMENTS</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('TermsOfService')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('TermsOfService')}>
           <Ionicons name="document-text-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Terms & Conditions</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('PrivacyPolicy')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('PrivacyPolicy')}>
           <Ionicons name="shield-outline" size={22} color="#34C759" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Privacy Policy</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('ConsentForms')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('ConsentForms')}>
           <Ionicons name="checkbox-outline" size={22} color="#FF9500" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Consent Forms</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('ComplianceNotices')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => (navigation as any).navigate('ComplianceNotices')}>
           <Ionicons name="globe-outline" size={22} color="#5856D6" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>HIPAA / GDPR Region-Based Notices</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -50,30 +52,34 @@ const LegalComplianceScreen: React.FC = () => {
       </View>
 
       {/* Compliance & Requests */}
-      <View style={styles.card}>
+      <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>COMPLIANCE & REQUESTS</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('DataProcessingAgreement')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('DataProcessingAgreement')}>
           <Ionicons name="settings-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Data Processing Agreement</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('DataRetentionPolicy')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('DataRetentionPolicy')}>
           <Ionicons name="time-outline" size={22} color="#8E8E93" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Data Retention Policy</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => openMail('legal@corehealth.com', 'Contact Legal Team')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => openMail('legal@corehealth.com', 'Contact Legal Team')}>
           <Ionicons name="mail-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Contact Legal Team</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => openMail('privacy@corehealth.com', 'Request My Data')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => openMail('privacy@corehealth.com', 'Request My Data')}>
           <Ionicons name="document-text-outline" size={22} color="#34C759" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Request Data</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      {/* Bottom spacing to match the gap between cards */}
+      <View style={styles.bottomSpacing} />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -82,17 +88,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#000000',
+  scrollView: {
+    flex: 1,
   },
-  backButton: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#FFFFFF' },
+  header: {
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
   card: {
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
@@ -104,6 +127,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  cardTightBottom: {
+    paddingBottom: 0,
   },
   cardHeader: {
     fontSize: 12,
@@ -118,6 +144,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  tallRow50: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 12,
@@ -130,6 +164,9 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 'auto',
+  },
+  bottomSpacing: {
+    height: 20,
   },
 });
 

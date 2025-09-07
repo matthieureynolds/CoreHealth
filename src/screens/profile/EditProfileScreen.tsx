@@ -160,9 +160,7 @@ const EditProfileScreen: React.FC = () => {
         bloodType: formData.bloodType,
       });
 
-      Alert.alert('Success', 'Profile updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');

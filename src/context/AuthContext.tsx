@@ -356,8 +356,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update email with re-authentication using current password
   const updateEmail = async (newEmail: string, currentPassword: string) => {
     if (!user?.email) throw new Error('No authenticated user');
+
+    // Support mock authentication (no real Supabase session)
+    if (!session) {
+      setIsLoading(true);
+      try {
+        console.log('⚠️ Using mock authentication for email update');
+        const updatedUser = { ...user, email: newEmail };
+        setUser(updatedUser);
+        await saveMockUserData(updatedUser);
+        console.log('✅ Email updated successfully (mock auth)');
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     setIsLoading(true);
     try {
+      // If account is OAuth-only (e.g., Google), block email change here
+      const hasEmailIdentity = !!session?.user?.identities?.some(
+        // @ts-ignore - provider type from supabase-js
+        (id: any) => id.provider === 'email'
+      );
+      if (session && !hasEmailIdentity) {
+        throw new Error(
+          'This account is linked with Google. Add a password first to change your email.'
+        );
+      }
+
       // Re-authenticate to confirm the user
       const { error: reauthError } = await supabase.auth.signInWithPassword({
         email: user.email,
@@ -365,7 +392,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       if (reauthError) throw reauthError;
 
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      // Preserve existing profile metadata (including photo) when updating email
+      // Provide redirect for email confirmation
+      const redirectTo = AuthSession.makeRedirectUri();
+      const { error } = await supabase.auth.updateUser(
+        {
+          email: newEmail,
+          data: {
+            avatar_url: user.photoURL || undefined,
+            display_name: user.displayName || undefined,
+            first_name: user.firstName || undefined,
+            surname: user.surname || undefined,
+            preferred_name: user.preferredName || undefined,
+          },
+        },
+        { emailRedirectTo: redirectTo }
+      );
       if (error) throw error;
       // Local state update
       setUser(prev => (prev ? { ...prev, email: newEmail } : prev));
@@ -380,6 +422,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update password with re-authentication
   const updatePassword = async (currentPassword: string, newPassword: string) => {
     if (!user?.email) throw new Error('No authenticated user');
+
+    // Support mock authentication (no real Supabase session)
+    if (!session) {
+      setIsLoading(true);
+      try {
+        console.log('⚠️ Using mock authentication for password update');
+        // Simulate async success; no real password persisted in mock mode
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log('✅ Password updated successfully (mock auth)');
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     setIsLoading(true);
     try {
       const { error: reauthError } = await supabase.auth.signInWithPassword({

@@ -221,7 +221,7 @@ export const generateLightExposureSchedule = (
 /**
  * Get current local time for destination
  */
-export const getCurrentDestinationTime = (timezone: string): {
+export const getCurrentDestinationTime = (timezone: string, hour12: boolean = false): {
   time: string;
   date: string;
   timezone: string;
@@ -233,7 +233,7 @@ export const getCurrentDestinationTime = (timezone: string): {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      hour12: false,
+      hour12,
     });
     
     const dateFormatter = new Intl.DateTimeFormat('en-US', {

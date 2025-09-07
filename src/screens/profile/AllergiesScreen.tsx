@@ -13,7 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
-import { Allergy } from '../../types';
+import { Allergy, AttachedFile } from '../../types';
+import * as DocumentPicker from 'expo-document-picker';
+import FileViewerModal from '../../components/common/FileViewerModal';
 
 const AllergiesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -29,6 +31,12 @@ const AllergiesScreen: React.FC = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
+  const [editingAllergy, setEditingAllergy] = useState<Allergy | null>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+  const [fileViewerVisible, setFileViewerVisible] = useState(false);
+  const [currentFileUri, setCurrentFileUri] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [currentFileType, setCurrentFileType] = useState('');
 
   const commonAllergies = [
     'Peanuts', 'Tree Nuts', 'Milk', 'Eggs', 'Soy', 'Wheat', 'Fish', 'Shellfish',
@@ -55,22 +63,41 @@ const AllergiesScreen: React.FC = () => {
       return;
     }
 
-    const newAllergy: Allergy = {
-      id: Date.now().toString(),
-      name: allergy.trim(),
-      severity,
-      status,
-      reaction: reaction.trim() || undefined,
-      startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
-      notes: notes.trim() || undefined,
-    };
-
-    const updatedAllergies = [...(profile?.allergies || []), newAllergy];
-    updateProfile({
-      ...profile,
-      allergies: updatedAllergies,
-    });
+    if (editingAllergy) {
+      const updated: Allergy = {
+        id: editingAllergy.id,
+        name: allergy.trim(),
+        severity,
+        status,
+        reaction: reaction.trim() || undefined,
+        startDate: (startDate || new Date()).toISOString().split('T')[0],
+        endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedAllergies = (profile?.allergies || []).map(a => a.id === editingAllergy.id ? updated : a);
+      updateProfile({
+        ...profile,
+        allergies: updatedAllergies,
+      });
+    } else {
+      const newAllergy: Allergy = {
+        id: Date.now().toString(),
+        name: allergy.trim(),
+        severity,
+        status,
+        reaction: reaction.trim() || undefined,
+        startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedAllergies = [...(profile?.allergies || []), newAllergy];
+      updateProfile({
+        ...profile,
+        allergies: updatedAllergies,
+      });
+    }
 
     setShowAddModal(false);
     setAllergy('');
@@ -80,6 +107,8 @@ const AllergiesScreen: React.FC = () => {
     setStartDate(null);
     setEndDate(null);
     setNotes('');
+    setEditingAllergy(null);
+    setAttachments([]);
   };
 
   const deleteAllergy = (id: string) => {
@@ -103,6 +132,63 @@ const AllergiesScreen: React.FC = () => {
     );
   };
 
+  const handleEditAllergy = (a: Allergy) => {
+    setAllergy(a.name);
+    setSeverity(a.severity);
+    setStatus(a.status);
+    setReaction(a.reaction || '');
+    setStartDate(a.startDate ? new Date(a.startDate) : new Date());
+    setEndDate(a.endDate ? new Date(a.endDate) : null);
+    setNotes(a.notes || '');
+    setAttachments(a.attachments || []);
+    setEditingAllergy(a);
+    setShowAddModal(true);
+  };
+
+  const openAllergyOptions = (a: Allergy) => {
+    Alert.alert(
+      a.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditAllergy(a) },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteAllergy(a.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const newFile: AttachedFile = {
+          uri: asset.uri,
+          name: asset.name || 'attachment',
+          type: asset.mimeType,
+        };
+        setAttachments(prev => [...prev, newFile]);
+      }
+    } catch (e) {
+      console.error('Attachment error', e);
+      Alert.alert('Attachment Error', 'Failed to attach file.');
+    }
+  };
+
+  const removeAttachment = (name: string) => {
+    setAttachments(prev => prev.filter(a => a.name !== name));
+  };
+
+  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+    setCurrentFileUri(fileUri);
+    setCurrentFileName(fileName);
+    setCurrentFileType(fileType || '');
+    setFileViewerVisible(true);
+  };
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'mild': return '#4CD964';
@@ -119,17 +205,17 @@ const AllergiesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header (fixed) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Allergies</Text>
+        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+          <Ionicons name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Allergies</Text>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
 
         {/* Allergies List */}
         <View style={styles.content}>
@@ -154,12 +240,29 @@ const AllergiesScreen: React.FC = () => {
                       <Text style={styles.allergyDate}>Ended: {formatDate(allergy.endDate)}</Text>
                     )}
                     {allergy.notes && <Text style={styles.notes}>{allergy.notes}</Text>}
+                    {!!allergy.attachments?.length && (
+                      <View style={{ marginTop: 10 }}>
+                        <View style={styles.attachmentsRow}>
+                          {allergy.attachments.map(file => (
+                            <TouchableOpacity
+                              key={file.uri}
+                              style={styles.attachmentChip}
+                              onPress={() => handleViewFile(file.uri, file.name, file.type)}
+                            >
+                              <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                              <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                   <TouchableOpacity
-                    onPress={() => deleteAllergy(allergy.id)}
-                    style={styles.deleteButton}
+                    onPress={() => openAllergyOptions(allergy)}
+                    style={styles.moreButton}
+                    accessibilityLabel="Edit allergy"
                   >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -190,7 +293,7 @@ const AllergiesScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Allergy</Text>
+            <Text style={styles.modalTitle}>{editingAllergy ? 'Edit Allergy' : 'Add Allergy'}</Text>
             <TouchableOpacity onPress={addAllergy}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
@@ -339,6 +442,27 @@ const AllergiesScreen: React.FC = () => {
                 numberOfLines={3}
               />
             </View>
+
+            {/* Attachments */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Attachments</Text>
+              <View style={styles.attachmentsRow}>
+                {attachments.map(file => (
+                  <View key={file.uri} style={styles.attachmentChip}>
+                    <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                    <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                    <TouchableOpacity onPress={() => removeAttachment(file.name)} style={styles.attachmentRemove}>
+                      <Ionicons name="close" size={14} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
+                  <Ionicons name="attach" size={16} color="#007AFF" />
+                  <Text style={styles.addAttachmentText}>Add file</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
+            </View>
           </ScrollView>
 
           {/* Date Pickers - Now inside the modal */}
@@ -371,6 +495,13 @@ const AllergiesScreen: React.FC = () => {
           )}
         </View>
       </Modal>
+      <FileViewerModal
+        visible={fileViewerVisible}
+        onClose={() => setFileViewerVisible(false)}
+        fileUri={currentFileUri}
+        fileName={currentFileName}
+        fileType={currentFileType}
+      />
     </View>
   );
 };
@@ -388,34 +519,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   addButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   content: {
     padding: 20,
   },
   allergyCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   allergyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   allergyInfo: {
     flex: 1,
@@ -455,8 +607,59 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
-  deleteButton: {
-    padding: 8,
+  moreButton: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
+  attachmentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginLeft: 6,
+    maxWidth: 140,
+  },
+  attachmentRemove: {
+    marginLeft: 6,
+  },
+  addAttachmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  addAttachmentText: {
+    color: '#007AFF',
+    fontSize: 12,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  attachmentsHelp: {
+    marginTop: 8,
+    color: '#8E8E93',
+    fontSize: 12,
   },
   emptyState: {
     alignItems: 'center',

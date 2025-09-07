@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
+import ProfilePicturePicker from '../../components/ProfilePicturePicker';
 import { useHealthData } from '../../context/HealthDataContext';
 import { ProfileTabParamList } from '../../types';
 
@@ -21,7 +22,7 @@ type ProfileDetailsScreenNavigationProp = StackNavigationProp<ProfileTabParamLis
 
 const ProfileDetailsScreen: React.FC = () => {
   const navigation = useNavigation<ProfileDetailsScreenNavigationProp>();
-  const { user } = useAuth();
+  const { user, updateUserPhoto } = useAuth();
   const { profile, updateProfile } = useHealthData();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
@@ -32,10 +33,33 @@ const ProfileDetailsScreen: React.FC = () => {
     { value: 'female', label: 'Female' },
   ];
 
+  const handlePhotoSelected = (photoURI: string) => {
+    if (updateUserPhoto) {
+      updateUserPhoto(photoURI);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Scrollable Profile Header (avatar, name) */}
+      <View style={styles.profileHeader}>
+        <ProfilePicturePicker
+          currentPhotoURL={user?.photoURL}
+          onPhotoSelected={handlePhotoSelected}
+          size={110}
+          userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
+        />
+        <Text style={styles.profileName}>
+          {user?.firstName && user?.surname
+            ? `${user.firstName} ${user.surname}`
+            : user?.displayName || 'User'}
+        </Text>
+        <Text style={styles.profileEmail}>
+          {user?.preferredName || user?.firstName || 'matthieu.reynolds_04'}
+        </Text>
+      </View>
       {/* Personal Info Card */}
-      <View style={styles.card}>
+      <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>PERSONAL INFO</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
           <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
@@ -65,7 +89,7 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardValue}>{profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('HealthIDs')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('HealthIDs')}>
           <Ionicons name="card-outline" size={22} color="#8E44AD" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Linked Health ID</Text>
           <Text style={styles.cardValue}>{profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set'}</Text>
@@ -74,7 +98,7 @@ const ProfileDetailsScreen: React.FC = () => {
       </View>
 
       {/* Health Records Card */}
-      <View style={styles.card}>
+      <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>HEALTH RECORDS</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Conditions')}>
           <Ionicons name="medical-outline" size={22} color="#FF9500" style={styles.cardIcon} />
@@ -106,7 +130,7 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardValue}>{profile?.vaccinations?.length ? `${profile.vaccinations.length} vaccines` : 'Not set'}</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Screenings')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('Screenings')}>
           <Ionicons name="search-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Screenings</Text>
           <Text style={styles.cardValue}>{profile?.screenings?.length ? `${profile.screenings.length} screenings` : 'Not set'}</Text>
@@ -117,7 +141,7 @@ const ProfileDetailsScreen: React.FC = () => {
 
 
       {/* Record Management Card */}
-      <View style={styles.card}>
+      <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>RECORD MANAGEMENT</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('UploadMedicalRecord')}>
           <Ionicons name="camera-outline" size={22} color="#FF6B6B" style={styles.cardIcon} />
@@ -135,7 +159,7 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardLabel}>Generate Health Report</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ShareWithDoctor')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('ShareWithDoctor')}>
           <Ionicons name="share-outline" size={22} color="#FF9500" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Share with Doctor</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -143,7 +167,7 @@ const ProfileDetailsScreen: React.FC = () => {
       </View>
 
       {/* Emergency Info Card */}
-      <View style={styles.card}>
+      <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>EMERGENCY INFO</Text>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmergencyContacts')}>
           <Ionicons name="call-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
@@ -155,7 +179,7 @@ const ProfileDetailsScreen: React.FC = () => {
           </Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrimaryDoctor')}>
+        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('PrimaryDoctor')}>
           <Ionicons name="medical-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Doctors</Text>
           <Text style={styles.cardValue}>
@@ -177,47 +201,48 @@ const ProfileDetailsScreen: React.FC = () => {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="#007AFF" />
               </TouchableOpacity>
+              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
             </View>
-            <DateTimePicker
-              value={profile?.birthDate ? new Date(profile.birthDate) : new Date()}
-              mode="date"
-              display="spinner"
-              maximumDate={new Date()}
-              minimumDate={new Date(1900, 0, 1)}
-              style={styles.datePicker}
-              textColor="#fff"
-              themeVariant="dark"
-              onChange={(event, selectedDate) => {
-                if (selectedDate) {
-                  const today = new Date();
-                  const birthDate = new Date(selectedDate);
-                  let age = today.getFullYear() - birthDate.getFullYear();
-                  const monthDiff = today.getMonth() - birthDate.getMonth();
-                  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                    age--;
-                  }
-                  if (age >= 1 && age <= 150) {
-                    try {
-                      updateProfile({
-                        ...profile,
-                        age,
-                        birthDate: selectedDate.toISOString(),
-                      });
-                      // Removed setShowDatePicker(false) here
-                    } catch (error) {
-                      console.error('Error updating birth date:', error);
-                      Alert.alert('Error', 'Failed to save date of birth. Please try again.');
+            <View style={styles.datePickerBody}>
+              <DateTimePicker
+                value={profile?.birthDate ? new Date(profile.birthDate) : new Date()}
+                mode="date"
+                display="spinner"
+                maximumDate={new Date()}
+                minimumDate={new Date(1900, 0, 1)}
+                style={styles.datePicker}
+                textColor="#fff"
+                themeVariant="dark"
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    const today = new Date();
+                    const birthDate = new Date(selectedDate);
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                      age--;
                     }
-                  } else {
-                    Alert.alert('Error', 'Please select a valid date of birth');
+                    if (age >= 1 && age <= 150) {
+                      try {
+                        updateProfile({
+                          ...profile,
+                          age,
+                          birthDate: selectedDate.toISOString(),
+                        });
+                      } catch (error) {
+                        console.error('Error updating birth date:', error);
+                        Alert.alert('Error', 'Failed to save date of birth. Please try again.');
+                      }
+                    } else {
+                      Alert.alert('Error', 'Please select a valid date of birth');
+                    }
                   }
-                }
-              }}
-            />
+                }}
+              />
+            </View>
             <TouchableOpacity
               style={styles.datePickerSaveButton}
               onPress={() => setShowDatePicker(false)}
@@ -238,10 +263,10 @@ const ProfileDetailsScreen: React.FC = () => {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Select Gender</Text>
-              <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+              <TouchableOpacity onPress={() => setShowGenderPicker(false)} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="#007AFF" />
               </TouchableOpacity>
+              <Text style={styles.datePickerTitle}>Select Gender</Text>
             </View>
             <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
               {genderOptions.map((option) => (
@@ -284,9 +309,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#222',
     paddingVertical: 32,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    marginBottom: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -345,6 +370,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderRadius: 20,
     marginHorizontal: 20,
+    marginTop: 20,
     marginBottom: 18,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -353,6 +379,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
+  },
+  cardTightBottom: {
+    paddingBottom: 0,
   },
   cardHeader: {
     color: '#888',
@@ -367,6 +396,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#222',
+  },
+  tallRow50: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 16,
@@ -451,8 +486,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 20,
     padding: 20,
-    minWidth: 300,
-    maxWidth: 350,
+    minWidth: 320,
+    maxWidth: 380,
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -466,18 +501,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 28,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   datePickerTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   datePicker: {
     backgroundColor: '#333',
     color: '#fff',
     borderRadius: 12,
     padding: 10,
+    height: 210,
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  datePickerBody: {
+    marginTop: 8,
   },
   datePickerSaveButton: {
     backgroundColor: '#007AFF',

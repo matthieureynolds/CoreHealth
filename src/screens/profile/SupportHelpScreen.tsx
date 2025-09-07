@@ -42,8 +42,8 @@ const SupportHelpScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -51,33 +51,37 @@ const SupportHelpScreen: React.FC = () => {
         <Text style={styles.headerTitle}>Support & Help</Text>
         <View style={{ width: 24 }} />
       </View>
-      {/* Support Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('FAQ')}>
-          <Ionicons name="help-circle-outline" size={22} color="#007AFF" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>FAQs</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={handleContactSupport}>
-          <Ionicons name="chatbubble-outline" size={22} color="#34C759" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Contact Support</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={handleReportBug}>
-          <Ionicons name="bug-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Report a Bug</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cardRow} onPress={handleFeedback}>
-          <Ionicons name="chatbox-outline" size={22} color="#5856D6" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Feedback Submission</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-      </View>
+      
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Support Card */}
+        <View style={[styles.card, styles.cardTightBottom]}>
+          <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
+          <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('FAQ')}>
+            <Ionicons name="help-circle-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>FAQs</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={handleContactSupport}>
+            <Ionicons name="chatbubble-outline" size={22} color="#34C759" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Contact Support</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={handleReportBug}>
+            <Ionicons name="bug-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Report a Bug</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={handleFeedback}>
+            <Ionicons name="chatbox-outline" size={22} color="#5856D6" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Feedback Submission</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+        </View>
 
-      {/* FAQ Modal removed; navigates to full screen */}
-    </ScrollView>
+        {/* FAQ Modal removed; navigates to full screen */}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -86,22 +90,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  scrollView: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#000000',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   card: {
     backgroundColor: '#1C1C1E',
@@ -114,6 +129,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  cardTightBottom: {
+    paddingBottom: 0,
   },
   cardHeader: {
     fontSize: 12,
@@ -128,6 +146,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  tallRow50: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 12,

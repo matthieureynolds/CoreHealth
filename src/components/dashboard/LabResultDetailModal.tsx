@@ -8,6 +8,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 
 interface LabResult {
   id: string;
@@ -165,37 +166,193 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
   const statusColor = getStatusColor(labResult.status);
   const trendLabel = labResult.trend === 'stable' ? 'Stable' : isGoodTrend() ? 'Improving' : 'Worsening';
 
+  // Range indicator for lab results
+  const renderRangeIndicator = () => {
+    const getRangeData = (id: string, value: number) => {
+      switch (id) {
+        case 'total_cholesterol':
+          return {
+            segments: [
+              { label: 'Optimal', range: '<180', color: '#30D158', isBold: false },
+              { label: 'Normal', range: '180-199', color: '#32D74B', isBold: false },
+              { label: 'Borderline', range: '200-239', color: '#FF9F0A', isBold: false },
+              { label: 'High', range: '240+', color: '#FF3B30', isBold: false }
+            ],
+            currentValue: value,
+            currentLabel: value < 180 ? 'Optimal' : value < 200 ? 'Normal' : value < 240 ? 'Borderline' : 'High'
+          };
+        case 'ldl_cholesterol':
+          return {
+            segments: [
+              { label: 'Optimal', range: '<70', color: '#30D158', isBold: false },
+              { label: 'Near Optimal', range: '70-99', color: '#32D74B', isBold: false },
+              { label: 'Borderline', range: '100-129', color: '#FF9F0A', isBold: false },
+              { label: 'High', range: '130+', color: '#FF3B30', isBold: false }
+            ],
+            currentValue: value,
+            currentLabel: value < 70 ? 'Optimal' : value < 100 ? 'Near Optimal' : value < 130 ? 'Borderline' : 'High'
+          };
+        case 'glucose':
+          return {
+            segments: [
+              { label: 'Normal', range: '70-99', color: '#30D158', isBold: false },
+              { label: 'Prediabetes', range: '100-125', color: '#FF9F0A', isBold: false },
+              { label: 'Diabetes', range: '126+', color: '#FF3B30', isBold: false }
+            ],
+            currentValue: value,
+            currentLabel: value < 100 ? 'Normal' : value < 126 ? 'Prediabetes' : 'Diabetes'
+          };
+        case 'creatinine':
+          return {
+            segments: [
+              { label: 'Normal', range: '0.6-1.2', color: '#30D158', isBold: false },
+              { label: 'High', range: '1.3+', color: '#FF3B30', isBold: false }
+            ],
+            currentValue: value,
+            currentLabel: value <= 1.2 ? 'Normal' : 'High'
+          };
+        default:
+          return {
+            segments: [
+              { label: 'Normal', range: 'Normal', color: '#30D158', isBold: false }
+            ],
+            currentValue: value,
+            currentLabel: 'Normal'
+          };
+      }
+    };
+
+    const rangeData = getRangeData(labResult.id, labResult.value);
+    const barWidth = 280;
+    const barHeight = 16;
+    const gap = 2;
+    const totalGaps = (rangeData.segments.length - 1) * gap;
+    const availableWidth = barWidth - totalGaps;
+    const segmentWidth = availableWidth / rangeData.segments.length;
+
+    // Calculate pointer position based on current value
+    let pointerPosition = 0;
+    if (rangeData.segments.length > 1) {
+      const currentSegmentIndex = rangeData.segments.findIndex(segment => 
+        rangeData.currentLabel === segment.label
+      );
+      if (currentSegmentIndex >= 0) {
+        pointerPosition = (currentSegmentIndex * (segmentWidth + gap)) + (segmentWidth / 2);
+      }
+    }
+
+    return (
+      <View style={styles.rangeIndicatorContainer}>
+        <Svg width={barWidth} height={50} style={styles.rangeIndicatorSvg}>
+          {/* Range bar segments */}
+          {rangeData.segments.map((segment, index) => {
+            const x = index * (segmentWidth + gap);
+            return (
+              <Rect
+                key={index}
+                x={x}
+                y={2}
+                width={segmentWidth}
+                height={barHeight}
+                fill={segment.color}
+                rx={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0}
+                ry={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0}
+              />
+            );
+          })}
+          
+          {/* White triangle pointer */}
+          <Polygon
+            points={`${Math.min(Math.max(pointerPosition, 10), barWidth - 10)},0 ${Math.min(Math.max(pointerPosition - 6, 4), barWidth - 16)},15 ${Math.min(Math.max(pointerPosition + 6, 16), barWidth - 4)},15`}
+            fill="#FFFFFF"
+            stroke="#FFFFFF"
+            strokeWidth="1"
+          />
+          
+          {/* Range labels directly in SVG */}
+          {rangeData.segments.map((segment, index) => {
+            const x = index * (segmentWidth + gap);
+            const centerX = x + (segmentWidth / 2);
+            
+            return (
+              <G key={index}>
+                <SvgText
+                  x={centerX}
+                  y={32}
+                  fontSize="10"
+                  fill="#FFFFFF"
+                  fontWeight={segment.isBold ? "bold" : "600"}
+                  textAnchor="middle"
+                >
+                  {segment.label}
+                </SvgText>
+                <SvgText
+                  x={centerX}
+                  y={42}
+                  fontSize="10"
+                  fill="#8E8E93"
+                  textAnchor="middle"
+                >
+                  {segment.range}
+                </SvgText>
+              </G>
+            );
+          })}
+        </Svg>
+        
+        {/* Current score info */}
+        <View style={styles.currentScoreContainer}>
+          <Text style={styles.currentScoreText}>
+            Your result is in the {rangeData.currentLabel} range ({rangeData.currentValue} {labResult.unit}).
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>Lab Result Details</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-        
-        <ScrollView style={styles.modalContent}>
-          {/* Result Summary Card */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryHeader}>
-              <Text style={styles.biomarkerName}>{labResult.name}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}>
-                <Text style={[styles.statusText, { color: statusColor }]}>
-                  {labResult.status.toUpperCase()}
-                </Text>
-              </View>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          {/* Fixed Header */}
+          <View style={styles.modalHeader}>
+            <View style={[styles.modalIconContainer, { backgroundColor: `${statusColor}20` }]}>
+              <Ionicons name="flask" size={32} color={statusColor} />
             </View>
-            
-            <View style={styles.valueContainer}>
-              <Text style={styles.value}>
-                {labResult.value} {labResult.unit}
+            <View style={styles.modalTitleContainer}>
+              <Text style={styles.modalTitle}>{labResult.name}</Text>
+              <Text style={[styles.modalStatus, { color: statusColor }]}>
+                {labResult.value} {labResult.unit} • {labResult.status.toUpperCase()}
               </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={onClose}
+            >
+              <Ionicons name="close" size={24} color="#8E8E93" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Scrollable Content */}
+          <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollContent}>
+            {/* Current Result Card */}
+            <View style={styles.currentResultCard}>
+              <View style={styles.resultHeader}>
+                <Text style={styles.resultValue}>
+                  {labResult.value} {labResult.unit}
+                </Text>
+                <View style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}>
+                  <Text style={[styles.statusText, { color: statusColor }]}>
+                    {labResult.status.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+              
               <View style={styles.trendContainer}>
                 <Ionicons 
                   name={getTrendIcon(labResult.trend)} 
@@ -211,108 +368,124 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
                   {trendLabel}
                 </Text>
               </View>
+              
+              <Text style={styles.lastUpdated}>Last updated: {labResult.lastUpdated}</Text>
             </View>
-            
-            <Text style={styles.lastUpdated}>Last updated: {labResult.lastUpdated}</Text>
-          </View>
 
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What is this test?</Text>
-            <Text style={styles.sectionText}>{biomarkerDetails.description}</Text>
-          </View>
-
-          {/* Ranges */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Reference Ranges</Text>
-            <View style={styles.rangeContainer}>
-              <View style={styles.rangeItem}>
-                <Text style={styles.rangeLabel}>Normal Range:</Text>
-                <Text style={styles.rangeValue}>{biomarkerDetails.normalRange}</Text>
-              </View>
-              <View style={styles.rangeItem}>
-                <Text style={styles.rangeLabel}>Optimal Range:</Text>
-                <Text style={styles.rangeValue}>{biomarkerDetails.optimalRange}</Text>
-              </View>
+            {/* Range Indicator */}
+            <View style={styles.modalSection}>
+              <Text style={styles.sectionTitle}>Range Indicator</Text>
+              {renderRangeIndicator()}
             </View>
-          </View>
 
-          {/* What it means */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What does this mean?</Text>
-            <Text style={styles.sectionText}>{biomarkerDetails.whatItMeans}</Text>
-          </View>
+            {/* What is this test */}
+            <View style={styles.modalSection}>
+              <Text style={styles.sectionTitle}>What is this test?</Text>
+              <Text style={styles.sectionContent}>{biomarkerDetails.description}</Text>
+            </View>
 
-          {/* Recommendations */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recommendations</Text>
-            {biomarkerDetails.recommendations.map((rec, index) => (
-              <View key={index} style={styles.recommendationItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#30D158" />
-                <Text style={styles.recommendationText}>{rec}</Text>
-              </View>
-            ))}
-          </View>
+            {/* What it means */}
+            <View style={styles.modalSection}>
+              <Text style={styles.sectionTitle}>What this means for you</Text>
+              <Text style={styles.sectionContent}>{biomarkerDetails.whatItMeans}</Text>
+            </View>
 
-          {/* Risk Factors */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Risk Factors</Text>
-            {biomarkerDetails.riskFactors.map((factor, index) => (
-              <View key={index} style={styles.riskFactorItem}>
-                <Ionicons name="warning" size={16} color="#FF9F0A" />
-                <Text style={styles.riskFactorText}>{factor}</Text>
-              </View>
-            ))}
-          </View>
+            {/* Recommendations */}
+            <View style={styles.modalSection}>
+              <Text style={styles.sectionTitle}>Recommendations</Text>
+              {biomarkerDetails.recommendations.map((rec, index) => (
+                <View key={index} style={styles.recommendationItem}>
+                  <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+                  <Text style={styles.recommendationText}>{rec}</Text>
+                </View>
+              ))}
+            </View>
 
-          {/* Bottom spacing */}
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+            {/* Risk Factors */}
+            <View style={[styles.modalSection, { borderBottomWidth: 0 }]}>
+              <Text style={styles.sectionTitle}>Risk Factors</Text>
+              {biomarkerDetails.riskFactors.map((factor, index) => (
+                <View key={index} style={styles.riskItem}>
+                  <Ionicons name="warning" size={16} color="#FF9500" />
+                  <Text style={styles.riskText}>{factor}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '90%',
+    minHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2C2C2E',
+  },
+  modalIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  modalTitleContainer: {
+    flex: 1,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginBottom: 4,
   },
-  modalContent: {
+  modalStatus: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalScrollContent: {
     flex: 1,
     padding: 20,
   },
-  summaryCard: {
-    backgroundColor: '#1C1C1E',
+  currentResultCard: {
+    backgroundColor: '#2C2C2E',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
   },
-  summaryHeader: {
+  resultHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  biomarkerName: {
-    fontSize: 24,
+  resultValue: {
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    flex: 1,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -324,21 +497,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
   },
-  valueContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  value: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
   trendContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginBottom: 8,
   },
   trendPercent: {
     fontSize: 14,
@@ -352,11 +515,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
   },
-  section: {
-    backgroundColor: '#1C1C1E',
+  modalSection: {
+    backgroundColor: '#2C2C2E',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3A3A3C',
   },
   sectionTitle: {
     fontSize: 18,
@@ -364,27 +529,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 12,
   },
-  sectionText: {
+  sectionContent: {
     fontSize: 14,
     color: '#EBEBF5',
     lineHeight: 20,
   },
-  rangeContainer: {
-    gap: 12,
+  rangeIndicatorContainer: {
+    alignItems: 'center',
+    marginTop: 8,
   },
-  rangeItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  rangeIndicatorSvg: {
+    marginBottom: 16,
+  },
+  currentScoreContainer: {
     alignItems: 'center',
   },
-  rangeLabel: {
+  currentScoreText: {
     fontSize: 14,
     color: '#8E8E93',
-  },
-  rangeValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    textAlign: 'center',
   },
   recommendationItem: {
     flexDirection: 'row',
@@ -398,20 +561,17 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  riskFactorItem: {
+  riskItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 8,
   },
-  riskFactorText: {
+  riskText: {
     fontSize: 14,
     color: '#EBEBF5',
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
-  },
-  bottomSpacing: {
-    height: 40,
   },
 });
 

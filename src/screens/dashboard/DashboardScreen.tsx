@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  RefreshControl,
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,7 @@ import BiomarkerModal, {
 import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
 import HealthChatModal from '../../components/dashboard/HealthChatModal';
 import LabResultDetailModal from '../../components/dashboard/LabResultDetailModal';
+import TwitterLoadingIndicator from '../../components/common/TwitterLoadingIndicator';
 
 // New redesigned components
 import HeroHealthScore from '../../components/dashboard/HeroHealthScore';
@@ -97,6 +97,14 @@ const DashboardScreen: React.FC = () => {
       console.error('Failed to refresh insights:', error);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  // Add pull-to-refresh functionality
+  const handleScroll = (event: any) => {
+    const { contentOffset } = event.nativeEvent;
+    if (contentOffset.y < -100 && !isRefreshing) {
+      handleRefresh();
     }
   };
 
@@ -211,6 +219,12 @@ const DashboardScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
+      {/* Twitter Loading Indicator */}
+      <TwitterLoadingIndicator 
+        visible={isRefreshing} 
+        text="Refreshing your health data..."
+      />
+      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -224,14 +238,8 @@ const DashboardScreen: React.FC = () => {
       <ScrollView 
         style={styles.scrollContainer} 
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor="#007AFF"
-            colors={['#007AFF']}
-          />
-        }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Hero Health Score */}
         <View style={styles.firstComponent}>

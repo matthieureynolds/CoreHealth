@@ -71,12 +71,10 @@ const EditPhysicalStatsScreen: React.FC = () => {
         ...profile,
         height: Math.round(height * 10) / 10, // Round to 1 decimal place
         weight: Math.round(weight * 10) / 10, // Round to 1 decimal place
-        bloodType: statsData.bloodType,
+        bloodType: statsData.bloodType as "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "unknown",
       });
 
-      Alert.alert('Success', 'Physical stats updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      Alert.alert('Success', 'Physical stats updated successfully');
     } catch (error) {
       console.error('Error updating physical stats:', error);
       Alert.alert('Error', 'Failed to update physical stats. Please try again.');
@@ -190,18 +188,20 @@ const EditPhysicalStatsScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
-            {bloodTypeOptions.map((bloodType) => (
-              <TouchableOpacity
-                key={bloodType}
-                style={styles.bloodTypeOption}
-                onPress={() => handleBloodTypeSelect(bloodType)}
-              >
-                <Text style={styles.bloodTypeText}>{bloodType}</Text>
-                {statsData.bloodType === bloodType && (
-                  <Ionicons name="checkmark" size={20} color="#007AFF" />
-                )}
-              </TouchableOpacity>
-            ))}
+            <ScrollView style={{ maxHeight: '65%' }}>
+              {bloodTypeOptions.map((bloodType) => (
+                <TouchableOpacity
+                  key={bloodType}
+                  style={styles.bloodTypeOption}
+                  onPress={() => handleBloodTypeSelect(bloodType)}
+                >
+                  <Text style={styles.bloodTypeText}>{bloodType}</Text>
+                  {statsData.bloodType === bloodType && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             
             <TouchableOpacity 
               style={styles.cancelButton} 
@@ -226,25 +226,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 24,
+    paddingTop: 80,
+    paddingBottom: 3,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   saveButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: 'transparent',
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   saveButtonDisabled: {
     opacity: 0.5,
@@ -334,7 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderRadius: 16,
     width: '80%',
-    maxHeight: '70%',
+    maxHeight: '75%',
     padding: 20,
     borderWidth: 1,
     borderColor: '#222',
@@ -354,7 +366,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },

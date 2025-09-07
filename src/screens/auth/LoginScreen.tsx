@@ -168,8 +168,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
-                <Ionicons name="logo-google" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.loginButtonText}>Sign in with Google</Text>
+                <Ionicons name="logo-google" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={[styles.loginButtonText, { color: '#FFFFFF' }]}>Sign in with Google</Text>
               </>
             )}
           </TouchableOpacity>
@@ -220,11 +220,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#333',
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#181818',
     height: 56,
     width: '100%',
     maxWidth: 320,
@@ -303,7 +303,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   googleButton: {
-    backgroundColor: '#DB4437',
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -319,7 +321,7 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#333',
   },
   separatorText: {
     marginHorizontal: 12,

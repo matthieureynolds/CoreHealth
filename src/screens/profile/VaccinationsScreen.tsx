@@ -13,7 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
-import { Vaccination } from '../../types';
+import { Vaccination, AttachedFile } from '../../types';
+import * as DocumentPicker from 'expo-document-picker';
+import FileViewerModal from '../../components/common/FileViewerModal';
 
 const VaccinationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -28,6 +30,12 @@ const VaccinationsScreen: React.FC = () => {
   const [location, setLocation] = useState('');
   const [batchNumber, setBatchNumber] = useState('');
   const [notes, setNotes] = useState('');
+  const [editingVaccination, setEditingVaccination] = useState<Vaccination | null>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+  const [fileViewerVisible, setFileViewerVisible] = useState(false);
+  const [currentFileUri, setCurrentFileUri] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [currentFileType, setCurrentFileType] = useState('');
 
   const commonVaccines = [
     'COVID-19', 'Influenza (Flu)', 'Tetanus', 'Diphtheria', 'Pertussis (Whooping Cough)',
@@ -44,21 +52,39 @@ const VaccinationsScreen: React.FC = () => {
       return;
     }
 
-    const newVaccination: Vaccination = {
-      id: Date.now().toString(),
-      name: vaccineName.trim(),
-      date: dateReceived || new Date(),
-      nextDue: nextDueDate || undefined,
-      location: location.trim() || undefined,
-      batchNumber: batchNumber.trim() || undefined,
-      notes: notes.trim() || undefined,
-    };
-
-    const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
-    updateProfile({
-      ...profile,
-      vaccinations: updatedVaccinations,
-    });
+    if (editingVaccination) {
+      const updated: Vaccination = {
+        id: editingVaccination.id,
+        name: vaccineName.trim(),
+        date: dateReceived || new Date(),
+        nextDue: nextDueDate || undefined,
+        location: location.trim() || undefined,
+        batchNumber: batchNumber.trim() || undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedVaccinations = (profile?.vaccinations || []).map(v => v.id === editingVaccination.id ? updated : v);
+      updateProfile({
+        ...profile,
+        vaccinations: updatedVaccinations,
+      });
+    } else {
+      const newVaccination: Vaccination = {
+        id: Date.now().toString(),
+        name: vaccineName.trim(),
+        date: dateReceived || new Date(),
+        nextDue: nextDueDate || undefined,
+        location: location.trim() || undefined,
+        batchNumber: batchNumber.trim() || undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
+      updateProfile({
+        ...profile,
+        vaccinations: updatedVaccinations,
+      });
+    }
 
     setShowAddModal(false);
     setVaccineName('');
@@ -67,6 +93,8 @@ const VaccinationsScreen: React.FC = () => {
     setLocation('');
     setBatchNumber('');
     setNotes('');
+    setEditingVaccination(null);
+    setAttachments([]);
   };
 
   const deleteVaccination = (id: string) => {
@@ -90,6 +118,62 @@ const VaccinationsScreen: React.FC = () => {
     );
   };
 
+  const handleEditVaccination = (v: Vaccination) => {
+    setVaccineName(v.name);
+    setDateReceived(v.date ? new Date(v.date) : new Date());
+    setNextDueDate(v.nextDue ? new Date(v.nextDue) : null);
+    setLocation(v.location || '');
+    setBatchNumber(v.batchNumber || '');
+    setNotes(v.notes || '');
+    setAttachments(v.attachments || []);
+    setEditingVaccination(v);
+    setShowAddModal(true);
+  };
+
+  const openVaccinationOptions = (v: Vaccination) => {
+    Alert.alert(
+      v.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditVaccination(v) },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteVaccination(v.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const newFile: AttachedFile = {
+          uri: asset.uri,
+          name: asset.name || 'attachment',
+          type: asset.mimeType,
+        };
+        setAttachments(prev => [...prev, newFile]);
+      }
+    } catch (e) {
+      console.error('Attachment error', e);
+      Alert.alert('Attachment Error', 'Failed to attach file.');
+    }
+  };
+
+  const removeAttachment = (name: string) => {
+    setAttachments(prev => prev.filter(a => a.name !== name));
+  };
+
+  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+    setCurrentFileUri(fileUri);
+    setCurrentFileName(fileName);
+    setCurrentFileType(fileType || '');
+    setFileViewerVisible(true);
+  };
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString();
   };
@@ -100,17 +184,17 @@ const VaccinationsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header (fixed) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Vaccinations</Text>
+        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+          <Ionicons name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Vaccinations</Text>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
 
         {/* Vaccinations List */}
         <View style={styles.content}>
@@ -143,12 +227,29 @@ const VaccinationsScreen: React.FC = () => {
                       <Text style={styles.batchNumber}>Batch: {vaccination.batchNumber}</Text>
                     )}
                     {vaccination.notes && <Text style={styles.notes}>{vaccination.notes}</Text>}
+                    {!!vaccination.attachments?.length && (
+                      <View style={{ marginTop: 10 }}>
+                        <View style={styles.attachmentsRow}>
+                          {vaccination.attachments.map(file => (
+                            <TouchableOpacity
+                              key={file.uri}
+                              style={styles.attachmentChip}
+                              onPress={() => handleViewFile(file.uri, file.name, file.type)}
+                            >
+                              <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                              <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                   <TouchableOpacity
-                    onPress={() => deleteVaccination(vaccination.id)}
-                    style={styles.deleteButton}
+                    onPress={() => openVaccinationOptions(vaccination)}
+                    style={styles.moreButton}
+                    accessibilityLabel="Edit vaccination"
                   >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -179,7 +280,7 @@ const VaccinationsScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Vaccination</Text>
+            <Text style={styles.modalTitle}>{editingVaccination ? 'Edit Vaccination' : 'Add Vaccination'}</Text>
             <TouchableOpacity onPress={addVaccination}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
@@ -285,6 +386,27 @@ const VaccinationsScreen: React.FC = () => {
                 numberOfLines={3}
               />
             </View>
+
+            {/* Attachments */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Attachments</Text>
+              <View style={styles.attachmentsRow}>
+                {attachments.map(file => (
+                  <View key={file.uri} style={styles.attachmentChip}>
+                    <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                    <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                    <TouchableOpacity onPress={() => removeAttachment(file.name)} style={styles.attachmentRemove}>
+                      <Ionicons name="close" size={14} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
+                  <Ionicons name="attach" size={16} color="#007AFF" />
+                  <Text style={styles.addAttachmentText}>Add file</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
+            </View>
           </ScrollView>
 
           {/* Date Pickers - Now inside the modal */}
@@ -317,6 +439,13 @@ const VaccinationsScreen: React.FC = () => {
           )}
         </View>
       </Modal>
+      <FileViewerModal
+        visible={fileViewerVisible}
+        onClose={() => setFileViewerVisible(false)}
+        fileUri={currentFileUri}
+        fileName={currentFileName}
+        fileType={currentFileType}
+      />
     </View>
   );
 };
@@ -334,34 +463,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   addButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   content: {
     padding: 20,
   },
   vaccinationCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   vaccinationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   vaccinationInfo: {
     flex: 1,
@@ -416,8 +566,59 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
-  deleteButton: {
-    padding: 8,
+  moreButton: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
+  attachmentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginLeft: 6,
+    maxWidth: 140,
+  },
+  attachmentRemove: {
+    marginLeft: 6,
+  },
+  addAttachmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  addAttachmentText: {
+    color: '#007AFF',
+    fontSize: 12,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  attachmentsHelp: {
+    marginTop: 8,
+    color: '#8E8E93',
+    fontSize: 12,
   },
   emptyState: {
     alignItems: 'center',

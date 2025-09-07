@@ -4,12 +4,28 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const TermsOfServiceScreen: React.FC = () => {
+  const navigation = useNavigation();
+  
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
+    <View style={styles.container}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Terms of Service</Text>
+        <View style={{ width: 24 }} />
+      </View>
+      
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
         <Text style={styles.title}>Terms of Service</Text>
         <Text style={styles.lastUpdated}>Last updated: December 2024</Text>
 
@@ -101,8 +117,9 @@ const TermsOfServiceScreen: React.FC = () => {
         </View>
 
         <View style={styles.bottomSpacing} />
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -110,6 +127,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#F2F2F7',
+    borderBottomWidth: 1,
+    borderBottomColor: '#C6C6C8',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   content: {
     padding: 16,
@@ -137,6 +182,7 @@ const styles = StyleSheet.create({
     color: '#3C3C43',
     lineHeight: 24,
     marginBottom: 16,
+    textAlign: 'justify',
   },
   importantNotice: {
     backgroundColor: '#FFF9E6',
@@ -156,6 +202,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#8E7A00',
     lineHeight: 20,
+    textAlign: 'justify',
   },
   bottomSpacing: {
     height: 50,

@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettings } from '../../context/SettingsContext';
+import { formatShortDateBySetting } from '../../utils/dateFormat';
 import { JetLagPlanningEvent } from '../../types';
 
 interface JetLagPlanningCardProps {
@@ -18,12 +20,27 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
   onPress 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { settings } = useSettings();
+
+  const formatDisplayTime = (hhmm: string): string => {
+    // hhmm like '21:30'
+    try {
+      const [h, m] = hhmm.split(':');
+      const d = new Date();
+      d.setHours(parseInt(h, 10));
+      d.setMinutes(parseInt(m, 10));
+      return d.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: settings?.general?.timeFormat === '12h'
+      });
+    } catch {
+      return hhmm;
+    }
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { 
-      day: '2-digit',
-      month: '2-digit'
-    });
+    return formatShortDateBySetting(date, settings?.general?.dateFormat || 'DD/MM/YYYY');
   };
 
   const getDaysUntilDeparture = () => {
@@ -119,7 +136,7 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
               <View key={idx} style={styles.scheduleRow}>
                 <View style={styles.scheduleLeft}>
                   <Text style={styles.scheduleDay}>{dayLabel}:</Text>
-                  <Text style={styles.scheduleTime}>{day.bedtime} - {day.wakeTime}</Text>
+                  <Text style={styles.scheduleTime}>{formatDisplayTime(day.bedtime)} - {formatDisplayTime(day.wakeTime)}</Text>
                 </View>
                 <Text style={styles.scheduleAdjustment}>
                   {day.adjustment > 0 ? '+' : ''}{day.adjustment}h

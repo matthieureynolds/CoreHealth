@@ -200,6 +200,13 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
                   <Text style={styles.selectionSubtitle}>Select from your device</Text>
                 </TouchableOpacity>
               </View>
+
+              <View style={styles.scanHints}>
+                <Ionicons name="information-circle-outline" size={16} color="#8E8E93" />
+                <Text style={styles.scanHintText}>
+                  Tips: align card edges, avoid glare, use good lighting, lay the card on a flat surface.
+                </Text>
+              </View>
             </View>
           )}
 
@@ -398,6 +405,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  scanHints: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 12,
+  },
+  scanHintText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#8E8E93',
+    lineHeight: 18,
   },
   processingSection: {
     alignItems: 'center',

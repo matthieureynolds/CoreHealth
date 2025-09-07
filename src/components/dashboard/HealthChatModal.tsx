@@ -13,9 +13,11 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettings } from '../../context/SettingsContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthData } from '../../context/HealthDataContext';
 import { HealthAssistantService, HealthChatMessage } from '../../services/healthAssistantService';
+import { formatTimeBySetting } from '../../utils/dateFormat';
 
 interface HealthChatModalProps {
   visible: boolean;
@@ -24,6 +26,7 @@ interface HealthChatModalProps {
 
 const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) => {
   const { profile, biomarkers, healthScore } = useHealthData();
+  const { settings } = useSettings();
   const [messages, setMessages] = useState<HealthChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -177,7 +180,7 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
               {message.content}
             </Text>
             <Text style={[styles.messageTime, isUser ? styles.userMessageTime : styles.assistantMessageTime]}>
-              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {formatTimeBySetting(message.timestamp, settings?.general?.timeFormat === '12h' ? '12h' : '24h')}
             </Text>
           </View>
         </View>

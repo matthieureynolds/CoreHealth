@@ -11,8 +11,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Rect, Polygon, Text as SvgText } from 'react-native-svg';
+import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import JetLagPlanningCard from './JetLagPlanningCard';
+import { useSettings } from '../../context/SettingsContext';
+import { convertDistanceLabel } from '../../utils/units';
 
 interface EnvironmentalMetric {
   id: string;
@@ -38,6 +40,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   jetLagPlanningEvents = [],
   onJetLagEventPress
 }) => {
+  const { settings } = useSettings();
   // Mock environmental data - in real app this would come from APIs
   const environmentalMetrics: EnvironmentalMetric[] = [
     {
@@ -109,7 +112,10 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const closestFacilities = [
     { id: 'pharmacy1', name: 'City Pharmacy', type: 'Pharmacy', distance: '0.4 mi', travelTime: '4 mins' },
     { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi', travelTime: '8 mins' },
-  ];
+  ].map(f => ({
+    ...f,
+    distance: convertDistanceLabel(f.distance, settings?.general?.units === 'imperial' ? 'imperial' : 'metric')
+  }));
 
   const renderEnvironmentalMetric = (metric: EnvironmentalMetric) => {
     const statusColor = getStatusColor(metric.status);
@@ -425,13 +431,13 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
             const centerX = x + (segmentWidth / 2);
             
             return (
-              <g key={index}>
+              <G key={index}>
                 <SvgText
                   x={centerX}
                   y={32}
                   fontSize="10"
                   fill="#FFFFFF"
-                  fontWeight={segment.isBold ? "bold" : "600"}
+                  fontWeight={(segment as any).isBold ? "bold" : "600"}
                   textAnchor="middle"
                 >
                   {segment.label}
@@ -445,7 +451,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
                 >
                   {segment.range}
                 </SvgText>
-              </g>
+              </G>
             );
           })}
         </Svg>

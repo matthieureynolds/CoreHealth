@@ -11,7 +11,7 @@ import {
   StatusBar,
   Linking,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -174,6 +174,18 @@ const PrimaryDoctorScreen: React.FC = () => {
     }
   };
 
+  const openDoctorOptions = (doctor: Doctor) => {
+    Alert.alert(
+      doctor.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEdit(doctor) },
+        { text: 'Delete', style: 'destructive', onPress: () => handleDelete(doctor.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
@@ -189,7 +201,6 @@ const PrimaryDoctorScreen: React.FC = () => {
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Doctors</Text>
-            <Text style={styles.headerSubtitle}>Manage your doctors</Text>
           </View>
         </View>
       </View>
@@ -221,31 +232,43 @@ const PrimaryDoctorScreen: React.FC = () => {
             {doctors.map((doctor) => (
               <View key={doctor.id} style={styles.doctorCard}>
                 <View style={styles.doctorHeader}>
-                  <View style={styles.doctorIcon}>
-                    <Ionicons name="medical-outline" size={24} color="#FFFFFF" />
+                  <View style={styles.headerLeft}>
+                    <View style={styles.doctorIcon}>
+                      <Ionicons name="medical-outline" size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.doctorInfo}>
+                      <Text style={styles.doctorName}>{doctor.name}</Text>
+                      <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
+                      {!!doctor.office && (
+                        <Text style={styles.doctorOffice}>{doctor.office}</Text>
+                      )}
+                    </View>
                   </View>
-                  <View style={styles.doctorInfo}>
-                    <Text style={styles.doctorName}>{doctor.name}</Text>
-                    <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
-                  </View>
+                  <TouchableOpacity 
+                    style={styles.moreButton}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    onPress={() => openDoctorOptions(doctor)}
+                    accessibilityLabel="Edit doctor"
+                  >
+                    <Feather name="edit-2" size={18} color="#007AFF" />
+                  </TouchableOpacity>
                 </View>
 
                 <View style={styles.contactActions}>
                   <TouchableOpacity 
-                    style={styles.actionButton}
+                    style={styles.actionChipPrimary}
                     onPress={() => handleCall(doctor)}
                   >
-                    <Ionicons name="call-outline" size={20} color="#4CD964" />
-                    <Text style={styles.actionText}>Call</Text>
+                    <Ionicons name="call-outline" size={18} color="#007AFF" />
+                    <Text style={styles.actionChipPrimaryText}>Call</Text>
                   </TouchableOpacity>
-                  
                   {doctor.email && (
                     <TouchableOpacity 
-                      style={styles.actionButton}
+                      style={styles.actionChip}
                       onPress={() => handleEmail(doctor)}
                     >
-                      <Ionicons name="mail-outline" size={20} color="#007AFF" />
-                      <Text style={styles.actionText}>Email</Text>
+                      <Ionicons name="mail-outline" size={18} color="#007AFF" />
+                      <Text style={styles.actionChipText}>Email</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -255,26 +278,22 @@ const PrimaryDoctorScreen: React.FC = () => {
                     <Ionicons name="call-outline" size={16} color="#8E8E93" />
                     <Text style={styles.detailText}>{doctor.phone}</Text>
                   </View>
-                  
                   {doctor.email && (
                     <View style={styles.detailRow}>
                       <Ionicons name="mail-outline" size={16} color="#8E8E93" />
                       <Text style={styles.detailText}>{doctor.email}</Text>
                     </View>
                   )}
-                  
                   <View style={styles.detailRow}>
                     <Ionicons name="business-outline" size={16} color="#8E8E93" />
                     <Text style={styles.detailText}>{doctor.office}</Text>
                   </View>
-                  
                   {doctor.address && (
                     <View style={styles.detailRow}>
                       <Ionicons name="location-outline" size={16} color="#8E8E93" />
                       <Text style={styles.detailText}>{doctor.address}</Text>
                     </View>
                   )}
-                  
                   {doctor.notes && (
                     <View style={styles.detailRow}>
                       <Ionicons name="document-text-outline" size={16} color="#8E8E93" />
@@ -283,23 +302,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                   )}
                 </View>
 
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={styles.editButton}
-                    onPress={() => handleEdit(doctor)}
-                  >
-                    <Ionicons name="create-outline" size={20} color="#007AFF" />
-                    <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(doctor.id)}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
+                {/* Bottom action buttons removed as requested */}
               </View>
             ))}
             
@@ -424,9 +427,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingTop: 32,
-    paddingBottom: 16,
-    backgroundColor: '#1C1C1E',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
   },
   headerContent: {
     flexDirection: 'row',
@@ -435,15 +441,23 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    marginRight: 12,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerText: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -496,18 +510,31 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#0A84FF33',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   doctorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   doctorIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#0A84FF14',
+    borderWidth: 1,
+    borderColor: '#0A84FF33',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -525,25 +552,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
   },
+  doctorOffice: {
+    fontSize: 13,
+    color: '#A0A0A0',
+    marginTop: 2,
+  },
+  moreButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderWidth: 0,
+    borderColor: 'transparent',
+  },
   contactActions: {
     flexDirection: 'row',
     marginBottom: 20,
     gap: 12,
   },
-  actionButton: {
+  actionChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
     flex: 1,
   },
-  actionText: {
+  actionChipText: {
+    color: '#007AFF',
     fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginLeft: 6,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  actionChipPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  actionChipPrimaryText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   detailsContainer: {
     marginBottom: 20,
@@ -559,42 +620,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-  },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007AFF',
-    marginLeft: 6,
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FF3B30',
-    marginLeft: 6,
-  },
+  // Bottom action buttons removed
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',

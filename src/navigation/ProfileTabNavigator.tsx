@@ -33,8 +33,7 @@ import AboutScreen from '../screens/profile/AboutScreen';
 // New Settings Screens
 import AccountSettingsScreen from '../screens/profile/AccountSettingsScreen';
 import EmailPasswordScreen from '../screens/profile/EmailPasswordScreen';
-import ConnectedAccountsScreen from '../screens/profile/ConnectedAccountsScreen';
-import TwoFactorAuthScreen from '../screens/profile/TwoFactorAuthScreen';
+// Removed: ConnectedAccountsScreen, TwoFactorAuthScreen
 import ConnectedDevicesScreen from '../screens/profile/ConnectedDevicesScreen';
 import DisplayFormatScreen from '../screens/profile/DisplayFormatScreen';
 import NotificationsScreen from '../screens/profile/NotificationsScreen';
@@ -50,45 +49,19 @@ import DataRetentionPolicyScreen from '../screens/profile/DataRetentionPolicyScr
 import SupportHelpScreen from '../screens/profile/SupportHelpScreen';
 import FAQScreen from '../screens/profile/FAQScreen';
 import AppInfoScreen from '../screens/profile/AppInfoScreen';
-import LoginSecurityScreen from '../screens/profile/LoginSecurityScreen';
-import IdentityVerificationModal from '../screens/profile/modals/IdentityVerificationModal';
-import NewEmailModal from '../screens/profile/modals/NewEmailModal';
-import CheckEmailScreen from '../screens/profile/CheckEmailScreen';
-import ProfilePicturePicker from '../components/ProfilePicturePicker';
+// Removed unused imports for non-existent screens/modals
+// import ProfilePicturePicker from '../components/ProfilePicturePicker';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator<ProfileTabParamList>();
 
 // Tab Navigator for Profile and Settings
 const ProfileTabsNavigator: React.FC = () => {
-  const { user, updateUserPhoto } = useAuth();
-
-  const handlePhotoSelected = (photoURI: string) => {
-    // Update the user's photo in the auth context
-    if (updateUserPhoto) {
-      updateUserPhoto(photoURI);
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#111' }} edges={['top']}>
-      {/* User Profile Section */}
-      <View style={styles.profileHeader}>
-        <ProfilePicturePicker
-          currentPhotoURL={user?.photoURL}
-          onPhotoSelected={handlePhotoSelected}
-          size={120}
-          userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
-        />
-        <Text style={styles.profileName}>
-          {user?.firstName && user?.surname 
-            ? `${user.firstName} ${user.surname}` 
-            : user?.displayName || 'User'}
-        </Text>
-        <Text style={styles.profileUsername}>
-          {user?.preferredName || user?.firstName || 'matthieu.reynolds_04'}
-        </Text>
-      </View>
+      {/* Profile header moved into ProfileDetailsScreen to enable scrolling */}
 
       {/* Tabs */}
       <Tab.Navigator
@@ -105,7 +78,7 @@ const ProfileTabsNavigator: React.FC = () => {
             borderBottomWidth: 0,
           },
           tabBarLabelStyle: {
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: '600',
             textTransform: 'none',
           },
@@ -117,7 +90,7 @@ const ProfileTabsNavigator: React.FC = () => {
           options={{
             title: 'Profile',
             tabBarIcon: ({ color }: { color: string }) => (
-              <Ionicons name="person" size={20} color={color} />
+              <Ionicons name="person" size={18} color={color} />
             ),
           }}
         />
@@ -127,7 +100,7 @@ const ProfileTabsNavigator: React.FC = () => {
           options={{
             title: 'Settings',
             tabBarIcon: ({ color }: { color: string }) => (
-              <Ionicons name="settings" size={20} color={color} />
+              <Ionicons name="settings" size={18} color={color} />
             ),
           }}
         />
@@ -334,22 +307,7 @@ const ProfileTabNavigator: React.FC = () => {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="ConnectedAccounts"
-        component={ConnectedAccountsScreen}
-        options={{
-          title: 'Connected Accounts',
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="TwoFactorAuth"
-        component={TwoFactorAuthScreen}
-        options={{
-          title: 'Two-Factor Authentication',
-          headerShown: false,
-        }}
-      />
+      {/* Removed ConnectedAccounts and TwoFactorAuth screens */}
       <Stack.Screen
         name="ConnectedDevices"
         component={ConnectedDevicesScreen}
@@ -439,7 +397,8 @@ export default ProfileTabNavigator;
 const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
-    paddingVertical: 30,
+    paddingTop: 20,
+    paddingBottom: 10,
     paddingHorizontal: 20,
     backgroundColor: '#111',
   },
@@ -466,6 +425,6 @@ const styles = StyleSheet.create({
   profileUsername: {
     fontSize: 16,
     color: '#888',
-    marginBottom: 16,
+    marginBottom: 2,
   },
 }); 

@@ -75,10 +75,7 @@ const DisplayFormatScreen: React.FC = () => {
     { value: '24h', label: '24-Hour', description: '13:30' },
   ];
 
-  const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-  ];
+  // Theme is fixed to Dark; no options rendered
 
   const languageOptions = [
     { value: 'en', label: 'English' },
@@ -95,7 +92,7 @@ const DisplayFormatScreen: React.FC = () => {
 
   const getCurrentValue = (type: string) => {
     switch (type) {
-      case 'theme': return settings.general.theme === 'dark' ? 'Dark' : 'Light';
+      case 'theme': return 'Dark';
       case 'units': return unitsOptions.find(opt => opt.value === selectedUnits)?.label || '';
       case 'dateFormat': return dateFormatOptions.find(opt => opt.value === selectedDateFormat)?.label || '';
       case 'timeFormat': return timeFormatOptions.find(opt => opt.value === selectedTimeFormat)?.label || '';
@@ -141,7 +138,6 @@ const DisplayFormatScreen: React.FC = () => {
 
   const getOptions = (type: string) => {
     switch (type) {
-      case 'theme': return themeOptions;
       case 'units': return unitsOptions;
       case 'dateFormat': return dateFormatOptions;
       case 'timeFormat': return timeFormatOptions;
@@ -151,15 +147,6 @@ const DisplayFormatScreen: React.FC = () => {
   };
 
   const formatItems = [
-    {
-      title: 'Theme',
-      subtitle: 'Light or Dark appearance',
-      icon: 'color-palette-outline',
-      type: 'theme',
-      value: getCurrentValue('theme'),
-      description: '',
-      color: '#8E44AD',
-    },
     {
       title: 'Units',
       subtitle: 'Choose your preferred measurement system',
@@ -199,8 +186,8 @@ const DisplayFormatScreen: React.FC = () => {
   ];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -208,10 +195,21 @@ const DisplayFormatScreen: React.FC = () => {
         <Text style={styles.headerTitle}>Display & Format</Text>
         <View style={{ width: 24 }} />
       </View>
-      <View style={styles.card}>
+
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>DISPLAY & FORMAT</Text>
         {formatItems.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.cardRow} onPress={() => setShowPicker(item.type)}>
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.cardRow,
+              styles.tallRow50,
+              index === formatItems.length - 1 ? styles.lastRow : null,
+            ]}
+            onPress={() => setShowPicker(item.type)}
+          >
             <Ionicons name={item.icon as any} size={22} color={item.color as any} style={styles.cardIcon} />
             <Text style={styles.cardLabel}>{item.title}</Text>
             <Text style={styles.cardValue}>{item.value}</Text>
@@ -242,7 +240,7 @@ const DisplayFormatScreen: React.FC = () => {
           </View>
 
           <ScrollView style={styles.modalContent}>
-            {showPicker && getOptions(showPicker).map((option, index) => (
+            {showPicker && showPicker !== 'theme' && getOptions(showPicker).map((option, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.optionItem}
@@ -266,7 +264,8 @@ const DisplayFormatScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -275,22 +274,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  scrollView: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#000000',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   card: {
     backgroundColor: '#1C1C1E',
@@ -303,6 +313,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  cardTightBottom: {
+    paddingBottom: 0,
   },
   cardHeader: {
     fontSize: 12,
@@ -317,6 +330,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  tallRow50: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 12,

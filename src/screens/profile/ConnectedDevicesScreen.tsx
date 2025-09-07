@@ -95,7 +95,7 @@ const ConnectedDevicesScreen: React.FC = () => {
     {
       id: 'withings-bp',
       name: 'Withings® BPM Connect',
-      logo: require('../../../assets/assets/device-logos/WithingsBPMConnect .png'),
+      logo: require('../../../assets/assets/device-logos/WithingsBPM2.png'),
       color: '#FF3B30',
       description: 'Systolic, diastolic, heart rate',
     },
@@ -137,7 +137,7 @@ const ConnectedDevicesScreen: React.FC = () => {
     {
       id: 'zoe',
       name: 'ZOE™',
-      logo: require('../../../assets/assets/device-logos/ZOE.png'),
+      logo: require('../../../assets/assets/device-logos/ZOE2.jpg'),
       color: '#FF3B30',
       description: 'Nutrition & gut health insights',
     },
@@ -237,7 +237,7 @@ const ConnectedDevicesScreen: React.FC = () => {
           <Image 
             source={device.logo} 
             style={getLogoStyle(device.name)}
-            resizeMode="contain"
+            resizeMode={device.name === 'ZOE™' ? 'cover' : 'contain'}
           />
         </View>
       );
@@ -246,16 +246,17 @@ const ConnectedDevicesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+      {/* Fixed Header */}
       <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Connected Devices</Text>
-          <View style={{ width: 24 }} />
+        <View style={{ width: 24 }} />
       </View>
 
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
           {/* Currently Connected Section */}
@@ -275,10 +276,11 @@ const ConnectedDevicesScreen: React.FC = () => {
           </View>
         </View>
               <TouchableOpacity
-                    style={styles.disconnectButton}
-                    onPress={() => handleDisconnectDevice(device.id, device.name)}
+                style={styles.disconnectButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                onPress={() => handleDisconnectDevice(device.id, device.name)}
               >
-                    <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                <Ionicons name="close" size={18} color="#FF3B30" />
               </TouchableOpacity>
                 </View>
               ))}
@@ -292,10 +294,13 @@ const ConnectedDevicesScreen: React.FC = () => {
           )}
 
           {/* Available to Connect Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, styles.lastSection]}>
             <Text style={styles.sectionTitle}>Available to Connect</Text>
-            {filteredAvailableDevices.map((device) => (
-              <View key={device.id} style={styles.deviceCard}>
+            {filteredAvailableDevices.map((device, index) => (
+              <View key={device.id} style={[
+                styles.deviceCard,
+                index === filteredAvailableDevices.length - 1 ? styles.lastDeviceCard : null,
+              ]}>
                 <View style={styles.deviceInfo}>
                   <View style={[styles.deviceLogo, { backgroundColor: device.color + '20' }]}>
                     {renderDeviceLogo(device)}
@@ -316,6 +321,9 @@ const ConnectedDevicesScreen: React.FC = () => {
         </View>
             ))}
           </View>
+
+          {/* Bottom spacing */}
+          <View style={styles.bottomSpacing} />
         </View>
       </ScrollView>
     </View>
@@ -331,28 +339,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 0,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -392,6 +409,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   deviceLogoImage: {
     width: '100%',
@@ -400,15 +420,17 @@ const styles = StyleSheet.create({
   },
   // Specific styling for each device logo
   deviceLogoImageZoe: {
-    width: '60%',
-    height: '60%',
+    width: '100%',
+    height: '100%',
     alignSelf: 'center',
+    transform: [{ scale: 1.25 }],
   },
   deviceLogoImageApple: {
-    width: '80%',
-    height: '80%',
+    width: '100%',
+    height: '100%',
     alignSelf: 'center',
     marginTop: 0,
+    transform: [{ scale: 1.4 }],
   },
   deviceLogoImageUScan: {
     width: '75%',
@@ -426,9 +448,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   deviceLogoImageBPMConnect: {
-    width: '80%',
-    height: '80%',
+    width: '100%',
+    height: '100%',
     alignSelf: 'center',
+    transform: [{ scale: 1.6 }],
   },
   deviceDetails: {
     flex: 1,
@@ -455,16 +478,18 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   disconnectButton: {
-    padding: 8,
+    padding: 0,
   },
   connectButtonSmall: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2C2C2E',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   connectButtonSmallText: {
-    color: '#fff',
+    color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -485,6 +510,15 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  bottomSpacing: {
+    height: 0,
+  },
+  lastSection: {
+    marginBottom: 0,
+  },
+  lastDeviceCard: {
+    marginBottom: 20,
   },
 });
 

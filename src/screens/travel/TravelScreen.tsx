@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useHealthData } from '../../context/HealthDataContext';
+import { useSettings } from '../../context/SettingsContext';
 
 interface Trip {
   id: string;
@@ -67,6 +68,19 @@ const popularCities = [
 ];
 
 const TravelScreen: React.FC = () => {
+  const { settings } = useSettings();
+
+  const is12h = settings?.general?.timeFormat === '12h';
+  const formatTripTime = (hhmm: string): string => {
+    if (is12h) {
+      const [h, m] = hhmm.split(':');
+      const d = new Date();
+      d.setHours(parseInt(h, 10));
+      d.setMinutes(parseInt(m, 10));
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    return hhmm;
+  };
   const [searchLocation, setSearchLocation] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -1185,11 +1199,11 @@ const TravelScreen: React.FC = () => {
                           <View style={styles.sleepSchedulePreview}>
                             <View style={styles.sleepScheduleRow}>
                               <Text style={styles.sleepScheduleDay}>Day 1</Text>
-                              <Text style={styles.sleepScheduleTime}>22:00 → 21:00</Text>
+                              <Text style={styles.sleepScheduleTime}>{formatTripTime('22:00')} → {formatTripTime('21:00')}</Text>
                             </View>
                             <View style={styles.sleepScheduleRow}>
                               <Text style={styles.sleepScheduleDay}>Day 2</Text>
-                              <Text style={styles.sleepScheduleTime}>21:00 → 20:00</Text>
+                              <Text style={styles.sleepScheduleTime}>{formatTripTime('21:00')} → {formatTripTime('20:00')}</Text>
                             </View>
                           </View>
                         </View>
@@ -1267,11 +1281,11 @@ const TravelScreen: React.FC = () => {
                                 <View style={styles.sleepSchedulePreview}>
                                   <View style={styles.sleepScheduleRow}>
                                     <Text style={styles.sleepScheduleDay}>Day 1</Text>
-                                    <Text style={styles.sleepScheduleTime}>22:00 → 23:00</Text>
+                                    <Text style={styles.sleepScheduleTime}>{formatTripTime('22:00')} → {formatTripTime('23:00')}</Text>
                                   </View>
                                   <View style={styles.sleepScheduleRow}>
                                     <Text style={styles.sleepScheduleDay}>Day 2</Text>
-                                    <Text style={styles.sleepScheduleTime}>23:00 → 00:00</Text>
+                                    <Text style={styles.sleepScheduleTime}>{formatTripTime('23:00')} → {formatTripTime('00:00')}</Text>
                                   </View>
                                 </View>
                               </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,217 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+
+type EmailFormProps = {
+  emailCurrentPassword: string;
+  setEmailCurrentPassword: (text: string) => void;
+  newEmail: string;
+  setNewEmail: (text: string) => void;
+  showEmailCurrentPassword: boolean;
+  toggleEmailPasswordVisibility: () => void;
+  isLoading: boolean;
+  handleUpdateEmail: () => void;
+  setIsEditingEmail: (value: boolean) => void;
+};
+
+const EmailForm: React.FC<EmailFormProps> = React.memo(({
+  emailCurrentPassword,
+  setEmailCurrentPassword,
+  newEmail,
+  setNewEmail,
+  showEmailCurrentPassword,
+  toggleEmailPasswordVisibility,
+  isLoading,
+  handleUpdateEmail,
+  setIsEditingEmail,
+}) => (
+  <View style={styles.editForm}>
+    <Text style={[styles.fieldLabel, styles.firstFieldLabel]}>Current Password *</Text>
+    <View style={styles.inputContainer}>
+      <TextInput
+        style={styles.textInput}
+        value={emailCurrentPassword}
+        onChangeText={setEmailCurrentPassword}
+        placeholder="Enter current password"
+        placeholderTextColor="#999"
+        secureTextEntry={!showEmailCurrentPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        blurOnSubmit={false}
+      />
+      <TouchableOpacity 
+        style={styles.eyeButton} 
+        onPress={toggleEmailPasswordVisibility}
+      >
+        <Ionicons 
+          name={showEmailCurrentPassword ? "eye-off" : "eye"} 
+          size={20} 
+          color="#666" 
+        />
+      </TouchableOpacity>
+    </View>
+
+    <Text style={styles.fieldLabel}>New Email Address *</Text>
+    <TextInput
+      style={styles.textInput}
+      value={newEmail}
+      onChangeText={setNewEmail}
+      placeholder="Enter new email address"
+      placeholderTextColor="#999"
+      keyboardType="email-address"
+      autoCapitalize="none"
+      autoCorrect={false}
+      spellCheck={false}
+      blurOnSubmit={false}
+    />
+
+    <View style={styles.buttonRow}>
+      <TouchableOpacity
+        style={[styles.updateButton, isLoading && styles.disabledButton]}
+        onPress={handleUpdateEmail}
+        disabled={isLoading}
+      >
+        <Text style={styles.updateButtonText}>
+          {isLoading ? 'Updating...' : 'Update Email'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+));
+
+type PasswordFormProps = {
+  passwordCurrentPassword: string;
+  setPasswordCurrentPassword: (text: string) => void;
+  newPassword: string;
+  setNewPassword: (text: string) => void;
+  confirmPassword: string;
+  setConfirmPassword: (text: string) => void;
+  showPasswordCurrentPassword: boolean;
+  togglePasswordCurrentVisibility: () => void;
+  showNewPassword: boolean;
+  toggleNewPasswordVisibility: () => void;
+  showConfirmPassword: boolean;
+  toggleConfirmPasswordVisibility: () => void;
+  isLoading: boolean;
+  handleUpdatePassword: () => void;
+  setIsEditingPassword: (value: boolean) => void;
+};
+
+const PasswordForm: React.FC<PasswordFormProps> = React.memo(({
+  passwordCurrentPassword,
+  setPasswordCurrentPassword,
+  newPassword,
+  setNewPassword,
+  confirmPassword,
+  setConfirmPassword,
+  showPasswordCurrentPassword,
+  togglePasswordCurrentVisibility,
+  showNewPassword,
+  toggleNewPasswordVisibility,
+  showConfirmPassword,
+  toggleConfirmPasswordVisibility,
+  isLoading,
+  handleUpdatePassword,
+  setIsEditingPassword,
+}) => (
+  <View style={styles.editForm}>
+    <Text style={[styles.fieldLabel, styles.firstFieldLabel]}>Current Password *</Text>
+    <View style={styles.inputContainer}>
+      <TextInput
+        style={styles.textInput}
+        value={passwordCurrentPassword}
+        onChangeText={setPasswordCurrentPassword}
+        placeholder="Enter current password"
+        placeholderTextColor="#999"
+        secureTextEntry={!showPasswordCurrentPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        blurOnSubmit={false}
+      />
+      <TouchableOpacity 
+        style={styles.eyeButton} 
+        onPress={togglePasswordCurrentVisibility}
+      >
+        <Ionicons 
+          name={showPasswordCurrentPassword ? "eye-off" : "eye"} 
+          size={20} 
+          color="#666" 
+        />
+      </TouchableOpacity>
+    </View>
+
+    <Text style={styles.fieldLabel}>New Password *</Text>
+    <View style={styles.inputContainer}>
+      <TextInput
+        style={styles.textInput}
+        value={newPassword}
+        onChangeText={setNewPassword}
+        placeholder="Enter new password"
+        placeholderTextColor="#999"
+        secureTextEntry={!showNewPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        blurOnSubmit={false}
+      />
+      <TouchableOpacity 
+        style={styles.eyeButton} 
+        onPress={toggleNewPasswordVisibility}
+      >
+        <Ionicons 
+          name={showNewPassword ? "eye-off" : "eye"} 
+          size={20} 
+          color="#666" 
+        />
+      </TouchableOpacity>
+    </View>
+
+    <Text style={styles.fieldLabel}>Confirm New Password *</Text>
+    <View style={styles.inputContainer}>
+      <TextInput
+        style={styles.textInput}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        placeholder="Confirm new password"
+        placeholderTextColor="#999"
+        secureTextEntry={!showConfirmPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        blurOnSubmit={false}
+      />
+      <TouchableOpacity 
+        style={styles.eyeButton} 
+        onPress={toggleConfirmPasswordVisibility}
+      >
+        <Ionicons 
+          name={showConfirmPassword ? "eye-off" : "eye"} 
+          size={20} 
+          color="#666" 
+        />
+      </TouchableOpacity>
+    </View>
+
+    <View style={styles.buttonRow}>
+      <TouchableOpacity
+        style={[styles.updateButton, isLoading && styles.disabledButton]}
+        onPress={handleUpdatePassword}
+        disabled={isLoading}
+      >
+        <Text style={styles.updateButtonText}>
+          {isLoading ? 'Updating...' : 'Update Password'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+));
 
 type EmailPasswordScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
@@ -22,17 +228,54 @@ const EmailPasswordScreen: React.FC = () => {
   const navigation = useNavigation<EmailPasswordScreenNavigationProp>();
   const { user, updateEmail, updatePassword } = useAuth();
   
-  const [currentPassword, setCurrentPassword] = useState('');
+  // Email editing state
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [emailCurrentPassword, setEmailCurrentPassword] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [showEmailCurrentPassword, setShowEmailCurrentPassword] = useState(false);
+  
+  // Password editing state
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [passwordCurrentPassword, setPasswordCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showPasswordCurrentPassword, setShowPasswordCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(false);
 
+  // Memoized toggle functions to prevent unnecessary re-renders
+  const toggleEmailPasswordVisibility = useCallback(() => {
+    setShowEmailCurrentPassword(prev => !prev);
+  }, []);
+
+  const togglePasswordCurrentVisibility = useCallback(() => {
+    setShowPasswordCurrentPassword(prev => !prev);
+  }, []);
+
+  const toggleNewPasswordVisibility = useCallback(() => {
+    setShowNewPassword(prev => !prev);
+  }, []);
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
+
+  const toggleEmailEditing = useCallback(() => {
+    setIsEditingEmail(prev => !prev);
+  }, []);
+
+  const togglePasswordEditing = useCallback(() => {
+    setIsEditingPassword(prev => !prev);
+  }, []);
+
   const handleUpdateEmail = async () => {
-    if (!currentPassword.trim()) {
+    if (!user?.email) {
+      Alert.alert('Sign in required', 'Please sign in again to change your email.');
+      return;
+    }
+    if (!emailCurrentPassword.trim()) {
       Alert.alert('Error', 'Please enter your current password');
       return;
     }
@@ -51,19 +294,24 @@ const EmailPasswordScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await updateEmail(newEmail, currentPassword);
+      await updateEmail(newEmail, emailCurrentPassword);
       Alert.alert('Success', 'Email updated successfully');
       setNewEmail('');
-      setCurrentPassword('');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update email. Please check your current password and try again.');
+      setEmailCurrentPassword('');
+      setIsEditingEmail(false);
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to update email. Please check your current password and try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleUpdatePassword = async () => {
-    if (!currentPassword.trim()) {
+    if (!user?.email) {
+      Alert.alert('Sign in required', 'Please sign in again to change your password.');
+      return;
+    }
+    if (!passwordCurrentPassword.trim()) {
       Alert.alert('Error', 'Please enter your current password');
       return;
     }
@@ -78,51 +326,42 @@ const EmailPasswordScreen: React.FC = () => {
       return;
     }
 
+    // Strong password: at least one lowercase, one uppercase, one number, and one symbol
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}\[\]|:;"'<>.,?\/`~]).{8,}$/;
+    if (!strongPasswordRegex.test(newPassword)) {
+      Alert.alert(
+        'Weak password',
+        'Use at least 8 characters including 1 uppercase, 1 lowercase, 1 number, and 1 symbol.'
+      );
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       Alert.alert('Error', 'New passwords do not match');
       return;
     }
 
+    if (newPassword === passwordCurrentPassword) {
+      Alert.alert('Error', 'New password must be different from current password');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await updatePassword(currentPassword, newPassword);
+      await updatePassword(passwordCurrentPassword, newPassword);
       Alert.alert('Success', 'Password updated successfully');
-      setCurrentPassword('');
+      setPasswordCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update password. Please check your current password and try again.');
+      setIsEditingPassword(false);
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to update password. Please check your current password and try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const PasswordInput = ({ 
-    value, 
-    onChangeText, 
-    placeholder, 
-    showPassword, 
-    onToggleShow 
-  }: any) => (
-    <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.textInput}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        secureTextEntry={!showPassword}
-        autoCapitalize="none"
-      />
-      <TouchableOpacity style={styles.eyeButton} onPress={onToggleShow}>
-        <Ionicons 
-          name={showPassword ? "eye-off" : "eye"} 
-          size={20} 
-          color="#666" 
-        />
-      </TouchableOpacity>
-    </View>
-  );
+  
 
   return (
     <View style={styles.container}>
@@ -139,94 +378,95 @@ const EmailPasswordScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'android' ? 'height' : undefined}
+        keyboardVerticalOffset={0}
+        enabled={Platform.OS === 'android'}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Current Email Section */}
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'none'}
+          contentContainerStyle={{ paddingBottom: 12 }}
+        >
+          {/* Email Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current Email</Text>
-            <View style={styles.infoCard}>
-              <Ionicons name="mail-outline" size={20} color="#666" />
-              <Text style={styles.currentEmail}>{user?.email || 'No email set'}</Text>
+            <Text style={styles.sectionTitle}>Email Address</Text>
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <View style={styles.infoSection}>
+                  <Ionicons name="mail-outline" size={20} color="#007AFF" />
+                  <Text style={styles.currentValue}>{user?.email || 'No email set'}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={toggleEmailEditing}
+                >
+                  {isEditingEmail ? (
+                    <Ionicons name="close" size={18} color="#FF3B30" />
+                  ) : (
+                    <Feather name="edit-2" size={18} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              
+              {isEditingEmail && (
+                <EmailForm
+                  emailCurrentPassword={emailCurrentPassword}
+                  setEmailCurrentPassword={setEmailCurrentPassword}
+                  newEmail={newEmail}
+                  setNewEmail={setNewEmail}
+                  showEmailCurrentPassword={showEmailCurrentPassword}
+                  toggleEmailPasswordVisibility={toggleEmailPasswordVisibility}
+                  isLoading={isLoading}
+                  handleUpdateEmail={handleUpdateEmail}
+                  setIsEditingEmail={setIsEditingEmail}
+                />
+              )}
             </View>
           </View>
 
-          {/* Update Email Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Update Email</Text>
+          {/* Password Section */}
+          <View style={[styles.section, styles.lastSection]}>
+            <Text style={styles.sectionTitle}>Password</Text>
             <View style={styles.card}>
-              <Text style={styles.fieldLabel}>Current Password *</Text>
-              <PasswordInput
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
-                showPassword={showCurrentPassword}
-                onToggleShow={() => setShowCurrentPassword(!showCurrentPassword)}
-              />
-
-              <Text style={styles.fieldLabel}>New Email Address *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={newEmail}
-                onChangeText={setNewEmail}
-                placeholder="Enter new email address"
-                placeholderTextColor="#999"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <TouchableOpacity
-                style={[styles.updateButton, isLoading && styles.disabledButton]}
-                onPress={handleUpdateEmail}
-                disabled={isLoading}
-              >
-                <Text style={styles.updateButtonText}>
-                  {isLoading ? 'Updating...' : 'Update Email'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Update Password Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Update Password</Text>
-            <View style={styles.card}>
-              <Text style={styles.fieldLabel}>Current Password *</Text>
-              <PasswordInput
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
-                showPassword={showCurrentPassword}
-                onToggleShow={() => setShowCurrentPassword(!showCurrentPassword)}
-              />
-
-              <Text style={styles.fieldLabel}>New Password *</Text>
-              <PasswordInput
-                value={newPassword}
-                onChangeText={setNewPassword}
-                placeholder="Enter new password (min 8 characters)"
-                showPassword={showNewPassword}
-                onToggleShow={() => setShowNewPassword(!showNewPassword)}
-              />
-
-              <Text style={styles.fieldLabel}>Confirm New Password *</Text>
-              <PasswordInput
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
-                showPassword={showConfirmPassword}
-                onToggleShow={() => setShowConfirmPassword(!showConfirmPassword)}
-              />
-
-              <TouchableOpacity
-                style={[styles.updateButton, isLoading && styles.disabledButton]}
-                onPress={handleUpdatePassword}
-                disabled={isLoading}
-              >
-                <Text style={styles.updateButtonText}>
-                  {isLoading ? 'Updating...' : 'Update Password'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.row}>
+                <View style={styles.infoSection}>
+                  <Ionicons name="lock-closed-outline" size={20} color="#007AFF" />
+                  <Text style={styles.currentValue}>••••••••</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={togglePasswordEditing}
+                >
+                  {isEditingPassword ? (
+                    <Ionicons name="close" size={18} color="#FF3B30" />
+                  ) : (
+                    <Feather name="edit-2" size={18} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              
+              {isEditingPassword && (
+                <PasswordForm
+                  passwordCurrentPassword={passwordCurrentPassword}
+                  setPasswordCurrentPassword={setPasswordCurrentPassword}
+                  newPassword={newPassword}
+                  setNewPassword={setNewPassword}
+                  confirmPassword={confirmPassword}
+                  setConfirmPassword={setConfirmPassword}
+                  showPasswordCurrentPassword={showPasswordCurrentPassword}
+                  togglePasswordCurrentVisibility={togglePasswordCurrentVisibility}
+                  showNewPassword={showNewPassword}
+                  toggleNewPasswordVisibility={toggleNewPasswordVisibility}
+                  showConfirmPassword={showConfirmPassword}
+                  toggleConfirmPasswordVisibility={toggleConfirmPasswordVisibility}
+                  isLoading={isLoading}
+                  handleUpdatePassword={handleUpdatePassword}
+                  setIsEditingPassword={setIsEditingPassword}
+                />
+              )}
             </View>
           </View>
         </ScrollView>
@@ -245,55 +485,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#000000',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 8,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 0,
   },
   section: {
     marginBottom: 24,
+  },
+  lastSection: {
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
     color: '#8E8E93',
     marginBottom: 12,
-    marginLeft: 20,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  infoCard: {
+  card: {
     backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    padding: 16,
+    padding: 20,
     borderRadius: 12,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  infoSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
     gap: 12,
   },
-  currentEmail: {
+  currentValue: {
     fontSize: 16,
     color: '#FFFFFF',
     fontWeight: '500',
   },
-  card: {
-    backgroundColor: '#1C1C1E',
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 12,
+  editButton: {
+    padding: 0,
+    borderRadius: 0,
+    backgroundColor: 'transparent',
+  },
+  editForm: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
   },
   fieldLabel: {
     fontSize: 16,
@@ -301,6 +558,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 8,
     marginTop: 16,
+  },
+  firstFieldLabel: {
+    marginTop: 0,
   },
   inputContainer: {
     position: 'relative',
@@ -320,23 +580,32 @@ const styles = StyleSheet.create({
     top: 12,
     padding: 4,
   },
-  updateButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 0,
     marginTop: 20,
+    justifyContent: 'center',
+  },
+  updateButton: {
+    alignSelf: 'stretch',
+    width: '100%',
+    backgroundColor: '#2C2C2E',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   disabledButton: {
-    backgroundColor: '#999',
+    backgroundColor: '#1C1C1E',
+    borderColor: '#4A4A4A',
   },
   updateButtonText: {
-    color: '#fff',
+    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },
-  // Removed extra tips block for a cleaner flow
 });
 
 export default EmailPasswordScreen; 

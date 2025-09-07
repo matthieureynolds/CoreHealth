@@ -73,16 +73,17 @@ const DataSyncScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Data & Sync</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Data & Sync</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
           {/* Last Sync Info */}
@@ -99,12 +100,13 @@ const DataSyncScreen: React.FC = () => {
             style={[styles.syncButton, isSyncing && styles.syncButtonDisabled]}
             onPress={handleSyncNow}
             disabled={isSyncing}
+            activeOpacity={0.8}
           >
             <View style={styles.syncButtonContent}>
               {isSyncing ? (
-                <Ionicons name="sync" size={24} color="#fff" style={styles.syncSpinner} />
+                <Ionicons name="sync" size={20} color="#007AFF" style={styles.syncSpinner} />
               ) : (
-                <Ionicons name="sync-outline" size={24} color="#fff" style={styles.syncIcon} />
+                <Ionicons name="sync-outline" size={20} color="#007AFF" style={styles.syncIcon} />
               )}
               <Text style={styles.syncButtonText}>
                 {isSyncing ? 'Syncing...' : 'Sync Now'}
@@ -126,32 +128,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
     flex: 1,
-    justifyContent: 'center',
   },
   syncInfoCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 30,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   syncInfoRow: {
     flexDirection: 'row',
@@ -162,32 +181,40 @@ const styles = StyleSheet.create({
   },
   syncLabel: {
     fontSize: 16,
-    color: '#888',
-    marginRight: 8,
+    color: '#8E8E93',
+    marginRight: 12,
+    fontWeight: '500',
   },
   syncTime: {
     fontSize: 16,
-    color: '#fff',
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   syncButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   syncButtonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: '#1C1C1E',
+    borderColor: '#4A4A4A',
   },
   syncButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   syncButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: '#007AFF',
     marginLeft: 8,
   },
   syncSpinner: {
@@ -195,4 +222,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DataSyncScreen; 
+export default DataSyncScreen;

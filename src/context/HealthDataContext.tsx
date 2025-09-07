@@ -52,6 +52,7 @@ import {
   generateJetLagData, 
   getCurrentDestinationTime 
 } from '../services/jetLagService';
+import { useSettings } from './SettingsContext';
 import { validateApiKeys } from '../config/api';
 import { 
   generateWeatherHealthAssessment
@@ -123,6 +124,7 @@ interface HealthDataProviderProps {
 export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   children,
 }) => {
+  const { settings } = useSettings();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [labResults, setLabResults] = useState<LabResult[]>([]);
@@ -723,7 +725,10 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       const elevation = locationData.elevation || 0;
 
       // Generate timezone info
-      const destinationTime = getCurrentDestinationTime(locationData.timezone);
+      const destinationTime = getCurrentDestinationTime(
+        locationData.timezone,
+        settings?.general?.timeFormat === '12h'
+      );
       const timeZoneInfo: TimeZoneInfo = {
         currentTime: destinationTime.time,
         currentDate: destinationTime.date,

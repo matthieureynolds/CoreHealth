@@ -39,6 +39,23 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
     return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
   };
 
+  // More dramatic easing that really slows down at the end
+  const easeOutCubic = (t: number): number => {
+    return 1 - Math.pow(1 - t, 3);
+  };
+
+  // Custom easing that creates a ticking effect near the end
+  const easeOutTick = (t: number): number => {
+    if (t < 0.7) {
+      // Fast progress for first 70%
+      return easeOutCubic(t / 0.7) * 0.7;
+    } else {
+      // Very slow ticking for last 30%
+      const remaining = (t - 0.7) / 0.3;
+      return 0.7 + (remaining * remaining * remaining) * 0.3;
+    }
+  };
+
   // Animation effect - only run once when component mounts, with delay for supporting rings
   useEffect(() => {
     if (!hasAnimated) {
@@ -48,25 +65,45 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
         animatedScore.setValue(0);
         animatedProgress.setValue(0);
 
-        // Animate the score number with custom easing
-        Animated.timing(animatedScore, {
-          toValue: score,
-          duration: 1800, // Faster overall duration
-          useNativeDriver: false,
-        }).start();
-
-        // Animate the progress ring with custom easing
-        Animated.timing(animatedProgress, {
-          toValue: Math.max(0, Math.min(score, 100)) / 100,
-          duration: 1800, // Faster overall duration
-          useNativeDriver: false,
-        }).start(() => {
-          // Mark animation as completed
-          setHasAnimated(true);
-        });
+        // Custom animation with dramatic slowing effect
+        const duration = 3000;
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Apply custom easing that slows down dramatically near the end
+          const easedProgress = easeOutTick(progress);
+          
+          // Update score
+          const currentScore = Math.floor(easedProgress * score);
+          animatedScore.setValue(currentScore);
+          
+          // Update progress ring
+          const currentProgress = easedProgress * (Math.max(0, Math.min(score, 100)) / 100);
+          animatedProgress.setValue(currentProgress);
+          
+          if (progress < 1) {
+            // Continue animation
+            requestAnimationFrame(animate);
+          } else {
+            // Animation complete
+            animatedScore.setValue(score);
+            animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
+            setHasAnimated(true);
+          }
+        };
+        
+        // Start the custom animation
+        requestAnimationFrame(animate);
       }, 1300); // Start 100ms after supporting rings finish
 
       return () => clearTimeout(timer);
+    } else {
+      // If already animated, ensure values are set correctly
+      animatedScore.setValue(score);
+      animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
     }
   }, [score, hasAnimated]);
 
@@ -332,26 +369,26 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
 
   return (
     <>
-      <TouchableOpacity 
-        style={styles.container} 
+    <TouchableOpacity 
+      style={styles.container} 
         onPress={handlePress}
-        activeOpacity={0.8}
-      >
-        <View style={styles.scoreContainer}>
-          <View style={[styles.circleWrapper, { width: circleSize, height: circleSize }]}>
-            <Svg 
-              width={circleSize} 
-              height={circleSize} 
-              style={styles.svg}
-            >
-              {/* Background circle */}
-              <Circle
-                stroke="#2C2C2E"
-                fill="none"
-                cx={circleSize / 2}
-                cy={circleSize / 2}
-                r={radius}
-                strokeWidth={strokeWidth}
+      activeOpacity={0.8}
+    >
+      <View style={styles.scoreContainer}>
+        <View style={[styles.circleWrapper, { width: circleSize, height: circleSize }]}>
+          <Svg 
+            width={circleSize} 
+            height={circleSize} 
+            style={styles.svg}
+          >
+            {/* Background circle */}
+            <Circle
+              stroke="#2C2C2E"
+              fill="none"
+              cx={circleSize / 2}
+              cy={circleSize / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
               />
               {/* Progress circle */}
               <AnimatedProgressCircle />
@@ -389,37 +426,37 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Score Display */}
               <View style={styles.scoreDisplay}>
-                <View style={[styles.circleWrapper, { width: 140, height: 140 }]}>
+                <View style={[styles.circleWrapper, { width: 150, height: 150 }]}>
                   <Svg 
-                    width={140} 
-                    height={140} 
+                    width={150} 
+                    height={150} 
                     style={styles.svg}
                   >
                     {/* Background circle */}
                     <Circle
                       stroke="#2C2C2E"
                       fill="none"
-                      cx={70}
-                      cy={70}
-                      r={60}
+                      cx={75}
+                      cy={75}
+                      r={65}
                       strokeWidth={6}
-                    />
-                    {/* Progress circle */}
-                    <Circle
-                      stroke={scoreColor}
-                      fill="none"
-                      cx={70}
-                      cy={70}
-                      r={60}
+            />
+            {/* Progress circle */}
+            <Circle
+              stroke={scoreColor}
+              fill="none"
+                      cx={75}
+                      cy={75}
+                      r={65}
                       strokeWidth={6}
-                      strokeDasharray={376.99}
-                      strokeDashoffset={376.99 - (376.99 * (score / 100))}
-                      strokeLinecap="round"
-                      transform="rotate(-90 70 70)"
-                    />
-                  </Svg>
-                  
-                  <View style={styles.scoreContent}>
+                      strokeDasharray={408.2}
+                      strokeDashoffset={408.2 - (408.2 * (score / 100))}
+              strokeLinecap="round"
+                      transform="rotate(-90 75 75)"
+            />
+          </Svg>
+          
+          <View style={styles.scoreContent}>
                     <Text style={[styles.modalScoreValue, { color: scoreColor }]}>{score}</Text>
                     <Text style={[styles.modalScoreLabel, { color: scoreColor }]}>{scoreLabel}</Text>
                   </View>

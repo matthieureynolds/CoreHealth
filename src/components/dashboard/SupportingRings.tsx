@@ -82,6 +82,11 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
         animatedLifestyle.setValue(lifestyle);
         setHasAnimated(true);
       });
+    } else {
+      // If already animated, ensure values are set correctly
+      animatedRecovery.setValue(recovery);
+      animatedBiomarkers.setValue(biomarkers);
+      animatedLifestyle.setValue(lifestyle);
     }
   }, [recovery, biomarkers, lifestyle, hasAnimated]);
 
@@ -473,9 +478,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   scoreCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     backgroundColor: '#2C2C2E',
     borderWidth: 4,
     alignItems: 'center',

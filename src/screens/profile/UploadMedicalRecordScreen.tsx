@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { MedicalRecord } from '../../types';
@@ -22,17 +23,20 @@ const UploadMedicalRecordScreen: React.FC = () => {
   const [selectedType, setSelectedType] = useState<'lab_result' | 'imaging' | 'prescription' | 'consultation' | 'procedure' | 'other'>('lab_result');
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  const [recordDate, setRecordDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateMode, setDateMode] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [notes, setNotes] = useState('');
   const [tags, setTags] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const recordTypes = [
-    { value: 'lab_result', label: 'Lab Result', icon: 'flask-outline' },
-    { value: 'imaging', label: 'Imaging', icon: 'scan-outline' },
-    { value: 'prescription', label: 'Prescription', icon: 'medical-outline' },
-    { value: 'consultation', label: 'Consultation', icon: 'people-outline' },
-    { value: 'procedure', label: 'Procedure', icon: 'bandage-outline' },
-    { value: 'other', label: 'Other', icon: 'document-outline' },
+    { value: 'lab_result', label: 'Lab Result', icon: 'flask-outline', color: '#34C759' },
+    { value: 'imaging', label: 'Imaging', icon: 'scan-outline', color: '#AF52DE' },
+    { value: 'prescription', label: 'Prescription', icon: 'medical-outline', color: '#FF3B30' },
+    { value: 'consultation', label: 'Consultation', icon: 'people-outline', color: '#0A84FF' },
+    { value: 'procedure', label: 'Procedure', icon: 'bandage-outline', color: '#FF9F0A' },
+    { value: 'other', label: 'Other', icon: 'document-outline', color: '#8E8E93' },
   ];
 
   const takePhoto = () => {
@@ -65,7 +69,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
       id: Date.now().toString(),
       name: name.trim(),
       type: selectedType,
-      date: date ? new Date(date) : new Date(),
+      date: recordDate ?? new Date(),
       fileUrl: selectedImage,
       fileSize: 1024, // Mock file size
       notes: notes.trim() || undefined,
@@ -78,9 +82,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
       medicalRecords: updatedRecords,
     });
 
-    Alert.alert('Success', 'Medical record uploaded successfully', [
-      { text: 'OK', onPress: () => navigation.goBack() }
-    ]);
+    Alert.alert('Success', 'Medical record uploaded successfully');
   };
 
   const getTypeIcon = (type: string) => {
@@ -93,20 +95,36 @@ const UploadMedicalRecordScreen: React.FC = () => {
     return typeData?.label || 'Other';
   };
 
+  const getTypeColor = (type: string) => {
+    const typeData = recordTypes.find(t => t.value === type);
+    return typeData?.color || '#007AFF';
+  };
+
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${year}`;
+    if (mode === 'yearMonth') return `${year}-${month}`;
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Upload Medical Record</Text>
-          <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Header (fixed) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Upload Medical Record</Text>
+        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
 
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
           {/* Upload Options */}
@@ -116,10 +134,6 @@ const UploadMedicalRecordScreen: React.FC = () => {
               <TouchableOpacity style={styles.uploadOption} onPress={takePhoto}>
                 <Ionicons name="camera" size={32} color="#007AFF" />
                 <Text style={styles.uploadOptionText}>Take Photo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.uploadOption} onPress={pickPhoto}>
-                <Ionicons name="images" size={32} color="#4CD964" />
-                <Text style={styles.uploadOptionText}>Pick Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.uploadOption} onPress={pickDocument}>
                 <Ionicons name="document" size={32} color="#FF9500" />
@@ -155,7 +169,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
             >
               <Text style={styles.inputLabel}>Record Type</Text>
               <View style={styles.inputRow}>
-                <Ionicons name={getTypeIcon(selectedType) as any} size={20} color="#007AFF" />
+                <Ionicons name={getTypeIcon(selectedType) as any} size={20} color={getTypeColor(selectedType)} />
                 <Text style={styles.inputText}>{getTypeLabel(selectedType)}</Text>
                 <Ionicons name="chevron-down" size={20} color="#888" />
               </View>
@@ -176,13 +190,36 @@ const UploadMedicalRecordScreen: React.FC = () => {
             {/* Date */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Date</Text>
-              <TextInput
-                style={styles.textInput}
-                value={date}
-                onChangeText={setDate}
-                placeholder="YYYY-MM-DD (optional)"
-                placeholderTextColor="#666"
-              />
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                <TouchableOpacity
+                  style={[styles.dateModeChip, dateMode === 'year' && styles.dateModeChipActive]}
+                  onPress={() => setDateMode('year')}
+                >
+                  <Text style={[styles.dateModeText, dateMode === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dateModeChip, dateMode === 'yearMonth' && styles.dateModeChipActive]}
+                  onPress={() => setDateMode('yearMonth')}
+                >
+                  <Text style={[styles.dateModeText, dateMode === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dateModeChip, dateMode === 'full' && styles.dateModeChipActive]}
+                  onPress={() => setDateMode('full')}
+                >
+                  <Text style={[styles.dateModeText, dateMode === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.inputRow}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+                <Text style={styles.inputText}>
+                  {recordDate ? formatDateForMode(recordDate, dateMode) : 'Select date'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#888" />
+              </TouchableOpacity>
             </View>
 
             {/* Tags */}
@@ -240,7 +277,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
                   setShowTypePicker(false);
                 }}
               >
-                <Ionicons name={type.icon as any} size={24} color="#007AFF" />
+                <Ionicons name={type.icon as any} size={24} color={type.color as any} />
                 <Text style={styles.typeOptionText}>{type.label}</Text>
                 <Ionicons name="chevron-forward" size={20} color="#888" />
               </TouchableOpacity>
@@ -248,6 +285,21 @@ const UploadMedicalRecordScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* iOS Date Picker */}
+      {showDatePicker && (
+        <IOSDatePicker
+          visible={true}
+          title="Select Date"
+          value={recordDate ?? new Date()}
+          maximumDate={new Date()}
+          onConfirm={(d) => {
+            setRecordDate(d);
+            setShowDatePicker(false);
+          }}
+          onCancel={() => setShowDatePicker(false)}
+        />
+      )}
     </View>
   );
 };
@@ -265,17 +317,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   saveButton: {
     padding: 8,

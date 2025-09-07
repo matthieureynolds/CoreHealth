@@ -10,10 +10,12 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import FileViewerModal from '../../components/common/FileViewerModal';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
-import { MedicalCondition } from '../../types';
+import { MedicalCondition, AttachedFile } from '../../types';
+import * as DocumentPicker from 'expo-document-picker';
 
 const ConditionsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -28,6 +30,12 @@ const ConditionsScreen: React.FC = () => {
   const [resolvedDate, setResolvedDate] = useState<Date | null>(null);
   const [showResolvedDatePicker, setShowResolvedDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
+  const [editingCondition, setEditingCondition] = useState<MedicalCondition | null>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+  const [fileViewerVisible, setFileViewerVisible] = useState(false);
+  const [currentFileUri, setCurrentFileUri] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [currentFileType, setCurrentFileType] = useState('');
 
   // Debug logging for date picker state changes
   React.useEffect(() => {
@@ -65,21 +73,39 @@ const ConditionsScreen: React.FC = () => {
       return;
     }
 
-    const newCondition: MedicalCondition = {
-      id: Date.now().toString(),
-      condition: condition.trim(),
-      diagnosedDate: diagnosedDate ? diagnosedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      severity,
-      status,
-      resolvedDate: status === 'resolved' && resolvedDate ? resolvedDate.toISOString().split('T')[0] : undefined,
-      notes: notes.trim() || undefined,
-    };
-
-    const updatedConditions = [...(profile?.medicalHistory || []), newCondition];
-    updateProfile({
-      ...profile,
-      medicalHistory: updatedConditions,
-    });
+    if (editingCondition) {
+      const updated: MedicalCondition = {
+        id: editingCondition.id,
+        condition: condition.trim(),
+        diagnosedDate: (diagnosedDate || new Date()).toISOString().split('T')[0],
+        severity,
+        status,
+        resolvedDate: status === 'resolved' && resolvedDate ? resolvedDate.toISOString().split('T')[0] : undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedConditions = (profile?.medicalHistory || []).map(c => c.id === editingCondition.id ? updated : c);
+      updateProfile({
+        ...profile,
+        medicalHistory: updatedConditions,
+      });
+    } else {
+      const newCondition: MedicalCondition = {
+        id: Date.now().toString(),
+        condition: condition.trim(),
+        diagnosedDate: diagnosedDate ? diagnosedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        severity,
+        status,
+        resolvedDate: status === 'resolved' && resolvedDate ? resolvedDate.toISOString().split('T')[0] : undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedConditions = [...(profile?.medicalHistory || []), newCondition];
+      updateProfile({
+        ...profile,
+        medicalHistory: updatedConditions,
+      });
+    }
 
     setShowAddModal(false);
     setCondition('');
@@ -89,6 +115,63 @@ const ConditionsScreen: React.FC = () => {
     setStatus('active');
     setResolvedDate(null);
     setNotes('');
+    setEditingCondition(null);
+    setAttachments([]);
+  };
+  const handleEditCondition = (c: MedicalCondition) => {
+    setCondition(c.condition);
+    setDiagnosedDate(c.diagnosedDate ? new Date(c.diagnosedDate) : new Date());
+    setSeverity(c.severity);
+    setStatus(c.status);
+    setResolvedDate(c.resolvedDate ? new Date(c.resolvedDate) : null);
+    setNotes(c.notes || '');
+    setEditingCondition(c);
+    setAttachments(c.attachments || []);
+    setShowAddModal(true);
+  };
+
+  const openConditionOptions = (c: MedicalCondition) => {
+    Alert.alert(
+      c.condition,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditCondition(c) },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteCondition(c.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const newFile: AttachedFile = {
+          uri: asset.uri,
+          name: asset.name || 'attachment',
+          type: asset.mimeType,
+        };
+        setAttachments(prev => [...prev, newFile]);
+      }
+    } catch (e) {
+      console.error('Attachment error', e);
+      Alert.alert('Attachment Error', 'Failed to attach file.');
+    }
+  };
+
+  const removeAttachment = (name: string) => {
+    setAttachments(prev => prev.filter(a => a.name !== name));
+  };
+
+  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+    setCurrentFileUri(fileUri);
+    setCurrentFileName(fileName);
+    setCurrentFileType(fileType || '');
+    setFileViewerVisible(true);
   };
 
   const deleteCondition = (id: string) => {
@@ -155,33 +238,66 @@ const ConditionsScreen: React.FC = () => {
             profile.medicalHistory.map((condition) => (
               <View key={condition.id} style={styles.conditionCard}>
                 <View style={styles.conditionHeader}>
-                  <View style={styles.conditionInfo}>
-                    <Text style={styles.conditionName}>{condition.condition}</Text>
-                    <Text style={styles.conditionDate}>Diagnosed: {formatDate(condition.diagnosedDate)}</Text>
-                    {condition.resolvedDate && (
-                      <Text style={styles.conditionDate}>Resolved: {formatDate(condition.resolvedDate)}</Text>
-                    )}
-                    <View style={styles.conditionTags}>
-                      <View style={[styles.tag, { backgroundColor: getSeverityColor(condition.severity) + '20' }]}>
-                        <Text style={[styles.tagText, { color: getSeverityColor(condition.severity) }]}>
-                          {condition.severity.charAt(0).toUpperCase() + condition.severity.slice(1)}
-                        </Text>
-                      </View>
-                      <View style={[styles.tag, { backgroundColor: getStatusColor(condition.status) + '20' }]}>
-                        <Text style={[styles.tagText, { color: getStatusColor(condition.status) }]}>
-                          {condition.status.charAt(0).toUpperCase() + condition.status.slice(1)}
-                        </Text>
+                  <View style={styles.conditionHeaderLeft}>
+                    <View style={styles.conditionIcon}>
+                      <Ionicons name="medkit-outline" size={20} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.conditionInfo}>
+                      <Text style={styles.conditionName}>{condition.condition}</Text>
+                      <View style={styles.conditionTagsRow}>
+                        <View style={[styles.pillTag, { backgroundColor: getSeverityColor(condition.severity) + '20', borderColor: getSeverityColor(condition.severity) }]}>
+                          <Text style={[styles.pillTagText, { color: getSeverityColor(condition.severity) }]}>
+                            {condition.severity.charAt(0).toUpperCase() + condition.severity.slice(1)}
+                          </Text>
+                        </View>
+                        <View style={[styles.pillTag, { backgroundColor: getStatusColor(condition.status) + '20', borderColor: getStatusColor(condition.status) }]}>
+                          <Text style={[styles.pillTagText, { color: getStatusColor(condition.status) }]}>
+                            {condition.status.charAt(0).toUpperCase() + condition.status.slice(1)}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                    {condition.notes && <Text style={styles.notes}>{condition.notes}</Text>}
                   </View>
                   <TouchableOpacity
-                    onPress={() => deleteCondition(condition.id)}
-                    style={styles.deleteButton}
+                    onPress={() => openConditionOptions(condition)}
+                    style={styles.moreButton}
+                    accessibilityLabel="Edit condition"
                   >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
+
+                <View style={styles.conditionMeta}>
+                  <View style={styles.metaItem}>
+                    <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+                    <Text style={styles.metaText}>Diagnosed: {formatDate(condition.diagnosedDate)}</Text>
+                  </View>
+                  {condition.resolvedDate && (
+                    <View style={styles.metaItem}>
+                      <Ionicons name="checkmark-done-outline" size={16} color="#8E8E93" />
+                      <Text style={styles.metaText}>Resolved: {formatDate(condition.resolvedDate)}</Text>
+                    </View>
+                  )}
+                </View>
+
+                {condition.notes && <Text style={styles.notes}>{condition.notes}</Text>}
+
+                {!!condition.attachments?.length && (
+                  <View style={[styles.conditionMeta, { marginTop: 10 }]}> 
+                    <View style={styles.attachmentsRow}>
+                      {condition.attachments.map((file) => (
+                        <TouchableOpacity
+                          key={file.uri}
+                          style={styles.attachmentChip}
+                          onPress={() => handleViewFile(file.uri, file.name, file.type)}
+                        >
+                          <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                          <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             ))
           ) : (
@@ -210,7 +326,7 @@ const ConditionsScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Condition</Text>
+            <Text style={styles.modalTitle}>{editingCondition ? 'Edit Condition' : 'Add Condition'}</Text>
             <TouchableOpacity onPress={addCondition}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
@@ -355,6 +471,27 @@ const ConditionsScreen: React.FC = () => {
                 numberOfLines={3}
               />
             </View>
+
+            {/* Attachments */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Attachments</Text>
+              <View style={styles.attachmentsRow}>
+                {attachments.map(file => (
+                  <View key={file.uri} style={styles.attachmentChip}>
+                    <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                    <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                    <TouchableOpacity onPress={() => removeAttachment(file.name)} style={styles.attachmentRemove}>
+                      <Ionicons name="close" size={14} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
+                  <Ionicons name="attach" size={16} color="#007AFF" />
+                  <Text style={styles.addAttachmentText}>Add file</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
+            </View>
           </ScrollView>
 
           {/* Date Pickers - Now inside the modal */}
@@ -395,6 +532,13 @@ const ConditionsScreen: React.FC = () => {
           )}
         </View>
       </Modal>
+      <FileViewerModal
+        visible={fileViewerVisible}
+        onClose={() => setFileViewerVisible(false)}
+        fileUri={currentFileUri}
+        fileName={currentFileName}
+        fileType={currentFileType}
+      />
     </View>
   );
 };
@@ -412,34 +556,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   addButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   content: {
     padding: 20,
   },
   conditionCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   conditionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+  },
+  conditionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  conditionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#0A84FF33',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   conditionInfo: {
     flex: 1,
@@ -447,35 +626,94 @@ const styles = StyleSheet.create({
   conditionName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
+    color: '#FFFFFF',
+    marginBottom: 6,
   },
-  conditionDate: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  conditionTags: {
+  conditionTagsRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    gap: 8,
   },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
+  pillTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
   },
-  tagText: {
+  pillTagText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  moreButton: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  conditionMeta: {
+    marginTop: 12,
+    gap: 6,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 13,
+    color: '#A0A0A0',
+  },
+  attachmentsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
+  attachmentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginLeft: 6,
+    maxWidth: 140,
+  },
+  attachmentRemove: {
+    marginLeft: 6,
+  },
+  addAttachmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  addAttachmentText: {
+    color: '#007AFF',
+    fontSize: 12,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  attachmentsHelp: {
+    marginTop: 8,
+    color: '#8E8E93',
+    fontSize: 12,
   },
   notes: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
-  },
-  deleteButton: {
-    padding: 8,
+    fontSize: 13,
+    color: '#C7C7CC',
+    marginTop: 10,
   },
   emptyState: {
     alignItems: 'center',

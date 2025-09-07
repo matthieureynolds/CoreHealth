@@ -23,7 +23,11 @@ const AppInfoScreen: React.FC = () => {
     },
     {
       title: 'Last Updated',
-      value: 'January 15, 2024',
+      value: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
       icon: 'calendar-outline',
       color: '#FF9500', // Orange for calendar
     },
@@ -52,8 +56,8 @@ const AppInfoScreen: React.FC = () => {
   ];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -61,42 +65,61 @@ const AppInfoScreen: React.FC = () => {
         <Text style={styles.headerTitle}>App Info</Text>
         <View style={{ width: 24 }} />
       </View>
-      {/* About Card at Top */}
-      <View style={styles.card}>
-        <Text style={styles.cardHeader}>ABOUT</Text>
-        <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
-          <Text style={styles.aboutText}>
-            CoreHealth is your comprehensive health companion, designed to help you track, understand, and
-            optimize your health journey. Built with privacy and security at its core, CoreHealth provides
-            personalized insights and actionable recommendations to support your wellness goals.
-          </Text>
-        </View>
-      </View>
 
-      {/* App Info Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardHeader}>APP INFORMATION</Text>
-        {appInfoItems.map((item, index) => (
-          <View key={index} style={styles.cardRow}>
-            <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
-            <Text style={styles.cardLabel}>{item.title}</Text>
-            <Text style={styles.cardValue}>{item.value}</Text>
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* About Card */}
+          <View style={styles.card}>
+          <Text style={styles.cardHeader}>ABOUT</Text>
+          <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
+            <Text style={styles.aboutText}>
+              CoreHealth is your comprehensive health companion, designed to help you track, understand, and
+              optimize your health journey. Built with privacy and security at its core, CoreHealth provides
+              personalized insights and actionable recommendations to support your wellness goals.
+            </Text>
           </View>
-        ))}
-      </View>
+        </View>
+        {/* App Info Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>APP INFORMATION</Text>
+          {appInfoItems.map((item, index) => (
+            <View key={index} style={[styles.cardRow, styles.cardRowNoDivider]}>
+              <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
+              <Text style={styles.cardLabel}>{item.title}</Text>
+              <Text style={styles.cardValue}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
 
-      {/* Actions Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardHeader}>ACTIONS</Text>
-        {actionItems.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.cardRow} onPress={item.onPress}>
-            <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
-            <Text style={[styles.cardLabel, { color: item.color }]}>{item.title}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+        {/* Actions Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>ACTIONS</Text>
+          {actionItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.cardRow,
+                styles.actionsRow,
+                index === 0 
+                  ? [styles.actionLeft, styles.actionDivider]
+                  : [styles.actionRight, styles.tallRow50, styles.lastRow],
+              ]}
+              onPress={item.onPress}
+            >
+              <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
+              <Text style={[styles.cardLabel, { color: item.color }]}>{item.title}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Bottom spacing to match the gap between cards */}
+        <View style={styles.bottomSpacing} />
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -106,27 +129,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#000000',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   card: {
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
-    marginHorizontal: 20,
-    marginTop: 20,
+    marginBottom: 20,
     paddingVertical: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -147,6 +177,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+  },
+  actionsRow: {
+    flex: 1,
+  },
+  cardRowNoDivider: {
+    borderBottomWidth: 0,
+  },
+  actionLeft: {
+    borderRightWidth: 0,
+    borderRightColor: 'transparent',
+  },
+  actionRight: {
+    borderBottomWidth: 0,
+  },
+  actionDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  tallRow50: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 12,
@@ -169,6 +222,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     lineHeight: 20,
+    textAlign: 'justify',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 0,
+  },
+  bottomSpacing: {
+    height: 0,
   },
 });
 

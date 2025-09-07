@@ -28,6 +28,7 @@ export interface EmergencyContact {
   name: string;
   relationship: string;
   phone: string;
+  secondaryPhone?: string;
   email?: string;
   isPrimary: boolean;
   notes?: string;
@@ -100,6 +101,13 @@ export interface MedicalCondition {
   status: 'active' | 'resolved' | 'managed';
   resolvedDate?: string;
   notes?: string;
+  attachments?: AttachedFile[];
+}
+
+export interface AttachedFile {
+  uri: string;
+  name: string;
+  type?: string; // mime type, e.g., application/pdf, image/jpeg
 }
 
 export interface Allergy {
@@ -111,6 +119,7 @@ export interface Allergy {
   startDate: string;
   endDate?: string;
   notes?: string;
+  attachments?: AttachedFile[];
 }
 
 export interface FamilyCondition {
@@ -118,6 +127,8 @@ export interface FamilyCondition {
   relation: string;
   condition: string;
   ageOfOnset?: number;
+  notes?: string;
+  attachments?: AttachedFile[];
 }
 
 export interface Vaccination {
@@ -128,6 +139,7 @@ export interface Vaccination {
   location?: string;
   batchNumber?: string;
   notes?: string;
+  attachments?: AttachedFile[];
 }
 
 export interface Screening {
@@ -138,6 +150,7 @@ export interface Screening {
   result: 'normal' | 'abnormal' | 'inconclusive';
   location?: string;
   notes?: string;
+  attachments?: AttachedFile[];
 }
 
 export interface LabResult {
@@ -349,8 +362,8 @@ export type ProfileTabParamList = {
   // New Settings Screens
   AccountSettings: undefined;
   EmailPassword: undefined;
-  ConnectedAccounts: undefined;
-  TwoFactorAuth: undefined;
+  // ConnectedAccounts removed
+  // TwoFactorAuth removed
   ConnectedDevices: undefined;
   DisplayFormat: undefined;
   Appearance: undefined;
@@ -620,6 +633,7 @@ export interface Medication {
   startDate?: string;
   duration?: string;
   notes?: string;
+  attachments?: AttachedFile[];
 }
 
 export interface Surgery {

@@ -21,12 +21,14 @@ import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../context/HealthDataContext';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { OPENAI_API_KEY, HealthAssistantService } from '../services/healthAssistantService';
 import * as Speech from 'expo-speech';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
+import { formatDateBySetting, formatTimeBySetting } from '../utils/dateFormat';
 
 interface ChatMessage {
   id: string;
@@ -40,6 +42,7 @@ interface ChatMessage {
 
 const HealthAssistantScreen: React.FC = () => {
   const { profile, biomarkers, healthScore } = useHealthData();
+  const { settings } = useSettings();
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -675,14 +678,15 @@ const HealthAssistantScreen: React.FC = () => {
     if (!date || !(date instanceof Date)) {
       return '';
     }
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return formatTimeBySetting(date, settings?.general?.timeFormat === '12h' ? '12h' : '24h');
   };
 
   const formatDateTime = (date: Date) => {
     if (!date || !(date instanceof Date)) {
       return '';
     }
-    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    // Use date setting for date, and time setting for time
+    return `${formatDateBySetting(date, settings?.general?.dateFormat || 'DD/MM/YYYY')} ${formatTimeBySetting(date, settings?.general?.timeFormat === '12h' ? '12h' : '24h')}`;
   };
 
   const speak = (text: string) => {
@@ -785,7 +789,7 @@ const HealthAssistantScreen: React.FC = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.chatHistoryTitle}>{chat.title}</Text>
             <Text style={styles.chatHistoryTimestamp}>
-              {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: settings?.general?.timeFormat === '12h'})}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#8E8E93" />

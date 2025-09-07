@@ -374,6 +374,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+    textAlign: 'justify',
   },
 });
 

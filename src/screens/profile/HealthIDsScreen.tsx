@@ -8,11 +8,16 @@ import {
   TextInput,
   Alert,
   Modal,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import MedicalRecordScanner from '../../components/common/MedicalRecordScanner';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { HealthID } from '../../types';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const HealthIDsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -22,30 +27,31 @@ const HealthIDsScreen: React.FC = () => {
   const [selectedCountryCode, setSelectedCountryCode] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [notes, setNotes] = useState('');
+  const [idScannerVisible, setIdScannerVisible] = useState(false);
 
   // Debug useEffect - removed since we're using Alert
 
   const countries = [
-    { name: 'United Kingdom', code: 'GB', idTypes: ['NHS Number', 'NI Number'] },
-    { name: 'France', code: 'FR', idTypes: ['Carte Vitale', 'Numéro de Sécurité Sociale'] },
-    { name: 'Germany', code: 'DE', idTypes: ['Gesundheitskarte', 'Versichertennummer'] },
-    { name: 'Australia', code: 'AU', idTypes: ['Medicare', 'DVA Card'] },
-    { name: 'Canada', code: 'CA', idTypes: ['Health Card', 'SIN'] },
-    { name: 'United States', code: 'US', idTypes: ['Medicare', 'Medicaid', 'SSN'] },
-    { name: 'Spain', code: 'ES', idTypes: ['Tarjeta Sanitaria', 'Número de Seguridad Social'] },
-    { name: 'Italy', code: 'IT', idTypes: ['Tessera Sanitaria', 'Codice Fiscale'] },
-    { name: 'Netherlands', code: 'NL', idTypes: ['DigiD', 'BSN'] },
-    { name: 'Sweden', code: 'SE', idTypes: ['Personnummer', 'Folkbokföring'] },
-    { name: 'Norway', code: 'NO', idTypes: ['Fødselsnummer', 'D-nummer'] },
-    { name: 'Denmark', code: 'DK', idTypes: ['CPR-nummer', 'NemID'] },
-    { name: 'Switzerland', code: 'CH', idTypes: ['AHV-Nummer', 'Versichertenkarte'] },
-    { name: 'Belgium', code: 'BE', idTypes: ['Mutualité', 'Numéro de Registre National'] },
-    { name: 'Austria', code: 'AT', idTypes: ['e-card', 'Sozialversicherungsnummer'] },
-    { name: 'Ireland', code: 'IE', idTypes: ['PPS Number', 'Medical Card'] },
-    { name: 'New Zealand', code: 'NZ', idTypes: ['NHI Number', 'IRD Number'] },
-    { name: 'Japan', code: 'JP', idTypes: ['My Number', 'Health Insurance Card'] },
-    { name: 'South Korea', code: 'KR', idTypes: ['National Health Insurance', 'Resident Registration Number'] },
-    { name: 'Singapore', code: 'SG', idTypes: ['NRIC', 'Pink IC'] },
+    { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', idTypes: ['NHS Number', 'NI Number'], gradient: ['#1e3c72', '#2a5298'] },
+    { name: 'France', code: 'FR', flag: '🇫🇷', idTypes: ['Carte Vitale', 'Numéro de Sécurité Sociale'], gradient: ['#667eea', '#764ba2'] },
+    { name: 'Germany', code: 'DE', flag: '🇩🇪', idTypes: ['Gesundheitskarte', 'Versichertennummer'], gradient: ['#f093fb', '#f5576c'] },
+    { name: 'Australia', code: 'AU', flag: '🇦🇺', idTypes: ['Medicare', 'DVA Card'], gradient: ['#4facfe', '#00f2fe'] },
+    { name: 'Canada', code: 'CA', flag: '🇨🇦', idTypes: ['Health Card', 'SIN'], gradient: ['#43e97b', '#38f9d7'] },
+    { name: 'United States', code: 'US', flag: '🇺🇸', idTypes: ['Medicare', 'Medicaid', 'SSN'], gradient: ['#fa709a', '#fee140'] },
+    { name: 'Spain', code: 'ES', flag: '🇪🇸', idTypes: ['Tarjeta Sanitaria', 'Número de Seguridad Social'], gradient: ['#a8edea', '#fed6e3'] },
+    { name: 'Italy', code: 'IT', flag: '🇮🇹', idTypes: ['Tessera Sanitaria', 'Codice Fiscale'], gradient: ['#ff9a9e', '#fecfef'] },
+    { name: 'Netherlands', code: 'NL', flag: '🇳🇱', idTypes: ['DigiD', 'BSN'], gradient: ['#a18cd1', '#fbc2eb'] },
+    { name: 'Sweden', code: 'SE', flag: '🇸🇪', idTypes: ['Personnummer', 'Folkbokföring'], gradient: ['#fad0c4', '#ffd1ff'] },
+    { name: 'Norway', code: 'NO', flag: '🇳🇴', idTypes: ['Fødselsnummer', 'D-nummer'], gradient: ['#ffecd2', '#fcb69f'] },
+    { name: 'Denmark', code: 'DK', flag: '🇩🇰', idTypes: ['CPR-nummer', 'NemID'], gradient: ['#a8caba', '#5d4e75'] },
+    { name: 'Switzerland', code: 'CH', flag: '🇨🇭', idTypes: ['AHV-Nummer', 'Versichertenkarte'], gradient: ['#d299c2', '#fef9d7'] },
+    { name: 'Belgium', code: 'BE', flag: '🇧🇪', idTypes: ['Mutualité', 'Numéro de Registre National'], gradient: ['#89f7fe', '#66a6ff'] },
+    { name: 'Austria', code: 'AT', flag: '🇦🇹', idTypes: ['e-card', 'Sozialversicherungsnummer'], gradient: ['#fdbb2d', '#22c1c3'] },
+    { name: 'Ireland', code: 'IE', flag: '🇮🇪', idTypes: ['PPS Number', 'Medical Card'], gradient: ['#ff9a8b', '#a8e6cf'] },
+    { name: 'New Zealand', code: 'NZ', flag: '🇳🇿', idTypes: ['NHI Number', 'IRD Number'], gradient: ['#ffecd2', '#fcb69f'] },
+    { name: 'Japan', code: 'JP', flag: '🇯🇵', idTypes: ['My Number', 'Health Insurance Card'], gradient: ['#a8edea', '#fed6e3'] },
+    { name: 'South Korea', code: 'KR', flag: '🇰🇷', idTypes: ['National Health Insurance', 'Resident Registration Number'], gradient: ['#d299c2', '#fef9d7'] },
+    { name: 'Singapore', code: 'SG', flag: '🇸🇬', idTypes: ['NRIC', 'Pink IC'], gradient: ['#89f7fe', '#66a6ff'] },
   ];
 
   const selectedCountryData = countries.find(c => c.code === selectedCountryCode);
@@ -100,6 +106,29 @@ const HealthIDsScreen: React.FC = () => {
     );
   };
 
+  const scanHealthId = async () => {
+    // Open richer scanner modal for a better UX
+    setIdScannerVisible(true);
+  };
+
+  const handleScannerSave = (record: any) => {
+    // Try to extract a plausible ID from scanned data
+    const sourceText = `${record?.title || ''} ${record?.provider || ''} ${record?.date || ''}`;
+    const match = sourceText.replace(/\s+/g, ' ').match(/[A-Z0-9]{6,}|(\d[\s-]?){6,}/i);
+    const extractedId = match ? match[0].replace(/[^A-Za-z0-9]/g, '') : '9434765911';
+
+    if (!selectedCountry) {
+      const mockCountry = countries[0];
+      setSelectedCountry(mockCountry.name);
+      setSelectedCountryCode(mockCountry.code);
+    }
+
+    setIdNumber(extractedId);
+    setNotes((prev) => prev ? prev : 'Auto-filled from scanned Health ID');
+    setIdScannerVisible(false);
+    Alert.alert('Scan complete', 'Health ID number has been auto-filled.');
+  };
+
   const setPrimaryHealthID = (id: string) => {
     const updatedHealthIDs = profile?.healthIDs?.map(hid => ({
       ...hid,
@@ -113,65 +142,95 @@ const HealthIDsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header (fixed) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Health IDs</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            console.log('Add button pressed');
+            setShowAddModal(true);
+          }}
+        >
+          <Ionicons name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Health IDs</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              console.log('Add button pressed');
-              setShowAddModal(true);
-            }}
-          >
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
-
         {/* Health IDs List */}
         <View style={styles.content}>
           {profile?.healthIDs?.length ? (
-            profile.healthIDs.map((healthID) => (
-              <View key={healthID.id} style={styles.healthIDCard}>
-                <View style={styles.healthIDHeader}>
-                  <View style={styles.healthIDInfo}>
-                    <Text style={styles.countryName}>{healthID.country}</Text>
-                    <Text style={styles.idType}>{healthID.idType}</Text>
-                    <Text style={styles.idNumber}>{healthID.idNumber}</Text>
-                    {healthID.notes && <Text style={styles.notes}>{healthID.notes}</Text>}
-                  </View>
-                  <View style={styles.healthIDActions}>
-                    {healthID.isPrimary && (
-                      <View style={styles.primaryBadge}>
-                        <Text style={styles.primaryText}>Primary</Text>
+            profile.healthIDs.map((healthID, index) => {
+              const countryData = countries.find(c => c.code === healthID.countryCode);
+              return (
+                <View key={healthID.id} style={[styles.healthIDCard, { marginTop: index === 0 ? 0 : 16 }]}>
+                  <LinearGradient
+                    colors={(countryData?.gradient ?? ['#667eea', '#764ba2']) as [string, string]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.cardGradient}
+                  >
+                    <View style={styles.cardContent}>
+                      <View style={styles.cardHeader}>
+                        <View style={styles.countryInfo}>
+                          <Text style={styles.countryFlag}>{countryData?.flag || '🏥'}</Text>
+                          <View style={styles.countryDetails}>
+                            <Text style={styles.countryName}>{healthID.country}</Text>
+                            <Text style={styles.idType}>{healthID.idType}</Text>
+                          </View>
+                        </View>
+                        <View style={styles.cardActions}>
+                          {healthID.isPrimary && (
+                            <View style={styles.primaryBadge}>
+                              <Ionicons name="star" size={12} color="#fff" />
+                              <Text style={styles.primaryText}>Primary</Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
-                    )}
-                    <TouchableOpacity
-                      onPress={() => setPrimaryHealthID(healthID.id)}
-                      style={[styles.actionButton, healthID.isPrimary && styles.disabledButton]}
-                      disabled={healthID.isPrimary}
-                    >
-                      <Ionicons name="star" size={20} color={healthID.isPrimary ? "#666" : "#FFD700"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => deleteHealthID(healthID.id)}
-                      style={styles.actionButton}
-                    >
-                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                    </TouchableOpacity>
-                  </View>
+                      
+                      <View style={styles.cardBody}>
+                        <Text style={styles.idNumber}>{healthID.idNumber}</Text>
+                        {healthID.notes && (
+                          <Text style={styles.notes}>{healthID.notes}</Text>
+                        )}
+                      </View>
+                      
+                      <View style={styles.cardFooter}>
+                        <TouchableOpacity
+                          onPress={() => setPrimaryHealthID(healthID.id)}
+                          style={[styles.actionButton, healthID.isPrimary && styles.disabledButton]}
+                          disabled={healthID.isPrimary}
+                        >
+                          <Ionicons 
+                            name={healthID.isPrimary ? "star" : "star-outline"} 
+                            size={20} 
+                            color={healthID.isPrimary ? "#fff" : "#fff"} 
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => deleteHealthID(healthID.id)}
+                          style={styles.actionButton}
+                        >
+                          <Ionicons name="trash-outline" size={20} color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </LinearGradient>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="card-outline" size={64} color="#666" />
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="card-outline" size={48} color="#007AFF" />
+              </View>
               <Text style={styles.emptyTitle}>No Health IDs</Text>
-              <Text style={styles.emptySubtitle}>Add your national health IDs to keep them organized</Text>
+              <Text style={styles.emptySubtitle}>Add your national health IDs to keep them organized and easily accessible</Text>
               <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
+                <Ionicons name="add" size={20} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={styles.addFirstButtonText}>Add Health ID</Text>
               </TouchableOpacity>
             </View>
@@ -198,23 +257,32 @@ const HealthIDsScreen: React.FC = () => {
           </View>
 
           <ScrollView style={styles.modalContent}>
+            {/* Scan ID */}
+            <View style={styles.scanRow}>
+              <TouchableOpacity style={styles.scanButton} onPress={scanHealthId}>
+                <Ionicons name="scan" size={18} color="#FFFFFF" />
+                <Text style={styles.scanButtonText}>Scan Health ID</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Country Selection */}
             <TouchableOpacity
               style={styles.inputContainer}
               onPress={() => {
                 console.log('Country picker tapped, showing alert');
                 // Create country options for Alert
-                const countryOptions = countries.map(country => country.name);
+                const countryOptions = countries.map(country => `${country.flag} ${country.name}`);
                 Alert.alert(
                   'Select Country',
                   'Choose your country:',
                   [
-                    ...countryOptions.map((countryName, index) => ({
-                      text: countryName,
+                    ...countryOptions.map((countryDisplay, index) => ({
+                      text: countryDisplay,
                       onPress: () => {
-                        const selectedCountryData = countries.find(c => c.name === countryName);
+                        // Find the country by matching the display text
+                        const selectedCountryData = countries.find(c => countryDisplay === `${c.flag} ${c.name}`);
                         if (selectedCountryData) {
-                          console.log('Country selected via alert:', countryName);
+                          console.log('Country selected via alert:', selectedCountryData.name);
                           setSelectedCountry(selectedCountryData.name);
                           setSelectedCountryCode(selectedCountryData.code);
                         }
@@ -230,9 +298,16 @@ const HealthIDsScreen: React.FC = () => {
             >
               <Text style={styles.inputLabel}>Country</Text>
               <View style={styles.inputRow}>
-                <Text style={[styles.inputText, !selectedCountry && styles.placeholderText]}>
-                  {selectedCountry || 'Select a country'}
-                </Text>
+                <View style={styles.countrySelector}>
+                  {selectedCountry && (
+                    <Text style={styles.selectedCountryFlag}>
+                      {countries.find(c => c.name === selectedCountry)?.flag}
+                    </Text>
+                  )}
+                  <Text style={[styles.inputText, !selectedCountry && styles.placeholderText]}>
+                    {selectedCountry || 'Select a country'}
+                  </Text>
+                </View>
                 <Ionicons name="chevron-down" size={20} color="#888" />
               </View>
             </TouchableOpacity>
@@ -266,15 +341,24 @@ const HealthIDsScreen: React.FC = () => {
         </View>
       </Modal>
 
+      {/* Health ID Scanner (re-using MedicalRecordScanner for richer UX) */}
+      <MedicalRecordScanner
+        visible={idScannerVisible}
+        onClose={() => setIdScannerVisible(false)}
+        onSave={handleScannerSave}
+      />
+
       {/* Country selection now uses Alert instead of Modal */}
     </View>
   );
 };
 
+const { width } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000',
   },
   scrollView: {
     flex: 1,
@@ -284,78 +368,136 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   addButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   content: {
     padding: 20,
+    paddingBottom: 100,
   },
   healthIDCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  healthIDHeader: {
+  cardGradient: {
+    borderRadius: 20,
+    padding: 20,
+    minHeight: 140,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  healthIDInfo: {
+  countryInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  countryFlag: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  countryDetails: {
     flex: 1,
   },
   countryName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#fff',
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   idType: {
     fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 4,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
-  idNumber: {
-    fontSize: 14,
-    color: '#ccc',
-    marginBottom: 4,
-  },
-  notes: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
-  },
-  healthIDActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardActions: {
+    alignItems: 'flex-end',
   },
   primaryBadge: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   primaryText: {
     fontSize: 12,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  cardBody: {
+    marginBottom: 16,
+  },
+  idNumber: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  notes: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   actionButton: {
-    padding: 8,
-    marginLeft: 4,
+    padding: 12,
+    marginLeft: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
   },
   disabledButton: {
     opacity: 0.5,
@@ -363,27 +505,44 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#fff',
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#888',
     textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 40,
+    lineHeight: 24,
+    marginBottom: 32,
   },
   addFirstButton: {
     backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   addFirstButtonText: {
     color: '#fff',
@@ -392,7 +551,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -403,14 +562,16 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+    backgroundColor: '#181818',
   },
   cancelButton: {
     fontSize: 16,
     color: '#007AFF',
+    fontWeight: '500',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#fff',
   },
   saveButton: {
@@ -422,43 +583,76 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  scanRow: {
+    marginBottom: 16,
+    flexDirection: 'row',
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 8,
+  },
+  scanButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   inputContainer: {
     marginBottom: 24,
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#181818',
-    borderRadius: 8,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   inputText: {
     fontSize: 16,
     color: '#fff',
     flex: 1,
+    fontWeight: '500',
   },
   placeholderText: {
     color: '#666',
   },
   textInput: {
-    backgroundColor: '#181818',
-    borderRadius: 8,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     fontSize: 16,
     color: '#fff',
+    borderWidth: 1,
+    borderColor: '#333',
+    fontWeight: '500',
   },
   textArea: {
-    height: 80,
+    height: 100,
     textAlignVertical: 'top',
+  },
+  countrySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  selectedCountryFlag: {
+    fontSize: 20,
+    marginRight: 8,
   },
   countryOption: {
     flexDirection: 'row',

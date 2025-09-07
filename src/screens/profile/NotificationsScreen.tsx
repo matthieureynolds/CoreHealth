@@ -126,16 +126,17 @@ const NotificationsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
           {/* Supplement & Medication Reminders */}
@@ -165,7 +166,6 @@ const NotificationsScreen: React.FC = () => {
                       onPress={() => openTimePicker('medication', index)}
                     >
                       <Text style={styles.alertTimeText}>{alert}</Text>
-                      <Ionicons name="chevron-forward" size={16} color="#888" />
                     </TouchableOpacity>
                     {medicationAlerts.length > 1 && (
                       <TouchableOpacity 
@@ -181,7 +181,7 @@ const NotificationsScreen: React.FC = () => {
                   style={styles.addAlertButton}
                   onPress={() => handleAddAlert('medication')}
                 >
-                  <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                  <Ionicons name="add" size={18} color="#0A84FF" />
                   <Text style={styles.addAlertText}>Add Alert</Text>
                 </TouchableOpacity>
               </View>
@@ -215,7 +215,6 @@ const NotificationsScreen: React.FC = () => {
                       onPress={() => openTimePicker('appointment', index)}
                     >
                       <Text style={styles.alertTimeText}>{alert}</Text>
-                      <Ionicons name="chevron-forward" size={16} color="#888" />
                     </TouchableOpacity>
                     {appointmentAlerts.length > 1 && (
                       <TouchableOpacity 
@@ -231,7 +230,7 @@ const NotificationsScreen: React.FC = () => {
                   style={styles.addAlertButton}
                   onPress={() => handleAddAlert('appointment')}
                 >
-                  <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                  <Ionicons name="add" size={18} color="#0A84FF" />
                   <Text style={styles.addAlertText}>Add Alert</Text>
                 </TouchableOpacity>
               </View>
@@ -294,6 +293,9 @@ const NotificationsScreen: React.FC = () => {
               />
             </View>
           </View>
+
+          {/* Bottom spacing to match the gap between cards */}
+          <View style={styles.bottomSpacing} />
         </View>
       </ScrollView>
 
@@ -332,25 +334,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 0,
   },
   notificationCard: {
     backgroundColor: '#1C1C1E',
@@ -378,7 +389,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#fff',
     marginBottom: 4,
@@ -409,17 +420,22 @@ const styles = StyleSheet.create({
   alertTimeSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C2C2E',
-    borderRadius: 8,
+    backgroundColor: '#0A84FF14',
+    borderRadius: 20,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flex: 1,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#0A84FF33',
+    justifyContent: 'center',
   },
   alertTimeText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#0A84FF',
     marginRight: 8,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   removeAlertButton: {
     padding: 4,
@@ -428,19 +444,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF20',
-    borderRadius: 8,
+    backgroundColor: '#0A84FF14',
+    borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#007AFF',
-    borderStyle: 'dashed',
+    borderColor: '#0A84FF33',
     marginTop: 8,
   },
   addAlertText: {
-    color: '#007AFF',
+    color: '#0A84FF',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     marginLeft: 6,
   },
   modalOverlay: {
@@ -492,6 +507,9 @@ const styles = StyleSheet.create({
   timeOptionText: {
     fontSize: 16,
     color: '#fff',
+  },
+  bottomSpacing: {
+    height: 4,
   },
 });
 

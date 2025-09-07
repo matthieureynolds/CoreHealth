@@ -27,7 +27,7 @@ const SettingsScreen: React.FC = () => {
       {/* Content */}
       <View style={styles.content}>
         {/* Account & Preferences Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>ACCOUNT & PREFERENCES</Text>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('AccountSettings' as any)}>
             <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
@@ -44,7 +44,7 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.cardLabel}>Display & Format</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('Notifications' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('Notifications' as any)}>
             <Ionicons name="notifications-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Notifications</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -52,7 +52,7 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         {/* Data & Privacy Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>DATA & PRIVACY</Text>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DataSync' as any)}>
             <Ionicons name="cloud-upload-outline" size={22} color="#5856D6" style={styles.cardIcon} />
@@ -64,7 +64,7 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.cardLabel}>Privacy & Security</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('LegalCompliance' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('LegalCompliance' as any)}>
             <Ionicons name="document-text-outline" size={22} color="#007AFF" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Legal & Compliance</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -72,14 +72,14 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         {/* Support & Help Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('SupportHelp' as any)}>
             <Ionicons name="help-circle-outline" size={22} color="#4CD964" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Support & Help</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('AppInfo' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('AppInfo' as any)}>
             <Ionicons name="information-circle-outline" size={22} color="#8E8E93" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>App Info</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -100,8 +100,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: '#000000',
   },
   backButton: {
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
     marginTop: 20,
+    marginBottom: 18,
     paddingVertical: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -126,11 +127,14 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  cardTightBottom: {
+    paddingBottom: 0,
+  },
   cardHeader: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: 'bold',
     color: '#8E8E93',
-    marginBottom: 16,
+    marginBottom: 8,
     marginHorizontal: 20,
     letterSpacing: 0.5,
   },
@@ -139,6 +143,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  notificationsRow: {
+    height: 50,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
   },
   cardIcon: {
     marginRight: 12,

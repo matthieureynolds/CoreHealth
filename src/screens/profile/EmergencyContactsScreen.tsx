@@ -12,7 +12,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -34,6 +34,7 @@ interface ContactForm {
   name: string;
   relationship: string;
   phone: string;
+  secondaryPhone: string;
   email: string;
   isPrimary: boolean;
   notes: string;
@@ -49,6 +50,7 @@ const EmergencyContactsScreen: React.FC = () => {
     name: '',
     relationship: '',
     phone: '',
+    secondaryPhone: '',
     email: '',
     isPrimary: false,
     notes: '',
@@ -72,6 +74,7 @@ const EmergencyContactsScreen: React.FC = () => {
       name: '',
       relationship: '',
       phone: '',
+      secondaryPhone: '',
       email: '',
       isPrimary: false,
       notes: '',
@@ -90,6 +93,7 @@ const EmergencyContactsScreen: React.FC = () => {
       name: contact.name,
       relationship: contact.relationship,
       phone: contact.phone,
+      secondaryPhone: (contact as any).secondaryPhone || '',
       email: contact.email || '',
       isPrimary: contact.isPrimary,
       notes: contact.notes || '',
@@ -118,6 +122,7 @@ const EmergencyContactsScreen: React.FC = () => {
       name: contactForm.name.trim(),
       relationship: contactForm.relationship,
       phone: contactForm.phone.trim(),
+      secondaryPhone: contactForm.secondaryPhone.trim() || undefined,
       email: contactForm.email.trim() || undefined,
       isPrimary: contactForm.isPrimary,
       notes: contactForm.notes.trim() || undefined,
@@ -207,56 +212,71 @@ const EmergencyContactsScreen: React.FC = () => {
     );
   };
 
+  const openContactOptions = (contact: EmergencyContact) => {
+    Alert.alert(
+      contact.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditContact(contact) },
+        { text: 'Delete', style: 'destructive', onPress: () => handleDeleteContact(contact.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
   const ContactItem = ({ contact }: { contact: EmergencyContact }) => (
     <View style={styles.contactCard}>
       <View style={styles.contactHeader}>
-        <View style={styles.contactIcon}>
-          <Ionicons name="person-outline" size={24} color="#FFFFFF" />
+        <View style={styles.headerLeft}>
+          <View style={styles.contactIcon}>
+            <Ionicons name="person-outline" size={24} color="#FFFFFF" />
+          </View>
+          <View style={styles.contactInfo}>
+            <Text style={styles.contactName}>{contact.name}</Text>
+            <Text style={styles.contactRelationship}>{contact.relationship}</Text>
+            {contact.isPrimary && (
+              <View style={styles.primaryBadge}>
+                <Text style={styles.primaryBadgeText}>Primary</Text>
+              </View>
+            )}
+          </View>
         </View>
-        <View style={styles.contactInfo}>
-          <Text style={styles.contactName}>{contact.name}</Text>
-          <Text style={styles.contactRelationship}>{contact.relationship}</Text>
-          {contact.isPrimary && (
-            <View style={styles.primaryBadge}>
-              <Text style={styles.primaryBadgeText}>Primary</Text>
-            </View>
-          )}
-        </View>
+        <TouchableOpacity 
+          style={styles.moreButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => openContactOptions(contact)}
+          accessibilityLabel="Edit contact"
+        >
+          <Feather name="edit-2" size={18} color="#007AFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.contactActions}>
         <TouchableOpacity 
-          style={styles.actionButton}
+          style={styles.actionChipPrimary}
           onPress={() => handleCallContact(contact.phone)}
         >
-          <Ionicons name="call-outline" size={20} color="#4CD964" />
-          <Text style={styles.actionText}>Call</Text>
+          <Ionicons name="call-outline" size={18} color="#007AFF" />
+          <Text style={styles.actionChipPrimaryText}>Call {contact.phone}</Text>
         </TouchableOpacity>
-        
         {contact.email && (
           <TouchableOpacity 
-            style={styles.actionButton}
+            style={styles.actionChip}
             onPress={() => handleEmailContact(contact.email!)}
           >
-            <Ionicons name="mail-outline" size={20} color="#007AFF" />
-            <Text style={styles.actionText}>Email</Text>
+            <Ionicons name="mail-outline" size={18} color="#007AFF" />
+            <Text style={styles.actionChipText}>Email</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.detailsContainer}>
-        <View style={styles.detailRow}>
-          <Ionicons name="call-outline" size={16} color="#8E8E93" />
-          <Text style={styles.detailText}>{contact.phone}</Text>
-        </View>
-        
         {contact.email && (
           <View style={styles.detailRow}>
             <Ionicons name="mail-outline" size={16} color="#8E8E93" />
             <Text style={styles.detailText}>{contact.email}</Text>
           </View>
         )}
-        
         {contact.notes && (
           <View style={styles.detailRow}>
             <Ionicons name="document-text-outline" size={16} color="#8E8E93" />
@@ -264,24 +284,7 @@ const EmergencyContactsScreen: React.FC = () => {
           </View>
         )}
       </View>
-
-      <View style={styles.actionButtons}>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={() => handleEditContact(contact)}
-        >
-          <Ionicons name="create-outline" size={20} color="#007AFF" />
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => handleDeleteContact(contact.id)}
-        >
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Bottom edit/delete buttons removed */}
     </View>
   );
 
@@ -298,7 +301,6 @@ const EmergencyContactsScreen: React.FC = () => {
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Emergency Contacts</Text>
-            <Text style={styles.headerSubtitle}>Manage your emergency contacts</Text>
           </View>
         </View>
       </View>
@@ -423,6 +425,18 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Secondary Phone (Optional)</Text>
+              <TextInput
+                style={styles.textInput}
+                value={contactForm.secondaryPhone}
+                onChangeText={(text) => setContactForm({ ...contactForm, secondaryPhone: text })}
+                placeholder="Enter secondary phone number"
+                placeholderTextColor="#8E8E93"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Email (Optional)</Text>
               <TextInput
                 style={styles.textInput}
@@ -478,9 +492,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#000000',
+    paddingTop: 72,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
   },
   headerContent: {
     flexDirection: 'row',
@@ -488,20 +505,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerText: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -545,14 +566,27 @@ const styles = StyleSheet.create({
   },
   contactCard: {
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   contactHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   contactIcon: {
     width: 48,
@@ -576,6 +610,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
   },
+  moreButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderWidth: 0,
+    borderColor: 'transparent',
+  },
   primaryBadge: {
     backgroundColor: '#FF9500',
     paddingHorizontal: 8,
@@ -592,21 +634,43 @@ const styles = StyleSheet.create({
   contactActions: {
     flexDirection: 'row',
     marginBottom: 16,
+    gap: 12,
   },
-  actionButton: {
+  actionChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginRight: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    flex: 1,
   },
-  actionText: {
+  actionChipText: {
+    color: '#007AFF',
     fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginLeft: 6,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  actionChipPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  actionChipPrimaryText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   detailsContainer: {
     marginBottom: 16,
@@ -621,44 +685,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginLeft: 8,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginRight: 8,
-    justifyContent: 'center',
-  },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007AFF',
-    marginLeft: 6,
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginLeft: 8,
-    justifyContent: 'center',
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FF3B30',
-    marginLeft: 6,
-  },
+  // Bottom edit/delete buttons removed; options moved to top-right moreButton
   addMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',

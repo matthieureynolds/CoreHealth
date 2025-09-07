@@ -13,7 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
-import { Medication } from '../../types';
+import { Medication, AttachedFile } from '../../types';
+import * as DocumentPicker from 'expo-document-picker';
+import FileViewerModal from '../../components/common/FileViewerModal';
 
 const MedicationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -27,6 +29,12 @@ const MedicationsScreen: React.FC = () => {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
+  const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+  const [fileViewerVisible, setFileViewerVisible] = useState(false);
+  const [currentFileUri, setCurrentFileUri] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [currentFileType, setCurrentFileType] = useState('');
 
   const commonMedications = [
     'Aspirin', 'Ibuprofen', 'Acetaminophen', 'Omeprazole', 'Lisinopril',
@@ -46,21 +54,39 @@ const MedicationsScreen: React.FC = () => {
       return;
     }
 
-    const newMedication: Medication = {
-      id: Date.now().toString(),
-      name: medication.trim(),
-      dosage: dosage.trim(),
-      frequency: frequency.trim(),
-      startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      duration: duration.trim() || undefined,
-      notes: notes.trim() || undefined,
-    };
-
-    const updatedMedications = [...(profile?.medications || []), newMedication];
-    updateProfile({
-      ...profile,
-      medications: updatedMedications,
-    });
+    if (editingMedication) {
+      const updated: Medication = {
+        id: editingMedication.id,
+        name: medication.trim(),
+        dosage: dosage.trim() || undefined,
+        frequency: frequency.trim() || undefined,
+        startDate: (startDate || new Date()).toISOString().split('T')[0],
+        duration: duration.trim() || undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedMedications = (profile?.medications || []).map(m => m.id === editingMedication.id ? updated : m);
+      updateProfile({
+        ...profile,
+        medications: updatedMedications,
+      });
+    } else {
+      const newMedication: Medication = {
+        id: Date.now().toString(),
+        name: medication.trim(),
+        dosage: dosage.trim(),
+        frequency: frequency.trim(),
+        startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        duration: duration.trim() || undefined,
+        notes: notes.trim() || undefined,
+        attachments: attachments.length ? attachments : undefined,
+      };
+      const updatedMedications = [...(profile?.medications || []), newMedication];
+      updateProfile({
+        ...profile,
+        medications: updatedMedications,
+      });
+    }
 
     setShowAddModal(false);
     setMedication('');
@@ -69,6 +95,8 @@ const MedicationsScreen: React.FC = () => {
     setStartDate(null);
     setDuration('');
     setNotes('');
+    setEditingMedication(null);
+    setAttachments([]);
   };
 
   const deleteMedication = (id: string) => {
@@ -90,6 +118,62 @@ const MedicationsScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleEditMedication = (m: Medication) => {
+    setMedication(m.name);
+    setDosage(m.dosage || '');
+    setFrequency(m.frequency || '');
+    setStartDate(m.startDate ? new Date(m.startDate) : new Date());
+    setDuration(m.duration || '');
+    setNotes(m.notes || '');
+    setAttachments(m.attachments || []);
+    setEditingMedication(m);
+    setShowAddModal(true);
+  };
+
+  const openMedicationOptions = (m: Medication) => {
+    Alert.alert(
+      m.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditMedication(m) },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteMedication(m.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const newFile: AttachedFile = {
+          uri: asset.uri,
+          name: asset.name || 'attachment',
+          type: asset.mimeType,
+        };
+        setAttachments(prev => [...prev, newFile]);
+      }
+    } catch (e) {
+      console.error('Attachment error', e);
+      Alert.alert('Attachment Error', 'Failed to attach file.');
+    }
+  };
+
+  const removeAttachment = (name: string) => {
+    setAttachments(prev => prev.filter(a => a.name !== name));
+  };
+
+  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+    setCurrentFileUri(fileUri);
+    setCurrentFileName(fileName);
+    setCurrentFileType(fileType || '');
+    setFileViewerVisible(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -127,12 +211,29 @@ const MedicationsScreen: React.FC = () => {
                       <Text style={styles.medicationDuration}>Duration: {medication.duration}</Text>
                     )}
                     {medication.notes && <Text style={styles.notes}>{medication.notes}</Text>}
+                    {!!medication.attachments?.length && (
+                      <View style={{ marginTop: 10 }}>
+                        <View style={styles.attachmentsRow}>
+                          {medication.attachments.map(file => (
+                            <TouchableOpacity
+                              key={file.uri}
+                              style={styles.attachmentChip}
+                              onPress={() => handleViewFile(file.uri, file.name, file.type)}
+                            >
+                              <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                              <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                   <TouchableOpacity
-                    onPress={() => deleteMedication(medication.id)}
-                    style={styles.deleteButton}
+                    onPress={() => openMedicationOptions(medication)}
+                    style={styles.moreButton}
+                    accessibilityLabel="Edit medication"
                   >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -163,7 +264,7 @@ const MedicationsScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Medication</Text>
+            <Text style={styles.modalTitle}>{editingMedication ? 'Edit Medication' : 'Add Medication'}</Text>
             <TouchableOpacity onPress={addMedication}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
@@ -267,6 +368,27 @@ const MedicationsScreen: React.FC = () => {
                 numberOfLines={3}
               />
             </View>
+
+            {/* Attachments */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Attachments</Text>
+              <View style={styles.attachmentsRow}>
+                {attachments.map(file => (
+                  <View key={file.uri} style={styles.attachmentChip}>
+                    <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                    <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                    <TouchableOpacity onPress={() => removeAttachment(file.name)} style={styles.attachmentRemove}>
+                      <Ionicons name="close" size={14} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
+                  <Ionicons name="attach" size={16} color="#007AFF" />
+                  <Text style={styles.addAttachmentText}>Add file</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
+            </View>
           </ScrollView>
 
           {/* Start Date Picker - Now inside the modal */}
@@ -285,6 +407,13 @@ const MedicationsScreen: React.FC = () => {
           )}
         </View>
       </Modal>
+      <FileViewerModal
+        visible={fileViewerVisible}
+        onClose={() => setFileViewerVisible(false)}
+        fileUri={currentFileUri}
+        fileName={currentFileName}
+        fileType={currentFileType}
+      />
     </View>
   );
 };
@@ -302,34 +431,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#111',
+    paddingTop: 80,
+    paddingBottom: 3,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
   },
   backButton: {
     padding: 8,
+    position: 'absolute',
+    left: 20,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   addButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    zIndex: 1,
   },
   content: {
     padding: 20,
   },
   medicationCard: {
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   medicationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   medicationInfo: {
     flex: 1,
@@ -360,8 +510,59 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
-  deleteButton: {
-    padding: 8,
+  moreButton: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
+  attachmentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachmentText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginLeft: 6,
+    maxWidth: 140,
+  },
+  attachmentRemove: {
+    marginLeft: 6,
+  },
+  addAttachmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  addAttachmentText: {
+    color: '#007AFF',
+    fontSize: 12,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
+  attachmentsHelp: {
+    marginTop: 8,
+    color: '#8E8E93',
+    fontSize: 12,
   },
   emptyState: {
     alignItems: 'center',

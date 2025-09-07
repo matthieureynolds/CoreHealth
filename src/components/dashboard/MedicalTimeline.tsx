@@ -9,7 +9,6 @@ import {
   TextInput,
   Platform,
   ScrollView,
-  FlatList,
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,8 @@ import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { format } from 'date-fns';
+import FileViewerModal from '../common/FileViewerModal';
+import { useSettings } from '../../context/SettingsContext';
 
 interface MedicalEvent {
   id: string;
@@ -28,6 +29,7 @@ interface MedicalEvent {
   iconColor: string;
   doctor?: string;
   notes?: string;
+  location?: string;
   attachedFile?: any;
 }
 
@@ -36,6 +38,7 @@ interface MedicalTimelineProps {
 }
 
 const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
+  const { settings } = useSettings();
   const [showMore, setShowMore] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -43,6 +46,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [newDoctor, setNewDoctor] = useState('');
   const [newNotes, setNewNotes] = useState('');
+  const [newLocation, setNewLocation] = useState('');
   const [attachedDoc, setAttachedDoc] = useState<any>(null);
   const [isDraft, setIsDraft] = useState(false);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -52,6 +56,12 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   // Autocomplete states
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [filteredLocationSuggestions, setFilteredLocationSuggestions] = useState<string[]>([]);
+  const [fileViewerVisible, setFileViewerVisible] = useState(false);
+  const [currentFileUri, setCurrentFileUri] = useState('');
+  const [currentFileName, setCurrentFileName] = useState('');
+  const [currentFileType, setCurrentFileType] = useState('');
 
   // Predefined appointment types
   const appointmentTypes = [
@@ -115,6 +125,25 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     'Other'
   ];
 
+  // Mock address suggestions
+  const addressSuggestions = [
+    '123 Main Street, New York, NY 10001',
+    '456 Oak Avenue, Los Angeles, CA 90210',
+    '789 Pine Street, Chicago, IL 60601',
+    '321 Elm Drive, Houston, TX 77001',
+    '654 Maple Lane, Phoenix, AZ 85001',
+    '987 Cedar Road, Philadelphia, PA 19101',
+    '147 Birch Street, San Antonio, TX 78201',
+    '258 Spruce Avenue, San Diego, CA 92101',
+    '369 Willow Way, Dallas, TX 75201',
+    '741 Poplar Place, San Jose, CA 95101',
+    '852 Ash Street, Austin, TX 78701',
+    '963 Hickory Lane, Jacksonville, FL 32201',
+    '159 Cherry Court, Fort Worth, TX 76101',
+    '357 Walnut Drive, Columbus, OH 43201',
+    '468 Chestnut Street, Charlotte, NC 28201'
+  ];
+
   // Simplified events data with proper date categorization
   const [events, setEvents] = useState<MedicalEvent[]>([
     {
@@ -144,7 +173,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Lisa Johnson, PT',
-      notes: 'Wellness Center, 456 Health Ave, New York, NY 10002',
+      location: 'Wellness Center, 456 Health Ave, New York, NY 10002',
+      notes: 'Focus on lower back exercises',
     },
     {
       id: '4',
@@ -155,7 +185,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Michael Brown, DDS',
-      notes: 'Downtown Dental Clinic, 123 Main Street, New York, NY 10001',
+      location: 'Downtown Dental Clinic, 123 Main Street, New York, NY 10001',
+      notes: 'Regular cleaning and checkup',
     },
     {
       id: '5',
@@ -165,7 +196,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
-      notes: 'CVS Pharmacy, 789 Broadway, New York, NY 10003',
+      location: 'CVS Pharmacy, 789 Broadway, New York, NY 10003',
+      notes: 'Annual flu shot',
     },
     {
       id: '6',
@@ -176,7 +208,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Sarah Chen, MD',
-      notes: 'Manhattan Medical Center, 321 Park Ave, New York, NY 10010',
+      location: 'Manhattan Medical Center, 321 Park Ave, New York, NY 10010',
+      notes: 'Complete annual health assessment',
     },
     {
       id: '7',
@@ -187,7 +220,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       icon: 'medical',
       iconColor: '#007AFF',
       doctor: 'Dr. Emily Davis, OD',
-      notes: 'Vision Care Associates, 654 5th Avenue, New York, NY 10019',
+      location: 'Vision Care Associates, 654 5th Avenue, New York, NY 10019',
+      notes: 'Comprehensive eye examination',
     },
     {
       id: '8',
@@ -197,7 +231,8 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       status: 'UPCOMING',
       icon: 'medical',
       iconColor: '#007AFF',
-      notes: 'LabCorp Patient Service Center, 987 Madison Ave, New York, NY 10021',
+      location: 'LabCorp Patient Service Center, 987 Madison Ave, New York, NY 10021',
+      notes: 'Fasting required - no food 12 hours before',
     },
   ]);
 
@@ -214,6 +249,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     setEditingEvent(event);
     setNewTitle(event.title);
     setNewDoctor(event.doctor || '');
+    setNewLocation(event.location || '');
     setNewNotes(event.notes || '');
     setAttachedDoc(event.attachedFile || null);
     setDetailsModalVisible(false);
@@ -221,25 +257,32 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   };
 
   const openMaps = (location: string) => {
-    const encodedLocation = encodeURIComponent(location);
-    const url = Platform.OS === 'ios' 
-      ? `maps://maps.google.com/maps?daddr=${encodedLocation}`
-      : `geo:0,0?q=${encodedLocation}`;
-    
-    Linking.canOpenURL(url).then(supported => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        // Fallback to Google Maps web
-        const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
-        Linking.openURL(webUrl);
-      }
-    }).catch(err => {
-      console.error('Error opening maps:', err);
-      // Fallback to Google Maps web
-      const webUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
-      Linking.openURL(webUrl);
-    });
+    Alert.alert(
+      'Navigate to Location',
+      `How would you like to navigate to ${location}?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Apple Maps',
+          onPress: () => {
+            const destination = encodeURIComponent(location);
+            const url = `http://maps.apple.com/?daddr=${destination}`;
+            Linking.openURL(url);
+          },
+        },
+        {
+          text: 'Google Maps',
+          onPress: () => {
+            const destination = encodeURIComponent(location);
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+            Linking.openURL(url);
+          },
+        },
+      ]
+    );
   };
 
   // Handle appointment type input with autocomplete
@@ -261,6 +304,33 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
     setNewTitle(type);
     setShowSuggestions(false);
     setFilteredSuggestions([]);
+  };
+
+  const handleLocationChange = (text: string) => {
+    setNewLocation(text);
+    if (text.length > 0) {
+      const filtered = addressSuggestions.filter(address => 
+        address.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredLocationSuggestions(filtered);
+      setShowLocationSuggestions(true);
+    } else {
+      setShowLocationSuggestions(false);
+      setFilteredLocationSuggestions([]);
+    }
+  };
+
+  const selectLocation = (location: string) => {
+    setNewLocation(location);
+    setShowLocationSuggestions(false);
+    setFilteredLocationSuggestions([]);
+  };
+
+  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+    setCurrentFileUri(fileUri);
+    setCurrentFileName(fileName);
+    setCurrentFileType(fileType || '');
+    setFileViewerVisible(true);
   };
 
   // Handle file attachment
@@ -333,6 +403,20 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
 
   const groupedEvents = groupEventsByDate(events);
   
+  const is12h = settings?.general?.timeFormat === '12h';
+  const to24h = (hours: number, minutes: number, ampm: string) => {
+    let h = hours;
+    if (/pm/i.test(ampm) && h < 12) h += 12;
+    if (/am/i.test(ampm) && h === 12) h = 0;
+    const hh = String(h).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+  const formatEventTimeForDisplay = (label: string): string => {
+    if (is12h) return label;
+    return label.replace(/(\d{1,2}):(\d{2})\s?(AM|PM)/gi, (_match, h, m, ap) => to24h(parseInt(h, 10), parseInt(m, 10), ap));
+  };
+  
   // Get visible events based on showMore state
   const getVisibleEvents = () => {
     if (showMore) {
@@ -350,6 +434,16 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   };
 
   const visibleGroupedEvents = getVisibleEvents();
+
+  const formatDateBySetting = (date: Date, formatSetting: string) => {
+    if (formatSetting === 'DD/MM/YYYY') {
+      return format(date, 'DD/MM/YYYY');
+    } else if (formatSetting === 'MM/DD/YYYY') {
+      return format(date, 'MM/DD/YYYY');
+    } else {
+      return format(date, 'MMM d, yyyy');
+    }
+  };
 
     return (
     <View style={styles.container}>
@@ -375,26 +469,28 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             {categoryEvents.map((event) => (
       <Swipeable
         key={event.id}
-                renderRightActions={() => renderRightActions(event.id)}
-                rightThreshold={40}
+        renderRightActions={() => renderRightActions(event.id)}
+        rightThreshold={40}
       >
-      <TouchableOpacity
-                  style={styles.eventCard}
-          onPress={() => handleEventPress(event)}
-      >
-                  <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
-                    <Ionicons name={event.icon} size={20} color={event.iconColor} />
-          </View>
-                  <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-            <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-                  <Text style={styles.eventTime}>{event.time}</Text>
+        <View style={styles.eventRow}>
+          <TouchableOpacity
+            style={styles.eventCard}
+            onPress={() => handleEventPress(event)}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
+              <Ionicons name={event.icon} size={20} color={event.iconColor} />
             </View>
-                  {event.status === 'DUE' && (
-                    <Text style={styles.dueStatus}>{event.status}</Text>
-                  )}
-                  <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-      </TouchableOpacity>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventTitle}>{event.title}</Text>
+              <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+              <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
+            </View>
+            {event.status === 'DUE' && (
+              <Text style={styles.dueStatus}>{event.status}</Text>
+            )}
+            <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+          </TouchableOpacity>
+        </View>
       </Swipeable>
             ))}
           </View>
@@ -420,7 +516,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Appointment Type *</Text>
                 <TextInput
-                  placeholder="Start typing appointment type..."
+                  placeholder="e.g., Blood Test, Dentist, Physical Therapy"
                   placeholderTextColor="#888"
                   value={newTitle}
                   onChangeText={handleAppointmentTypeChange}
@@ -428,19 +524,15 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 />
                 {showSuggestions && filteredSuggestions.length > 0 && (
                   <View style={styles.suggestionsContainer}>
-                    <FlatList
-                      data={filteredSuggestions.slice(0, 8)}
-                      keyExtractor={(item) => item}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          style={styles.suggestionItem}
-                          onPress={() => selectAppointmentType(item)}
-                        >
-                          <Text style={styles.suggestionText}>{item}</Text>
-                        </TouchableOpacity>
-                      )}
-                      style={styles.suggestionsList}
-                    />
+                    {filteredSuggestions.slice(0, 8).map((item, index) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={styles.suggestionItem}
+                        onPress={() => selectAppointmentType(item)}
+                      >
+                        <Text style={styles.suggestionText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
                 )}
               </View>
@@ -448,12 +540,36 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Doctor Name (optional)</Text>
                 <TextInput
-                  placeholder="Doctor Name"
+                  placeholder="Dr. Smith"
                   placeholderTextColor="#888"
                   value={newDoctor}
                   onChangeText={setNewDoctor}
                   style={styles.modalInput}
                 />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Location (optional)</Text>
+                <TextInput
+                  placeholder="Clinic name or address"
+                  placeholderTextColor="#888"
+                  value={newLocation}
+                  onChangeText={handleLocationChange}
+                  style={styles.modalInput}
+                />
+                {showLocationSuggestions && filteredLocationSuggestions.length > 0 && (
+                  <View style={styles.suggestionsContainer}>
+                    {filteredLocationSuggestions.slice(0, 8).map((item, index) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={styles.suggestionItem}
+                        onPress={() => selectLocation(item)}
+                      >
+                        <Text style={styles.suggestionText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
               
               <View style={styles.inputContainer}>
@@ -464,7 +580,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                 >
                   <Ionicons name="calendar" size={20} color="#007AFF" />
                   <Text style={[styles.datePickerText, { color: newDate ? '#fff' : '#888' }]}>
-                    {newDate ? format(newDate, 'MMM d, yyyy • h:mm a') : 'Select Date & Time'}
+                    {newDate ? `${formatDateBySetting(newDate, settings?.general?.dateFormat || 'DD/MM/YYYY')} • ${newDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: settings?.general?.timeFormat === '12h' })}` : 'Select Date & Time'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -484,7 +600,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Notes (optional)</Text>
                 <TextInput
-                  placeholder="Add notes about the appointment..."
+                  placeholder="Add details"
                   placeholderTextColor="#888"
                   value={newNotes}
                   onChangeText={setNewNotes}
@@ -524,21 +640,6 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 onPress={() => {
-                  setAddModalVisible(false);
-                  setNewTitle('');
-                  setNewDoctor('');
-                  setNewDate(null);
-                  setNewNotes('');
-                  setAttachedDoc(null);
-                  setEditingEvent(null);
-                }}
-                style={styles.modalButton}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                onPress={() => {
                   if (newTitle.trim() && newDate) {
                     if (editingEvent) {
                       // Update existing event
@@ -546,9 +647,10 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                         ...editingEvent,
                         title: newTitle,
                         subtitle: newDoctor || 'Appointment',
-                        time: format(newDate, 'MMM d, yyyy • h:mm a'),
+                        time: `${formatDateBySetting(newDate, settings?.general?.dateFormat || 'DD/MM/YYYY')} • ${newDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: settings?.general?.timeFormat === '12h' })}`,
                         doctor: newDoctor,
                         notes: newNotes,
+                        location: newLocation,
                         attachedFile: attachedDoc,
                       };
                       setEvents(events.map(event => 
@@ -561,12 +663,13 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                         id: Date.now().toString(),
                         title: newTitle,
                         subtitle: newDoctor || 'Appointment',
-                        time: format(newDate, 'MMM d, yyyy • h:mm a'),
+                        time: `${formatDateBySetting(newDate, settings?.general?.dateFormat || 'DD/MM/YYYY')} • ${newDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: settings?.general?.timeFormat === '12h' })}`,
                         status: 'UPCOMING',
                         icon: 'medical',
                         iconColor: '#007AFF',
                         doctor: newDoctor,
                         notes: newNotes,
+                        location: newLocation,
                         attachedFile: attachedDoc,
                       };
                       setEvents([newEvent, ...events]);
@@ -574,6 +677,7 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                     setAddModalVisible(false);
                     setNewTitle('');
                     setNewDoctor('');
+                    setNewLocation('');
                     setNewDate(null);
                     setNewNotes('');
                     setAttachedDoc(null);
@@ -605,18 +709,25 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.modalSubtitle}>{selectedEvent?.subtitle}</Text>
               <Text style={styles.modalText}>Date: {selectedEvent?.time}</Text>
-              {selectedEvent?.notes && (
-                <TouchableOpacity onPress={() => openMaps(selectedEvent.notes)}>
-                  <Text style={styles.modalText}>Location: {selectedEvent.notes}</Text>
+              {selectedEvent?.location && (
+                <TouchableOpacity onPress={() => openMaps(selectedEvent.location!)}>
+                  <Text style={styles.modalText}>Location: {selectedEvent.location}</Text>
                 </TouchableOpacity>
+              )}
+              {selectedEvent?.notes && (
+                <Text style={styles.modalText}>Notes: {selectedEvent.notes}</Text>
               )}
               {selectedEvent?.attachedFile && (
                 <View style={styles.attachedFileContainer}>
                   <Text style={styles.modalText}>Attached File:</Text>
-                  <View style={styles.attachedFile}>
+                  <TouchableOpacity 
+                    style={styles.attachedFile}
+                    onPress={() => handleViewFile(selectedEvent.attachedFile.uri, selectedEvent.attachedFile.name, selectedEvent.attachedFile.type || undefined)}
+                  >
                     <Ionicons name="document" size={16} color="#30D158" />
                     <Text style={styles.attachedFileName}>{selectedEvent.attachedFile.name}</Text>
-                  </View>
+                    <Ionicons name="eye" size={16} color="#007AFF" />
+                  </TouchableOpacity>
                 </View>
               )}
             </ScrollView>
@@ -636,6 +747,15 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
         <Text style={styles.addButtonText}>+ Add Appointment</Text>
       </TouchableOpacity>
+
+      {/* File Viewer Modal */}
+      <FileViewerModal
+        visible={fileViewerVisible}
+        onClose={() => setFileViewerVisible(false)}
+        fileUri={currentFileUri}
+        fileName={currentFileName}
+        fileType={currentFileType}
+      />
     </View>
   );
 };
@@ -666,14 +786,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginBottom: 8,
+    height: 72,
+  },
   eventCard: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 8,
-    minHeight: 72,
+    height: 72,
   },
   iconCircle: {
     width: 40,
@@ -709,13 +835,16 @@ const styles = StyleSheet.create({
   },
   swipeActions: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
+    gap: 8,
+    height: 72,
+    paddingLeft: 8,
   },
   swipeAction: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 80,
-    height: 70,
+    width: 88,
+    height: 72,
     borderRadius: 12,
   },
   doneAction: {
@@ -815,9 +944,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3A3A3C',
     borderRadius: 8,
     marginTop: 4,
-    maxHeight: 200,
-  },
-  suggestionsList: {
     maxHeight: 200,
   },
   suggestionItem: {
