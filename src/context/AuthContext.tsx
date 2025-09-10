@@ -16,7 +16,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  isLoading: boolean;
+  isLoading: boolean; // operational loading (updates, sign-in actions)
+  isInitializing: boolean; // initial auth bootstrap only
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string,
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Load mock user data from AsyncStorage
   const loadMockUserData = async () => {
@@ -124,6 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       setIsLoading(false);
       console.log('⚡ AuthContext: Initial auth check complete');
+      setIsInitializing(false);
     });
 
     // Listen for auth changes
@@ -456,7 +459,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const updateUserDisplayName = async (displayName: string) => {
-    setIsLoading(true);
     try {
       // Check if we're using mock authentication
       if (!session) {
@@ -483,13 +485,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Update display name error:', error);
       throw new Error(error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const updateUserName = async (firstName: string, surname: string, preferredName: string) => {
-    setIsLoading(true);
     try {
       // Check if we're using mock authentication
       if (!session) {
@@ -518,13 +517,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Update full name error:', error);
       throw new Error(error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const updateUserPhoto = async (photoURL: string) => {
-    setIsLoading(true);
+    // Avoid global loading splash that can trigger navigation resets; use lightweight update
     try {
       // Check if we're using mock authentication
       if (!session) {
@@ -551,8 +548,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Update photo error:', error);
       throw new Error(error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 

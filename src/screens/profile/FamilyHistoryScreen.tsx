@@ -8,8 +8,10 @@ import {
   TextInput,
   Alert,
   Modal,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -23,11 +25,17 @@ const FamilyHistoryScreen: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [relation, setRelation] = useState('');
   const [showRelationPicker, setShowRelationPicker] = useState(false);
+  const [side, setSide] = useState<'maternal' | 'paternal' | ''>('');
   const [condition, setCondition] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [ageOfOnset, setAgeOfOnset] = useState<Date | null>(null);
   const [showAgeOfOnsetPicker, setShowAgeOfOnsetPicker] = useState(false);
+  const [dateModeAge, setDateModeAge] = useState<'year' | 'yearMonth' | 'full'>('year');
+  const [dateModeResolved, setDateModeResolved] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState<'active' | 'resolved'>('active');
+  const [resolvedDate, setResolvedDate] = useState<Date | null>(null);
+  const [showResolvedDatePicker, setShowResolvedDatePicker] = useState(false);
   const [editingFamily, setEditingFamily] = useState<FamilyCondition | null>(null);
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [fileViewerVisible, setFileViewerVisible] = useState(false);
@@ -37,8 +45,7 @@ const FamilyHistoryScreen: React.FC = () => {
 
   const relationOptions = [
     'Father', 'Mother', 'Brother', 'Sister', 'Son', 'Daughter',
-    'Paternal Grandfather', 'Paternal Grandmother',
-    'Maternal Grandfather', 'Maternal Grandmother',
+    'Grandfather', 'Grandmother',
     'Uncle', 'Aunt', 'Cousin'
   ];
 
@@ -71,6 +78,9 @@ const FamilyHistoryScreen: React.FC = () => {
         ageOfOnset: ageOfOnset ? Math.floor((new Date().getTime() - ageOfOnset.getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : undefined,
         notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
+        side: side || undefined,
+        status,
+        resolvedDate: status === 'resolved' && resolvedDate ? resolvedDate.toISOString().split('T')[0] : undefined,
       };
       const updatedFamilyHistory = (profile?.familyHistory || []).map(f => f.id === editingFamily.id ? updated : f);
       updateProfile({
@@ -85,6 +95,9 @@ const FamilyHistoryScreen: React.FC = () => {
         ageOfOnset: ageOfOnset ? Math.floor((new Date().getTime() - ageOfOnset.getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : undefined,
         notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
+        side: side || undefined,
+        status,
+        resolvedDate: status === 'resolved' && resolvedDate ? resolvedDate.toISOString().split('T')[0] : undefined,
       };
       const updatedFamilyHistory = [...(profile?.familyHistory || []), newFamilyCondition];
       updateProfile({
@@ -98,8 +111,11 @@ const FamilyHistoryScreen: React.FC = () => {
     setCondition('');
     setAgeOfOnset(null);
     setNotes('');
+    setSide('');
     setEditingFamily(null);
     setAttachments([]);
+    setStatus('active');
+    setResolvedDate(null);
   };
 
   const deleteFamilyCondition = (id: string) => {
@@ -129,6 +145,9 @@ const FamilyHistoryScreen: React.FC = () => {
     setAgeOfOnset(f.ageOfOnset ? new Date(new Date().getFullYear() - f.ageOfOnset, 0, 1) : null);
     setNotes(f.notes || '');
     setAttachments(f.attachments || []);
+    setSide((f as any).side || '');
+    setStatus(((f as any).status as any) || 'active');
+    setResolvedDate((f as any).resolvedDate ? new Date((f as any).resolvedDate) : null);
     setEditingFamily(f);
     setShowAddModal(true);
   };
@@ -201,7 +220,7 @@ const FamilyHistoryScreen: React.FC = () => {
               <View key={familyCondition.id} style={styles.familyCard}>
                 <View style={styles.familyHeader}>
                   <View style={styles.familyInfo}>
-                    <Text style={styles.relation}>{familyCondition.relation}</Text>
+                    <Text style={styles.relation}>{familyCondition.relation}{(familyCondition as any).side ? ` • ${((familyCondition as any).side as string).charAt(0).toUpperCase()}${((familyCondition as any).side as string).slice(1)}` : ''}</Text>
                     <Text style={styles.condition}>{familyCondition.condition}</Text>
                     {familyCondition.ageOfOnset && (
                       <Text style={styles.ageOfOnset}>Age of onset: {formatAge(familyCondition.ageOfOnset)}</Text>
@@ -226,10 +245,10 @@ const FamilyHistoryScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openFamilyOptions(familyCondition)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit family history"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -281,6 +300,27 @@ const FamilyHistoryScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
+            {/* Side selection shown once a relation is chosen */}
+            {relation ? (
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Side</Text>
+                <View style={styles.sideRow}>
+                  <TouchableOpacity
+                    style={[styles.sideChip, side === 'maternal' && styles.selectedOption]}
+                    onPress={() => setSide('maternal')}
+                  >
+                    <Text style={[styles.optionText, side === 'maternal' && styles.selectedOptionText]}>Maternal</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.sideChip, side === 'paternal' && styles.selectedOption]}
+                    onPress={() => setSide('paternal')}
+                  >
+                    <Text style={[styles.optionText, side === 'paternal' && styles.selectedOptionText]}>Paternal</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
+
             {/* Condition */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Condition *</Text>
@@ -318,16 +358,63 @@ const FamilyHistoryScreen: React.FC = () => {
             {/* Age of Onset */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Age of Onset (Optional)</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeAge === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeAge('year')}>
+                  <Text style={[styles.dateModeText, dateModeAge === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeAge === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeAge('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeAge === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeAge === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeAge('full')}>
+                  <Text style={[styles.dateModeText, dateModeAge === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowAgeOfOnsetPicker(true)}
               >
                 <Text style={[styles.dateInputText, !ageOfOnset && styles.placeholderText]}>
-                  {ageOfOnset ? formatAge(Math.floor((new Date().getTime() - ageOfOnset.getTime()) / (1000 * 60 * 60 * 24 * 365.25))) : 'Select age'}
+                  {ageOfOnset ? (dateModeAge === 'year' ? `${ageOfOnset.getFullYear()}` : dateModeAge === 'yearMonth' ? `${ageOfOnset.getFullYear()}-${String(ageOfOnset.getMonth()+1).padStart(2,'0')}` : ageOfOnset.toLocaleDateString()) : 'Select age'}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
+
+            {/* Status */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Status</Text>
+              <View style={styles.optionsContainerInline}>
+                <TouchableOpacity style={[styles.optionButtonInline, status === 'active' && styles.selectedOption]} onPress={() => setStatus('active')}>
+                  <Text style={[styles.optionText, status === 'active' && styles.selectedOptionText]}>Active</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.optionButtonInline, status === 'resolved' && styles.selectedOption]} onPress={() => setStatus('resolved')}>
+                  <Text style={[styles.optionText, status === 'resolved' && styles.selectedOptionText]}>Resolved</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {status === 'resolved' && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Resolved Date</Text>
+                <View style={styles.dateModeRow}>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('year')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'year' && styles.dateModeTextActive]}>Year</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('yearMonth')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('full')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'full' && styles.dateModeTextActive]}>Full</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity style={styles.dateInput} onPress={() => setShowResolvedDatePicker(true)}>
+                  <Text style={[styles.dateInputText, !resolvedDate && styles.placeholderText]}>
+                    {resolvedDate ? (dateModeResolved === 'year' ? `${resolvedDate.getFullYear()}` : dateModeResolved === 'yearMonth' ? `${resolvedDate.getFullYear()}-${String(resolvedDate.getMonth()+1).padStart(2,'0')}` : resolvedDate.toLocaleDateString()) : 'Select date'}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#888" />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Notes */}
             <View style={styles.inputContainer}>
@@ -364,6 +451,36 @@ const FamilyHistoryScreen: React.FC = () => {
               <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
             </View>
           </ScrollView>
+          {/* Relation Picker (inline overlay inside modal) */}
+          {showRelationPicker && (
+            <View style={styles.datePickerOverlay}>
+              <View style={styles.datePickerContainer}>
+                <View style={styles.datePickerHeader}>
+                  <Text style={styles.datePickerTitle}>Select Relation</Text>
+                  <TouchableOpacity onPress={() => setShowRelationPicker(false)}>
+                    <Ionicons name="close" size={24} color="#007AFF" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
+                  {relationOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      style={styles.ethnicityPickerOption}
+                      onPress={() => {
+                        setRelation(option);
+                        setShowRelationPicker(false);
+                      }}
+                    >
+                      <Text style={styles.ethnicityPickerOptionText}>{option}</Text>
+                      {relation === option && (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
 
           {/* Age of Onset Picker - Now inside the modal */}
           {showAgeOfOnsetPicker && (
@@ -380,46 +497,23 @@ const FamilyHistoryScreen: React.FC = () => {
               onCancel={() => setShowAgeOfOnsetPicker(false)}
             />
           )}
+          {showResolvedDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="Resolved Date"
+              value={resolvedDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setResolvedDate(d);
+                setShowResolvedDatePicker(false);
+              }}
+              onCancel={() => setShowResolvedDatePicker(false)}
+            />
+          )}
         </View>
       </Modal>
 
-      {/* Relation Picker */}
-      <Modal
-        visible={showRelationPicker}
-        transparent={true}
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        onRequestClose={() => setShowRelationPicker(false)}
-      >
-        <View style={styles.datePickerOverlay}>
-          <View style={styles.datePickerContainer}>
-            <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Select Relation</Text>
-              <TouchableOpacity onPress={() => setShowRelationPicker(false)}>
-                <Ionicons name="close" size={24} color="#007AFF" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
-              {relationOptions.map((option) => (
-                <TouchableOpacity
-                  key={option}
-                  style={styles.ethnicityPickerOption}
-                  onPress={() => {
-                    setRelation(option);
-                    setShowRelationPicker(false);
-                  }}
-                >
-                  <Text style={styles.ethnicityPickerOptionText}>{option}</Text>
-                  {relation === option && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* Relation Picker moved inside modal */}
       <FileViewerModal
         visible={fileViewerVisible}
         onClose={() => setFileViewerVisible(false)}
@@ -444,8 +538,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -454,6 +548,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -464,13 +559,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -525,6 +621,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 6,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -605,6 +707,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: '#111',
+    position: 'relative',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -688,11 +791,17 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   datePickerOverlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    zIndex: 1000,
+    elevation: 20,
   },
   datePickerContainer: {
     backgroundColor: '#1a1a1a',
@@ -755,6 +864,91 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     flex: 1,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  optionButton: {
+    backgroundColor: '#181818',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  optionText: {
+    color: '#888',
+    fontSize: 14,
+  },
+  selectedOption: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  selectedOptionText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
+  },
+  optionsContainerInline: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  optionButtonInline: {
+    backgroundColor: '#181818',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  sideRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sideChip: {
+    backgroundColor: '#181818',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
   },
 });
 

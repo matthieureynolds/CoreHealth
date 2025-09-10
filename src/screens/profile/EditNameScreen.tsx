@@ -120,7 +120,7 @@ const EditNameScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>First Name *</Text>
+          <Text style={styles.label}>First Name: *</Text>
           <TextInput
             style={styles.input}
             value={nameData.firstName}
@@ -135,7 +135,7 @@ const EditNameScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Surname *</Text>
+          <Text style={styles.label}>Surname: *</Text>
           <TextInput
             style={styles.input}
             value={nameData.surname}
@@ -149,7 +149,7 @@ const EditNameScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Preferred Name (Optional)</Text>
+          <Text style={styles.label}>Preferred Name: (Optional)</Text>
           <TextInput
             style={styles.input}
             value={nameData.preferredName}
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 23.5,
     zIndex: 1,
   },
   headerTitle: {
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 14,
     paddingBottom: 8,
   },
   saveButton: {
@@ -206,6 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     position: 'absolute',
     right: 20,
+    top: 23.5,
     zIndex: 1,
   },
   saveButtonDisabled: {
@@ -224,7 +226,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   inputContainer: {
-    marginBottom: 15,
+    marginBottom: 31,
   },
   label: {
     color: '#fff',

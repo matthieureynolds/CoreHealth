@@ -129,6 +129,9 @@ export interface FamilyCondition {
   ageOfOnset?: number;
   notes?: string;
   attachments?: AttachedFile[];
+  side?: 'maternal' | 'paternal';
+  status?: 'active' | 'resolved';
+  resolvedDate?: string;
 }
 
 export interface Vaccination {
@@ -634,6 +637,7 @@ export interface Medication {
   duration?: string;
   notes?: string;
   attachments?: AttachedFile[];
+  endDate?: string;
 }
 
 export interface Surgery {

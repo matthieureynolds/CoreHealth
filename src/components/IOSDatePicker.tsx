@@ -10,6 +10,8 @@ interface IOSDatePickerProps {
   onCancel: () => void;
   title?: string;
   maximumDate?: Date;
+  overlayOpacity?: number;
+  containerColor?: string;
 }
 
 const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
@@ -18,7 +20,9 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
   onConfirm,
   onCancel,
   title = 'Select Date',
-  maximumDate
+  maximumDate,
+  overlayOpacity,
+  containerColor
 }) => {
   const [tempDate, setTempDate] = useState(value);
 
@@ -34,29 +38,33 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
 
   if (Platform.OS === 'ios') {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onCancel} style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity onPress={() => onConfirm(tempDate)} style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Done</Text>
-          </TouchableOpacity>
+      <View style={[styles.overlay, { backgroundColor: `rgba(0, 0, 0, ${overlayOpacity ?? 0.7})` }]}>
+        <View style={[styles.container, { backgroundColor: containerColor ?? '#1a1a1a' }]}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onCancel} style={styles.headerButton}>
+              <Text style={styles.headerButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>{title}</Text>
+            <TouchableOpacity onPress={() => onConfirm(tempDate)} style={styles.headerButton}>
+              <Text style={styles.headerButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <DateTimePicker
+            value={tempDate}
+            mode="date"
+            display="spinner"
+            themeVariant="dark"
+            textColor="#FFFFFF"
+            onChange={(_, date) => {
+              if (date) {
+                setTempDate(date);
+              }
+            }}
+            maximumDate={maximumDate}
+            style={styles.datePicker}
+          />
         </View>
-        
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="spinner"
-          onChange={(_, date) => {
-            if (date) {
-              setTempDate(date);
-            }
-          }}
-          maximumDate={maximumDate}
-          style={styles.datePicker}
-        />
       </View>
     );
   }
@@ -77,23 +85,31 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 34, // Safe area for home indicator
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1000,
+  },
+  container: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    width: '90%',
+    maxWidth: 360,
+    paddingBottom: 12,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
@@ -113,7 +129,7 @@ const styles = StyleSheet.create({
   },
   datePicker: {
     width: '100%',
-    height: 200,
+    height: 220,
     backgroundColor: 'transparent',
   },
 });

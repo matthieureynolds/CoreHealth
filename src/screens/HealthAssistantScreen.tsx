@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import {
   View,
   Text,
@@ -25,10 +25,11 @@ import { useSettings } from '../context/SettingsContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { OPENAI_API_KEY, HealthAssistantService } from '../services/healthAssistantService';
+import type { ChatSession } from '../services/healthAssistantService';
 import * as Speech from 'expo-speech';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
-import { formatDateBySetting, formatTimeBySetting } from '../utils/dateFormat';
+import { formatDateBySetting, formatTimeBySetting, formatShortDateBySetting } from '../utils/dateFormat';
 
 interface ChatMessage {
   id: string;
@@ -49,6 +50,7 @@ const HealthAssistantScreen: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const autoScrollEnabledRef = useRef<boolean>(true);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedText, setRecordedText] = useState('');
   const [fabOpen, setFabOpen] = useState(false);
@@ -56,7 +58,6 @@ const HealthAssistantScreen: React.FC = () => {
   const fabScale = useRef(new Animated.Value(1)).current;
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const [deletePreviousChat, setDeletePreviousChat] = useState(false);
   const [chatHistory, setChatHistory] = useState<Array<{id: string, title: string, timestamp: Date}>>([
     {
       id: 'chat_1',
@@ -75,16 +76,36 @@ const HealthAssistantScreen: React.FC = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState<string>('default');
+  // Persisted history loader state
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [persistedHistory, setPersistedHistory] = useState<ChatMessage[] | null>(null);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   // Audio recording state and refs
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const recordingTimer = useRef<NodeJS.Timeout | null>(null);
+  const waveformTimer = useRef<NodeJS.Timeout | null>(null);
+  const waveformAnimValues = useRef(Array.from({ length: 24 }, () => new Animated.Value(0.3))).current;
   const recordingPulseAnim = useRef(new Animated.Value(1)).current;
+  // Unique, monotonic IDs to avoid React key collisions
+  const idSeqRef = useRef(0);
+  const generateId = (prefix: string) => {
+    idSeqRef.current += 1;
+    return `${prefix}_${Date.now()}_${idSeqRef.current}`;
+  };
+  const scrollToBottomNow = () => {
+    requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+  };
 
   // Streaming response state
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const lastStreamUpdateAtRef = useRef<number>(0);
+  const lastAutoScrollAtRef = useRef<number>(0);
 
   // Image input modal state
   const [showImageInputModal, setShowImageInputModal] = useState(false);
@@ -160,6 +181,16 @@ const HealthAssistantScreen: React.FC = () => {
     }
   }, [isLoading]);
 
+  // Utility: strip emojis from text for local-rendered AI replies
+  const stripEmojis = (input: string) => {
+    try {
+      // eslint-disable-next-line no-control-regex
+      return input.replace(/[\p{Emoji}\p{Extended_Pictographic}]/gu, '');
+    } catch {
+      return input;
+    }
+  };
+
   // Initialize conversation with personalized greeting
   useEffect(() => {
     const initializeConversation = async () => {
@@ -183,13 +214,18 @@ const HealthAssistantScreen: React.FC = () => {
               timestamp: new Date(),
             }]);
           }
+          // Load existing saved sessions for Chat History
+          try {
+            const sessions = await HealthAssistantService.loadAllChatSessions();
+            setChatSessions(sessions);
+          } catch {}
         } catch (error) {
           console.error('Error initializing conversation:', error);
-          // Fallback greeting
+          // Fallback greeting (no emojis)
           setMessages([{
             id: '1',
             role: 'assistant',
-            content: `Hi there! 👋 I'm your health assistant. I'm here to help you understand your health data and chat about anything health-related. What's on your mind today?`,
+            content: stripEmojis(`Hi there! 👋 I'm your health assistant. I'm here to help you understand your health data and chat about anything health-related. What's on your mind today?`),
             timestamp: new Date(),
           }]);
         }
@@ -200,15 +236,12 @@ const HealthAssistantScreen: React.FC = () => {
     initializeConversation();
   }, [isInitialized, profile, biomarkers, healthScore]);
 
-  // Keyboard listeners for modal positioning
+  // Keyboard listeners: keep chat scrolled to bottom when keyboard shows
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-        // When keyboard shows, ensure modal content is properly positioned
-        if (showChatHistory) {
-          // The KeyboardAvoidingView will handle the positioning
-        }
+        scrollToBottomNow();
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
@@ -229,6 +262,10 @@ const HealthAssistantScreen: React.FC = () => {
     return () => {
       if (recordingTimer.current) {
         clearInterval(recordingTimer.current);
+      }
+      if (waveformTimer.current) {
+        clearInterval(waveformTimer.current);
+        waveformTimer.current = null;
       }
     };
   }, []);
@@ -261,7 +298,7 @@ const HealthAssistantScreen: React.FC = () => {
     if (!inputText.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: generateId('u'),
       role: 'user',
       content: inputText.trim(),
       timestamp: new Date(),
@@ -271,17 +308,10 @@ const HealthAssistantScreen: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
-    // Create initial assistant message for streaming
-    const assistantMessageId = (Date.now() + 1).toString();
-    const initialAssistantMessage: ChatMessage = {
-      id: assistantMessageId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, initialAssistantMessage]);
+    // Prepare streaming without mutating messages yet
+    const assistantMessageId = generateId('a');
     setStreamingMessageId(assistantMessageId);
+    let currentContent = '';
 
     try {
       // Simulate streaming response
@@ -293,25 +323,25 @@ const HealthAssistantScreen: React.FC = () => {
       
       const selectedResponse = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
       const words = selectedResponse.split(' ');
-      let currentContent = '';
 
-      // Stream the response word by word
+      // Stream the response with throttling to avoid UI jitter
       for (let i = 0; i < words.length; i++) {
         currentContent += (i > 0 ? ' ' : '') + words[i];
         
-        setMessages(prev => prev.map(msg => 
-          msg.id === assistantMessageId 
-            ? { ...msg, content: currentContent }
-            : msg
-        ));
+        const now = Date.now();
+        const shouldUpdate = (i % 3 === 0) || i === words.length - 1 || (now - lastStreamUpdateAtRef.current) > 120;
+        if (shouldUpdate) {
+          lastStreamUpdateAtRef.current = now;
+        }
 
-        // Scroll to bottom
-        setTimeout(() => {
+        // Throttle auto-scroll
+        if ((now - lastAutoScrollAtRef.current) > 200 || i === words.length - 1) {
+          lastAutoScrollAtRef.current = now;
           scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+        }
 
-        // Add delay between words for realistic streaming effect
-        await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+        // Small delay for streaming feel
+        await new Promise(resolve => setTimeout(resolve, 35 + Math.random() * 65));
       }
 
     } catch (error) {
@@ -320,6 +350,35 @@ const HealthAssistantScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
       setStreamingMessageId(null);
+      // Append final content once
+      if (currentContent && currentContent.trim().length > 0) {
+        setMessages(prev => [...prev, {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: stripEmojis(currentContent),
+          timestamp: new Date(),
+        }]);
+      }
+      // Persist conversation and update sessions list
+      try {
+        const latest = [...messages];
+        await HealthAssistantService.saveConversationHistory(latest);
+        const titleCandidate = (latest.find(m => m.role === 'user')?.content || latest[0]?.content || 'Chat')
+          .toString()
+          .slice(0, 30);
+        const session: ChatSession = {
+          id: currentChatId,
+          title: titleCandidate.length === 30 ? `${titleCandidate}…` : titleCandidate,
+          messages: latest,
+          timestamp: latest[0]?.timestamp || new Date(),
+          lastUpdated: new Date(),
+        };
+        await HealthAssistantService.saveChatSession(session);
+        const sessions = await HealthAssistantService.loadAllChatSessions();
+        setChatSessions(sessions);
+      } catch (persistErr) {
+        console.warn('Failed to persist conversation/session:', persistErr);
+      }
     }
   };
 
@@ -348,23 +407,39 @@ const HealthAssistantScreen: React.FC = () => {
               recordingTimer.current = null;
             }
             setRecordingDuration(0);
+            if (waveformTimer.current) {
+              clearInterval(waveformTimer.current);
+              waveformTimer.current = null;
+            }
+            // Smoothly drop waveform back to baseline
+            waveformAnimValues.forEach((v) => {
+              Animated.timing(v, { toValue: 0.3, duration: 150, useNativeDriver: true }).start();
+            });
             
-            // Simulate transcription (in a real app, you'd use a speech-to-text service)
-            const randomTexts = [
-              "I want to know about my vitamin D levels",
-              "How can I improve my sleep quality?",
-              "What exercises are good for heart health?",
-              "Tell me about my recent lab results",
-              "How can I reduce stress?"
-            ];
-            const randomText = randomTexts[Math.floor(Math.random() * randomTexts.length)];
-            
-            // Add the transcribed message to chat
-            setInputText(randomText);
-            setRecordedText(randomText);
-            
-            // Don't show alert, just update the input
-            console.log('Recording completed:', randomText);
+            // Transcribe with OpenAI (gpt-4o-transcribe)
+            if (uri) {
+              try {
+                const form = new FormData();
+                // @ts-ignore React Native FormData file
+                form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' } as any);
+                form.append('model', 'gpt-4o-transcribe');
+                form.append('response_format', 'json');
+
+                const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+                  body: form as any,
+                });
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                const text = (data.text ?? '').trim();
+                setInputText(text);
+                setRecordedText(text);
+              } catch (txErr) {
+                console.error('Transcription error:', txErr);
+                Alert.alert('Transcription failed', 'Could not transcribe audio. Please try again.');
+              }
+            }
           } catch (stopError) {
             console.error('Error stopping recording:', stopError);
             Alert.alert('Error', 'Failed to stop recording. Please try again.');
@@ -378,9 +453,12 @@ const HealthAssistantScreen: React.FC = () => {
             playsInSilentModeIOS: true,
           });
           
-          const { recording: newRecording } = await Audio.Recording.createAsync(
-            Audio.RecordingOptionsPresets.HIGH_QUALITY
-          );
+          // Enable metering so waveform reflects real input (iOS supports metering)
+          const recordingOptions: any = { ...(Audio.RecordingOptionsPresets.HIGH_QUALITY as any) };
+          if (recordingOptions.ios) {
+            recordingOptions.ios.meteringEnabled = true;
+          }
+          const { recording: newRecording } = await Audio.Recording.createAsync(recordingOptions as any);
           setRecording(newRecording);
           setIsRecording(true);
           
@@ -389,6 +467,28 @@ const HealthAssistantScreen: React.FC = () => {
           recordingTimer.current = setInterval(() => {
             setRecordingDuration(prev => prev + 1);
           }, 1000);
+          // Start lightweight waveform animation (ChatGPT-style)
+          if (waveformTimer.current) {
+            clearInterval(waveformTimer.current);
+          }
+          // Poll metering and animate bars from actual voice input
+          waveformTimer.current = setInterval(async () => {
+            try {
+              const status: any = await newRecording.getStatusAsync();
+              const db = typeof status.metering === 'number' ? status.metering : -160; // -160..0 dB
+              const norm = Math.min(1, Math.max(0, (db + 160) / 160));
+              waveformAnimValues.forEach((v, i) => {
+                const phase = (i % 5) / 5;
+                const shaped = 0.15 + norm * (0.2 + 0.65 * Math.abs(Math.sin(Date.now() / 250 + phase)));
+                Animated.timing(v, {
+                  toValue: shaped,
+                  duration: 100,
+                  easing: Easing.out(Easing.quad),
+                  useNativeDriver: true,
+                }).start();
+              });
+            } catch {}
+          }, 100);
           
           console.log('Recording started');
         } catch (startError) {
@@ -483,7 +583,7 @@ const HealthAssistantScreen: React.FC = () => {
       }
 
       const data = await response.json();
-      const aiContent = data.choices[0]?.message?.content || '[No analysis returned]';
+      const aiContent = stripEmojis(data.choices[0]?.message?.content || '[No analysis returned]');
 
       // Add the assistant's reply to chat
       const assistantMessage: ChatMessage = {
@@ -563,7 +663,7 @@ const HealthAssistantScreen: React.FC = () => {
           });
           if (response.ok) {
             const data = await response.json();
-            aiContent = data.choices[0]?.message?.content || '[No analysis returned]';
+            aiContent = stripEmojis(data.choices[0]?.message?.content || '[No analysis returned]');
           }
         } else if (asset.mimeType === 'application/pdf') {
           // Handle PDFs - read as text and analyze
@@ -590,7 +690,7 @@ const HealthAssistantScreen: React.FC = () => {
                 biomarkers,
                 healthScore
               });
-              aiContent = aiResponse;
+              aiContent = stripEmojis(aiResponse);
             }
             
 
@@ -599,7 +699,7 @@ const HealthAssistantScreen: React.FC = () => {
             const aiMessage: ChatMessage = {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
-              content: aiContent,
+              content: stripEmojis(aiContent),
               timestamp: new Date()
             };
             
@@ -624,7 +724,7 @@ const HealthAssistantScreen: React.FC = () => {
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: aiContent,
+          content: stripEmojis(aiContent),
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, assistantMessage]);
@@ -666,13 +766,15 @@ const HealthAssistantScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive
-    if (scrollViewRef.current) {
-      setTimeout(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+    // Auto-scroll to bottom when new messages arrive (throttled)
+    const now = Date.now();
+    if ((now - lastAutoScrollAtRef.current) > 150) {
+      lastAutoScrollAtRef.current = now;
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      });
     }
-  }, [messages]);
+  }, [messages.length]);
 
   const formatTime = (date: Date) => {
     if (!date || !(date instanceof Date)) {
@@ -685,8 +787,10 @@ const HealthAssistantScreen: React.FC = () => {
     if (!date || !(date instanceof Date)) {
       return '';
     }
-    // Use date setting for date, and time setting for time
-    return `${formatDateBySetting(date, settings?.general?.dateFormat || 'DD/MM/YYYY')} ${formatTimeBySetting(date, settings?.general?.timeFormat === '12h' ? '12h' : '24h')}`;
+    // Show day/month only (no year) + time using existing helpers
+    const datePart = formatShortDateBySetting(date, settings?.general?.dateFormat || 'DD/MM/YYYY');
+    const timePart = formatTimeBySetting(date, settings?.general?.timeFormat === '12h' ? '12h' : '24h');
+    return `${timePart} ${datePart}`;
   };
 
   const speak = (text: string) => {
@@ -698,29 +802,34 @@ const HealthAssistantScreen: React.FC = () => {
   };
 
   // Chat management functions
-  const startNewChat = (withMemory: boolean) => {
+  const startNewChat = async (withMemory: boolean) => {
     const newChatId = `chat_${Date.now()}`;
     const chatTitle = `Chat ${chatHistory.length + 1}`;
     
-    if (deletePreviousChat) {
-      setMessages([]);
-      setChatHistory([]);
-    } else {
-      // Save current chat to history if it has messages
+    // Save current conversation as a session if it has messages
+    try {
       if (messages.length > 0) {
-        const currentChatTitle = messages[0]?.content.substring(0, 30) + '...' || 'Chat';
-        setChatHistory(prev => [...prev, {
+        const currentChatTitle = (messages.find(m => m.role === 'user')?.content || messages[0]?.content || 'Chat')
+          .toString()
+          .slice(0, 30);
+        const session: ChatSession = {
           id: currentChatId,
-          title: currentChatTitle,
-          timestamp: new Date()
-        }]);
+          title: currentChatTitle.length === 30 ? `${currentChatTitle}…` : currentChatTitle,
+          messages: messages,
+          timestamp: messages[0]?.timestamp || new Date(),
+          lastUpdated: new Date(),
+        };
+        await HealthAssistantService.saveChatSession(session);
+        const sessions = await HealthAssistantService.loadAllChatSessions();
+        setChatSessions(sessions);
       }
+    } catch (e) {
+      console.warn('Failed to save current chat session:', e);
     }
     
     setCurrentChatId(newChatId);
     setMessages([]);
     setShowNewChatModal(false);
-    setDeletePreviousChat(false);
     
     // Initialize with welcome message if with memory
     if (withMemory) {
@@ -800,15 +909,11 @@ const HealthAssistantScreen: React.FC = () => {
 
   // Update MessageBubble to show image/document preview
   const MessageBubble = ({ message }: { message: ChatMessage }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(1)).current; // disable animation for stability while typing
     const [isSpeaking, setIsSpeaking] = useState(false);
     
     useEffect(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 350,
-        useNativeDriver: true,
-      }).start();
+      // No-op (keep opacity at 1) to prevent layout thrash when typing
     }, []);
 
     const handleSpeak = async (text: string) => {
@@ -830,12 +935,7 @@ const HealthAssistantScreen: React.FC = () => {
     };
 
     return (
-      <Animated.View
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-        }}
-      >
+      <Animated.View style={{ opacity: fadeAnim }}>
         <View style={[
           styles.messageContainer,
           message.role === 'user' ? styles.userMessageContainer : styles.assistantMessageContainer
@@ -871,22 +971,30 @@ const HealthAssistantScreen: React.FC = () => {
               {message.content}
             </Text>
             <View style={styles.messageFooter}>
-              <Text style={styles.messageTime}>{formatDateTime(message.timestamp)}</Text>
-              {message.role === 'assistant' && (
-                <TouchableOpacity onPress={() => handleSpeak(message.content)} style={styles.speakButton}>
-                  <Ionicons 
-                    name={isSpeaking ? "stop" : "volume-medium"} 
-                    size={16} 
-                    color={isSpeaking ? "#FF3B30" : "#8E8E93"} 
-                  />
-                </TouchableOpacity>
+              {message.role === 'user' && (
+                <Text style={styles.messageTimeUserOnly}>{formatDateTime(message.timestamp)}</Text>
               )}
             </View>
           </View>
+          {message.role === 'user' && (
+            <View style={styles.userAvatar}>
+              {((profile as any)?.photoUri || (profile as any)?.photoURL || (user as any)?.photoURL) ? (
+                <Image 
+                  source={{ uri: ((profile as any)?.photoUri || (profile as any)?.photoURL || (user as any)?.photoURL) as string }} 
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <View style={styles.userAvatarFallback}> 
+                  <Ionicons name="person" size={16} color="#2563EB" />
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </Animated.View>
     );
   };
+  const MessageBubbleMemo = memo(MessageBubble);
 
   const QuickActions = () => (
     <View style={styles.quickActionsContainer}>
@@ -989,23 +1097,67 @@ const HealthAssistantScreen: React.FC = () => {
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>
-              
-              {chatHistory.length > 0 ? (
-                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                  {chatHistory.map((chat) => (
-                    <SwipeableChatItem
-                      key={chat.id}
-                      chat={chat}
-                      onPress={() => loadChat(chat.id)}
-                      onDelete={() => deleteChat(chat.id)}
-                    />
+              <View style={{ flex: 1 }}>
+                {historyLoading && (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="small" color="#007AFF" />
+                    <Text style={{ color: '#8E8E93', marginTop: 8 }}>Loading previous chat…</Text>
+                  </View>
+                )}
+                {!historyLoading && historyError && (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: '#FF453A' }}>{historyError}</Text>
+                    <TouchableOpacity onPress={async () => { setHistoryError(null); setHistoryLoading(true); try { const hist = await HealthAssistantService.loadConversationHistory(); setPersistedHistory(hist as any); } catch { setHistoryError('Failed to load previous chat.'); } finally { setHistoryLoading(false); } }} style={{ marginTop: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#2C2C2E', borderRadius: 8 }}>
+                      <Text style={{ color: '#FFFFFF' }}>Retry</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {!historyLoading && !historyError && (
+                  chatSessions && chatSessions.length > 0 ? (
+                    <ScrollView>
+                      {chatSessions
+                        .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
+                        .map(session => (
+                          <Swipeable
+                            key={session.id}
+                            renderRightActions={(progress, dragX) => (
+                              <RectButton style={styles.swipeableDeleteButton} onPress={async () => {
+                                await HealthAssistantService.deleteChatSession(session.id);
+                                const sessions = await HealthAssistantService.loadAllChatSessions();
+                                setChatSessions(sessions);
+                              }}>
+                                <Animated.View style={styles.swipeableDeleteContent}>
+                                  <Ionicons name="trash" size={24} color="#fff" />
+                                  <Text style={styles.swipeableDeleteText}>Delete</Text>
+                                </Animated.View>
+                              </RectButton>
+                            )}
+                            rightThreshold={40}
+                          >
+                            <TouchableOpacity 
+                              style={styles.chatHistoryItem}
+                              onPress={async () => {
+                                setCurrentChatId(session.id);
+                                setMessages(session.messages || []);
+                                await HealthAssistantService.saveConversationHistory(session.messages || []);
+                                setShowChatHistory(false);
+                              }}
+                            >
+                              <View style={{ flex: 1 }}>
+                                <Text style={styles.chatHistoryTitle}>{session.title || 'Chat'}</Text>
+                              </View>
+                              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+                            </TouchableOpacity>
+                          </Swipeable>
                   ))}
                 </ScrollView>
               ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: '#aaa', fontSize: 16 }}>No previous chats yet.</Text>
                 </View>
+                  )
               )}
+              </View>
             </View>
             
             {/* Tap outside to close */}
@@ -1019,21 +1171,32 @@ const HealthAssistantScreen: React.FC = () => {
       {/* New Chat Modal */}
       <Modal visible={showNewChatModal} animationType="fade" transparent onRequestClose={() => setShowNewChatModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ backgroundColor: '#181A20', borderRadius: 24, padding: 28, width: 320 }}>
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Start New Chat</Text>
-            <Text style={{ color: '#aaa', fontSize: 16, marginBottom: 24 }}>Would you like this chat to have memory?</Text>
+          {/* Tap outside to close */}
+          <TouchableOpacity
+            onPress={() => setShowNewChatModal(false)}
+            activeOpacity={1}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}
+          />
+          <View style={{ backgroundColor: '#181A20', borderRadius: 24, padding: 28, width: 320, zIndex: 1 }}>
+            {/* Header with red close (top-left) and centered title */}
+            <View style={{ marginBottom: 16, justifyContent: 'center' }}>
+              <TouchableOpacity
+                onPress={() => setShowNewChatModal(false)}
+                hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
+                activeOpacity={0.7}
+                accessibilityLabel="Close"
+                style={{ position: 'absolute', left: 0, top: -8, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Ionicons name="close" size={22} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>Start New Chat</Text>
+            </View>
+            <Text style={{ color: '#aaa', fontSize: 16, marginBottom: 24, textAlign: 'center' }}>Would you like this chat to have memory?</Text>
             <TouchableOpacity style={{ backgroundColor: '#007AFF', borderRadius: 12, padding: 14, marginBottom: 12 }} onPress={() => startNewChat(true)}>
               <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>With Memory</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={{ backgroundColor: '#232A34', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#444' }} onPress={() => startNewChat(false)}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>No Memory (Incognito)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }} onPress={() => setDeletePreviousChat(v => !v)}>
-              <Ionicons name={deletePreviousChat ? 'checkbox' : 'square-outline'} size={22} color={deletePreviousChat ? '#007AFF' : '#aaa'} />
-              <Text style={{ color: '#fff', fontSize: 15, marginLeft: 8 }}>Delete previous chat</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowNewChatModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
-              <Text style={{ color: '#007AFF', fontWeight: 'bold', fontSize: 16 }}>Cancel</Text>
+            <TouchableOpacity style={{ backgroundColor: '#232A34', borderRadius: 12, padding: 14, marginBottom: 4 }} onPress={() => startNewChat(false)}>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>No Memory</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1121,19 +1284,28 @@ const HealthAssistantScreen: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        
         {/* Chat Messages */}
         <ScrollView 
           ref={scrollViewRef}
           style={styles.messagesContainer}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.messagesContent}
+          scrollEventThrottle={16}
+          keyboardShouldPersistTaps="handled"
+          onScroll={(e) => {
+            const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+            const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+            autoScrollEnabledRef.current = distanceFromBottom < 80;
+          }}
+          // Avoid onContentSizeChange jumping during typing; we rely on focus/keyboard events instead
         >
           {/* Quick Actions */}
           <QuickActions />
           
           {/* Messages */}
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+            <MessageBubbleMemo key={message.id} message={message} />
           ))}
           
           {/* Loading Indicator */}
@@ -1159,7 +1331,13 @@ const HealthAssistantScreen: React.FC = () => {
           )}
         </ScrollView>
 
-        {/* FAB Actions (appear above input when plus is pressed) */}
+        {/* Modern Input Section */}
+        <View style={styles.inputContainer}>
+          {/* Background group for plus + actions (rounded rectangle) */}
+          {fabOpen && (
+            <View pointerEvents="none" style={styles.fabGroupBackground} />
+          )}
+          {/* FAB Actions vertically above the plus button */}
         {fabOpen && (
           <View style={styles.fabActionsContainer}>
             <TouchableOpacity style={styles.fabAction} onPress={() => { setFabOpen(false); handleImageInput(); }}>
@@ -1170,17 +1348,14 @@ const HealthAssistantScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-
-        {/* Modern Input Section */}
-        <View style={styles.inputContainer}>
           <View style={styles.inputRow}>
             {/* Plus button on the left */}
             <TouchableOpacity 
-              style={styles.inputActionButton}
+              style={[styles.inputActionButton, styles.plusButton, fabOpen && styles.inputActionButtonExpanded]}
               onPress={toggleFab}
               activeOpacity={0.7}
             >
-              <Ionicons name="add" size={24} color="#8E8E93" />
+              <Ionicons name="add" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             
             <View style={[
@@ -1190,15 +1365,30 @@ const HealthAssistantScreen: React.FC = () => {
               <TextInput
                 style={styles.textInput}
                 value={inputText}
-                onChangeText={setInputText}
-                placeholder={isRecording ? `Recording... ${Math.floor(recordingDuration / 60)}:${(recordingDuration % 60).toString().padStart(2, '0')}` : "Ask me anything about health..."}
+                onChangeText={(t) => {
+                  // Avoid reflows by only updating when value actually changes
+                  if (t !== inputText) setInputText(t);
+                }}
+                onFocus={scrollToBottomNow}
+                placeholder={isRecording ? "" : "Ask me anything about health..."}
                 placeholderTextColor={isRecording ? "#FF3B30" : "#8E8E93"}
                 multiline
                 maxLength={500}
                 onSubmitEditing={sendMessage}
                 keyboardAppearance="dark"
                 editable={!isRecording}
+                blurOnSubmit={false}
               />
+              {/* ChatGPT-like recording waveform (inside input box) */}
+              {isRecording && (
+                <View pointerEvents="none" style={styles.recordingWaveOverlay}>
+                  <View style={styles.recordingWaveInner}>
+                    {waveformAnimValues.map((v, idx) => (
+                      <Animated.View key={idx} style={[styles.waveBar, { transform: [{ scaleY: v }] }]} />
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
             
             {/* Microphone/Send button on the right */}
@@ -1229,7 +1419,7 @@ const HealthAssistantScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#1C1C1E',
   },
   header: {
     flexDirection: 'row',
@@ -1270,7 +1460,7 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#1C1C1E',
   },
   messagesContent: {
     paddingHorizontal: 16,
@@ -1335,6 +1525,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#007AFF30',
   },
+  userAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#2563EB20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#2563EB30',
+  },
+  userAvatarFallback: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatarImage: {
     width: 20,
     height: 20,
@@ -1347,7 +1557,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   userMessageBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     borderBottomRightRadius: 8,
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
@@ -1363,19 +1573,12 @@ const styles = StyleSheet.create({
     width: 'auto', // only as wide as text
   },
   assistantMessageBubble: {
-    backgroundColor: '#2A2A2A',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    borderBottomLeftRadius: 4,
+    borderTopLeftRadius: 4,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginRight: 40,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   messageText: {
     fontSize: 16,
@@ -1383,24 +1586,23 @@ const styles = StyleSheet.create({
   },
   userMessageText: {
     color: '#FFFFFF',
+    textAlign: 'right',
   },
   assistantMessageText: {
-    color: '#FFFFFF',
+    color: '#0B1220',
   },
   messageFooter: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
     marginTop: 8,
   },
-  messageTime: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    backgroundColor: '#3A3A3C',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  messageTimeUserOnly: {
+    fontSize: 12,
+    color: '#3A3A3C',
+    marginTop: 6,
+    textAlign: 'right',
+    alignSelf: 'flex-end',
   },
   speakButton: {
     marginLeft: 8,
@@ -1480,6 +1682,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 12,
   },
+  recordingWaveContainer: {
+    position: 'absolute',
+    left: 64,
+    right: 64,
+    bottom: 72,
+    zIndex: 1050,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordingWaveOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0,
+  },
+  recordingWaveInner: {
+    height: 18,
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 0,
+  },
+  waveBar: {
+    width: 3,
+    height: 14,
+    marginHorizontal: 1.5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1.5,
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -1505,6 +1742,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 8,
+    zIndex: 1200,
+  },
+  inputActionButtonExpanded: {
+    backgroundColor: '#2563EB',
+  },
+  plusButton: {
+    backgroundColor: '#2563EB',
   },
   textInputContainer: {
     flex: 1,
@@ -1516,12 +1760,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#3A3A3C',
     marginRight: 10,
+    overflow: 'hidden',
   },
   textInput: {
     fontSize: 17,
     color: '#FFFFFF',
     textAlignVertical: 'top',
     minHeight: 28,
+    zIndex: 1,
   },
   sendButton: {
     width: 48,
@@ -1568,10 +1814,23 @@ const styles = StyleSheet.create({
   },
   fabActionsContainer: {
     position: 'absolute',
-    left: 16,
-    bottom: 140,
-    zIndex: 1000,
+    left: 16, // center-align with the plus button
+    bottom: 56, // bring paperclip closer to the plus (equal gap)
+    zIndex: 1100,
     alignItems: 'center',
+  },
+  fabGroupBackground: {
+    position: 'absolute',
+    left: 12, // center to align with icons stack
+    bottom: 12,
+    width: 56,
+    height: 176, // fits camera + paperclip + plus with small paddings
+    backgroundColor: '#2A2A2A',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+    zIndex: 900,
+    pointerEvents: 'none',
   },
   fabAction: {
     width: 48,
@@ -1580,7 +1839,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A2A2A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8, // gap between camera and paperclip
     shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
@@ -1591,11 +1850,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 0,
     paddingHorizontal: 16,
     backgroundColor: '#2A2A2A',
     borderRadius: 12,
     marginBottom: 8,
+    height: 64,
   },
   chatHistoryTitle: {
     color: '#fff', 
@@ -1611,8 +1871,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 80,
-    height: '100%',
+    width: 96,
+    height: 64,
     borderRadius: 12,
     marginBottom: 8,
   },

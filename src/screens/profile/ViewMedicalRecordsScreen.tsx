@@ -8,11 +8,14 @@ import {
   Alert,
   Modal,
   Image,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { MedicalRecord } from '../../types';
+import * as Sharing from 'expo-sharing';
 
 const ViewMedicalRecordsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -20,6 +23,11 @@ const ViewMedicalRecordsScreen: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editTags, setEditTags] = useState('');
 
   const recordTypes = [
     { value: 'all', label: 'All Records' },
@@ -78,14 +86,64 @@ const ViewMedicalRecordsScreen: React.FC = () => {
               ...profile,
               medicalRecords: updatedRecords,
             });
+            setSelectedRecord(null);
           },
         },
       ]
     );
   };
 
-  const shareRecord = (record: MedicalRecord) => {
-    Alert.alert('Share Record', `Sharing ${record.name} would be implemented here`);
+  const shareRecord = async (record: MedicalRecord) => {
+    try {
+      if (!record.fileUrl) {
+        Alert.alert('Share', 'No file available to share.');
+        return;
+      }
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        Alert.alert('Share not available', 'Sharing is not available on this device.');
+        return;
+      }
+      await Sharing.shareAsync(record.fileUrl, {
+        mimeType: record.fileUrl.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined,
+        dialogTitle: `Share ${record.name}`,
+        UTI: 'public.data',
+      });
+    } catch (e) {
+      console.error('Share error', e);
+      Alert.alert('Error', 'Could not share this record.');
+    }
+  };
+
+  const openEditRecord = (record: MedicalRecord) => {
+    setEditingRecordId(record.id);
+    setEditName(record.name || '');
+    setEditNotes(record.notes || '');
+    setEditTags((record.tags || []).join(', '));
+    setEditModalVisible(true);
+  };
+
+  const saveEditRecord = () => {
+    if (!editingRecordId) return;
+    const updated = (profile?.medicalRecords || []).map(r => {
+      if (r.id !== editingRecordId) return r;
+      const updatedTags = editTags
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+      return {
+        ...r,
+        name: editName.trim() || r.name,
+        notes: editNotes.trim() || undefined,
+        tags: updatedTags.length ? updatedTags : undefined,
+      } as MedicalRecord;
+    });
+    updateProfile({
+      ...profile,
+      medicalRecords: updated,
+    });
+    setEditModalVisible(false);
+    setEditingRecordId(null);
   };
 
   const filteredRecords = profile?.medicalRecords?.filter(record => 
@@ -94,7 +152,7 @@ const ViewMedicalRecordsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -120,7 +178,7 @@ const ViewMedicalRecordsScreen: React.FC = () => {
         <View style={styles.content}>
           {filteredRecords.length > 0 ? (
             filteredRecords.map((record) => (
-              <View key={record.id} style={styles.recordCard}>
+              <View key={record.id} style={[styles.recordCard, { borderWidth: 1, borderColor: getTypeColor(record.type) }]}>
                 <View style={styles.recordHeader}>
                   <View style={styles.recordInfo}>
                     <View style={styles.recordTitleRow}>
@@ -132,7 +190,6 @@ const ViewMedicalRecordsScreen: React.FC = () => {
                       <Text style={styles.recordName}>{record.name}</Text>
                     </View>
                     <Text style={styles.recordDate}>{formatDate(record.date)}</Text>
-                    <Text style={styles.recordSize}>{formatFileSize(record.fileSize)}</Text>
                     {record.tags && record.tags.length > 0 && (
                       <View style={styles.tagsContainer}>
                         {record.tags.slice(0, 3).map((tag, index) => (
@@ -155,16 +212,16 @@ const ViewMedicalRecordsScreen: React.FC = () => {
                       <Ionicons name="eye-outline" size={20} color="#007AFF" />
                     </TouchableOpacity>
                     <TouchableOpacity
+                      onPress={() => openEditRecord(record)}
+                      style={styles.actionButton}
+                    >
+                      <Feather name="edit-2" size={16} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       onPress={() => shareRecord(record)}
                       style={styles.actionButton}
                     >
                       <Ionicons name="share-outline" size={20} color="#4CD964" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => deleteRecord(record.id)}
-                      style={styles.actionButton}
-                    >
-                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -268,6 +325,12 @@ const ViewMedicalRecordsScreen: React.FC = () => {
                   </View>
                 )}
               </View>
+              <View style={{ marginTop: 16 }}>
+                <TouchableOpacity style={styles.deleteRow} onPress={() => deleteRecord(selectedRecord.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  <Text style={styles.deleteRowText}>Delete Record</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </View>
         )}
@@ -308,6 +371,60 @@ const ViewMedicalRecordsScreen: React.FC = () => {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Edit Record Modal */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.editModalHeader}>
+            <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+              <Text style={styles.cancelButton}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.editModalTitle}>Edit Record</Text>
+            <TouchableOpacity onPress={saveEditRecord}>
+              <Text style={styles.shareButton}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Name: *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Record name"
+                placeholderTextColor="#666"
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Notes: (Optional)</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                value={editNotes}
+                onChangeText={setEditNotes}
+                placeholder="Add any notes"
+                placeholderTextColor="#666"
+                multiline
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Tags (comma-separated):</Text>
+              <TextInput
+                style={styles.textInput}
+                value={editTags}
+                onChangeText={setEditTags}
+                placeholder="e.g., cardiology, urgent"
+                placeholderTextColor="#666"
+              />
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -325,8 +442,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 70,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -334,8 +451,8 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
     position: 'absolute',
-    left: 20,
-    zIndex: 1,
+    left: 3,
+    top: -45.8,
   },
   headerTitle: {
     fontSize: 18,
@@ -345,11 +462,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
+    top: -55,
   },
   filterButton: {
     padding: 8,
+    position: 'absolute',
+    right: 3,
+    top: -45.8,
   },
   filterDisplay: {
     flexDirection: 'row',
@@ -357,6 +478,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
+    marginTop: 20,
   },
   filterText: {
     fontSize: 16,
@@ -576,6 +698,56 @@ const styles = StyleSheet.create({
   filterOptionText: {
     fontSize: 16,
     color: '#fff',
+  },
+  editModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  editModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#181818',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#fff',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  deleteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  deleteRowText: {
+    color: '#FF3B30',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 

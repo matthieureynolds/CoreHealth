@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -28,6 +29,8 @@ const ScreeningsScreen: React.FC = () => {
   const [result, setResult] = useState<'normal' | 'abnormal' | 'inconclusive'>('normal');
   const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
   const [showNextDuePicker, setShowNextDuePicker] = useState(false);
+  const [dateModeScreening, setDateModeScreening] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeNextDue, setDateModeNextDue] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [editingScreening, setEditingScreening] = useState<Screening | null>(null);
@@ -74,21 +77,21 @@ const ScreeningsScreen: React.FC = () => {
         screenings: updatedScreenings,
       });
     } else {
-      const newScreening: Screening = {
-        id: Date.now().toString(),
-        name: screeningName.trim(),
-        date: screeningDate || new Date(),
-        result,
-        nextDue: nextDueDate || undefined,
-        location: location.trim() || undefined,
-        notes: notes.trim() || undefined,
+    const newScreening: Screening = {
+      id: Date.now().toString(),
+      name: screeningName.trim(),
+      date: screeningDate || new Date(),
+      result,
+      nextDue: nextDueDate || undefined,
+      location: location.trim() || undefined,
+      notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedScreenings = [...(profile?.screenings || []), newScreening];
-      updateProfile({
-        ...profile,
-        screenings: updatedScreenings,
-      });
+    };
+    const updatedScreenings = [...(profile?.screenings || []), newScreening];
+    updateProfile({
+      ...profile,
+      screenings: updatedScreenings,
+    });
     }
 
     setShowAddModal(false);
@@ -179,8 +182,24 @@ const ScreeningsScreen: React.FC = () => {
     setFileViewerVisible(true);
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString();
+  const formatDate = (dateInput: Date | string) => {
+    const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+  };
+
+  const isOverdue = (nextDueInput: Date | string) => {
+    const d = nextDueInput instanceof Date ? nextDueInput : new Date(nextDueInput);
+    return !isNaN(d.getTime()) && new Date().getTime() > d.getTime();
+  };
+
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return 'Select date';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${year}`;
+    if (mode === 'yearMonth') return `${year}-${month}`;
+    return `${year}-${month}-${day}`;
   };
 
   const getResultColor = (result: string) => {
@@ -192,22 +211,18 @@ const ScreeningsScreen: React.FC = () => {
     }
   };
 
-  const isOverdue = (nextDue: Date) => {
-    return new Date() > nextDue;
-  };
-
   return (
     <View style={styles.container}>
       {/* Header (fixed) */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Health Screenings</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#007AFF" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Health Screenings</Text>
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Screenings List */}
         <View style={styles.content}>
@@ -217,7 +232,7 @@ const ScreeningsScreen: React.FC = () => {
                 <View style={styles.screeningHeader}>
                   <View style={styles.screeningInfo}>
                     <Text style={styles.screeningName}>{screening.name}</Text>
-                    <Text style={styles.screeningDate}>Date: {formatDate(screening.date)}</Text>
+                    <Text style={styles.screeningDate}>Date: {formatDate(screening.date as any)}</Text>
                     <View style={styles.resultContainer}>
                       <View style={[styles.resultBadge, { backgroundColor: getResultColor(screening.result) + '20' }]}>
                         <Text style={[styles.resultText, { color: getResultColor(screening.result) }]}>
@@ -229,11 +244,11 @@ const ScreeningsScreen: React.FC = () => {
                       <View style={styles.nextDueContainer}>
                         <Text style={[
                           styles.nextDueText,
-                          isOverdue(screening.nextDue) && styles.overdueText
+                          isOverdue(screening.nextDue as any) && styles.overdueText
                         ]}>
-                          Next due: {formatDate(screening.nextDue)}
+                          Next due: {formatDate(screening.nextDue as any)}
                         </Text>
-                        {isOverdue(screening.nextDue) && (
+                        {isOverdue(screening.nextDue as any) && (
                           <View style={styles.overdueBadge}>
                             <Text style={styles.overdueBadgeText}>OVERDUE</Text>
                           </View>
@@ -263,10 +278,10 @@ const ScreeningsScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openScreeningOptions(screening)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit screening"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -306,7 +321,7 @@ const ScreeningsScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Screening Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Screening Name *</Text>
+              <Text style={styles.inputLabel}>Screening Name *:</Text>
               <TextInput
                 style={styles.textInput}
                 value={screeningName}
@@ -340,21 +355,30 @@ const ScreeningsScreen: React.FC = () => {
 
             {/* Screening Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Screening Date *</Text>
+              <Text style={styles.inputLabel}>Screening Date *:</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('year')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('full')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowScreeningDatePicker(true)}
               >
-                <Text style={[styles.dateInputText, !screeningDate && styles.placeholderText]}>
-                  {screeningDate ? screeningDate.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !screeningDate && styles.placeholderText]}>{formatDateForMode(screeningDate, dateModeScreening)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
             {/* Result */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Result</Text>
+              <Text style={styles.inputLabel}>Result:</Text>
               <View style={styles.optionsContainer}>
                 <TouchableOpacity
                   style={[
@@ -403,21 +427,30 @@ const ScreeningsScreen: React.FC = () => {
 
             {/* Next Due Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Next Due Date (Optional)</Text>
+              <Text style={styles.inputLabel}>Next Due Date (Optional):</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('year')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('full')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowNextDuePicker(true)}
               >
-                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>
-                  {nextDueDate ? nextDueDate.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>{formatDateForMode(nextDueDate, dateModeNextDue)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
             {/* Location */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Location (Optional)</Text>
+              <Text style={styles.inputLabel}>Location (Optional):</Text>
               <TextInput
                 style={styles.textInput}
                 value={location}
@@ -429,7 +462,7 @@ const ScreeningsScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes (Optional):</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -517,8 +550,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -527,6 +560,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -537,13 +571,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -636,6 +671,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    padding: 6,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -874,6 +915,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
   },
 });
 

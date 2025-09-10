@@ -242,7 +242,7 @@ const EmergencyContactsScreen: React.FC = () => {
           </View>
         </View>
         <TouchableOpacity 
-          style={styles.moreButton}
+          style={[styles.moreButton, { position: 'absolute', top: 6, right: 6 }]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           onPress={() => openContactOptions(contact)}
           accessibilityLabel="Edit contact"
@@ -297,7 +297,7 @@ const EmergencyContactsScreen: React.FC = () => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Emergency Contacts</Text>
@@ -377,7 +377,7 @@ const EmergencyContactsScreen: React.FC = () => {
 
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Name *</Text>
+              <Text style={styles.fieldLabel}>Name: *</Text>
               <TextInput
                 style={styles.textInput}
                 value={contactForm.name}
@@ -388,7 +388,7 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Relationship *</Text>
+              <Text style={styles.fieldLabel}>Relationship: *</Text>
               <View style={styles.relationshipGrid}>
                 {relationships.map((relationship) => (
                   <TouchableOpacity
@@ -413,7 +413,7 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Phone Number *</Text>
+              <Text style={styles.fieldLabel}>Phone Number: *</Text>
               <TextInput
                 style={styles.textInput}
                 value={contactForm.phone}
@@ -425,7 +425,7 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Secondary Phone (Optional)</Text>
+              <Text style={styles.fieldLabel}>Secondary Phone: (Optional)</Text>
               <TextInput
                 style={styles.textInput}
                 value={contactForm.secondaryPhone}
@@ -437,7 +437,7 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Email (Optional)</Text>
+              <Text style={styles.fieldLabel}>Email: (Optional)</Text>
               <TextInput
                 style={styles.textInput}
                 value={contactForm.email}
@@ -468,7 +468,7 @@ const EmergencyContactsScreen: React.FC = () => {
             </View>
 
             <View style={styles.formField}>
-              <Text style={styles.fieldLabel}>Notes (Optional)</Text>
+              <Text style={styles.fieldLabel}>Notes: (Optional)</Text>
               <TextInput
                 style={[styles.textInput, styles.multilineInput]}
                 value={contactForm.notes}
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 72,
-    paddingBottom: 3,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -508,6 +508,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: -46.2,
     zIndex: 1,
   },
   headerText: {
@@ -521,8 +522,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
+    top: -55,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -531,6 +533,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20,
   },
   emptyState: {
     alignItems: 'center',
@@ -695,8 +698,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 20,
-    borderWidth: 1,
-    borderColor: '#007AFF',
   },
   addMoreButtonText: {
     fontSize: 16,

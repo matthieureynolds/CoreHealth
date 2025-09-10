@@ -201,10 +201,11 @@ const ProfileDetailsScreen: React.FC = () => {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#007AFF" />
-              </TouchableOpacity>
+              <View style={{ width: 44 }} />
               <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#FF3B30" />
+              </TouchableOpacity>
             </View>
             <View style={styles.datePickerBody}>
               <DateTimePicker
@@ -263,10 +264,11 @@ const ProfileDetailsScreen: React.FC = () => {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <TouchableOpacity onPress={() => setShowGenderPicker(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#007AFF" />
-              </TouchableOpacity>
+              <View style={{ width: 44 }} />
               <Text style={styles.datePickerTitle}>Select Gender</Text>
+              <TouchableOpacity onPress={() => setShowGenderPicker(false)} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#FF3B30" />
+              </TouchableOpacity>
             </View>
             <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
               {genderOptions.map((option) => (
@@ -308,7 +310,8 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     backgroundColor: '#222',
-    paddingVertical: 32,
+    paddingTop: 24,
+    paddingBottom: 32,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginBottom: 0,
@@ -501,8 +504,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 28,
-    paddingBottom: 12,
+    marginBottom: 0,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
@@ -525,11 +528,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     height: 210,
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: 0,
+    marginBottom: 16,
   },
   datePickerBody: {
     marginTop: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   datePickerSaveButton: {
     backgroundColor: '#007AFF',
@@ -546,6 +551,7 @@ const styles = StyleSheet.create({
   },
   ethnicityPickerOptions: {
     maxHeight: 300,
+    alignSelf: 'stretch',
   },
   ethnicityPickerOption: {
     flexDirection: 'row',

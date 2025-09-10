@@ -10,14 +10,39 @@ import {
   Modal,
   Dimensions,
   Animated,
+  Switch,
+  Image,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import MedicalRecordScanner from '../../components/common/MedicalRecordScanner';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { HealthID } from '../../types';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const FLAG_IMAGES: Record<string, any> = {
+  gb: require('../../../assets/assets/flags/UK.png'),
+  fr: require('../../../assets/assets/flags/France.png'),
+  de: require('../../../assets/assets/flags/Germany.png'),
+  au: require('../../../assets/assets/flags/Australia.png'),
+  ca: require('../../../assets/assets/flags/Canada.png'),
+  us: require('../../../assets/assets/flags/USA.png'),
+  es: require('../../../assets/assets/flags/Spain.png'),
+  it: require('../../../assets/assets/flags/Italy.png'),
+  nl: require('../../../assets/assets/flags/Netherland.png'),
+  se: require('../../../assets/assets/flags/Sweden.png'),
+  no: require('../../../assets/assets/flags/Norway.png'),
+  dk: require('../../../assets/assets/flags/Denmark.png'),
+  ch: require('../../../assets/assets/flags/Switzerland.png'),
+  be: require('../../../assets/assets/flags/Belgium.png'),
+  at: require('../../../assets/assets/flags/Austria.png'),
+  ie: require('../../../assets/assets/flags/Ireland.png'),
+  nz: require('../../../assets/assets/flags/New Zealand.png'),
+  jp: require('../../../assets/assets/flags/Japan.png'),
+  kr: require('../../../assets/assets/flags/South Korea.png'),
+  sg: require('../../../assets/assets/flags/Singapore.png'),
+};
 
 const HealthIDsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -28,6 +53,8 @@ const HealthIDsScreen: React.FC = () => {
   const [idNumber, setIdNumber] = useState('');
   const [notes, setNotes] = useState('');
   const [idScannerVisible, setIdScannerVisible] = useState(false);
+  const [editingHealthIdId, setEditingHealthIdId] = useState<string | null>(null);
+  const [isPrimaryDraft, setIsPrimaryDraft] = useState<boolean>(false);
 
   // Debug useEffect - removed since we're using Alert
 
@@ -56,33 +83,59 @@ const HealthIDsScreen: React.FC = () => {
 
   const selectedCountryData = countries.find(c => c.code === selectedCountryCode);
 
-  const addHealthID = () => {
+  const saveHealthID = () => {
     if (!selectedCountry || !idNumber.trim()) {
       Alert.alert('Error', 'Please select a country and enter an ID number');
       return;
     }
 
-    const newHealthID: HealthID = {
-      id: Date.now().toString(),
-      country: selectedCountry,
-      countryCode: selectedCountryCode,
-      idType: selectedCountryData?.idTypes[0] || 'Health ID',
-      idNumber: idNumber.trim(),
-      isPrimary: !profile?.healthIDs?.length,
-      notes: notes.trim() || undefined,
-    };
-
-    const updatedHealthIDs = [...(profile?.healthIDs || []), newHealthID];
-    updateProfile({
-      ...profile,
-      healthIDs: updatedHealthIDs,
-    });
+    if (editingHealthIdId) {
+      const updatedHealthIDs = (profile?.healthIDs || []).map(hid => {
+        if (hid.id === editingHealthIdId) {
+          return {
+            ...hid,
+            country: selectedCountry,
+            countryCode: selectedCountryCode,
+            idType: selectedCountryData?.idTypes[0] || hid.idType,
+            idNumber: idNumber.trim(),
+            notes: notes.trim() || undefined,
+            isPrimary: isPrimaryDraft,
+          };
+        }
+        return isPrimaryDraft ? { ...hid, isPrimary: false } : hid;
+      });
+      updateProfile({
+        ...profile,
+        healthIDs: updatedHealthIDs,
+      });
+    } else {
+      const newHealthID: HealthID = {
+        id: Date.now().toString(),
+        country: selectedCountry,
+        countryCode: selectedCountryCode,
+        idType: selectedCountryData?.idTypes[0] || 'Health ID',
+        idNumber: idNumber.trim(),
+        isPrimary: isPrimaryDraft,
+        notes: notes.trim() || undefined,
+      };
+      let updatedHealthIDs = [...(profile?.healthIDs || [])];
+      if (isPrimaryDraft) {
+        updatedHealthIDs = updatedHealthIDs.map(hid => ({ ...hid, isPrimary: false }));
+      }
+      updatedHealthIDs.push(newHealthID);
+      updateProfile({
+        ...profile,
+        healthIDs: updatedHealthIDs,
+      });
+    }
 
     setShowAddModal(false);
+    setEditingHealthIdId(null);
     setSelectedCountry('');
     setSelectedCountryCode('');
     setIdNumber('');
     setNotes('');
+    setIsPrimaryDraft(false);
   };
 
   const deleteHealthID = (id: string) => {
@@ -111,6 +164,33 @@ const HealthIDsScreen: React.FC = () => {
     setIdScannerVisible(true);
   };
 
+  const openHealthIdOptions = (healthID: HealthID) => {
+    Alert.alert(
+      'Health ID Options',
+      'What would you like to do?',
+      [
+        {
+          text: 'Edit',
+          onPress: () => {
+            setSelectedCountry(healthID.country);
+            setSelectedCountryCode(healthID.countryCode || '');
+            setIdNumber(healthID.idNumber);
+            setNotes(healthID.notes || '');
+            setEditingHealthIdId(healthID.id);
+            setIsPrimaryDraft(!!healthID.isPrimary);
+            setShowAddModal(true);
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteHealthID(healthID.id),
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
   const handleScannerSave = (record: any) => {
     // Try to extract a plausible ID from scanned data
     const sourceText = `${record?.title || ''} ${record?.provider || ''} ${record?.date || ''}`;
@@ -129,16 +209,7 @@ const HealthIDsScreen: React.FC = () => {
     Alert.alert('Scan complete', 'Health ID number has been auto-filled.');
   };
 
-  const setPrimaryHealthID = (id: string) => {
-    const updatedHealthIDs = profile?.healthIDs?.map(hid => ({
-      ...hid,
-      isPrimary: hid.id === id,
-    })) || [];
-    updateProfile({
-      ...profile,
-      healthIDs: updatedHealthIDs,
-    });
-  };
+  // Primary selection is now handled within the Add/Edit modal
 
   return (
     <View style={styles.container}>
@@ -151,7 +222,12 @@ const HealthIDsScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
-            console.log('Add button pressed');
+            setEditingHealthIdId(null);
+            setSelectedCountry('');
+            setSelectedCountryCode('');
+            setIdNumber('');
+            setNotes('');
+            setIsPrimaryDraft(!(profile?.healthIDs && profile.healthIDs.length > 0));
             setShowAddModal(true);
           }}
         >
@@ -175,7 +251,20 @@ const HealthIDsScreen: React.FC = () => {
                     <View style={styles.cardContent}>
                       <View style={styles.cardHeader}>
                         <View style={styles.countryInfo}>
-                          <Text style={styles.countryFlag}>{countryData?.flag || '🏥'}</Text>
+                          {healthID.countryCode && FLAG_IMAGES[(healthID.countryCode || '').toLowerCase()] ? (
+                            <Image
+                              source={FLAG_IMAGES[(healthID.countryCode || '').toLowerCase()]}
+                              style={styles.countryFlagImage}
+                              resizeMode="contain"
+                            />
+                          ) : (
+                            <LinearGradient
+                              colors={(countries.find(c => c.code === (healthID.countryCode || ''))?.gradient ?? ['#555', '#777']) as [string, string]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={styles.countryBadge}
+                            />
+                          )}
                           <View style={styles.countryDetails}>
                             <Text style={styles.countryName}>{healthID.country}</Text>
                             <Text style={styles.idType}>{healthID.idType}</Text>
@@ -200,21 +289,11 @@ const HealthIDsScreen: React.FC = () => {
                       
                       <View style={styles.cardFooter}>
                         <TouchableOpacity
-                          onPress={() => setPrimaryHealthID(healthID.id)}
-                          style={[styles.actionButton, healthID.isPrimary && styles.disabledButton]}
-                          disabled={healthID.isPrimary}
-                        >
-                          <Ionicons 
-                            name={healthID.isPrimary ? "star" : "star-outline"} 
-                            size={20} 
-                            color={healthID.isPrimary ? "#fff" : "#fff"} 
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => deleteHealthID(healthID.id)}
+                          onPress={() => openHealthIdOptions(healthID)}
                           style={styles.actionButton}
+                          accessibilityLabel="Edit or delete Health ID"
                         >
-                          <Ionicons name="trash-outline" size={20} color="#fff" />
+                          <Feather name="edit-2" size={18} color="#fff" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -250,13 +329,25 @@ const HealthIDsScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Health ID</Text>
-            <TouchableOpacity onPress={addHealthID}>
+            <Text style={styles.modalTitle}>{editingHealthIdId ? 'Edit Health ID' : 'Add Health ID'}</Text>
+            <TouchableOpacity onPress={saveHealthID}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalContent}>
+            {/* Primary toggle */}
+            <View style={styles.inputContainer}>
+              <View style={styles.inputRow}>
+                <Text style={styles.inputText}>Set as main ID</Text>
+                <Switch
+                  value={isPrimaryDraft}
+                  onValueChange={setIsPrimaryDraft}
+                  trackColor={{ false: '#444', true: '#34C759' }}
+                  thumbColor={'#fff'}
+                />
+              </View>
+            </View>
             {/* Scan ID */}
             <View style={styles.scanRow}>
               <TouchableOpacity style={styles.scanButton} onPress={scanHealthId}>
@@ -271,7 +362,7 @@ const HealthIDsScreen: React.FC = () => {
               onPress={() => {
                 console.log('Country picker tapped, showing alert');
                 // Create country options for Alert
-                const countryOptions = countries.map(country => `${country.flag} ${country.name}`);
+                const countryOptions = countries.map(country => country.name);
                 Alert.alert(
                   'Select Country',
                   'Choose your country:',
@@ -280,7 +371,7 @@ const HealthIDsScreen: React.FC = () => {
                       text: countryDisplay,
                       onPress: () => {
                         // Find the country by matching the display text
-                        const selectedCountryData = countries.find(c => countryDisplay === `${c.flag} ${c.name}`);
+                        const selectedCountryData = countries.find(c => countryDisplay === c.name);
                         if (selectedCountryData) {
                           console.log('Country selected via alert:', selectedCountryData.name);
                           setSelectedCountry(selectedCountryData.name);
@@ -296,14 +387,25 @@ const HealthIDsScreen: React.FC = () => {
                 );
               }}
             >
-              <Text style={styles.inputLabel}>Country</Text>
+              <Text style={styles.inputLabel}>Country:</Text>
               <View style={styles.inputRow}>
                 <View style={styles.countrySelector}>
-                  {selectedCountry && (
-                    <Text style={styles.selectedCountryFlag}>
-                      {countries.find(c => c.name === selectedCountry)?.flag}
-                    </Text>
-                  )}
+                  {selectedCountry && selectedCountryCode ? (
+                    FLAG_IMAGES[selectedCountryCode.toLowerCase()] ? (
+                      <Image
+                        source={FLAG_IMAGES[selectedCountryCode.toLowerCase()]}
+                        style={styles.selectedCountryFlagImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={(countries.find(c => c.code === selectedCountryCode)?.gradient ?? ['#444', '#666']) as [string, string]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.selectedCountryBadge}
+                      />
+                    )
+                  ) : null}
                   <Text style={[styles.inputText, !selectedCountry && styles.placeholderText]}>
                     {selectedCountry || 'Select a country'}
                   </Text>
@@ -314,7 +416,7 @@ const HealthIDsScreen: React.FC = () => {
 
             {/* ID Number */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>ID Number</Text>
+              <Text style={styles.inputLabel}>ID Number:</Text>
               <TextInput
                 style={styles.textInput}
                 value={idNumber}
@@ -326,7 +428,7 @@ const HealthIDsScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes: (Optional)</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -368,8 +470,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -378,6 +480,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -388,13 +491,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -429,9 +533,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  countryFlag: {
-    fontSize: 32,
+  countryBadge: {
+    width: 67,
+    height: 45,
+    borderRadius: 4,
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
   },
   countryDetails: {
     flex: 1,
@@ -650,9 +758,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  selectedCountryFlag: {
-    fontSize: 20,
+  selectedCountryBadge: {
+    width: 50,
+    height: 34,
+    borderRadius: 4,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  countryFlag: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  countryDetails: {
+    flex: 1,
   },
   countryOption: {
     flexDirection: 'row',
@@ -702,6 +821,20 @@ const styles = StyleSheet.create({
   },
   countryPickerContent: {
     maxHeight: 300,
+  },
+  selectedCountryFlagImage: {
+    width: 50,
+    height: 34,
+    borderRadius: 0,
+    marginRight: 8,
+    overflow: 'hidden',
+  },
+  countryFlagImage: {
+    width: 67,
+    height: 45,
+    borderRadius: 0,
+    marginRight: 12,
+    overflow: 'hidden'
   },
 });
 

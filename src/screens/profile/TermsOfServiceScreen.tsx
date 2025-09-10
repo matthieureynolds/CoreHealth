@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 72,
-    paddingBottom: 3,
+    paddingBottom: 5,
     backgroundColor: '#F2F2F7',
     borderBottomWidth: 1,
     borderBottomColor: '#C6C6C8',
@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 23.5,
     zIndex: 1,
   },
   headerTitle: {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 15.2,
     paddingBottom: 8,
   },
   content: {

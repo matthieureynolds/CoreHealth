@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -30,6 +31,8 @@ const AllergiesScreen: React.FC = () => {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [dateModeStart, setDateModeStart] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeEnd, setDateModeEnd] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [notes, setNotes] = useState('');
   const [editingAllergy, setEditingAllergy] = useState<Allergy | null>(null);
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
@@ -81,22 +84,22 @@ const AllergiesScreen: React.FC = () => {
         allergies: updatedAllergies,
       });
     } else {
-      const newAllergy: Allergy = {
-        id: Date.now().toString(),
-        name: allergy.trim(),
-        severity,
-        status,
-        reaction: reaction.trim() || undefined,
-        startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
-        notes: notes.trim() || undefined,
+    const newAllergy: Allergy = {
+      id: Date.now().toString(),
+      name: allergy.trim(),
+      severity,
+      status,
+      reaction: reaction.trim() || undefined,
+      startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      endDate: status === 'resolved' && endDate ? endDate.toISOString().split('T')[0] : undefined,
+      notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedAllergies = [...(profile?.allergies || []), newAllergy];
-      updateProfile({
-        ...profile,
-        allergies: updatedAllergies,
-      });
+    };
+    const updatedAllergies = [...(profile?.allergies || []), newAllergy];
+    updateProfile({
+      ...profile,
+      allergies: updatedAllergies,
+    });
     }
 
     setShowAddModal(false);
@@ -203,18 +206,28 @@ const AllergiesScreen: React.FC = () => {
     return date.toLocaleDateString();
   };
 
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return 'Select date';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${year}`;
+    if (mode === 'yearMonth') return `${year}-${month}`;
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <View style={styles.container}>
       {/* Header (fixed) */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Allergies</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#007AFF" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Allergies</Text>
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Allergies List */}
@@ -259,10 +272,10 @@ const AllergiesScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openAllergyOptions(allergy)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit allergy"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -302,7 +315,7 @@ const AllergiesScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Allergy Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Allergy Name *</Text>
+              <Text style={styles.inputLabel}>Allergy Name *:</Text>
               <TextInput
                 style={styles.textInput}
                 value={allergy}
@@ -336,7 +349,7 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Severity */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Severity</Text>
+              <Text style={styles.inputLabel}>Severity:</Text>
               <View style={styles.optionsContainer}>
                 {severityOptions.map((option) => (
                   <TouchableOpacity
@@ -360,7 +373,7 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Status */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Status</Text>
+              <Text style={styles.inputLabel}>Status:</Text>
               <View style={styles.optionsContainer}>
                 {statusOptions.map((option) => (
                   <TouchableOpacity
@@ -389,7 +402,7 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Reaction */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Reaction (Optional)</Text>
+              <Text style={styles.inputLabel}>Reaction (Optional):</Text>
               <TextInput
                 style={styles.textInput}
                 value={reaction}
@@ -401,14 +414,23 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Start Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Start Date</Text>
+              <Text style={styles.inputLabel}>Start Date:</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeStart('year')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeStart('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeStart('full')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowStartDatePicker(true)}
               >
-                <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>
-                  {startDate ? startDate.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>{formatDateForMode(startDate, dateModeStart)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
@@ -416,14 +438,23 @@ const AllergiesScreen: React.FC = () => {
             {/* End Date - Only show when status is resolved */}
             {status === 'resolved' && (
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>End Date *</Text>
+                <Text style={styles.inputLabel}>End Date *:</Text>
+                <View style={styles.dateModeRow}>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('year')}>
+                    <Text style={[styles.dateModeText, dateModeEnd === 'year' && styles.dateModeTextActive]}>Year</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('yearMonth')}>
+                    <Text style={[styles.dateModeText, dateModeEnd === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('full')}>
+                    <Text style={[styles.dateModeText, dateModeEnd === 'full' && styles.dateModeTextActive]}>Full</Text>
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
                   style={styles.dateInput}
                   onPress={() => setShowEndDatePicker(true)}
                 >
-                  <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>
-                    {endDate ? endDate.toLocaleDateString() : 'Select date'}
-                  </Text>
+                  <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>{formatDateForMode(endDate, dateModeEnd)}</Text>
                   <Ionicons name="calendar-outline" size={20} color="#888" />
                 </TouchableOpacity>
               </View>
@@ -431,7 +462,7 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes (Optional):</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -445,7 +476,7 @@ const AllergiesScreen: React.FC = () => {
 
             {/* Attachments */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Attachments</Text>
+              <Text style={styles.inputLabel}>Attachments:</Text>
               <View style={styles.attachmentsRow}>
                 {attachments.map(file => (
                   <View key={file.uri} style={styles.attachmentChip}>
@@ -519,8 +550,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -529,6 +560,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -539,13 +571,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -614,6 +647,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    padding: 6,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -764,6 +803,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    justifyContent: 'flex-start',
   },
   optionButton: {
     backgroundColor: '#181818',
@@ -858,6 +898,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
   },
 });
 

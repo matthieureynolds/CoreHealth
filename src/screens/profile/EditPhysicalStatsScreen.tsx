@@ -127,7 +127,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Height (cm) *</Text>
+          <Text style={styles.label}>Height (cm): *</Text>
           <TextInput
             style={styles.input}
             value={statsData.height}
@@ -143,7 +143,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Weight (kg) *</Text>
+          <Text style={styles.label}>Weight (kg): *</Text>
           <TextInput
             style={styles.input}
             value={statsData.weight}
@@ -159,7 +159,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Blood Type *</Text>
+          <Text style={styles.label}>Blood Type: *</Text>
           <TouchableOpacity
             style={styles.pickerButton}
             onPress={() => setShowBloodTypePicker(true)}
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 25,
     zIndex: 1,
   },
   headerTitle: {
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 20,
     paddingBottom: 8,
   },
   saveButton: {
@@ -256,6 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     position: 'absolute',
     right: 20,
+    top: 26.5,
     zIndex: 1,
   },
   saveButtonDisabled: {
@@ -275,13 +277,13 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   inputContainer: {
-    marginBottom: 32,
+    marginBottom: 15,
   },
   label: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: '#222',
@@ -298,7 +300,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 12,
     textAlign: 'right',
-    marginTop: 12,
+    marginTop: 4,
   },
   infoContainer: {
     flexDirection: 'row',

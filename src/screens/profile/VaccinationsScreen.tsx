@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -27,6 +28,8 @@ const VaccinationsScreen: React.FC = () => {
   const [showDateReceivedPicker, setShowDateReceivedPicker] = useState(false);
   const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
   const [showNextDuePicker, setShowNextDuePicker] = useState(false);
+  const [dateModeReceived, setDateModeReceived] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeNextDue, setDateModeNextDue] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [location, setLocation] = useState('');
   const [batchNumber, setBatchNumber] = useState('');
   const [notes, setNotes] = useState('');
@@ -69,21 +72,21 @@ const VaccinationsScreen: React.FC = () => {
         vaccinations: updatedVaccinations,
       });
     } else {
-      const newVaccination: Vaccination = {
-        id: Date.now().toString(),
-        name: vaccineName.trim(),
-        date: dateReceived || new Date(),
-        nextDue: nextDueDate || undefined,
-        location: location.trim() || undefined,
-        batchNumber: batchNumber.trim() || undefined,
-        notes: notes.trim() || undefined,
+    const newVaccination: Vaccination = {
+      id: Date.now().toString(),
+      name: vaccineName.trim(),
+      date: dateReceived || new Date(),
+      nextDue: nextDueDate || undefined,
+      location: location.trim() || undefined,
+      batchNumber: batchNumber.trim() || undefined,
+      notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
-      updateProfile({
-        ...profile,
-        vaccinations: updatedVaccinations,
-      });
+    };
+    const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
+    updateProfile({
+      ...profile,
+      vaccinations: updatedVaccinations,
+    });
     }
 
     setShowAddModal(false);
@@ -174,26 +177,38 @@ const VaccinationsScreen: React.FC = () => {
     setFileViewerVisible(true);
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString();
+  const formatDate = (dateInput: Date | string) => {
+    const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
   };
 
-  const isOverdue = (nextDue: Date) => {
-    return new Date() > nextDue;
+  const isOverdue = (nextDueInput: Date | string) => {
+    const d = nextDueInput instanceof Date ? nextDueInput : new Date(nextDueInput);
+    return !isNaN(d.getTime()) && new Date().getTime() > d.getTime();
+  };
+
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return 'Select date';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${year}`;
+    if (mode === 'yearMonth') return `${year}-${month}`;
+    return `${year}-${month}-${day}`;
   };
 
   return (
     <View style={styles.container}>
       {/* Header (fixed) */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Vaccinations</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#007AFF" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Vaccinations</Text>
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Vaccinations List */}
@@ -209,11 +224,11 @@ const VaccinationsScreen: React.FC = () => {
                       <View style={styles.nextDueContainer}>
                         <Text style={[
                           styles.nextDueText,
-                          isOverdue(vaccination.nextDue) && styles.overdueText
+                          isOverdue(vaccination.nextDue as any) && styles.overdueText
                         ]}>
-                          Next due: {formatDate(vaccination.nextDue)}
+                          Next due: {formatDate(vaccination.nextDue as any)}
                         </Text>
-                        {isOverdue(vaccination.nextDue) && (
+                        {isOverdue(vaccination.nextDue as any) && (
                           <View style={styles.overdueBadge}>
                             <Text style={styles.overdueBadgeText}>OVERDUE</Text>
                           </View>
@@ -246,10 +261,10 @@ const VaccinationsScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openVaccinationOptions(vaccination)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit vaccination"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -289,7 +304,7 @@ const VaccinationsScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Vaccine Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Vaccine Name *</Text>
+              <Text style={styles.inputLabel}>Vaccine Name *:</Text>
               <TextInput
                 style={styles.textInput}
                 value={vaccineName}
@@ -323,35 +338,53 @@ const VaccinationsScreen: React.FC = () => {
 
             {/* Date Received */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Date Received *</Text>
+              <Text style={styles.inputLabel}>Date Received *:</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('year')}>
+                  <Text style={[styles.dateModeText, dateModeReceived === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeReceived === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('full')}>
+                  <Text style={[styles.dateModeText, dateModeReceived === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowDateReceivedPicker(true)}
               >
-                <Text style={[styles.dateInputText, !dateReceived && styles.placeholderText]}>
-                  {dateReceived ? dateReceived.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !dateReceived && styles.placeholderText]}>{formatDateForMode(dateReceived, dateModeReceived)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
             {/* Next Due Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Next Due Date (Optional)</Text>
+              <Text style={styles.inputLabel}>Next Due Date (Optional):</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('year')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeNextDue === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeNextDue('full')}>
+                  <Text style={[styles.dateModeText, dateModeNextDue === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowNextDuePicker(true)}
               >
-                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>
-                  {nextDueDate ? nextDueDate.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !nextDueDate && styles.placeholderText]}>{formatDateForMode(nextDueDate, dateModeNextDue)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
             {/* Location */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Location (Optional)</Text>
+              <Text style={styles.inputLabel}>Location (Optional):</Text>
               <TextInput
                 style={styles.textInput}
                 value={location}
@@ -363,7 +396,7 @@ const VaccinationsScreen: React.FC = () => {
 
             {/* Batch Number */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Batch Number (Optional)</Text>
+              <Text style={styles.inputLabel}>Batch Number (Optional):</Text>
               <TextInput
                 style={styles.textInput}
                 value={batchNumber}
@@ -375,7 +408,7 @@ const VaccinationsScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes (Optional):</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -389,7 +422,7 @@ const VaccinationsScreen: React.FC = () => {
 
             {/* Attachments */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Attachments</Text>
+              <Text style={styles.inputLabel}>Attachments:</Text>
               <View style={styles.attachmentsRow}>
                 {attachments.map(file => (
                   <View key={file.uri} style={styles.attachmentChip}>
@@ -463,8 +496,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -473,6 +506,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -483,13 +517,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -573,6 +608,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    padding: 6,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -786,6 +827,42 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
   },
 });
 

@@ -13,11 +13,14 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 import { useSettings } from '../../context/SettingsContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthData } from '../../context/HealthDataContext';
-import { HealthAssistantService, HealthChatMessage } from '../../services/healthAssistantService';
-import { formatTimeBySetting } from '../../utils/dateFormat';
+import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../services/healthAssistantService';
+import { formatTimeBySetting, formatShortDateBySetting } from '../../utils/dateFormat';
 
 interface HealthChatModalProps {
   visible: boolean;
@@ -30,6 +33,12 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
   const [messages, setMessages] = useState<HealthChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const recordingTimer = useRef<NodeJS.Timeout | null>(null);
+  const [showAttach, setShowAttach] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -112,28 +121,24 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
     setIsLoading(true);
 
     try {
-      // Pass health data to the enhanced service
-      const response = await HealthAssistantService.chatWithAssistant(
+      // Get full response from service first
+      const responseText = await HealthAssistantService.chatWithAssistant(
         userMessage.content,
         [...messages, userMessage],
         { profile, biomarkers, healthScore }
       );
 
-      const assistantMessage: HealthChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-        metadata: {
-          healthDataSnapshot: {
-            healthScore: healthScore?.overall,
-            biomarkerCount: biomarkers?.length || 0,
-            lastUpdate: new Date()
-          }
-        }
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // Simulate streaming typing effect
+      setIsStreaming(true);
+      const assistantId = `assistant-${Date.now()}`;
+      setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '', timestamp: new Date() }]);
+      const words = responseText.split(' ');
+      let current = '';
+      for (let i = 0; i < words.length; i++) {
+        current += (i ? ' ' : '') + words[i];
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: current } : m));
+        await new Promise(res => setTimeout(res, 25 + Math.random() * 60));
+      }
     } catch (error) {
       console.error('Chat error:', error);
       Alert.alert(
@@ -141,7 +146,89 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
         'Failed to get response from health assistant. Please check your internet connection and try again.'
       );
     } finally {
+      setIsStreaming(false);
       setIsLoading(false);
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 0.7 });
+      if (!res.canceled && res.assets?.length) {
+        const asset = res.assets[0];
+        const userMsg: HealthChatMessage = { id: `user-${Date.now()}`, role: 'user', content: '[Image attached]', timestamp: new Date() };
+        setMessages(prev => [...prev, userMsg]);
+      }
+    } catch (e) {
+      console.error('Image pick error:', e);
+    } finally {
+      setShowAttach(false);
+    }
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ type: ['image/*', 'application/pdf'], copyToCacheDirectory: true });
+      if (!res.canceled && res.assets?.length) {
+        const asset = res.assets[0];
+        const userMsg: HealthChatMessage = { id: `user-${Date.now()}`, role: 'user', content: asset.name || '[Document attached]', timestamp: new Date() };
+        setMessages(prev => [...prev, userMsg]);
+      }
+    } catch (e) {
+      console.error('Document pick error:', e);
+    } finally {
+      setShowAttach(false);
+    }
+  };
+
+  const handleVoice = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant microphone permissions to use voice input.');
+        return;
+      }
+      if (isRecording) {
+        if (recordingRef.current) {
+          await recordingRef.current.stopAndUnloadAsync();
+          const uri = recordingRef.current.getURI();
+          recordingRef.current = null;
+          setIsRecording(false);
+          if (recordingTimer.current) { clearInterval(recordingTimer.current); recordingTimer.current = null; }
+          setRecordingDuration(0);
+          if (uri) {
+            const form = new FormData();
+            // @ts-ignore
+            form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' } as any);
+            form.append('model', 'gpt-4o-transcribe');
+            form.append('response_format', 'json');
+            try {
+              const res = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${OPENAI_API_KEY}` }, body: form as any });
+              if (!res.ok) throw new Error(await res.text());
+              const data = await res.json();
+              const text = (data.text ?? '').trim();
+              setInputText(text);
+            } catch (txErr) {
+              console.error('Transcription error:', txErr);
+              Alert.alert('Transcription failed', 'Could not transcribe audio.');
+            }
+          }
+        }
+      } else {
+        await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+        const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+        recordingRef.current = recording;
+        setIsRecording(true);
+        setRecordingDuration(0);
+        recordingTimer.current = setInterval(() => setRecordingDuration(prev => prev + 1), 1000);
+      }
+    } catch (e) {
+      console.error('Voice error:', e);
+      setIsRecording(false);
+      recordingRef.current = null;
+      if (recordingTimer.current) { clearInterval(recordingTimer.current); recordingTimer.current = null; }
+      setRecordingDuration(0);
     }
   };
 
@@ -180,7 +267,7 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
               {message.content}
             </Text>
             <Text style={[styles.messageTime, isUser ? styles.userMessageTime : styles.assistantMessageTime]}>
-              {formatTimeBySetting(message.timestamp, settings?.general?.timeFormat === '12h' ? '12h' : '24h')}
+              {`${formatTimeBySetting(message.timestamp, settings?.general?.timeFormat === '12h' ? '12h' : '24h')} ${formatShortDateBySetting(message.timestamp, settings?.general?.dateFormat || 'DD/MM/YYYY')}`}
             </Text>
           </View>
         </View>
@@ -312,7 +399,30 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
                 <Text style={styles.loadingText}>Preparing your personalized health assistant...</Text>
               </View>
             ) : (
-              messages.map(renderMessage)
+              messages.map((m) => {
+                const isUser = m.role === 'user';
+                return (
+                  <View key={m.id} style={[styles.messageContainer, isUser && styles.userMessageContainer]}>
+                    <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+                      {!isUser && (
+                        <View style={styles.assistantIcon}>
+                          <Ionicons name="sparkles" size={16} color="#007AFF" />
+                        </View>
+                      )}
+                      <View style={styles.messageContent}>
+                        <Text style={[styles.messageText, isUser ? styles.userMessageText : styles.assistantMessageText]}>
+                          {m.content}
+                        </Text>
+                        {isUser && (
+                          <Text style={[styles.messageTime, styles.userMessageTime]}>
+                            {`${formatTimeBySetting(m.timestamp, settings?.general?.timeFormat === '12h' ? '12h' : '24h')} ${formatShortDateBySetting(m.timestamp, settings?.general?.dateFormat || 'DD/MM/YYYY')}`}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
             )}
             
             {isLoading && (
@@ -328,30 +438,47 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
           {/* Quick Questions */}
           {messages.length <= 2 && !isInitializing && renderQuickQuestions()}
 
+          
+
           {/* Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
+              {/* Plus */}
+              <TouchableOpacity onPress={() => setShowAttach(v => !v)} style={styles.iconButton}>
+                <Ionicons name="add" size={22} color="#8E8E93" />
+              </TouchableOpacity>
               <TextInput
                 style={styles.textInput}
-                placeholder="Ask about your health data..."
+                placeholder={isRecording ? `Recording... ${Math.floor(recordingDuration/60)}:${String(recordingDuration%60).padStart(2,'0')}` : "Ask about your health data..."}
                 value={inputText}
                 onChangeText={setInputText}
                 multiline
                 maxLength={500}
-                editable={!isLoading && !isInitializing}
+                editable={!isLoading && !isInitializing && !isStreaming}
               />
+              {/* Mic / Send */}
               <TouchableOpacity
-                style={[styles.sendButton, (!inputText.trim() || isLoading || isInitializing) && styles.sendButtonDisabled]}
-                onPress={sendMessage}
-                disabled={!inputText.trim() || isLoading || isInitializing}
+                style={[styles.sendButton, (!inputText.trim() && !isRecording) && styles.sendButtonDisabled]}
+                onPress={inputText.trim() ? sendMessage : handleVoice}
+                disabled={(isLoading || isInitializing || isStreaming)}
               >
                 <Ionicons 
-                  name="send" 
+                  name={inputText.trim() ? 'arrow-up' : (isRecording ? 'stop' : 'mic')} 
                   size={20} 
-                  color={(!inputText.trim() || isLoading || isInitializing) ? "#8E8E93" : "#007AFF"} 
+                  color={(isLoading || isInitializing || isStreaming) ? "#8E8E93" : (inputText.trim() ? "#FFFFFF" : (isRecording ? '#FFFFFF' : "#8E8E93"))} 
                 />
               </TouchableOpacity>
             </View>
+            {showAttach && (
+              <View style={styles.attachRow}>
+                <TouchableOpacity style={styles.attachButton} onPress={handlePickImage}>
+                  <Ionicons name="camera" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.attachButton} onPress={handlePickDocument}>
+                  <Ionicons name="attach" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -441,6 +568,7 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     paddingHorizontal: 16,
+    backgroundColor: '#F2F4F7',
   },
   messagesContent: {
     paddingTop: 16,
@@ -483,7 +611,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userMessageText: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     color: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -493,13 +621,11 @@ const styles = StyleSheet.create({
   },
   assistantMessageText: {
     backgroundColor: '#fff',
-    color: '#1C1C1E',
+    color: '#0B1220',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
-    borderBottomLeftRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderTopLeftRadius: 6,
     overflow: 'hidden',
   },
   messageTime: {
@@ -510,6 +636,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'right',
     marginRight: 16,
+    alignSelf: 'flex-end',
   },
   assistantMessageTime: {
     color: '#8E8E93',
@@ -572,9 +699,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     backgroundColor: '#F2F2F7',
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     minHeight: 44,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   textInput: {
     flex: 1,
@@ -584,16 +719,45 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   sendButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#E5E7EB',
+  },
+  attachRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  attachButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 96,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    zIndex: 10,
   },
 });
 

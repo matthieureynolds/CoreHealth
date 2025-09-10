@@ -106,6 +106,15 @@ export interface HealthAssistantResponse {
 }
 
 export class HealthAssistantService {
+  // Remove emojis & pictographs from AI text
+  private static stripEmojis(input: string): string {
+    try {
+      // eslint-disable-next-line no-control-regex
+      return input.replace(/[\p{Emoji}\p{Extended_Pictographic}]/gu, '');
+    } catch {
+      return input;
+    }
+  }
   /**
    * Load full conversation history from AsyncStorage
    */
@@ -277,7 +286,7 @@ export class HealthAssistantService {
   ): Promise<string> {
     const context = await this.loadUserContext();
     const timeOfDay = this.getTimeOfDay();
-    const name = 'there'; // Profile doesn't have displayName, will get from user context later
+    const name = (profile as any)?.preferredName || (profile as any)?.displayName || 'there';
     
     let greeting = `Hi ${name}! 👋 I'm your health assistant.`;
     
@@ -300,7 +309,7 @@ export class HealthAssistantService {
 
     greeting += `\n\nI'm here to help you understand your health data, answer questions, and chat about anything health-related. What's on your mind today?`;
 
-    return greeting;
+    return this.stripEmojis(greeting);
   }
 
   /**
@@ -447,7 +456,8 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
       }
 
       const data = await response.json();
-      const aiContent = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+      const aiRaw = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+      const aiContent = this.stripEmojis(aiRaw);
 
       // Add the assistant's reply to history with metadata
       const aiMessage: HealthChatMessage = {
@@ -651,6 +661,10 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
 
     // User Demographics
     if (healthData.profile) {
+      const displayName = (healthData.profile as any).preferredName || (healthData.profile as any).displayName || '';
+      if (displayName) {
+        formattedData += `Name: ${displayName}\n`;
+      }
       formattedData += `User: ${healthData.profile.age || 'age unknown'} year old ${healthData.profile.gender || 'gender not specified'}\n`;
       if (healthData.profile.height && healthData.profile.weight) {
         const bmi = (healthData.profile.weight / Math.pow(healthData.profile.height / 100, 2)).toFixed(1);

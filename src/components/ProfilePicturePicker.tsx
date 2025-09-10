@@ -149,12 +149,6 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
           </View>
         )}
         
-        {/* Camera icon overlay - only show when no photo */}
-        {!currentPhotoURL && (
-          <View style={styles.cameraOverlay}>
-            <Ionicons name="camera" size={20} color="#fff" />
-          </View>
-        )}
       </TouchableOpacity>
 
       {/* Options Modal */}

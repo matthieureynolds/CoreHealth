@@ -12,12 +12,14 @@ import { JetLagPlanningEvent } from '../../types';
 
 interface JetLagPlanningCardProps {
   event: JetLagPlanningEvent;
-  onPress?: () => void;
+  onPress?: () => void; // Optional: whole-card press
+  onEditTrip?: () => void; // Open edit when tapping departure
 }
 
 const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({ 
   event, 
-  onPress 
+  onPress,
+  onEditTrip,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { settings } = useSettings();
@@ -58,42 +60,39 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
     return '#30D158'; // Green for upcoming
   };
 
-  const getStatusText = () => {
-    const daysUntil = getDaysUntilDeparture();
-    if (daysUntil <= 0) return 'Active';
-    if (daysUntil <= 7) return 'Work';
-    return 'Upcoming';
+  const getStatusTextFor = (evt: JetLagPlanningEvent) => {
+    const id = String(evt?.id || '').toLowerCase();
+    if (id.endsWith('-return')) return 'Inbound';
+    if (id.endsWith('-outbound')) return 'Outbound';
+    return 'Outbound';
   };
 
-  const getDirectionIcon = () => {
-    return event.timeZoneDifference > 0 ? 'arrow-forward' : 'arrow-back';
+  const getDirectionIconFor = (evt: JetLagPlanningEvent) => {
+    return evt.timeZoneDifference > 0 ? 'arrow-forward' : 'arrow-back';
   };
 
-  const getDirectionText = () => {
-    return event.timeZoneDifference > 0 ? 'Eastward' : 'Westward';
+  const getDirectionTextFor = (evt: JetLagPlanningEvent) => {
+    return evt.timeZoneDifference > 0 ? 'Eastward' : 'Westward';
   };
 
-  const statusColor = getStatusColor();
+  // Force consistent orange scheme
+  const statusColor = '#FF9500';
 
-  return (
-    <TouchableOpacity 
-      style={[styles.container, { borderColor: statusColor + '40' }]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
+  const renderContent = (evt: JetLagPlanningEvent, onEdit?: () => void) => (
+    <View>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
           <View>
-            <Text style={styles.destination}>{event.destination}</Text>
-            <Text style={styles.status}>{getStatusText()}</Text>
+            <Text style={styles.destination}>{evt.destination}</Text>
+            <Text style={styles.status}>{getStatusTextFor(evt)}</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
-          <Ionicons name={getDirectionIcon()} size={20} color={statusColor} />
-          <Text style={[styles.directionText, { color: statusColor }]}>
-            {getDirectionText()}
+          <Ionicons name={getDirectionIconFor(evt)} size={20} color={statusColor} />
+          <Text style={[styles.directionText, { color: statusColor }]}> 
+            {getDirectionTextFor(evt)}
           </Text>
         </View>
       </View>
@@ -103,41 +102,35 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
         <View style={styles.infoItem}>
           <Ionicons name="time-outline" size={16} color="#8E8E93" />
           <Text style={styles.infoLabel}>Time Difference</Text>
-          <Text style={styles.infoValue}>
-            {Math.abs(event.timeZoneDifference)}h
-          </Text>
+          <Text style={styles.infoValue}>{evt.timeZoneDifference > 0 ? '+' : ''}{evt.timeZoneDifference}h</Text>
         </View>
-        <View style={styles.infoItem}>
+        <TouchableOpacity style={styles.infoItem} onPress={onEdit} activeOpacity={0.7}>
           <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
           <Text style={styles.infoLabel}>Departure</Text>
-          <Text style={styles.infoValue}>
-            {formatDate(event.departureDate)}
-          </Text>
-        </View>
+          <Text style={styles.infoValue}>{formatDate(evt.departureDate)}</Text>
+        </TouchableOpacity>
         <View style={styles.infoItem}>
           <Ionicons name="bed-outline" size={16} color="#8E8E93" />
           <Text style={styles.infoLabel}>Days to Adjust</Text>
-          <Text style={styles.infoValue}>
-            {event.daysToAdjust}
-          </Text>
+          <Text style={styles.infoValue}>{evt.daysToAdjust}</Text>
         </View>
       </View>
 
       {/* Preparation schedule preview */}
       <View style={styles.schedulePreview}>
         <Text style={styles.scheduleTitle}>Sleep Adjustment Schedule</Text>
-        {event.sleepAdjustment.dailySchedule.map((day, idx) => {
-          // Calculate the date for this day
-          const prepStart = new Date(event.preparationStartDate);
+        {evt.sleepAdjustment.dailySchedule.map((day, idx) => {
+          const prepStart = new Date(evt.preparationStartDate);
           const thisDate = new Date(prepStart.getTime() + idx * 24 * 60 * 60 * 1000);
-          const dayLabel = thisDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+          const weekdayNames = ['SUN', 'MON', 'TUES', 'WED', 'THURS', 'FRI', 'SAT'];
+          const dayLabel = weekdayNames[thisDate.getDay()];
           if (idx < 2 || isExpanded) {
             return (
               <View key={idx} style={styles.scheduleRow}>
-                <View style={styles.scheduleLeft}>
-                  <Text style={styles.scheduleDay}>{dayLabel}:</Text>
-                  <Text style={styles.scheduleTime}>{formatDisplayTime(day.bedtime)} - {formatDisplayTime(day.wakeTime)}</Text>
-                </View>
+                <Text style={styles.scheduleDay}>{dayLabel}:</Text>
+                <Text style={styles.scheduleTimeOverlay}>
+                  {formatDisplayTime(day.bedtime)} - {formatDisplayTime(day.wakeTime)}
+                </Text>
                 <Text style={styles.scheduleAdjustment}>
                   {day.adjustment > 0 ? '+' : ''}{day.adjustment}h
                 </Text>
@@ -146,35 +139,41 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
           }
           return null;
         })}
-        {event.sleepAdjustment.dailySchedule.length > 2 && !isExpanded && (
-          <TouchableOpacity 
-            style={styles.scheduleMoreContainer}
-            onPress={() => setIsExpanded(true)}
-          >
-            <Text style={styles.scheduleMore}>
-              +{event.sleepAdjustment.dailySchedule.length - 2} more days
-            </Text>
+        {evt.sleepAdjustment.dailySchedule.length > 2 && !isExpanded && (
+          <TouchableOpacity style={styles.scheduleMoreContainer} onPress={() => setIsExpanded(true)}>
+            <Text style={styles.scheduleMore}>+{evt.sleepAdjustment.dailySchedule.length - 2} more days</Text>
           </TouchableOpacity>
         )}
         {isExpanded && (
-          <TouchableOpacity 
-            style={styles.scheduleMoreContainer}
-            onPress={() => setIsExpanded(false)}
-          >
-            <Text style={styles.scheduleMore}>
-              Show less
-            </Text>
+          <TouchableOpacity style={styles.scheduleMoreContainer} onPress={() => setIsExpanded(false)}>
+            <Text style={styles.scheduleMore}>Show less</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Preparation start date */}
       <View style={styles.preparationInfo}>
-        <Ionicons name="alert-circle-outline" size={16} color="#FF9500" />
-        <Text style={styles.preparationText}>
-          Start adjusting sleep schedule from {formatDate(event.preparationStartDate)}
-        </Text>
+        <Ionicons name="alert-circle-outline" size={16} color={statusColor} />
+        <Text style={[styles.preparationText, { color: statusColor }]}>Start adjusting sleep schedule from {formatDate(evt.preparationStartDate)}</Text>
       </View>
+
+      {/* Trip Add-ons embedded below the schedule */}
+      <View style={{ alignItems: 'center', marginTop: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#2C2C2E', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 12 }}>
+          <Ionicons name="add" size={16} color="#FFFFFF" />
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13 }}>Trip Add-ons</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <TouchableOpacity 
+      style={[styles.container, { borderColor: statusColor + '40' }]}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.8 : 1}
+    >
+      {renderContent(event, onEditTrip)}
     </TouchableOpacity>
   );
 };
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginBottom: 16,
   },
   infoItem: {
@@ -249,6 +248,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
+    alignSelf: 'stretch',
   },
   scheduleTitle: {
     fontSize: 14,
@@ -261,6 +261,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
+    justifyContent: 'space-between',
+    position: 'relative',
   },
   scheduleLeft: {
     flex: 1,
@@ -270,9 +272,9 @@ const styles = StyleSheet.create({
   scheduleDay: {
     fontSize: 13,
     color: '#FFFFFF',
-    textAlign: 'right',
+    textAlign: 'left',
     marginRight: 8,
-    minWidth: 40,
+    width: 56,
   },
   scheduleTime: {
     fontSize: 13,
@@ -280,9 +282,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
+  scheduleTimeOverlay: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+  },
   scheduleAdjustment: {
     fontSize: 13,
-    color: '#30D158',
+    color: '#34C759',
     fontWeight: '600',
   },
   scheduleMoreContainer: {

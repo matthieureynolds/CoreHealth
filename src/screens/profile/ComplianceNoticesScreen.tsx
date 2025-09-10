@@ -3,7 +3,7 @@ import LegalDocTemplate from './LegalDocTemplate';
 
 const ComplianceNoticesScreen: React.FC = () => (
   <LegalDocTemplate
-    title="HIPAA / GDPR Region-Based Notices"
+    title="HIPAA/GDPR Notices"
     content={[
       'UK GDPR / EU GDPR. Data controller information, lawful bases, DPO contact (if applicable), and your rights: access, rectification, erasure, restriction, portability, and objection. For UK users, complaints may be lodged with the ICO.',
       'HIPAA (US). For HIPAA‑covered data received from providers, CoreHealth acts as a Business Associate. Notice of privacy practices is available from your provider; CoreHealth safeguards PHI per HIPAA Security Rule.',

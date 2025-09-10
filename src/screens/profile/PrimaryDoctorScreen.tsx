@@ -197,7 +197,7 @@ const PrimaryDoctorScreen: React.FC = () => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>Doctors</Text>
@@ -245,7 +245,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                     </View>
                   </View>
                   <TouchableOpacity 
-                    style={styles.moreButton}
+                    style={[styles.moreButton, { position: 'absolute', top: 6, right: 6 }]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => openDoctorOptions(doctor)}
                     accessibilityLabel="Edit doctor"
@@ -327,19 +327,22 @@ const PrimaryDoctorScreen: React.FC = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={{ padding: 4, opacity: 0 }}>
+                <Ionicons name="close" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={[styles.modalTitle, { textAlign: 'center', flex: 1 }]}>
                 {editingDoctor ? 'Edit' : 'Add'} Primary Doctor
               </Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
             </View>
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Doctor Name *</Text>
+              <Text style={styles.inputLabel}>Doctor Name: *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter doctor's name"
@@ -348,7 +351,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 onChangeText={(text) => setFormData({ ...formData, name: text })}
               />
               
-              <Text style={styles.inputLabel}>Specialty *</Text>
+              <Text style={styles.inputLabel}>Specialty: *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g., Family Medicine, Cardiology"
@@ -357,7 +360,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 onChangeText={(text) => setFormData({ ...formData, specialty: text })}
               />
               
-              <Text style={styles.inputLabel}>Phone Number *</Text>
+              <Text style={styles.inputLabel}>Phone Number: *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter phone number"
@@ -367,7 +370,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 keyboardType="phone-pad"
               />
               
-              <Text style={styles.inputLabel}>Email (Optional)</Text>
+              <Text style={styles.inputLabel}>Email: (Optional)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter email address"
@@ -377,7 +380,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 keyboardType="email-address"
               />
               
-              <Text style={styles.inputLabel}>Office Name *</Text>
+              <Text style={styles.inputLabel}>Office Name: *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g., City Medical Center"
@@ -386,7 +389,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 onChangeText={(text) => setFormData({ ...formData, office: text })}
               />
               
-              <Text style={styles.inputLabel}>Office Address (Optional)</Text>
+              <Text style={styles.inputLabel}>Office Address: (Optional)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter office address"
@@ -395,7 +398,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 onChangeText={(text) => setFormData({ ...formData, address: text })}
               />
               
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes: (Optional)</Text>
               <TextInput
                 style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
                 placeholder="Add any additional notes..."
@@ -428,7 +431,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 72,
-    paddingBottom: 3,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -443,6 +446,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: -42.3,
     zIndex: 1,
   },
   headerText: {
@@ -456,8 +460,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
+    top: -51.5,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -694,8 +699,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 20,
-    borderWidth: 1,
-    borderColor: '#007AFF',
   },
   addMoreButtonText: {
     fontSize: 16,

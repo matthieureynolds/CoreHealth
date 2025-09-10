@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import FileViewerModal from '../../components/common/FileViewerModal';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
@@ -29,6 +30,8 @@ const ConditionsScreen: React.FC = () => {
   const [status, setStatus] = useState<'active' | 'resolved' | 'managed'>('active');
   const [resolvedDate, setResolvedDate] = useState<Date | null>(null);
   const [showResolvedDatePicker, setShowResolvedDatePicker] = useState(false);
+  const [dateModeDiagnosed, setDateModeDiagnosed] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeResolved, setDateModeResolved] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [notes, setNotes] = useState('');
   const [editingCondition, setEditingCondition] = useState<MedicalCondition | null>(null);
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
@@ -218,6 +221,16 @@ const ConditionsScreen: React.FC = () => {
     return date.toLocaleDateString();
   };
 
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return 'Select date';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${year}`;
+    if (mode === 'yearMonth') return `${year}-${month}`;
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -260,10 +273,10 @@ const ConditionsScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openConditionOptions(condition)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit condition"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
 
@@ -335,7 +348,7 @@ const ConditionsScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Condition Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Condition Name *</Text>
+              <Text style={styles.inputLabel}>Condition Name *:</Text>
               <TextInput
                 style={styles.textInput}
                 value={condition}
@@ -367,27 +380,9 @@ const ConditionsScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Diagnosed Date */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Diagnosed Date</Text>
-              <TouchableOpacity
-                style={[styles.dateInput, { borderColor: showDiagnosedDatePicker ? '#007AFF' : '#333' }]}
-                onPress={() => {
-                  console.log('Diagnosed date pressed, current state:', showDiagnosedDatePicker);
-                  setShowDiagnosedDatePicker(true);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.dateInputText, !diagnosedDate && styles.placeholderText]}>
-                  {diagnosedDate ? diagnosedDate.toLocaleDateString() : 'Select date'}
-                </Text>
-                <Ionicons name="calendar-outline" size={20} color={showDiagnosedDatePicker ? '#007AFF' : '#888'} />
-              </TouchableOpacity>
-            </View>
-
             {/* Severity */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Severity</Text>
+              <Text style={styles.inputLabel}>Severity:</Text>
               <View style={styles.optionsContainer}>
                 {severityOptions.map((option) => (
                   <TouchableOpacity
@@ -411,7 +406,7 @@ const ConditionsScreen: React.FC = () => {
 
             {/* Status */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Status</Text>
+              <Text style={styles.inputLabel}>Status:</Text>
               <View style={styles.optionsContainer}>
                 {statusOptions.map((option) => (
                   <TouchableOpacity
@@ -438,10 +433,50 @@ const ConditionsScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* Diagnosed Date */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Diagnosed Date:</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeDiagnosed === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeDiagnosed('year')}>
+                  <Text style={[styles.dateModeText, dateModeDiagnosed === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeDiagnosed === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeDiagnosed('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeDiagnosed === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeDiagnosed === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeDiagnosed('full')}>
+                  <Text style={[styles.dateModeText, dateModeDiagnosed === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={[styles.dateInput, { borderColor: showDiagnosedDatePicker ? '#007AFF' : '#333' }]}
+                onPress={() => {
+                  console.log('Diagnosed date pressed, current state:', showDiagnosedDatePicker);
+                  setShowDiagnosedDatePicker(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dateInputText, !diagnosedDate && styles.placeholderText]}>
+                  {formatDateForMode(diagnosedDate, dateModeDiagnosed)}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color={showDiagnosedDatePicker ? '#007AFF' : '#888'} />
+              </TouchableOpacity>
+            </View>
+
             {/* Resolved Date */}
             {status === 'resolved' && (
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Resolved Date</Text>
+                <Text style={styles.inputLabel}>Resolved Date:</Text>
+                <View style={styles.dateModeRow}>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('year')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'year' && styles.dateModeTextActive]}>Year</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('yearMonth')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dateModeChip, dateModeResolved === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeResolved('full')}>
+                    <Text style={[styles.dateModeText, dateModeResolved === 'full' && styles.dateModeTextActive]}>Full</Text>
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
                   style={[styles.dateInput, { borderColor: showResolvedDatePicker ? '#007AFF' : '#333' }]}
                   onPress={() => {
@@ -451,7 +486,7 @@ const ConditionsScreen: React.FC = () => {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.dateInputText, !resolvedDate && styles.placeholderText]}>
-                    {resolvedDate ? resolvedDate.toLocaleDateString() : 'Select date'}
+                    {formatDateForMode(resolvedDate, dateModeResolved)}
                   </Text>
                   <Ionicons name="calendar-outline" size={20} color={showResolvedDatePicker ? '#007AFF' : '#888'} />
                 </TouchableOpacity>
@@ -460,7 +495,7 @@ const ConditionsScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes (Optional):</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -474,7 +509,7 @@ const ConditionsScreen: React.FC = () => {
 
             {/* Attachments */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Attachments</Text>
+              <Text style={styles.inputLabel}>Attachments:</Text>
               <View style={styles.attachmentsRow}>
                 {attachments.map(file => (
                   <View key={file.uri} style={styles.attachmentChip}>
@@ -556,8 +591,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -566,6 +601,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -576,13 +612,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -650,6 +687,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    padding: 6,
   },
   conditionMeta: {
     marginTop: 12,
@@ -911,6 +954,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
+  },
 });
 
-export default ConditionsScreen; 
+export default ConditionsScreen;

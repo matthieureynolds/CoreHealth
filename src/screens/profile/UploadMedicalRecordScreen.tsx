@@ -15,6 +15,8 @@ import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { MedicalRecord } from '../../types';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 const UploadMedicalRecordScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -28,7 +30,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
   const [dateMode, setDateMode] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [notes, setNotes] = useState('');
   const [tags, setTags] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ uri: string; name?: string; type?: string } | null>(null);
 
   const recordTypes = [
     { value: 'lab_result', label: 'Lab Result', icon: 'flask-outline', color: '#34C759' },
@@ -39,19 +41,43 @@ const UploadMedicalRecordScreen: React.FC = () => {
     { value: 'other', label: 'Other', icon: 'document-outline', color: '#8E8E93' },
   ];
 
-  const takePhoto = () => {
-    // Mock implementation - in real app would use expo-camera
-    Alert.alert('Camera', 'Camera functionality would be implemented here');
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Camera permission is required to take a photo.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.9,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setSelectedFile({ uri: asset.uri, name: asset.fileName || 'photo.jpg', type: 'image/jpeg' });
+      }
+    } catch (e) {
+      console.error('Camera error', e);
+      Alert.alert('Error', 'Could not open camera.');
+    }
   };
 
-  const pickPhoto = () => {
-    // Mock implementation - in real app would use expo-image-picker
-    Alert.alert('Photo Picker', 'Photo picker functionality would be implemented here');
-  };
-
-  const pickDocument = () => {
-    // Mock implementation - in real app would use expo-document-picker
-    Alert.alert('Document Picker', 'Document picker functionality would be implemented here');
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf', 'application/*'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset: any = result.assets[0];
+        setSelectedFile({ uri: asset.uri, name: asset.name, type: asset.mimeType });
+      }
+    } catch (e) {
+      console.error('Document picker error', e);
+      Alert.alert('Error', 'Could not pick document.');
+    }
   };
 
   const addMedicalRecord = () => {
@@ -60,7 +86,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
       return;
     }
 
-    if (!selectedImage) {
+    if (!selectedFile) {
       Alert.alert('Error', 'Please select a photo or document');
       return;
     }
@@ -70,7 +96,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
       name: name.trim(),
       type: selectedType,
       date: recordDate ?? new Date(),
-      fileUrl: selectedImage,
+      fileUrl: selectedFile.uri,
       fileSize: 1024, // Mock file size
       notes: notes.trim() || undefined,
       tags: tags.trim() ? tags.split(',').map(tag => tag.trim()) : undefined,
@@ -113,15 +139,31 @@ const UploadMedicalRecordScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header (fixed) */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Upload Medical Record</Text>
-        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            // Safer back: if there's no history, navigate to previous profile screen
+            // @ts-ignore
+            if ((navigation as any)?.canGoBack?.()) {
+              // @ts-ignore
+              navigation.goBack();
+            } else {
+              // @ts-ignore
+              navigation.navigate?.('ProfileDetails');
+            }
+          }}
+          style={styles.backButton}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Upload Medical Record</Text>
+          <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
 
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -142,15 +184,22 @@ const UploadMedicalRecordScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Selected Image Preview */}
-          {selectedImage && (
+          {/* Selected File Preview */}
+          {selectedFile && (
             <View style={styles.previewSection}>
               <Text style={styles.sectionTitle}>Preview</Text>
               <View style={styles.imagePreview}>
-                <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                {selectedFile.type?.startsWith('image/') ? (
+                  <Image source={{ uri: selectedFile.uri }} style={styles.previewImage} />
+                ) : (
+                  <View style={styles.docPreview}>
+                    <Ionicons name="document-outline" size={28} color="#FFFFFF" />
+                    <Text style={styles.docPreviewText} numberOfLines={1}>{selectedFile.name || 'Document'}</Text>
+                  </View>
+                )}
                 <TouchableOpacity 
                   style={styles.removeButton}
-                  onPress={() => setSelectedImage(null)}
+                  onPress={() => setSelectedFile(null)}
                 >
                   <Ionicons name="close-circle" size={24} color="#FF3B30" />
                 </TouchableOpacity>
@@ -167,7 +216,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
               style={styles.inputContainer}
               onPress={() => setShowTypePicker(true)}
             >
-              <Text style={styles.inputLabel}>Record Type</Text>
+              <Text style={styles.inputLabel}>Record Type:</Text>
               <View style={styles.inputRow}>
                 <Ionicons name={getTypeIcon(selectedType) as any} size={20} color={getTypeColor(selectedType)} />
                 <Text style={styles.inputText}>{getTypeLabel(selectedType)}</Text>
@@ -177,7 +226,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
 
             {/* Record Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Record Name *</Text>
+              <Text style={styles.inputLabel}>Record Name: *</Text>
               <TextInput
                 style={styles.textInput}
                 value={name}
@@ -189,8 +238,8 @@ const UploadMedicalRecordScreen: React.FC = () => {
 
             {/* Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Date</Text>
-              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+              <Text style={styles.inputLabel}>Date:</Text>
+              <View style={styles.dateModeRow}>
                 <TouchableOpacity
                   style={[styles.dateModeChip, dateMode === 'year' && styles.dateModeChipActive]}
                   onPress={() => setDateMode('year')}
@@ -224,7 +273,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
 
             {/* Tags */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Tags (Optional)</Text>
+              <Text style={styles.inputLabel}>Tags: (Optional)</Text>
               <TextInput
                 style={styles.textInput}
                 value={tags}
@@ -235,8 +284,8 @@ const UploadMedicalRecordScreen: React.FC = () => {
             </View>
 
             {/* Notes */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+            <View style={[styles.inputContainer, { marginBottom: 0 }]}>
+              <Text style={styles.inputLabel}>Notes: (Optional)</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -317,8 +366,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 70,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -327,6 +376,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.4,
     zIndex: 1,
   },
   headerTitle: {
@@ -337,11 +387,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   saveButton: {
     padding: 8,
+    position: 'absolute',
+    right: 20,
+    top: 24.4,
   },
   saveButtonText: {
     fontSize: 16,
@@ -390,6 +443,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#181818',
   },
+  docPreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: '#181818',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+  },
+  docPreviewText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 8,
+    maxWidth: 180,
+  },
   removeButton: {
     position: 'absolute',
     top: -10,
@@ -398,7 +466,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   detailsSection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   inputContainer: {
     marginBottom: 20,
@@ -475,6 +543,33 @@ const styles = StyleSheet.create({
     color: '#fff',
     flex: 1,
     marginLeft: 12,
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
   },
 });
 

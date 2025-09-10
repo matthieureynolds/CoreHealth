@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 72,
-    paddingBottom: 3,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -289,6 +289,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 23.5,
     zIndex: 1,
   },
   headerTitle: {
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 32.2,
     paddingBottom: 8,
   },
   card: {

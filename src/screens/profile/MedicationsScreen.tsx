@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
@@ -35,6 +36,10 @@ const MedicationsScreen: React.FC = () => {
   const [currentFileUri, setCurrentFileUri] = useState('');
   const [currentFileName, setCurrentFileName] = useState('');
   const [currentFileType, setCurrentFileType] = useState('');
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [dateModeStart, setDateModeStart] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeEnd, setDateModeEnd] = useState<'year' | 'yearMonth' | 'full'>('full');
 
   const commonMedications = [
     'Aspirin', 'Ibuprofen', 'Acetaminophen', 'Omeprazole', 'Lisinopril',
@@ -61,6 +66,7 @@ const MedicationsScreen: React.FC = () => {
         dosage: dosage.trim() || undefined,
         frequency: frequency.trim() || undefined,
         startDate: (startDate || new Date()).toISOString().split('T')[0],
+        endDate: endDate ? endDate.toISOString().split('T')[0] : undefined,
         duration: duration.trim() || undefined,
         notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
@@ -71,21 +77,22 @@ const MedicationsScreen: React.FC = () => {
         medications: updatedMedications,
       });
     } else {
-      const newMedication: Medication = {
-        id: Date.now().toString(),
-        name: medication.trim(),
-        dosage: dosage.trim(),
-        frequency: frequency.trim(),
-        startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        duration: duration.trim() || undefined,
-        notes: notes.trim() || undefined,
+    const newMedication: Medication = {
+      id: Date.now().toString(),
+      name: medication.trim(),
+      dosage: dosage.trim(),
+      frequency: frequency.trim(),
+      startDate: startDate ? startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        endDate: endDate ? endDate.toISOString().split('T')[0] : undefined,
+      duration: duration.trim() || undefined,
+      notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedMedications = [...(profile?.medications || []), newMedication];
-      updateProfile({
-        ...profile,
-        medications: updatedMedications,
-      });
+    };
+    const updatedMedications = [...(profile?.medications || []), newMedication];
+    updateProfile({
+      ...profile,
+      medications: updatedMedications,
+    });
     }
 
     setShowAddModal(false);
@@ -94,6 +101,7 @@ const MedicationsScreen: React.FC = () => {
     setFrequency('');
     setStartDate(null);
     setDuration('');
+    setEndDate(null);
     setNotes('');
     setEditingMedication(null);
     setAttachments([]);
@@ -125,6 +133,7 @@ const MedicationsScreen: React.FC = () => {
     setDosage(m.dosage || '');
     setFrequency(m.frequency || '');
     setStartDate(m.startDate ? new Date(m.startDate) : new Date());
+    setEndDate(m.endDate ? new Date(m.endDate) : null);
     setDuration(m.duration || '');
     setNotes(m.notes || '');
     setAttachments(m.attachments || []);
@@ -180,6 +189,15 @@ const MedicationsScreen: React.FC = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
+  const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
+    if (!d) return 'Select date';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    if (mode === 'year') return `${y}`;
+    if (mode === 'yearMonth') return `${y}-${m}`;
+    return `${y}-${day ? m + '-' + day : m}`;
+  };
 
   return (
     <View style={styles.container}>
@@ -230,10 +248,10 @@ const MedicationsScreen: React.FC = () => {
                   </View>
                   <TouchableOpacity
                     onPress={() => openMedicationOptions(medication)}
-                    style={styles.moreButton}
+                    style={styles.editPenButton}
                     accessibilityLabel="Edit medication"
                   >
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -273,7 +291,7 @@ const MedicationsScreen: React.FC = () => {
           <ScrollView style={styles.modalContent}>
             {/* Medication Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Medication Name *</Text>
+              <Text style={styles.inputLabel}>Medication Name *:</Text>
               <TextInput
                 style={styles.textInput}
                 value={medication}
@@ -307,7 +325,7 @@ const MedicationsScreen: React.FC = () => {
 
             {/* Dosage */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Dosage</Text>
+              <Text style={styles.inputLabel}>Dosage:</Text>
               <TextInput
                 style={styles.textInput}
                 value={dosage}
@@ -319,7 +337,7 @@ const MedicationsScreen: React.FC = () => {
 
             {/* Frequency */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Frequency</Text>
+              <Text style={styles.inputLabel}>Frequency:</Text>
               <TextInput
                 style={styles.textInput}
                 value={frequency}
@@ -331,21 +349,53 @@ const MedicationsScreen: React.FC = () => {
 
             {/* Start Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Start Date</Text>
+              <Text style={styles.inputLabel}>Start Date:</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeStart('year')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeStart('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeStart === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeStart('full')}>
+                  <Text style={[styles.dateModeText, dateModeStart === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setShowStartDatePicker(true)}
               >
-                <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>
-                  {startDate ? startDate.toLocaleDateString() : 'Select date'}
-                </Text>
+                <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>{formatDateForMode(startDate, dateModeStart)}</Text>
+                <Ionicons name="calendar-outline" size={20} color="#888" />
+              </TouchableOpacity>
+            </View>
+
+            {/* End Date (Optional) */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>End Date (Optional):</Text>
+              <View style={styles.dateModeRow}>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('year')}>
+                  <Text style={[styles.dateModeText, dateModeEnd === 'year' && styles.dateModeTextActive]}>Year</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeEnd === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeEnd === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeEnd('full')}>
+                  <Text style={[styles.dateModeText, dateModeEnd === 'full' && styles.dateModeTextActive]}>Full</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>{formatDateForMode(endDate, dateModeEnd)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
             {/* Duration */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Duration (Optional)</Text>
+              <Text style={styles.inputLabel}>Duration (Optional):</Text>
               <TextInput
                 style={styles.textInput}
                 value={duration}
@@ -357,7 +407,7 @@ const MedicationsScreen: React.FC = () => {
 
             {/* Notes */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
+              <Text style={styles.inputLabel}>Notes (Optional):</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
@@ -371,7 +421,7 @@ const MedicationsScreen: React.FC = () => {
 
             {/* Attachments */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Attachments</Text>
+              <Text style={styles.inputLabel}>Attachments:</Text>
               <View style={styles.attachmentsRow}>
                 {attachments.map(file => (
                   <View key={file.uri} style={styles.attachmentChip}>
@@ -405,6 +455,19 @@ const MedicationsScreen: React.FC = () => {
               onCancel={() => setShowStartDatePicker(false)}
             />
           )}
+          {showEndDatePicker && (
+            <IOSDatePicker
+              visible={true}
+              title="End Date"
+              value={endDate ?? new Date()}
+              maximumDate={new Date()}
+              onConfirm={(d) => {
+                setEndDate(d);
+                setShowEndDatePicker(false);
+              }}
+              onCancel={() => setShowEndDatePicker(false)}
+            />
+          )}
         </View>
       </Modal>
       <FileViewerModal
@@ -431,8 +494,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 80,
-    paddingBottom: 3,
+    paddingTop: 72,
+    paddingBottom: 5,
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
@@ -441,6 +504,7 @@ const styles = StyleSheet.create({
     padding: 8,
     position: 'absolute',
     left: 20,
+    top: 24.7,
     zIndex: 1,
   },
   headerTitle: {
@@ -451,13 +515,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    paddingTop: 8,
+    paddingTop: 16.5,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     position: 'absolute',
     right: 20,
+    top: 24.7,
     zIndex: 1,
   },
   content: {
@@ -517,6 +582,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#3A3A3C',
+  },
+  editPenButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    padding: 6,
   },
   attachmentsRow: {
     flexDirection: 'row',
@@ -730,6 +801,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  dateModeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  dateModeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#333',
+    marginRight: 8,
+    marginBottom: 6,
+  },
+  dateModeChipActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  dateModeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  dateModeTextActive: {
+    color: '#fff',
   },
 });
 
