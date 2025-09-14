@@ -157,13 +157,6 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
         <Text style={[styles.preparationText, { color: statusColor }]}>Start adjusting sleep schedule from {formatDate(evt.preparationStartDate)}</Text>
       </View>
 
-      {/* Trip Add-ons embedded below the schedule */}
-      <View style={{ alignItems: 'center', marginTop: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#2C2C2E', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 12 }}>
-          <Ionicons name="add" size={16} color="#FFFFFF" />
-          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13 }}>Trip Add-ons</Text>
-        </View>
-      </View>
     </View>
   );
 

@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import JetLagPlanningCard from './JetLagPlanningCard';
+import EmptyState from '../common/EmptyState';
 import { useSettings } from '../../context/SettingsContext';
 import { convertDistanceLabel } from '../../utils/units';
 
@@ -31,6 +32,11 @@ interface TravelHealthSummaryProps {
   onTravelPress?: () => void;
   jetLagPlanningEvents?: any[];
   onJetLagEventPress?: (event: any) => void;
+  nearestHospital?: string;
+  nearestPharmacy?: string;
+  nearestHospitalData?: any;
+  nearestPharmacyData?: any;
+  travelHealth?: any; // Add travel health data prop
 }
 
 const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({ 
@@ -38,36 +44,97 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   jetLagHours = 0,
   onTravelPress,
   jetLagPlanningEvents = [],
-  onJetLagEventPress
+  onJetLagEventPress,
+  nearestHospital,
+  nearestPharmacy,
+  nearestHospitalData,
+  nearestPharmacyData,
+  travelHealth
 }) => {
   const { settings } = useSettings();
-  // Mock environmental data - in real app this would come from APIs
-  const environmentalMetrics: EnvironmentalMetric[] = [
+  
+  // Get real environmental data from travelHealth prop or use fallback
+  const environmentalMetrics: EnvironmentalMetric[] = React.useMemo(() => {
+    if (!travelHealth) {
+      // Fallback to mock data if no travel health data
+      return [
     {
       id: 'air_quality',
       label: 'Air Quality',
-      value: 'Moderate',
+          value: 'Loading...',
       status: 'moderate',
       icon: 'cloud-outline',
-      score: 72
+          score: 0
     },
     {
       id: 'pollen',
       label: 'Pollen',
-      value: 'High',
-      status: 'poor',
+          value: 'Loading...',
+          status: 'moderate',
       icon: 'flower-outline',
-      score: 40
+          score: 0
     },
     {
       id: 'water_quality',
       label: 'Water Quality',
-      value: 'Excellent',
-      status: 'excellent',
+          value: 'Loading...',
+          status: 'moderate',
       icon: 'water-outline',
-      score: 95
+          score: 0
+        }
+      ];
     }
-  ];
+
+    const getStatusFromRiskLevel = (riskLevel: string): 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous' => {
+      switch (riskLevel) {
+        case 'low': return 'excellent';
+        case 'moderate': return 'good';
+        case 'high': return 'moderate';
+        case 'severe': return 'poor';
+        default: return 'moderate';
+      }
+    };
+
+    const metrics: EnvironmentalMetric[] = [];
+
+    // Air Quality
+    if (travelHealth.airQuality) {
+      metrics.push({
+        id: 'air_quality',
+        label: 'Air Quality',
+        value: travelHealth.airQuality.status || 'Unknown',
+        status: getStatusFromRiskLevel(travelHealth.airQuality.riskLevel || 'moderate'),
+        icon: 'cloud-outline',
+        score: typeof travelHealth.airQuality.value === 'number' ? travelHealth.airQuality.value : 0
+      });
+    }
+
+    // Pollen
+    if (travelHealth.pollenLevels) {
+      metrics.push({
+        id: 'pollen',
+        label: 'Pollen',
+        value: travelHealth.pollenLevels.status || 'Unknown',
+        status: getStatusFromRiskLevel(travelHealth.pollenLevels.riskLevel || 'moderate'),
+        icon: 'flower-outline',
+        score: typeof travelHealth.pollenLevels.value === 'number' ? travelHealth.pollenLevels.value : 0
+      });
+    }
+
+    // Water Quality
+    if (travelHealth.waterSafety) {
+      metrics.push({
+        id: 'water_quality',
+        label: 'Water Quality',
+        value: travelHealth.waterSafety.status || 'Unknown',
+        status: getStatusFromRiskLevel(travelHealth.waterSafety.riskLevel || 'moderate'),
+        icon: 'water-outline',
+        score: typeof travelHealth.waterSafety.value === 'number' ? travelHealth.waterSafety.value : 0
+      });
+    }
+
+    return metrics;
+  }, [travelHealth]);
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -108,10 +175,22 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Mock closest facilities
+  // Real closest facilities from props with actual distance data
   const closestFacilities = [
-    { id: 'pharmacy1', name: 'City Pharmacy', type: 'Pharmacy', distance: '0.4 mi', travelTime: '4 mins' },
-    { id: 'hospital1', name: 'Central Hospital', type: 'Hospital', distance: '1.2 mi', travelTime: '8 mins' },
+    ...(nearestHospital && nearestHospitalData ? [{ 
+      id: 'hospital1', 
+      name: nearestHospital, 
+      type: 'Hospital', 
+      distance: nearestHospitalData.distance ? `${nearestHospitalData.distance.toFixed(1)} km` : '1.2 mi',
+      travelTime: '8 mins' // Could calculate based on distance if needed
+    }] : []),
+    ...(nearestPharmacy && nearestPharmacyData ? [{ 
+      id: 'pharmacy1', 
+      name: nearestPharmacy, 
+      type: 'Pharmacy', 
+      distance: nearestPharmacyData.distance ? `${nearestPharmacyData.distance.toFixed(1)} km` : '0.8 mi',
+      travelTime: '6 mins' // Could calculate based on distance if needed
+    }] : [])
   ].map(f => ({
     ...f,
     distance: convertDistanceLabel(f.distance, settings?.general?.units === 'imperial' ? 'imperial' : 'metric')
@@ -131,7 +210,11 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         <View style={styles.metricCardContent}>
           <View style={styles.metricCardLeft}>
             <View style={[styles.metricIconContainer, { backgroundColor: `${statusColor}20` }]}> 
-              <Ionicons name={metric.icon} size={24} color={statusColor} />
+              <Ionicons 
+                name={metric.icon} 
+                size={20} 
+                color={statusColor}
+              />
             </View>
             <View style={styles.metricInfo}>
               <Text style={styles.metricLabel}>{metric.label}</Text>
@@ -564,7 +647,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
   return (
     <TouchableOpacity 
-      style={styles.container}
+      style={[styles.container, !showMore && styles.containerCollapsed]}
       onPress={onTravelPress}
       activeOpacity={0.8}
     >
@@ -582,6 +665,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         <Text style={styles.currentLocation}>{currentLocation}</Text>
         <Text style={styles.locationSubtitle}>Current Location</Text>
       </View>
+
 
       {/* Environmental metrics */}
       <View style={styles.metricsContainer}>
@@ -610,18 +694,28 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         {showMore && (
           <>
               {/* Jet Lag Planning Events */}
-              {jetLagPlanningEvents.length > 0 && (
-                <>
+                <View style={{ marginTop: 17 }}>
                   <Text style={styles.sectionTitle}>Jet Lag Planning</Text>
-                  {jetLagPlanningEvents.map((event, index) => (
+                {jetLagPlanningEvents.length > 0 ? (
+                  jetLagPlanningEvents.map((event, index) => (
                     <JetLagPlanningCard
                       key={event.id || index}
                       event={event}
                       onPress={() => onJetLagEventPress?.(event)}
                     />
-                  ))}
-                </>
-              )}
+                  ))
+                ) : (
+                  <EmptyState
+                    icon="airplane-outline"
+                    title="No Upcoming Trips"
+                    subtitle="Add your travel plans to get personalized jet lag preparation schedules"
+                    buttonText="Add Trip"
+                    onButtonPress={onTravelPress}
+                    iconColor="#8E8E93"
+                    buttonColor="#007AFF"
+                  />
+                )}
+              </View>
               {/* Closest facilities */}
               {closestFacilities.map(facility => (
               <TouchableOpacity
@@ -662,8 +756,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
     padding: 20,
+    paddingBottom: -25,
     marginHorizontal: 16,
     marginVertical: 8,
+  },
+  containerCollapsed: {
+    height: 425,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -695,7 +794,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
   metricsContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   metricCard: {
     backgroundColor: '#2C2C2E',
@@ -805,12 +904,13 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   moreTabContainer: {
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: -10,
+    marginBottom: 34,
   },
   moreTab: {
     alignItems: 'center',
     paddingVertical: 8,
+    marginTop: 0,
   },
   moreTabText: {
     color: '#007AFF',
@@ -871,7 +971,7 @@ const styles = StyleSheet.create({
   lessTab: {
     alignItems: 'center',
     paddingVertical: 6,
-    marginTop: 4,
+    marginTop: 5.5,
   },
   lessTabText: {
     color: '#007AFF',
@@ -936,7 +1036,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#2C2C2E',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 12,
@@ -945,6 +1045,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#EBEBF5',
     lineHeight: 22,
+    textAlign: 'justify',
   },
   rangeContainer: {
     backgroundColor: '#2C2C2E',

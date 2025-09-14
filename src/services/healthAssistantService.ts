@@ -389,8 +389,8 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
       healthScore: HealthScore | null;
     }
   ): Promise<string> {
-    if (!OPENAI_API_KEY) {
-      return "I need an OpenAI API key to provide intelligent health insights. Please configure your API key in the settings to unlock my full capabilities.";
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
+      return "I need an OpenAI API key to provide intelligent health insights. Please add your OpenAI API key to the .env file as EXPO_PUBLIC_OPENAI_API_KEY to unlock my full capabilities.";
     }
 
     try {
@@ -774,7 +774,7 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
     healthScore: HealthScore | null,
     recentInsights: DailyInsight[]
   ): Promise<HealthAssistantResponse> {
-    if (!OPENAI_API_KEY) {
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
       return this.getMockHealthInsights();
     }
 
@@ -841,7 +841,7 @@ Keep it conversational and helpful, not overly clinical.`;
     healthScore: HealthScore | null,
     currentDate: Date = new Date()
   ): Promise<DailyInsight[]> {
-    if (!OPENAI_API_KEY) {
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
       return this.getMockDailyRecommendations();
     }
 

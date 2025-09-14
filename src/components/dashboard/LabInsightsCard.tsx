@@ -183,7 +183,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     const trendLabel = result.trend === 'stable' ? 'Stable' : isGoodTrend() ? 'Improving' : 'Worsening';
 
     return (
-      <TouchableOpacity
+        <TouchableOpacity
         key={result.id}
         style={styles.labResultItem}
         onPress={() => onLabResultPress?.(result)}
@@ -215,7 +215,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
           </View>
           <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
         </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
     );
   };
 

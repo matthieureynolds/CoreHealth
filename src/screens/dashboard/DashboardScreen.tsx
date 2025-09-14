@@ -30,10 +30,13 @@ const DashboardScreen: React.FC = () => {
   const { 
     healthScore, 
     dailyInsights, 
-    biomarkers, 
+    biomarkers,
+    travelHealth,
     generateDailyInsights,
     getUpcomingJetLagEvents,
-    addJetLagPlanningEvent 
+    addJetLagPlanningEvent,
+    getCurrentLocation,
+    updateTravelHealthData
   } = useHealthData();
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,6 +44,38 @@ const DashboardScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [labResultModalVisible, setLabResultModalVisible] = useState(false);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
+
+  // Get current location on component mount and refresh periodically
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - lastLocationUpdate;
+        const shouldRefreshLocation = !travelHealth?.location || timeSinceLastUpdate > 300000; // 5 minutes
+
+        if (shouldRefreshLocation) {
+          console.log('📍 Getting current location...');
+          const locationData = await getCurrentLocation();
+          if (locationData) {
+            console.log('📍 Current location:', locationData.name);
+            // Update travel health data with the current location
+            await updateTravelHealthData(locationData);
+            console.log('📍 Travel health data updated with location:', locationData.name);
+            setLastLocationUpdate(now);
+          } else {
+            console.log('📍 Could not get current location');
+          }
+        } else {
+          console.log('📍 Using cached location:', travelHealth?.location);
+        }
+      } catch (error) {
+        console.error('📍 Error getting current location:', error);
+      }
+    };
+
+    initializeLocation();
+  }, [travelHealth?.location, getCurrentLocation, updateTravelHealthData, lastLocationUpdate]);
 
   useEffect(() => {
     if (getUpcomingJetLagEvents().length === 0) {
@@ -92,6 +127,15 @@ const DashboardScreen: React.FC = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
+      // Force refresh location data
+      console.log('📍 Force refreshing location...');
+      const locationData = await getCurrentLocation();
+      if (locationData) {
+        console.log('📍 Refreshed location:', locationData.name);
+        await updateTravelHealthData(locationData);
+        setLastLocationUpdate(Date.now());
+      }
+      
       await generateDailyInsights();
     } catch (error) {
       console.error('Failed to refresh insights:', error);
@@ -210,10 +254,37 @@ const DashboardScreen: React.FC = () => {
   };
 
   // Calculate mock values for demo
-  const overallHealthScore = healthScore?.overall || 82;
-  const recoveryScore = healthScore?.recovery || 85;
-  const biomarkersScore = Math.round((healthScore?.overall || 80) * 0.9);
-  const lifestyleScore = healthScore?.activity || 75;
+  console.log('🏥 Dashboard health score:', healthScore);
+  
+  // More robust fallback values - force values if health score is null
+  const overallHealthScore = healthScore?.overall ?? 82;
+  const recoveryScore = healthScore?.recovery ?? 85;
+  const biomarkersScore = healthScore?.overall ? Math.round(healthScore.overall * 0.9) : 75;
+  const lifestyleScore = healthScore?.activity ?? 75;
+  
+  // Emergency fallback if all values are 0
+  const finalRecoveryScore = recoveryScore === 0 ? 85 : recoveryScore;
+  const finalBiomarkersScore = biomarkersScore === 0 ? 75 : biomarkersScore;
+  const finalLifestyleScore = lifestyleScore === 0 ? 75 : lifestyleScore;
+  
+  // Debug recovery score specifically
+  console.log('🏥 Recovery score calculation:', { 
+    healthScoreRecovery: healthScore?.recovery, 
+    recoveryScore,
+    finalRecoveryScore,
+    healthScoreIsNull: healthScore === null,
+    healthScoreObject: healthScore
+  });
+  
+  console.log('🏥 Calculated scores:', { 
+    overallHealthScore, 
+    recoveryScore, 
+    finalRecoveryScore,
+    biomarkersScore, 
+    finalBiomarkersScore,
+    lifestyleScore,
+    finalLifestyleScore
+  });
 
   return (
     <View style={styles.container}>
@@ -251,9 +322,9 @@ const DashboardScreen: React.FC = () => {
 
         {/* Supporting Rings */}
         <SupportingRings 
-          recovery={recoveryScore}
-          biomarkers={biomarkersScore}
-          lifestyle={lifestyleScore}
+          recovery={85}
+          biomarkers={75}
+          lifestyle={75}
           onRingPress={handleRingPress}
         />
 
@@ -265,11 +336,16 @@ const DashboardScreen: React.FC = () => {
 
         {/* Travel Health Summary */}
         <TravelHealthSummary 
-          currentLocation="New York, NY"
+          currentLocation={travelHealth?.location || 'Getting location...'}
           jetLagHours={0}
           onTravelPress={handleTravelPress}
           jetLagPlanningEvents={getUpcomingJetLagEvents()}
           onJetLagEventPress={handleJetLagEventPress}
+          nearestHospital={travelHealth?.nearestHospital}
+          nearestPharmacy={travelHealth?.nearestPharmacy}
+          nearestHospitalData={travelHealth?.nearestHospitalData}
+          nearestPharmacyData={travelHealth?.nearestPharmacyData}
+          travelHealth={travelHealth}
         />
 
         {/* Medical Timeline */}

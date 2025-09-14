@@ -181,29 +181,32 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
     }
     
     const pathData = `M ${points.join(' L ')}`;
-    
-    // Area under curve for user's percentile and above
-    const areaPoints = [];
-    for (let x = userPosition; x <= curveWidth; x += 2) {
-      const normalizedX = (x / curveWidth) * 100;
-      const y = Math.exp(-0.5 * Math.pow((normalizedX - mean) / stdDev, 2));
-      const chartY = curveHeight - (y * curveHeight * 0.8) - 10;
-      areaPoints.push(`${x + padding},${chartY}`);
-    }
-    
-    const areaPathData = `M ${userPosition + padding},${curveHeight - 10} L ${areaPoints.join(' L ')} L ${curveWidth + padding},${curveHeight - 10} Z`;
+
+    // Full area under curve (green fill)
+    const fullAreaPath = `M ${padding},${curveHeight - 10} L ${points.join(' L ')} L ${curveWidth + padding},${curveHeight - 10} Z`;
+
+    // Compute user's y position for marker/label
+    const userNormalizedX = (userPosition / curveWidth) * 100;
+    const userYVal = Math.exp(-0.5 * Math.pow((userNormalizedX - mean) / stdDev, 2));
+    const userChartY = curveHeight - (userYVal * curveHeight * 0.8) - 10;
     
     return (
       <View style={styles.distributionContainer}>
         <Svg width={chartWidth} height={chartHeight}>
           <Defs>
-            <LinearGradient id="areaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0%" stopColor="#FF9500" stopOpacity="0.3" />
-              <Stop offset="100%" stopColor="#FF9500" stopOpacity="0.1" />
+            <LinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor="#0A7E33" stopOpacity="0.35" />
+              <Stop offset="100%" stopColor="#0A7E33" stopOpacity="0.08" />
             </LinearGradient>
           </Defs>
           
-          {/* Bell curve */}
+          {/* Filled area under curve */}
+          <Path
+            d={fullAreaPath}
+            fill="url(#areaGradient)"
+          />
+
+          {/* Bell curve line */}
           <Path
             d={pathData}
             stroke="#8E8E93"
@@ -211,44 +214,49 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
             fill="none"
           />
           
-          {/* Shaded area for user's percentile */}
+          {/* Mean dashed line */}
           <Path
-            d={areaPathData}
-            fill="url(#areaGradient)"
+            d={`M ${padding + curveWidth/2},${padding} L ${padding + curveWidth/2},${curveHeight - 10}`}
+            stroke="#8E8E93"
+            strokeWidth="1"
+            strokeDasharray="4,4"
+            opacity="0.5"
           />
-          
+
+          {/* User percentile vertical dashed line */}
+          <Path
+            d={`M ${userPosition + padding},${padding} L ${userPosition + padding},${curveHeight - 10}`}
+            stroke="#FF9500"
+            strokeWidth="2"
+            strokeDasharray="4,6"
+            opacity="0.9"
+          />
+
           {/* User position marker */}
           <Circle
             cx={userPosition + padding}
-            cy={curveHeight - (Math.exp(-0.5 * Math.pow((userPercentile - mean) / stdDev, 2)) * curveHeight * 0.8) - 10}
+            cy={userChartY}
             r="4"
             fill="#FF9500"
             stroke="#FFFFFF"
             strokeWidth="2"
           />
+
+          {/* Score label near marker */}
+          <SvgText
+            x={Math.min(userPosition + padding + 10, curveWidth + padding - 60)}
+            y={Math.max(userChartY - 100, padding + 12)}
+            fontSize="14"
+            fill="#FFFFFF"
+            fontWeight="bold"
+          >
+            {`Score: ${score}`}
+          </SvgText>
           
           {/* X-axis labels */}
           <SvgText x={padding} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="start">0</SvgText>
           <SvgText x={padding + curveWidth/2} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="middle">50</SvgText>
           <SvgText x={padding + curveWidth} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="end">100</SvgText>
-          
-          {/* Mean line */}
-          <Path
-            d={`M ${padding + curveWidth/2},${padding} L ${padding + curveWidth/2},${curveHeight - 10}`}
-            stroke="#8E8E93"
-            strokeWidth="1"
-            strokeDasharray="2,2"
-            opacity="0.5"
-          />
-          
-          {/* User percentile line */}
-          <Path
-            d={`M ${userPosition + padding},${padding} L ${userPosition + padding},${curveHeight - 10}`}
-            stroke="#FF9500"
-            strokeWidth="1"
-            strokeDasharray="2,2"
-            opacity="0.7"
-          />
         </Svg>
         
         {/* Legend */}
@@ -259,7 +267,7 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
-            <Text style={styles.legendText}>You (P{userPercentile})</Text>
+            <Text style={styles.legendText}>{userPercentile}th percentile</Text>
           </View>
         </View>
       </View>
@@ -414,13 +422,13 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Health Score Details</Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
+                style={styles.closeButtonLeft}
               >
-                <Ionicons name="close" size={24} color="#8E8E93" />
+                <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
+              <Text style={styles.modalTitle}>Health Score Details</Text>
             </View>
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
@@ -465,7 +473,7 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
 
               {/* Comparison Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>How You Compare</Text>
+                <Text style={styles.sectionTitle}>How You Compare:</Text>
                 {renderDistributionCurve()}
                 <View style={styles.comparisonCard}>
                   <Ionicons name="trending-up" size={24} color={scoreColor} />
@@ -476,13 +484,13 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
 
               {/* Description Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>What This Means</Text>
+                <Text style={styles.sectionTitle}>What This Means:</Text>
                 <Text style={styles.descriptionText}>{getScoreDescription(score)}</Text>
               </View>
 
               {/* How It's Measured Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>How It's Measured</Text>
+                <Text style={styles.sectionTitle}>How It's Measured:</Text>
                 <View style={styles.measurementItem}>
                   <Ionicons name="moon" size={20} color="#9013FE" />
                   <View style={styles.measurementText}>
@@ -595,7 +603,7 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
@@ -605,8 +613,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    textAlign: 'center',
   },
   closeButton: {
+    padding: 4,
+  },
+  closeButtonLeft: {
+    position: 'absolute',
+    left: 16,
+    top: 16,
     padding: 4,
   },
   distributionContainer: {
@@ -684,6 +699,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     lineHeight: 24,
+    textAlign: 'justify',
   },
   measurementItem: {
     flexDirection: 'row',

@@ -34,8 +34,7 @@ const GOOGLE_CLOUD_VISION_API_KEY =
 const GOOGLE_VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
 
 // OpenAI API Configuration
-const OPENAI_API_KEY =
-  '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';
+const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-openai-api-key-here';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 export class DocumentProcessor {

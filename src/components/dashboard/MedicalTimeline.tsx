@@ -17,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import { format } from 'date-fns';
 import FileViewerModal from '../common/FileViewerModal';
+import EmptyState from '../common/EmptyState';
 import { useSettings } from '../../context/SettingsContext';
 
 interface MedicalEvent {
@@ -455,60 +456,71 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
         </TouchableOpacity>
     </View>
 
-      {Object.entries(visibleGroupedEvents).map(([category, categoryEvents]) => {
-        if (categoryEvents.length === 0) return null;
+      {/* Check if there are any events to display */}
+      {events.length === 0 ? (
+        <EmptyState
+          icon="calendar-outline"
+          title="No Appointments"
+          subtitle="Add your medical appointments to keep track of your health schedule"
+          iconColor="#8E8E93"
+        />
+      ) : (
+        Object.entries(visibleGroupedEvents).map(([category, categoryEvents]) => {
+          if (categoryEvents.length === 0) return null;
 
-    return (
-          <View key={category}>
-            <Text style={styles.categoryTitle}>
-              {category === 'today' ? 'Today' : 
-               category === 'tomorrow' ? 'Tomorrow' : 
-               category === 'thisWeek' ? 'This Week' : 
-               category === 'nextMonth' ? 'Next Month' : 'Future'}
-            </Text>
-            {categoryEvents.map((event) => (
-      <Swipeable
-        key={event.id}
-        renderRightActions={() => renderRightActions(event.id)}
-        rightThreshold={40}
-      >
-        <View style={styles.eventRow}>
-          <TouchableOpacity
-            style={styles.eventCard}
-            onPress={() => handleEventPress(event)}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
-              <Ionicons name={event.icon} size={20} color={event.iconColor} />
-            </View>
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-              <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
-            </View>
-            {event.status === 'DUE' && (
-              <Text style={styles.dueStatus}>{event.status}</Text>
-            )}
-            <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
-      </Swipeable>
-            ))}
+      return (
+            <View key={category}>
+              <Text style={styles.categoryTitle}>
+                {category === 'today' ? 'Today' : 
+                 category === 'tomorrow' ? 'Tomorrow' : 
+                 category === 'thisWeek' ? 'This Week' : 
+                 category === 'nextMonth' ? 'Next Month' : 'Future'}
+              </Text>
+              {categoryEvents.map((event) => (
+        <Swipeable
+          key={event.id}
+          renderRightActions={() => renderRightActions(event.id)}
+          rightThreshold={40}
+        >
+          <View style={styles.eventRow}>
+            <TouchableOpacity
+              style={styles.eventCard}
+              onPress={() => handleEventPress(event)}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
+                <Ionicons name={event.icon} size={20} color={event.iconColor} />
+              </View>
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+                <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
+              </View>
+              {event.status === 'DUE' && (
+                <Text style={styles.dueStatus}>{event.status}</Text>
+              )}
+              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+            </TouchableOpacity>
           </View>
-          );
-        })}
+        </Swipeable>
+              ))}
+            </View>
+            );
+          })
+      )}
 
       {/* Add Appointment Modal */}
       <Modal visible={addModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingEvent ? 'Edit Appointment' : 'Add Appointment'}</Text>
+            <View style={styles.detailsModalHeader}>
               <TouchableOpacity 
                 onPress={() => setAddModalVisible(false)}
-                style={styles.closeButton}
+                style={styles.closeButtonLeft}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
-                <Ionicons name="close" size={24} color="#8E8E93" />
+                <Ionicons name="close" size={28} color="#FF3B30" />
               </TouchableOpacity>
+              <Text style={[styles.modalTitle, { textAlign: 'center', flex: 1 }]}>{editingEvent ? 'Edit Appointment' : 'Add Appointment'}</Text>
             </View>
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
@@ -696,14 +708,14 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
       <Modal visible={detailsModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectedEvent?.title}</Text>
+            <View style={styles.detailsModalHeader}>
               <TouchableOpacity 
                 onPress={() => setDetailsModalVisible(false)}
-                style={styles.closeButton}
+                style={styles.closeButtonLeft}
               >
-                <Ionicons name="close" size={24} color="#8E8E93" />
+                <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
+              <Text style={[styles.modalTitle, { textAlign: 'center', flex: 1 }]}>{selectedEvent?.title}</Text>
             </View>
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
@@ -790,7 +802,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     marginBottom: 8,
-    height: 72,
+    height: 80,
   },
   eventCard: {
     flex: 1,
@@ -799,12 +811,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C2C2E',
     borderRadius: 12,
     padding: 16,
-    height: 72,
+    height: 80,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -837,14 +849,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: 8,
-    height: 72,
+    height: 80,
     paddingLeft: 8,
   },
   swipeAction: {
     justifyContent: 'center',
     alignItems: 'center',
     width: 88,
-    height: 72,
+    height: 80,
     borderRadius: 12,
   },
   doneAction: {
@@ -892,12 +904,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A3C',
   },
+  detailsModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3A3A3C',
+  },
   modalTitle: {
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
   },
   closeButton: {
+    padding: 12,
+  },
+  closeButtonLeft: {
+    position: 'absolute',
+    left: 16,
+    top: 16,
     padding: 4,
   },
   modalBody: {

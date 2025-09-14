@@ -266,7 +266,7 @@ const BiomarkerModal: React.FC<BiomarkerModalProps> = ({
         {/* Header Section */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#007AFF" />
+            <Ionicons name="close" size={24} color="#FF3B30" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
           <Text style={styles.title}>{biomarker.name}</Text>
@@ -350,10 +350,6 @@ const BiomarkerModal: React.FC<BiomarkerModalProps> = ({
             ))}
           </View>
 
-          {/* Category Tag */}
-          <View style={styles.categoryTag}>
-            <Text style={styles.categoryText}>{biomarker.category}</Text>
-          </View>
         </ScrollView>
       </View>
 
@@ -375,10 +371,10 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 10,
     paddingBottom: 20,
     backgroundColor: '#000000',
     borderBottomWidth: 1,
@@ -386,10 +382,12 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
+    marginTop: 15,
   },
   headerContent: {
     flex: 1,
     alignItems: 'center',
+    marginTop: -70,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -628,19 +626,6 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
     lineHeight: 22,
-  },
-  categoryTag: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 40,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
 

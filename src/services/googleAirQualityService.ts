@@ -90,7 +90,7 @@ export const getGoogleAirQualityData = async (
       return null;
     }
 
-    const url = `https://airquality.googleapis.com/v1/currentConditions:lookup?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
+    const url = `${API_CONFIG.GOOGLE_AIR_QUALITY_BASE_URL}${API_CONFIG.GOOGLE_AIR_QUALITY_ENDPOINT}?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
     
     const requestBody = {
       universalAqi: true,

@@ -141,6 +141,46 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
           'Age over 60'
         ]
       }
+      ,
+      'hemoglobin': {
+        description: 'Hemoglobin is the protein in red blood cells that carries oxygen throughout your body. Levels reflect your blood\'s oxygen-carrying capacity and can indicate anemia or other conditions.',
+        normalRange: 'Approx. 12.0–15.5 g/dL (women), 13.5–17.5 g/dL (men)',
+        optimalRange: 'Generally mid-range for sex-specific normals',
+        whatItMeans: 'Low hemoglobin suggests anemia (due to iron, B12/folate deficiency, chronic disease, or blood loss). High levels may be seen with dehydration, smoking, lung disease, or living at altitude.',
+        recommendations: [
+          'Eat iron-rich foods (lean meats, beans, leafy greens) with vitamin C',
+          'Ensure adequate B12 and folate intake',
+          'Discuss iron supplementation with your clinician if needed',
+          'Investigate sources of blood loss if low (e.g., GI tract)',
+          'Stay well hydrated if elevated',
+        ],
+        riskFactors: [
+          'Iron deficiency or poor diet',
+          'Chronic kidney disease or inflammatory conditions',
+          'GI blood loss (ulcers, polyps)',
+          'Smoking or chronic lung disease (for high values)',
+          'High altitude residence (for high values)'
+        ]
+      },
+      'platelets': {
+        description: 'Platelets help your blood to clot. Abnormal levels can increase the risk of bleeding (low) or clotting (high).',
+        normalRange: '150–450 ×10^3/uL',
+        optimalRange: 'Mid-normal range (about 200–300 ×10^3/uL)',
+        whatItMeans: 'Low platelets (thrombocytopenia) can be due to infections, medications, immune conditions, or bone marrow disorders. High platelets (thrombocytosis) can occur with inflammation, iron deficiency, or rarely bone marrow disease.',
+        recommendations: [
+          'Review medications and alcohol intake if low',
+          'Treat underlying causes (e.g., iron deficiency, infection, inflammation)',
+          'Avoid contact sports if very low to reduce bleeding risk',
+          'Follow hematology guidance if markedly abnormal',
+        ],
+        riskFactors: [
+          'Recent infections or viral illness',
+          'Autoimmune conditions',
+          'Iron deficiency (for high counts)',
+          'Chronic inflammation',
+          'Bone marrow disorders (rare)'
+        ]
+      }
     };
 
     return details[id] || {
@@ -386,13 +426,13 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
 
             {/* What it means */}
             <View style={styles.modalSection}>
-              <Text style={styles.sectionTitle}>What this means for you</Text>
+              <Text style={styles.sectionTitle}>What this means for you:</Text>
               <Text style={styles.sectionContent}>{biomarkerDetails.whatItMeans}</Text>
             </View>
 
             {/* Recommendations */}
             <View style={styles.modalSection}>
-              <Text style={styles.sectionTitle}>Recommendations</Text>
+              <Text style={styles.sectionTitle}>Recommendations:</Text>
               {biomarkerDetails.recommendations.map((rec, index) => (
                 <View key={index} style={styles.recommendationItem}>
                   <Ionicons name="arrow-forward" size={16} color="#007AFF" />
@@ -403,7 +443,7 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
 
             {/* Risk Factors */}
             <View style={[styles.modalSection, { borderBottomWidth: 0 }]}>
-              <Text style={styles.sectionTitle}>Risk Factors</Text>
+              <Text style={styles.sectionTitle}>Risk Factors:</Text>
               {biomarkerDetails.riskFactors.map((factor, index) => (
                 <View key={index} style={styles.riskItem}>
                   <Ionicons name="warning" size={16} color="#FF9500" />
@@ -533,6 +573,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#EBEBF5',
     lineHeight: 20,
+    textAlign: 'justify',
   },
   rangeIndicatorContainer: {
     alignItems: 'center',

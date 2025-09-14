@@ -252,6 +252,130 @@ export const biomarkerDatabase: {
       'Monitor symptoms like energy levels and mood',
     ],
   },
+  'Vitamin A': {
+    name: 'Vitamin A',
+    unit: 'μg/dL',
+    referenceRange: '20-80',
+    category: 'Vitamin',
+    organSystem: 'General',
+    lastTested: 'Dec 15, 2024',
+    percentile: 70,
+    explanation:
+      'Vitamin A is a fat-soluble vitamin essential for vision, immune function, and cell growth. It exists in two forms: retinol (from animal sources) and carotenoids (from plant sources).',
+    whatItMeans:
+      'Your vitamin A level of 45 μg/dL is in the normal range. This means you have adequate vitamin A to support healthy vision, immune function, and cell growth.',
+    whyItMatters:
+      'Vitamin A is crucial for maintaining healthy vision, especially night vision, supporting immune system function, and promoting healthy skin and cell growth.',
+    levelMeaning: {
+      low: 'Low vitamin A can cause night blindness, dry eyes, frequent infections, and poor growth.',
+      normal: 'Your vitamin A level is healthy, supporting good vision and immune function.',
+      high: 'Very high vitamin A levels can cause nausea, headaches, and liver damage.',
+    },
+    historyData: [42, 44, 45, 43, 46, 44, 45, 43, 44, 45, 42, 45],
+    comparisonData: {
+      allPopulation: 70,
+      ageSexGroup: 72,
+    },
+    tips: [
+      'Eat orange and yellow vegetables like carrots and sweet potatoes',
+      'Include leafy greens like spinach and kale',
+      'Consume liver and dairy products in moderation',
+      'Avoid excessive vitamin A supplements',
+    ],
+  },
+  'Vitamin C': {
+    name: 'Vitamin C',
+    unit: 'mg/dL',
+    referenceRange: '0.4-2.0',
+    category: 'Vitamin',
+    organSystem: 'General',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      'Vitamin C is a water-soluble vitamin and powerful antioxidant that helps protect cells from damage and supports the immune system.',
+    whatItMeans:
+      'Your vitamin C level of 0.8 mg/dL is in the normal range. This means you have adequate vitamin C to support immune function and protect against cell damage.',
+    whyItMatters:
+      'Vitamin C is essential for immune system function, collagen synthesis for healthy skin, wound healing, and acts as a powerful antioxidant.',
+    levelMeaning: {
+      low: 'Low vitamin C can cause easy bruising, slow wound healing, frequent infections, and fatigue.',
+      normal: 'Your vitamin C level is healthy, supporting good immune function and skin health.',
+      high: 'Very high vitamin C levels are usually excreted but may cause digestive issues.',
+    },
+    historyData: [0.7, 0.8, 0.9, 0.8, 0.7, 0.8, 0.9, 0.8, 0.7, 0.8, 0.9, 0.8],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 68,
+    },
+    tips: [
+      'Eat citrus fruits like oranges and grapefruits',
+      'Include bell peppers, strawberries, and broccoli',
+      'Consume fresh fruits and vegetables daily',
+      'Avoid overcooking vegetables to preserve vitamin C',
+    ],
+  },
+  'Vitamin K': {
+    name: 'Vitamin K',
+    unit: 'ng/mL',
+    referenceRange: '0.2-3.2',
+    category: 'Vitamin',
+    organSystem: 'General',
+    lastTested: 'Dec 15, 2024',
+    percentile: 60,
+    explanation:
+      'Vitamin K is a fat-soluble vitamin essential for blood clotting and bone health. It exists in two forms: K1 (from plants) and K2 (from animal sources and fermented foods).',
+    whatItMeans:
+      'Your vitamin K level of 1.2 ng/mL is in the normal range. This means you have adequate vitamin K to support proper blood clotting and bone health.',
+    whyItMatters:
+      'Vitamin K is crucial for blood clotting to prevent excessive bleeding, supports bone health, and aids in calcium absorption.',
+    levelMeaning: {
+      low: 'Low vitamin K can cause easy bruising, excessive bleeding, and weak bones.',
+      normal: 'Your vitamin K level is healthy, supporting good blood clotting and bone health.',
+      high: 'Very high vitamin K levels are rare and usually not harmful.',
+    },
+    historyData: [1.0, 1.1, 1.2, 1.1, 1.3, 1.2, 1.1, 1.2, 1.0, 1.2, 1.1, 1.2],
+    comparisonData: {
+      allPopulation: 60,
+      ageSexGroup: 62,
+    },
+    tips: [
+      'Eat leafy greens like spinach, kale, and broccoli',
+      'Include fermented foods like sauerkraut and natto',
+      'Consume eggs and cheese in moderation',
+      'Be consistent with vitamin K intake if on blood thinners',
+    ],
+  },
+  'Calcium': {
+    name: 'Calcium',
+    unit: 'mg/dL',
+    referenceRange: '8.5-10.5',
+    category: 'Mineral',
+    organSystem: 'General',
+    lastTested: 'Dec 15, 2024',
+    percentile: 75,
+    explanation:
+      'Calcium is the most abundant mineral in the body, essential for building and maintaining strong bones and teeth.',
+    whatItMeans:
+      'Your calcium level of 9.8 mg/dL is in the normal range. This means you have adequate calcium to support strong bones and proper muscle function.',
+    whyItMatters:
+      'Calcium is crucial for bone and tooth strength, muscle function, nerve transmission, and blood clotting.',
+    levelMeaning: {
+      low: 'Low calcium can cause weak bones, muscle cramps, and irregular heartbeat.',
+      normal: 'Your calcium level is healthy, supporting strong bones and proper muscle function.',
+      high: 'Very high calcium levels can cause kidney stones and heart problems.',
+    },
+    historyData: [9.5, 9.7, 9.8, 9.6, 9.9, 9.8, 9.7, 9.8, 9.6, 9.8, 9.7, 9.8],
+    comparisonData: {
+      allPopulation: 75,
+      ageSexGroup: 78,
+    },
+    tips: [
+      'Eat dairy products like milk, cheese, and yogurt',
+      'Include leafy greens and fortified foods',
+      'Get adequate vitamin D for calcium absorption',
+      'Limit caffeine and alcohol which can reduce absorption',
+    ],
+  },
   'Vitamin D': {
     name: 'Vitamin D',
     unit: 'ng/mL',
@@ -267,6 +391,37 @@ export const biomarkerDatabase: {
       'Consider a vitamin D3 supplement, especially in winter',
       'Have levels checked annually',
       'Pair with vitamin K2 for optimal bone health',
+    ],
+  },
+  'Vitamin B12': {
+    name: 'Vitamin B12',
+    unit: 'pg/mL',
+    referenceRange: '200-900',
+    category: 'Vitamin',
+    organSystem: 'General',
+    lastTested: 'Dec 15, 2024',
+    percentile: 75,
+    explanation:
+      "Vitamin B12 is a water-soluble vitamin essential for making red blood cells and keeping the nervous system healthy. Your body can't make it, so you must get it from food or supplements.",
+    whatItMeans:
+      'Your vitamin B12 level of 450 pg/mL is in the normal range. This means you have adequate B12 to support healthy red blood cell production and nerve function.',
+    whyItMatters:
+      'Vitamin B12 is crucial for preventing anemia, maintaining nerve function, and supporting brain health. Deficiency can cause serious neurological problems.',
+    levelMeaning: {
+      low: 'Low vitamin B12 can cause fatigue, weakness, numbness, memory problems, and anemia.',
+      normal: 'Your vitamin B12 level is healthy, supporting good red blood cell production and nerve function.',
+      high: 'Very high vitamin B12 levels are usually not harmful and may indicate supplementation.',
+    },
+    historyData: [420, 440, 450, 430, 460, 450, 440, 450, 420, 450, 440, 450],
+    comparisonData: {
+      allPopulation: 75,
+      ageSexGroup: 78,
+    },
+    tips: [
+      'Eat meat, fish, eggs, and dairy products',
+      'Consider B12 supplements if vegetarian or vegan',
+      'Get regular B12 levels checked as you age',
+      'Be aware that some medications can affect B12 absorption',
     ],
   },
   B12: {
@@ -1088,6 +1243,1327 @@ export const biomarkerDatabase: {
       'Consider bone-building medications if levels are high',
       'Monitor levels during osteoporosis treatment',
       'Get regular bone density scans',
+    ],
+  },
+  'NT-proBNP': {
+    name: 'NT-proBNP (Heart Failure Marker)',
+    unit: 'pg/mL',
+    referenceRange: '<125 (age <75), <450 (age ≥75)',
+    category: 'Heart Health',
+    organSystem: 'Heart',
+    lastTested: 'Dec 15, 2024',
+    percentile: 45,
+    explanation:
+      "NT-proBNP is released by your heart when it's under stress or stretched. It's like a distress signal from your heart muscle when it's working too hard or not pumping effectively.",
+    whatItMeans:
+      'Normal levels suggest your heart is functioning well. High levels may indicate heart failure, heart strain, or other cardiac problems. Very high levels often require immediate medical attention.',
+    whyItMatters:
+      "NT-proBNP is one of the most important markers for detecting heart failure early. It can help diagnose heart problems before symptoms become severe and guide treatment decisions.",
+    levelMeaning: {
+      low: "Low NT-proBNP levels are excellent and indicate your heart is functioning well without significant stress or strain.",
+      normal: "Your NT-proBNP levels are within the healthy range, suggesting good heart function and no significant cardiac stress.",
+      high: "Elevated NT-proBNP levels may indicate heart failure, heart strain, or other cardiac problems requiring medical evaluation.",
+      critical: "Very high NT-proBNP levels suggest severe heart problems and require immediate medical attention and treatment.",
+    },
+    historyData: [85, 92, 88, 95, 102, 98, 105, 110, 108, 115, 120, 125],
+    comparisonData: {
+      allPopulation: 45,
+      ageSexGroup: 48,
+    },
+    tips: [
+      'Follow a heart-healthy diet low in sodium',
+      'Exercise regularly but avoid overexertion',
+      'Take prescribed heart medications as directed',
+      'Monitor fluid intake if you have heart failure',
+      'Get regular cardiac check-ups',
+      'Avoid excessive alcohol consumption',
+      'Manage stress through relaxation techniques',
+      'Maintain a healthy weight',
+    ],
+  },
+  'Direct Bilirubin': {
+    name: 'Direct Bilirubin',
+    unit: 'mg/dL',
+    referenceRange: '0.0-0.3',
+    category: 'Liver Health',
+    organSystem: 'Liver',
+    lastTested: 'Dec 15, 2024',
+    percentile: 35,
+    explanation:
+      "Direct bilirubin is the processed form of bilirubin that your liver has conjugated for elimination. It's like checking how well your liver is packaging waste for removal.",
+    whatItMeans:
+      'Normal levels indicate good liver function and bile flow. High levels may suggest liver disease, bile duct blockage, or problems with bilirubin processing.',
+    whyItMatters:
+      "Direct bilirubin helps distinguish between different types of liver problems and bile duct issues. It's crucial for diagnosing liver and gallbladder diseases.",
+    levelMeaning: {
+      low: "Low direct bilirubin levels are normal and indicate efficient liver processing of bilirubin.",
+      normal: "Your direct bilirubin levels are within the healthy range, suggesting good liver function and bile flow.",
+      high: "Elevated direct bilirubin levels may indicate liver disease, bile duct obstruction, or problems with bilirubin conjugation.",
+    },
+    historyData: [0.1, 0.15, 0.12, 0.18, 0.2, 0.16, 0.22, 0.19, 0.17, 0.21, 0.18, 0.2],
+    comparisonData: {
+      allPopulation: 35,
+      ageSexGroup: 38,
+    },
+    tips: [
+      'Maintain a healthy liver with a balanced diet',
+      'Limit alcohol consumption',
+      'Stay hydrated to support liver function',
+      'Eat foods rich in antioxidants',
+      'Avoid liver-toxic medications when possible',
+    ],
+  },
+  'Direct Bilirubin Ratio': {
+    name: 'Direct Bilirubin Ratio',
+    unit: '%',
+    referenceRange: '20-50',
+    category: 'Liver Health',
+    organSystem: 'Liver',
+    lastTested: 'Dec 15, 2024',
+    percentile: 42,
+    explanation:
+      "This ratio compares direct bilirubin to total bilirubin, helping determine if liver problems are due to conjugation issues or bile flow problems.",
+    whatItMeans:
+      'Normal ratios suggest good liver conjugation. High ratios may indicate bile duct obstruction. Low ratios might suggest conjugation problems.',
+    whyItMatters:
+      "The direct bilirubin ratio helps differentiate between different types of liver and bile duct problems, guiding appropriate treatment.",
+    levelMeaning: {
+      low: "Low ratios may suggest problems with bilirubin conjugation in the liver.",
+      normal: "Your direct bilirubin ratio is within the healthy range, indicating good liver conjugation function.",
+      high: "High ratios may suggest bile duct obstruction or other bile flow problems.",
+    },
+    historyData: [25, 28, 32, 30, 35, 38, 42, 40, 36, 39, 37, 35],
+    comparisonData: {
+      allPopulation: 42,
+      ageSexGroup: 45,
+    },
+    tips: [
+      'Support liver health with a balanced diet',
+      'Stay hydrated to maintain bile flow',
+      'Limit alcohol consumption',
+      'Eat foods that support liver function',
+      'Get regular liver function monitoring',
+    ],
+  },
+  'Globulin': {
+    name: 'Globulin',
+    unit: 'g/dL',
+    referenceRange: '2.0-3.5',
+    category: 'Immune Health',
+    organSystem: 'Immune System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "Globulins are proteins made by your immune system and liver. They include antibodies and other proteins that help fight infections and transport nutrients.",
+    whatItMeans:
+      'Normal levels support immune function and protein balance. High levels may indicate infection, inflammation, or immune disorders. Low levels might suggest immune deficiency.',
+    whyItMatters:
+      "Globulin levels help assess immune function and overall protein status. They're important for detecting infections, autoimmune diseases, and nutritional problems.",
+    levelMeaning: {
+      low: "Low globulin levels may indicate immune deficiency, malnutrition, or liver problems affecting protein production.",
+      normal: "Your globulin levels are within the healthy range, suggesting good immune function and protein balance.",
+      high: "Elevated globulin levels may indicate infection, inflammation, autoimmune disease, or certain cancers.",
+    },
+    historyData: [2.8, 2.9, 3.1, 3.0, 3.2, 3.3, 3.1, 3.4, 3.2, 3.0, 3.1, 3.2],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Eat a protein-rich diet to support globulin production',
+      'Get adequate sleep for immune function',
+      'Exercise regularly to boost immune health',
+      'Manage stress which can affect immune function',
+      'Stay hydrated to support protein metabolism',
+    ],
+  },
+  'Albumin': {
+    name: 'Albumin',
+    unit: 'g/dL',
+    referenceRange: '3.5-5.0',
+    category: 'Nutritional Health',
+    organSystem: 'Liver',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "Albumin is the most abundant protein in your blood, made by your liver. It helps maintain blood volume, transport nutrients, and keep fluid in your blood vessels.",
+    whatItMeans:
+      'Normal levels support proper fluid balance and nutrient transport. Low levels may indicate liver disease, malnutrition, or kidney problems. High levels are usually not concerning.',
+    whyItMatters:
+      "Albumin is crucial for maintaining blood volume and transporting essential nutrients. Low levels can cause swelling and indicate serious health problems.",
+    levelMeaning: {
+      low: "Low albumin levels may indicate liver disease, malnutrition, kidney problems, or chronic inflammation.",
+      normal: "Your albumin levels are within the healthy range, supporting good fluid balance and nutrient transport.",
+      high: "High albumin levels are generally not concerning and may indicate good nutritional status.",
+    },
+    historyData: [4.2, 4.3, 4.1, 4.4, 4.2, 4.5, 4.3, 4.1, 4.4, 4.2, 4.3, 4.4],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 68,
+    },
+    tips: [
+      'Eat adequate protein to support albumin production',
+      'Maintain a balanced diet with all essential nutrients',
+      'Stay hydrated to support blood volume',
+      'Limit alcohol which can affect liver function',
+      'Get regular health check-ups',
+    ],
+  },
+  // Spine Biomarkers
+  'Spine T-Score': {
+    name: 'Spine T-Score',
+    unit: '',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 70,
+    explanation:
+      "T-score compares your bone density to a healthy 30-year-old. It's like measuring how strong your spine bones are compared to peak bone strength.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia (low bone density). Below -2.5 suggests osteoporosis (very low bone density).',
+    whyItMatters:
+      "Spine T-score is crucial for detecting osteoporosis early. The spine is often the first place to show bone loss, and fractures here can be devastating.",
+    levelMeaning: {
+      low: "Low T-scores indicate reduced bone density and increased fracture risk in the spine.",
+      normal: "Your spine T-score is within the healthy range, indicating good bone density and low fracture risk.",
+      high: "Higher T-scores indicate better bone density and lower fracture risk.",
+    },
+    historyData: [-0.5, -0.3, -0.7, -0.4, -0.6, -0.2, -0.8, -0.5, -0.3, -0.6, -0.4, -0.5],
+    comparisonData: {
+      allPopulation: 70,
+      ageSexGroup: 72,
+    },
+    tips: [
+      'Do weight-bearing exercises like walking and jogging',
+      'Ensure adequate calcium intake (1000-1200mg daily)',
+      'Get enough vitamin D (1000-2000 IU daily)',
+      'Include strength training in your routine',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'Spine T-score (L1-L4)': {
+    name: 'Spine T-score (L1-L4)',
+    unit: 'SD',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 70,
+    explanation:
+      "T-score compares your lumbar spine bone density (L1-L4 vertebrae) to a healthy 30-year-old. It's like measuring how strong your lower spine bones are compared to peak bone strength.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia (low bone density). Below -2.5 suggests osteoporosis (very low bone density).',
+    whyItMatters:
+      "Lumbar spine T-score is crucial for detecting osteoporosis early. The lower spine is often the first place to show bone loss, and fractures here can be devastating.",
+    levelMeaning: {
+      low: "Low T-scores indicate reduced bone density and increased fracture risk in the lumbar spine.",
+      normal: "Your lumbar spine T-score is within the healthy range, indicating good bone density and low fracture risk.",
+      high: "Higher T-scores indicate better bone density and lower fracture risk.",
+    },
+    historyData: [-0.5, -0.3, -0.7, -0.4, -0.6, -0.2, -0.8, -0.5, -0.3, -0.6, -0.4, -0.5],
+    comparisonData: {
+      allPopulation: 70,
+      ageSexGroup: 72,
+    },
+    tips: [
+      'Do weight-bearing exercises like walking and jogging',
+      'Ensure adequate calcium intake (1000-1200mg daily)',
+      'Get enough vitamin D (1000-2000 IU daily)',
+      'Include strength training in your routine',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'Spine Z-Score': {
+    name: 'Spine Z-Score',
+    unit: '',
+    referenceRange: '>-2.0',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 60,
+    explanation:
+      "Z-score compares your bone density to others your age and gender. It's like seeing how your spine bones compare to your peers.",
+    whatItMeans:
+      'Above -2.0 is normal for your age. Below -2.0 may indicate bone density lower than expected for your age group.',
+    whyItMatters:
+      "Z-score helps identify if bone loss is age-appropriate or if there are underlying conditions causing premature bone loss.",
+    levelMeaning: {
+      low: "Low Z-scores may indicate bone density lower than expected for your age, suggesting underlying health issues.",
+      normal: "Your spine Z-score is appropriate for your age group, indicating normal bone development.",
+      high: "Higher Z-scores indicate better bone density than average for your age group.",
+    },
+    historyData: [-0.8, -0.5, -1.2, -0.7, -1.0, -0.3, -1.5, -0.9, -0.6, -1.1, -0.8, -0.9],
+    comparisonData: {
+      allPopulation: 60,
+      ageSexGroup: 62,
+    },
+    tips: [
+      'Focus on age-appropriate bone health strategies',
+      'Ensure adequate nutrition for bone building',
+      'Stay active with age-appropriate exercises',
+      'Monitor bone health regularly',
+      'Discuss any concerns with your healthcare provider',
+    ],
+  },
+  'Spine BMD': {
+    name: 'Spine BMD (Bone Mineral Density)',
+    unit: 'g/cm²',
+    referenceRange: '>0.8',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "BMD measures the actual amount of bone mineral in your spine. It's like measuring the density of the bone material itself.",
+    whatItMeans:
+      'Higher BMD values indicate stronger, denser bones. Lower values suggest weaker bones that may be more prone to fractures.',
+    whyItMatters:
+      "BMD is the most direct measure of bone strength. It helps predict fracture risk and guides treatment decisions for bone health.",
+    levelMeaning: {
+      low: "Low BMD values indicate reduced bone mineral content and increased fracture risk.",
+      normal: "Your spine BMD is within the healthy range, indicating good bone mineral content.",
+      high: "Higher BMD values indicate stronger bones with lower fracture risk.",
+    },
+    historyData: [0.95, 0.98, 0.92, 0.96, 0.94, 1.01, 0.89, 0.93, 0.97, 0.91, 0.95, 0.96],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 68,
+    },
+    tips: [
+      'Maximize bone mineral density through proper nutrition',
+      'Do weight-bearing exercises regularly',
+      'Ensure adequate calcium and vitamin D',
+      'Include strength training for bone building',
+      'Monitor BMD changes over time',
+    ],
+  },
+  // Hip Biomarkers
+  'Hip T-Score': {
+    name: 'Hip T-Score',
+    unit: '',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 68,
+    explanation:
+      "Hip T-score compares your hip bone density to a healthy 30-year-old. It's crucial because hip fractures are often the most serious type of bone fracture.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia. Below -2.5 suggests osteoporosis with high hip fracture risk.',
+    whyItMatters:
+      "Hip fractures are among the most serious bone fractures, often requiring surgery and long recovery. Early detection of hip bone loss is crucial.",
+    levelMeaning: {
+      low: "Low hip T-scores indicate increased risk of hip fractures, which can be life-changing injuries.",
+      normal: "Your hip T-score is within the healthy range, indicating good hip bone density and low fracture risk.",
+      high: "Higher T-scores indicate stronger hip bones and lower fracture risk.",
+    },
+    historyData: [-0.4, -0.2, -0.6, -0.3, -0.5, -0.1, -0.7, -0.4, -0.2, -0.5, -0.3, -0.4],
+    comparisonData: {
+      allPopulation: 68,
+      ageSexGroup: 70,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing activities like walking',
+      'Include balance exercises to prevent falls',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'Left Hip T-score (Total)': {
+    name: 'Left Hip T-score (Total)',
+    unit: 'SD',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 68,
+    explanation:
+      "Left hip T-score compares your left hip bone density to a healthy 30-year-old. It's crucial because hip fractures are often the most serious type of bone fracture.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia. Below -2.5 suggests osteoporosis with high hip fracture risk.',
+    whyItMatters:
+      "Hip fractures are among the most serious bone fractures, often requiring surgery and long recovery. Early detection of hip bone loss is crucial.",
+    levelMeaning: {
+      low: "Low left hip T-scores indicate increased risk of hip fractures, which can be life-changing injuries.",
+      normal: "Your left hip T-score is within the healthy range, indicating good hip bone density and low fracture risk.",
+      high: "Higher T-scores indicate stronger hip bones and lower fracture risk.",
+    },
+    historyData: [-0.4, -0.2, -0.6, -0.3, -0.5, -0.1, -0.7, -0.4, -0.2, -0.5, -0.3, -0.4],
+    comparisonData: {
+      allPopulation: 68,
+      ageSexGroup: 70,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing activities like walking',
+      'Include balance exercises to prevent falls',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'Right Hip T-score (Total)': {
+    name: 'Right Hip T-score (Total)',
+    unit: 'SD',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 68,
+    explanation:
+      "Right hip T-score compares your right hip bone density to a healthy 30-year-old. It's crucial because hip fractures are often the most serious type of bone fracture.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia. Below -2.5 suggests osteoporosis with high hip fracture risk.',
+    whyItMatters:
+      "Hip fractures are among the most serious bone fractures, often requiring surgery and long recovery. Early detection of hip bone loss is crucial.",
+    levelMeaning: {
+      low: "Low right hip T-scores indicate increased risk of hip fractures, which can be life-changing injuries.",
+      normal: "Your right hip T-score is within the healthy range, indicating good hip bone density and low fracture risk.",
+      high: "Higher T-scores indicate stronger hip bones and lower fracture risk.",
+    },
+    historyData: [-0.4, -0.2, -0.6, -0.3, -0.5, -0.1, -0.7, -0.4, -0.2, -0.5, -0.3, -0.4],
+    comparisonData: {
+      allPopulation: 68,
+      ageSexGroup: 70,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing activities like walking',
+      'Include balance exercises to prevent falls',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'Hip Z-Score': {
+    name: 'Hip Z-Score',
+    unit: '',
+    referenceRange: '>-2.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Hip Z-score compares your hip bone density to others your age and gender. It helps identify if hip bone loss is age-appropriate.",
+    whatItMeans:
+      'Above -2.0 is normal for your age. Below -2.0 may indicate hip bone density lower than expected for your age group.',
+    whyItMatters:
+      "Hip Z-score helps determine if hip bone loss is normal aging or if there are underlying conditions affecting hip bone health.",
+    levelMeaning: {
+      low: "Low hip Z-scores may indicate premature hip bone loss or underlying health conditions.",
+      normal: "Your hip Z-score is appropriate for your age group, indicating normal hip bone development.",
+      high: "Higher Z-scores indicate better hip bone density than average for your age group.",
+    },
+    historyData: [-0.7, -0.4, -1.1, -0.6, -0.9, -0.2, -1.3, -0.8, -0.5, -1.0, -0.7, -0.8],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 64,
+    },
+    tips: [
+      'Focus on hip-specific bone health strategies',
+      'Ensure adequate nutrition for hip bone strength',
+      'Stay active with hip-friendly exercises',
+      'Monitor hip bone health regularly',
+      'Discuss any concerns with your healthcare provider',
+    ],
+  },
+  'Hip BMD': {
+    name: 'Hip BMD (Bone Mineral Density)',
+    unit: 'g/cm²',
+    referenceRange: '>0.7',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 67,
+    explanation:
+      "Hip BMD measures the actual amount of bone mineral in your hip bones. It's the most important predictor of hip fracture risk.",
+    whatItMeans:
+      'Higher hip BMD values indicate stronger hip bones. Lower values suggest increased risk of hip fractures.',
+    whyItMatters:
+      "Hip BMD is the gold standard for predicting hip fracture risk. Hip fractures are among the most serious and costly bone fractures.",
+    levelMeaning: {
+      low: "Low hip BMD values indicate increased risk of hip fractures, which can be devastating injuries.",
+      normal: "Your hip BMD is within the healthy range, indicating good hip bone mineral content.",
+      high: "Higher BMD values indicate stronger hip bones with lower fracture risk.",
+    },
+    historyData: [0.85, 0.88, 0.82, 0.86, 0.84, 0.91, 0.79, 0.83, 0.87, 0.81, 0.85, 0.86],
+    comparisonData: {
+      allPopulation: 67,
+      ageSexGroup: 69,
+    },
+    tips: [
+      'Maximize hip bone mineral density through nutrition',
+      'Do hip-strengthening exercises regularly',
+      'Ensure adequate calcium and vitamin D intake',
+      'Include weight-bearing activities',
+      'Monitor hip BMD changes over time',
+    ],
+  },
+  // Vitamins
+  'Vitamin E': {
+    name: 'Vitamin E',
+    unit: 'mg/dL',
+    referenceRange: '5.5-17.0',
+    category: 'Nutritional Health',
+    organSystem: 'Immune System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 58,
+    explanation:
+      "Vitamin E is a powerful antioxidant that protects your cells from damage. It's like having a bodyguard for your cells against harmful free radicals.",
+    whatItMeans:
+      'Normal levels support immune function and protect against oxidative stress. Low levels may increase infection risk and cell damage.',
+    whyItMatters:
+      "Vitamin E is crucial for immune function, skin health, and protecting against chronic diseases. Deficiency can cause nerve and muscle problems.",
+    levelMeaning: {
+      low: "Low vitamin E levels may indicate deficiency, increasing risk of infections and cell damage.",
+      normal: "Your vitamin E levels are within the healthy range, supporting good immune function and antioxidant protection.",
+      high: "Higher vitamin E levels provide excellent antioxidant protection and immune support.",
+    },
+    historyData: [8.2, 8.5, 8.8, 8.3, 9.1, 8.7, 9.3, 8.9, 8.6, 9.0, 8.8, 9.2],
+    comparisonData: {
+      allPopulation: 58,
+      ageSexGroup: 61,
+    },
+    tips: [
+      'Eat vitamin E-rich foods like nuts, seeds, and vegetable oils',
+      'Include leafy greens and avocados in your diet',
+      'Consider vitamin E supplements if levels are low',
+      'Pair with healthy fats for better absorption',
+      'Avoid excessive vitamin E supplements without medical supervision',
+    ],
+  },
+  'Vitamin B1 (Thiamine)': {
+    name: 'Vitamin B1 (Thiamine)',
+    unit: 'ng/mL',
+    referenceRange: '70-180',
+    category: 'Nutritional Health',
+    organSystem: 'Nervous System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 52,
+    explanation:
+      "Thiamine helps your body convert food into energy and is essential for nerve function. It's like the spark plug that helps your body's engine run smoothly.",
+    whatItMeans:
+      'Normal levels support energy production and nerve function. Low levels can cause fatigue, weakness, and nerve problems.',
+    whyItMatters:
+      "Thiamine deficiency can cause beriberi and Wernicke-Korsakoff syndrome. It's essential for brain and nerve health.",
+    levelMeaning: {
+      low: "Low thiamine levels may cause fatigue, weakness, and nerve problems.",
+      normal: "Your thiamine levels are within the healthy range, supporting good energy production and nerve function.",
+      high: "Higher thiamine levels provide excellent support for energy metabolism and nerve health.",
+    },
+    historyData: [95, 98, 102, 105, 108, 110, 112, 115, 118, 120, 122, 125],
+    comparisonData: {
+      allPopulation: 52,
+      ageSexGroup: 55,
+    },
+    tips: [
+      'Eat thiamine-rich foods like whole grains, pork, and legumes',
+      'Include fortified cereals in your diet',
+      'Limit alcohol which can deplete thiamine',
+      'Consider B-complex supplements if levels are low',
+      'Cook foods properly to preserve thiamine content',
+    ],
+  },
+  'Vitamin B2 (Riboflavin)': {
+    name: 'Vitamin B2 (Riboflavin)',
+    unit: 'μg/dL',
+    referenceRange: '4-24',
+    category: 'Nutritional Health',
+    organSystem: 'Immune System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 48,
+    explanation:
+      "Riboflavin helps your body use energy from food and supports healthy skin and eyes. It's like the assistant that helps other nutrients do their job.",
+    whatItMeans:
+      'Normal levels support energy metabolism and skin health. Low levels may cause mouth sores, skin problems, and eye issues.',
+    whyItMatters:
+      "Riboflavin is essential for energy production, antioxidant function, and healthy skin. Deficiency can cause angular cheilitis and other problems.",
+    levelMeaning: {
+      low: "Low riboflavin levels may cause mouth sores, skin problems, and eye issues.",
+      normal: "Your riboflavin levels are within the healthy range, supporting good energy metabolism and skin health.",
+      high: "Higher riboflavin levels provide excellent support for energy production and skin health.",
+    },
+    historyData: [12, 14, 16, 15, 18, 17, 19, 20, 18, 21, 19, 20],
+    comparisonData: {
+      allPopulation: 48,
+      ageSexGroup: 51,
+    },
+    tips: [
+      'Eat riboflavin-rich foods like dairy, eggs, and leafy greens',
+      'Include lean meats and fortified cereals',
+      'Store foods properly as light destroys riboflavin',
+      'Consider B-complex supplements if levels are low',
+      'Pair with other B vitamins for optimal absorption',
+    ],
+  },
+  'Vitamin B3 (Niacin)': {
+    name: 'Vitamin B3 (Niacin)',
+    unit: 'mg/dL',
+    referenceRange: '0.5-8.5',
+    category: 'Nutritional Health',
+    organSystem: 'Cardiovascular System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "Niacin helps your body use energy and supports healthy cholesterol levels. It's like the regulator that helps keep your energy and cholesterol systems balanced.",
+    whatItMeans:
+      'Normal levels support energy metabolism and heart health. Low levels may cause skin problems and digestive issues.',
+    whyItMatters:
+      "Niacin is essential for energy production and can help improve cholesterol levels. Deficiency can cause pellagra.",
+    levelMeaning: {
+      low: "Low niacin levels may cause skin problems, digestive issues, and fatigue.",
+      normal: "Your niacin levels are within the healthy range, supporting good energy metabolism and heart health.",
+      high: "Higher niacin levels provide excellent support for energy production and cardiovascular health.",
+    },
+    historyData: [3.2, 3.5, 3.8, 3.6, 4.1, 3.9, 4.3, 4.0, 3.7, 4.2, 3.8, 4.1],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Eat niacin-rich foods like poultry, fish, and nuts',
+      'Include whole grains and legumes in your diet',
+      'Consider niacin supplements under medical supervision',
+      'Avoid excessive niacin which can cause flushing',
+      'Pair with other B vitamins for optimal function',
+    ],
+  },
+  'Vitamin B5 (Pantothenic Acid)': {
+    name: 'Vitamin B5 (Pantothenic Acid)',
+    unit: 'μg/dL',
+    referenceRange: '25-100',
+    category: 'Nutritional Health',
+    organSystem: 'Endocrine System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Pantothenic acid helps your body make hormones and use energy from food. It's like the coordinator that helps your body's systems work together smoothly.",
+    whatItMeans:
+      'Normal levels support hormone production and energy metabolism. Low levels may cause fatigue and digestive problems.',
+    whyItMatters:
+      "Pantothenic acid is essential for making stress hormones and energy production. Deficiency is rare but can cause burning feet syndrome.",
+    levelMeaning: {
+      low: "Low pantothenic acid levels may cause fatigue, digestive problems, and stress intolerance.",
+      normal: "Your pantothenic acid levels are within the healthy range, supporting good hormone production and energy metabolism.",
+      high: "Higher pantothenic acid levels provide excellent support for stress management and energy production.",
+    },
+    historyData: [45, 48, 52, 50, 55, 53, 58, 56, 54, 57, 55, 58],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 65,
+    },
+    tips: [
+      'Eat pantothenic acid-rich foods like meat, fish, and whole grains',
+      'Include avocados and sweet potatoes in your diet',
+      'Consider B-complex supplements if levels are low',
+      'Manage stress as it can deplete pantothenic acid',
+      'Cook foods gently to preserve pantothenic acid',
+    ],
+  },
+  'Vitamin B6 (Pyridoxine)': {
+    name: 'Vitamin B6 (Pyridoxine)',
+    unit: 'ng/mL',
+    referenceRange: '5-50',
+    category: 'Nutritional Health',
+    organSystem: 'Nervous System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 58,
+    explanation:
+      "Pyridoxine helps your body make neurotransmitters and process protein. It's like the messenger that helps your brain communicate with your body.",
+    whatItMeans:
+      'Normal levels support brain function and protein metabolism. Low levels may cause depression, confusion, and nerve problems.',
+    whyItMatters:
+      "Vitamin B6 is crucial for brain health, mood regulation, and protein metabolism. Deficiency can cause neurological problems.",
+    levelMeaning: {
+      low: "Low vitamin B6 levels may cause depression, confusion, and nerve problems.",
+      normal: "Your vitamin B6 levels are within the healthy range, supporting good brain function and protein metabolism.",
+      high: "Higher vitamin B6 levels provide excellent support for brain health and mood regulation.",
+    },
+    historyData: [22, 25, 28, 26, 30, 29, 32, 31, 29, 33, 30, 32],
+    comparisonData: {
+      allPopulation: 58,
+      ageSexGroup: 61,
+    },
+    tips: [
+      'Eat vitamin B6-rich foods like poultry, fish, and bananas',
+      'Include chickpeas and potatoes in your diet',
+      'Consider B-complex supplements if levels are low',
+      'Avoid excessive vitamin B6 which can cause nerve damage',
+      'Pair with other B vitamins for optimal function',
+    ],
+  },
+  'Vitamin B7 (Biotin)': {
+    name: 'Vitamin B7 (Biotin)',
+    unit: 'ng/mL',
+    referenceRange: '0.2-2.0',
+    category: 'Nutritional Health',
+    organSystem: 'Skin',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "Biotin helps your body process fats and supports healthy hair, skin, and nails. It's like the beautician that helps keep your hair, skin, and nails looking their best.",
+    whatItMeans:
+      'Normal levels support healthy hair, skin, and nails. Low levels may cause hair loss, skin rashes, and brittle nails.',
+    whyItMatters:
+      "Biotin is essential for healthy hair, skin, and nails. Deficiency can cause alopecia and skin problems.",
+    levelMeaning: {
+      low: "Low biotin levels may cause hair loss, skin rashes, and brittle nails.",
+      normal: "Your biotin levels are within the healthy range, supporting healthy hair, skin, and nails.",
+      high: "Higher biotin levels provide excellent support for hair, skin, and nail health.",
+    },
+    historyData: [0.8, 0.9, 1.0, 0.95, 1.1, 1.05, 1.2, 1.15, 1.1, 1.25, 1.2, 1.3],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 68,
+    },
+    tips: [
+      'Eat biotin-rich foods like eggs, nuts, and salmon',
+      'Include sweet potatoes and avocados in your diet',
+      'Consider biotin supplements if levels are low',
+      'Avoid raw egg whites which can block biotin absorption',
+      'Be patient as hair and nail improvements take time',
+    ],
+  },
+  'Vitamin B9 (Folate)': {
+    name: 'Vitamin B9 (Folate)',
+    unit: 'ng/mL',
+    referenceRange: '3.0-20.0',
+    category: 'Nutritional Health',
+    organSystem: 'Blood System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 60,
+    explanation:
+      "Folate helps your body make DNA and red blood cells. It's like the construction worker that helps build new cells and genetic material.",
+    whatItMeans:
+      'Normal levels support cell division and prevent birth defects. Low levels may cause anemia and birth defects.',
+    whyItMatters:
+      "Folate is crucial for preventing birth defects and making healthy red blood cells. Deficiency can cause megaloblastic anemia.",
+    levelMeaning: {
+      low: "Low folate levels may cause anemia, birth defects, and poor cell division.",
+      normal: "Your folate levels are within the healthy range, supporting good cell division and red blood cell production.",
+      high: "Higher folate levels provide excellent support for cell division and prevent birth defects.",
+    },
+    historyData: [8.5, 9.2, 10.1, 9.8, 11.2, 10.8, 12.1, 11.5, 10.9, 12.3, 11.8, 12.5],
+    comparisonData: {
+      allPopulation: 60,
+      ageSexGroup: 63,
+    },
+    tips: [
+      'Eat folate-rich foods like leafy greens, beans, and citrus fruits',
+      'Include fortified cereals and grains in your diet',
+      'Consider folic acid supplements if levels are low',
+      'Take folate before and during pregnancy',
+      'Avoid excessive folate which can mask B12 deficiency',
+    ],
+  },
+  // Minerals
+  'Potassium': {
+    name: 'Potassium',
+    unit: 'mEq/L',
+    referenceRange: '3.5-5.0',
+    category: 'Nutritional Health',
+    organSystem: 'Cardiovascular System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 58,
+    explanation:
+      "Potassium helps your heart beat regularly and muscles work properly. It's like the conductor that keeps your heart rhythm steady and muscles functioning.",
+    whatItMeans:
+      'Normal levels support heart rhythm and muscle function. Low levels may cause irregular heartbeat and muscle weakness.',
+    whyItMatters:
+      "Potassium is essential for heart health and muscle function. Imbalances can cause dangerous heart rhythm problems.",
+    levelMeaning: {
+      low: "Low potassium levels may cause irregular heartbeat, muscle weakness, and fatigue.",
+      normal: "Your potassium levels are within the healthy range, supporting good heart rhythm and muscle function.",
+      high: "Higher potassium levels provide excellent support for heart health and muscle function.",
+    },
+    historyData: [4.1, 4.2, 4.3, 4.1, 4.4, 4.2, 4.5, 4.3, 4.2, 4.4, 4.3, 4.4],
+    comparisonData: {
+      allPopulation: 58,
+      ageSexGroup: 61,
+    },
+    tips: [
+      'Eat potassium-rich foods like bananas, sweet potatoes, and spinach',
+      'Include avocados, beans, and yogurt in your diet',
+      'Limit sodium which can deplete potassium',
+      'Stay hydrated to maintain electrolyte balance',
+      'Consult your doctor before taking potassium supplements',
+    ],
+  },
+  'Sodium': {
+    name: 'Sodium',
+    unit: 'mEq/L',
+    referenceRange: '136-145',
+    category: 'Nutritional Health',
+    organSystem: 'Cardiovascular System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 52,
+    explanation:
+      "Sodium helps maintain fluid balance and nerve function. It's like the regulator that keeps your body's fluid levels and nerve signals balanced.",
+    whatItMeans:
+      'Normal levels support fluid balance and nerve function. High levels may cause high blood pressure and fluid retention.',
+    whyItMatters:
+      "Sodium balance is crucial for blood pressure and fluid balance. Imbalances can cause serious health problems.",
+    levelMeaning: {
+      low: "Low sodium levels may cause confusion, seizures, and brain swelling.",
+      normal: "Your sodium levels are within the healthy range, supporting good fluid balance and nerve function.",
+      high: "High sodium levels may cause high blood pressure and fluid retention.",
+    },
+    historyData: [138, 139, 140, 138, 141, 139, 142, 140, 139, 141, 140, 141],
+    comparisonData: {
+      allPopulation: 52,
+      ageSexGroup: 55,
+    },
+    tips: [
+      'Limit processed foods which are high in sodium',
+      'Use herbs and spices instead of salt for flavor',
+      'Read food labels to monitor sodium intake',
+      'Stay hydrated to maintain electrolyte balance',
+      'Aim for less than 2,300mg sodium per day',
+    ],
+  },
+  'Chloride': {
+    name: 'Chloride',
+    unit: 'mEq/L',
+    referenceRange: '98-107',
+    category: 'Nutritional Health',
+    organSystem: 'Cardiovascular System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "Chloride helps maintain fluid balance and acid-base balance in your body. It's like the partner that works with sodium to keep everything balanced.",
+    whatItMeans:
+      'Normal levels support fluid balance and acid-base balance. Imbalances may affect kidney function and blood pH.',
+    whyItMatters:
+      "Chloride is essential for maintaining proper fluid balance and blood pH. Imbalances can affect kidney function.",
+    levelMeaning: {
+      low: "Low chloride levels may indicate kidney problems or acid-base imbalances.",
+      normal: "Your chloride levels are within the healthy range, supporting good fluid balance and acid-base balance.",
+      high: "High chloride levels may indicate dehydration or kidney problems.",
+    },
+    historyData: [102, 103, 104, 102, 105, 103, 106, 104, 103, 105, 104, 105],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Maintain proper hydration to support chloride balance',
+      'Eat a balanced diet with adequate electrolytes',
+      'Monitor kidney function if levels are abnormal',
+      'Stay hydrated but avoid overhydration',
+      'Work with your doctor to address any imbalances',
+    ],
+  },
+  'Sulfur': {
+    name: 'Sulfur',
+    unit: 'mg/dL',
+    referenceRange: '0.5-1.5',
+    category: 'Nutritional Health',
+    organSystem: 'Connective Tissue',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Sulfur is essential for making proteins, especially those in your skin, hair, and nails. It's like the building block that helps create strong connective tissues.",
+    whatItMeans:
+      'Normal levels support protein synthesis and connective tissue health. Low levels may affect skin, hair, and joint health.',
+    whyItMatters:
+      "Sulfur is crucial for making collagen, keratin, and other proteins. It's essential for healthy skin, hair, nails, and joints.",
+    levelMeaning: {
+      low: "Low sulfur levels may affect skin, hair, nail, and joint health.",
+      normal: "Your sulfur levels are within the healthy range, supporting good protein synthesis and connective tissue health.",
+      high: "Higher sulfur levels provide excellent support for protein synthesis and connective tissue health.",
+    },
+    historyData: [0.8, 0.9, 1.0, 0.95, 1.1, 1.05, 1.2, 1.15, 1.1, 1.25, 1.2, 1.3],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 65,
+    },
+    tips: [
+      'Eat sulfur-rich foods like eggs, garlic, and cruciferous vegetables',
+      'Include onions, leeks, and shallots in your diet',
+      'Eat adequate protein to support sulfur metabolism',
+      'Consider MSM supplements if levels are low',
+      'Support liver function for proper sulfur metabolism',
+    ],
+  },
+  'Iodine': {
+    name: 'Iodine',
+    unit: 'μg/L',
+    referenceRange: '100-300',
+    category: 'Nutritional Health',
+    organSystem: 'Thyroid',
+    lastTested: 'Dec 15, 2024',
+    percentile: 58,
+    explanation:
+      "Iodine is essential for making thyroid hormones that control your metabolism. It's like the fuel that powers your body's metabolic engine.",
+    whatItMeans:
+      'Normal levels support thyroid function and metabolism. Low levels may cause goiter and hypothyroidism.',
+    whyItMatters:
+      "Iodine is crucial for thyroid function and preventing goiter. Deficiency can cause serious thyroid problems.",
+    levelMeaning: {
+      low: "Low iodine levels may cause goiter, hypothyroidism, and metabolic problems.",
+      normal: "Your iodine levels are within the healthy range, supporting good thyroid function and metabolism.",
+      high: "Higher iodine levels provide excellent support for thyroid function and metabolism.",
+    },
+    historyData: [180, 190, 200, 185, 210, 195, 220, 205, 190, 215, 200, 210],
+    comparisonData: {
+      allPopulation: 58,
+      ageSexGroup: 61,
+    },
+    tips: [
+      'Use iodized salt in cooking',
+      'Eat iodine-rich foods like seafood and seaweed',
+      'Include dairy products in your diet',
+      'Consider iodine supplements if levels are low',
+      'Avoid excessive iodine which can cause thyroid problems',
+    ],
+  },
+  'Selenium': {
+    name: 'Selenium',
+    unit: 'μg/L',
+    referenceRange: '70-150',
+    category: 'Nutritional Health',
+    organSystem: 'Immune System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "Selenium is a powerful antioxidant that supports immune function and thyroid health. It's like the bodyguard that protects your cells and supports your immune system.",
+    whatItMeans:
+      'Normal levels support immune function and antioxidant protection. Low levels may increase infection risk and thyroid problems.',
+    whyItMatters:
+      "Selenium is essential for immune function, thyroid health, and antioxidant protection. Deficiency can cause serious health problems.",
+    levelMeaning: {
+      low: "Low selenium levels may increase infection risk and thyroid problems.",
+      normal: "Your selenium levels are within the healthy range, supporting good immune function and antioxidant protection.",
+      high: "Higher selenium levels provide excellent immune support and antioxidant protection.",
+    },
+    historyData: [95, 100, 105, 102, 110, 108, 115, 112, 108, 118, 115, 120],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 68,
+    },
+    tips: [
+      'Eat selenium-rich foods like Brazil nuts, fish, and poultry',
+      'Include whole grains and eggs in your diet',
+      'Consider selenium supplements if levels are low',
+      'Avoid excessive selenium which can be toxic',
+      'Support immune function with adequate selenium',
+    ],
+  },
+  'Manganese': {
+    name: 'Manganese',
+    unit: 'μg/L',
+    referenceRange: '4-15',
+    category: 'Nutritional Health',
+    organSystem: 'Bone Health',
+    lastTested: 'Dec 15, 2024',
+    percentile: 60,
+    explanation:
+      "Manganese helps your body use nutrients and supports bone health. It's like the assistant that helps other nutrients work properly and keeps your bones strong.",
+    whatItMeans:
+      'Normal levels support bone health and nutrient metabolism. Low levels may affect bone density and nutrient absorption.',
+    whyItMatters:
+      "Manganese is essential for bone formation and nutrient metabolism. Deficiency can affect bone health and nutrient absorption.",
+    levelMeaning: {
+      low: "Low manganese levels may affect bone density and nutrient absorption.",
+      normal: "Your manganese levels are within the healthy range, supporting good bone health and nutrient metabolism.",
+      high: "Higher manganese levels provide excellent support for bone health and nutrient metabolism.",
+    },
+    historyData: [8.5, 9.2, 10.1, 9.8, 11.2, 10.8, 12.1, 11.5, 10.9, 12.3, 11.8, 12.5],
+    comparisonData: {
+      allPopulation: 60,
+      ageSexGroup: 63,
+    },
+    tips: [
+      'Eat manganese-rich foods like nuts, whole grains, and leafy greens',
+      'Include legumes and tea in your diet',
+      'Ensure adequate calcium and vitamin D for bone health',
+      'Avoid excessive manganese which can be toxic',
+      'Support bone health with adequate manganese',
+    ],
+  },
+  'Chromium': {
+    name: 'Chromium',
+    unit: 'μg/L',
+    referenceRange: '0.5-2.0',
+    category: 'Nutritional Health',
+    organSystem: 'Endocrine System',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "Chromium helps your body use insulin and control blood sugar. It's like the key that helps insulin unlock your cells to let sugar in.",
+    whatItMeans:
+      'Normal levels support blood sugar control and insulin function. Low levels may affect blood sugar regulation.',
+    whyItMatters:
+      "Chromium is essential for blood sugar control and insulin function. Deficiency can affect glucose metabolism.",
+    levelMeaning: {
+      low: "Low chromium levels may affect blood sugar control and insulin function.",
+      normal: "Your chromium levels are within the healthy range, supporting good blood sugar control and insulin function.",
+      high: "Higher chromium levels provide excellent support for blood sugar control and insulin function.",
+    },
+    historyData: [1.2, 1.3, 1.4, 1.35, 1.5, 1.45, 1.6, 1.55, 1.5, 1.65, 1.6, 1.7],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Eat chromium-rich foods like broccoli, whole grains, and nuts',
+      'Include lean meats and seafood in your diet',
+      'Consider chromium supplements if levels are low',
+      'Support blood sugar control with adequate chromium',
+      'Work with your doctor to optimize blood sugar control',
+    ],
+  },
+  'Molybdenum': {
+    name: 'Molybdenum',
+    unit: 'μg/L',
+    referenceRange: '0.5-2.0',
+    category: 'Nutritional Health',
+    organSystem: 'Liver',
+    lastTested: 'Dec 15, 2024',
+    percentile: 58,
+    explanation:
+      "Molybdenum helps your body process certain amino acids and supports liver function. It's like the cleaner that helps your liver process waste products.",
+    whatItMeans:
+      'Normal levels support liver function and amino acid metabolism. Low levels may affect liver detoxification.',
+    whyItMatters:
+      "Molybdenum is essential for liver function and amino acid metabolism. Deficiency can affect liver detoxification.",
+    levelMeaning: {
+      low: "Low molybdenum levels may affect liver function and amino acid metabolism.",
+      normal: "Your molybdenum levels are within the healthy range, supporting good liver function and amino acid metabolism.",
+      high: "Higher molybdenum levels provide excellent support for liver function and amino acid metabolism.",
+    },
+    historyData: [1.1, 1.2, 1.3, 1.25, 1.4, 1.35, 1.5, 1.45, 1.4, 1.55, 1.5, 1.6],
+    comparisonData: {
+      allPopulation: 58,
+      ageSexGroup: 61,
+    },
+    tips: [
+      'Eat molybdenum-rich foods like legumes, whole grains, and nuts',
+      'Include leafy greens and dairy products in your diet',
+      'Support liver function with adequate molybdenum',
+      'Avoid excessive molybdenum which can be toxic',
+      'Work with your doctor to optimize liver function',
+    ],
+  },
+  'Fluoride': {
+    name: 'Fluoride',
+    unit: 'mg/L',
+    referenceRange: '0.7-1.2',
+    category: 'Nutritional Health',
+    organSystem: 'Bone Health',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Fluoride helps strengthen your teeth and bones. It's like the reinforcement that makes your teeth and bones harder and more resistant to decay.",
+    whatItMeans:
+      'Normal levels support dental and bone health. Low levels may increase tooth decay risk. High levels may cause dental fluorosis.',
+    whyItMatters:
+      "Fluoride is essential for preventing tooth decay and strengthening bones. Proper levels are crucial for dental health.",
+    levelMeaning: {
+      low: "Low fluoride levels may increase tooth decay risk.",
+      normal: "Your fluoride levels are within the healthy range, supporting good dental and bone health.",
+      high: "High fluoride levels may cause dental fluorosis and bone problems.",
+    },
+    historyData: [0.9, 0.95, 1.0, 0.98, 1.05, 1.02, 1.1, 1.08, 1.05, 1.12, 1.1, 1.15],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 65,
+    },
+    tips: [
+      'Use fluoride toothpaste for dental health',
+      'Drink fluoridated water if available',
+      'Eat fluoride-rich foods like tea and seafood',
+      'Avoid excessive fluoride which can cause fluorosis',
+      'Work with your dentist to optimize dental health',
+    ],
+  },
+  // Additional Skeleton Body Map Biomarkers
+  'Vertebral Fracture Risk (10-yr)': {
+    name: 'Vertebral Fracture Risk (10-yr)',
+    unit: '%',
+    referenceRange: '<10',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 45,
+    explanation:
+      "This calculates your 10-year risk of having a vertebral (spine) fracture. It's like a weather forecast for your spine health over the next decade.",
+    whatItMeans:
+      'Lower percentages indicate lower fracture risk. Above 10% suggests increased risk of spine fractures over the next 10 years.',
+    whyItMatters:
+      "Vertebral fractures can cause severe pain, height loss, and deformity. Early identification of high-risk individuals allows for preventive treatment.",
+    levelMeaning: {
+      low: "Low vertebral fracture risk indicates good spine bone health and low fracture probability.",
+      normal: "Your vertebral fracture risk is within acceptable limits for your age and bone health.",
+      high: "High vertebral fracture risk suggests increased likelihood of spine fractures requiring preventive measures.",
+    },
+    historyData: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    comparisonData: {
+      allPopulation: 45,
+      ageSexGroup: 48,
+    },
+    tips: [
+      'Focus on spine-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Maintain good posture and ergonomics',
+      'Consider bone-building medications if risk is high',
+      'Get regular bone density monitoring',
+    ],
+  },
+  'Spine Z-score (Age-matched)': {
+    name: 'Spine Z-score (Age-matched)',
+    unit: 'SD',
+    referenceRange: '>-2.0',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 60,
+    explanation:
+      "Z-score compares your spine bone density to others your age and gender. It's like seeing how your spine bones compare to your peers.",
+    whatItMeans:
+      'Above -2.0 is normal for your age. Below -2.0 may indicate bone density lower than expected for your age group.',
+    whyItMatters:
+      "Z-score helps identify if bone loss is age-appropriate or if there are underlying conditions causing premature bone loss.",
+    levelMeaning: {
+      low: "Low Z-scores may indicate bone density lower than expected for your age, suggesting underlying health issues.",
+      normal: "Your spine Z-score is appropriate for your age group, indicating normal bone development.",
+      high: "Higher Z-scores indicate better bone density than average for your age group.",
+    },
+    historyData: [-0.8, -0.5, -1.2, -0.7, -1.0, -0.3, -1.5, -0.9, -0.6, -1.1, -0.8, -0.9],
+    comparisonData: {
+      allPopulation: 60,
+      ageSexGroup: 62,
+    },
+    tips: [
+      'Focus on age-appropriate bone health strategies',
+      'Ensure adequate nutrition for bone building',
+      'Stay active with age-appropriate exercises',
+      'Monitor bone health regularly',
+      'Discuss any concerns with your healthcare provider',
+    ],
+  },
+  'Vertebral Height Loss': {
+    name: 'Vertebral Height Loss',
+    unit: '',
+    referenceRange: 'None detected',
+    category: 'Bone Health',
+    organSystem: 'Spine',
+    lastTested: 'Dec 15, 2024',
+    percentile: 85,
+    explanation:
+      "This measures if any of your vertebrae have collapsed or lost height due to fractures. It's like checking if any building floors have collapsed.",
+    whatItMeans:
+      'No height loss indicates healthy vertebrae. Any height loss suggests previous vertebral fractures that may have gone unnoticed.',
+    whyItMatters:
+      "Vertebral height loss is often the first sign of osteoporosis and can cause chronic back pain and deformity.",
+    levelMeaning: {
+      low: "No vertebral height loss indicates healthy spine structure and no compression fractures.",
+      normal: "Your spine shows no signs of vertebral height loss, indicating good bone health.",
+      high: "Vertebral height loss suggests previous fractures and increased risk of future fractures.",
+    },
+    historyData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    comparisonData: {
+      allPopulation: 85,
+      ageSexGroup: 88,
+    },
+    tips: [
+      'Maintain good posture to prevent further compression',
+      'Focus on spine-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Consider bone-building medications if fractures are present',
+      'Get regular spine imaging to monitor changes',
+    ],
+  },
+  'Left Femoral Neck T-score': {
+    name: 'Left Femoral Neck T-score',
+    unit: 'SD',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "T-score compares your left femoral neck bone density to a healthy 30-year-old. The femoral neck is the most common site of hip fractures.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia. Below -2.5 suggests osteoporosis with high hip fracture risk.',
+    whyItMatters:
+      "The femoral neck is the most common site of hip fractures. Early detection of bone loss here is crucial for preventing devastating hip fractures.",
+    levelMeaning: {
+      low: "Low femoral neck T-scores indicate increased risk of hip fractures, which can be life-changing injuries.",
+      normal: "Your left femoral neck T-score is within the healthy range, indicating good bone density and low fracture risk.",
+      high: "Higher T-scores indicate stronger femoral neck bones and lower fracture risk.",
+    },
+    historyData: [-0.8, -0.6, -1.0, -0.7, -0.9, -0.5, -1.1, -0.8, -0.6, -1.0, -0.7, -0.8],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 67,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing activities like walking',
+      'Include balance exercises to prevent falls',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'FRAX Left Hip Risk (10-yr)': {
+    name: 'FRAX Left Hip Risk (10-yr)',
+    unit: '%',
+    referenceRange: '<3',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "FRAX calculates your 10-year risk of hip fracture based on bone density and other risk factors. It's like a personalized fracture risk calculator.",
+    whatItMeans:
+      'Below 3% is low risk. 3-20% is moderate risk. Above 20% is high risk for hip fracture over the next 10 years.',
+    whyItMatters:
+      "FRAX helps determine if you need bone-building medications to prevent hip fractures, which can be devastating and life-changing.",
+    levelMeaning: {
+      low: "Low FRAX risk indicates good hip bone health and low fracture probability.",
+      normal: "Your FRAX hip risk is within acceptable limits for your age and risk factors.",
+      high: "High FRAX risk suggests increased likelihood of hip fractures requiring preventive treatment.",
+    },
+    historyData: [1.5, 1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5, 4.8],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Consider bone-building medications if risk is high',
+      'Maintain good balance to prevent falls',
+      'Get regular bone density monitoring',
+    ],
+  },
+  'Left Hip Z-score': {
+    name: 'Left Hip Z-score',
+    unit: 'SD',
+    referenceRange: '>-2.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Z-score compares your left hip bone density to others your age and gender. It helps identify if hip bone loss is age-appropriate.",
+    whatItMeans:
+      'Above -2.0 is normal for your age. Below -2.0 may indicate hip bone density lower than expected for your age group.',
+    whyItMatters:
+      "Hip Z-score helps determine if hip bone loss is normal aging or if there are underlying conditions affecting hip bone health.",
+    levelMeaning: {
+      low: "Low hip Z-scores may indicate premature hip bone loss or underlying health conditions.",
+      normal: "Your left hip Z-score is appropriate for your age group, indicating normal hip bone development.",
+      high: "Higher Z-scores indicate better hip bone density than average for your age group.",
+    },
+    historyData: [-0.7, -0.4, -1.1, -0.6, -0.9, -0.2, -1.3, -0.8, -0.5, -1.0, -0.7, -0.8],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 64,
+    },
+    tips: [
+      'Focus on hip-specific bone health strategies',
+      'Ensure adequate nutrition for hip bone strength',
+      'Stay active with hip-friendly exercises',
+      'Monitor hip bone health regularly',
+      'Discuss any concerns with your healthcare provider',
+    ],
+  },
+  'Right Femoral Neck T-score': {
+    name: 'Right Femoral Neck T-score',
+    unit: 'SD',
+    referenceRange: '>-1.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 65,
+    explanation:
+      "T-score compares your right femoral neck bone density to a healthy 30-year-old. The femoral neck is the most common site of hip fractures.",
+    whatItMeans:
+      'Above -1.0 is normal. -1.0 to -2.5 indicates osteopenia. Below -2.5 suggests osteoporosis with high hip fracture risk.',
+    whyItMatters:
+      "The femoral neck is the most common site of hip fractures. Early detection of bone loss here is crucial for preventing devastating hip fractures.",
+    levelMeaning: {
+      low: "Low femoral neck T-scores indicate increased risk of hip fractures, which can be life-changing injuries.",
+      normal: "Your right femoral neck T-score is within the healthy range, indicating good bone density and low fracture risk.",
+      high: "Higher T-scores indicate stronger femoral neck bones and lower fracture risk.",
+    },
+    historyData: [-0.6, -0.4, -0.8, -0.5, -0.7, -0.3, -0.9, -0.6, -0.4, -0.8, -0.5, -0.6],
+    comparisonData: {
+      allPopulation: 65,
+      ageSexGroup: 67,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Do weight-bearing activities like walking',
+      'Include balance exercises to prevent falls',
+      'Avoid smoking and excessive alcohol',
+    ],
+  },
+  'FRAX Right Hip Risk (10-yr)': {
+    name: 'FRAX Right Hip Risk (10-yr)',
+    unit: '%',
+    referenceRange: '<3',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 55,
+    explanation:
+      "FRAX calculates your 10-year risk of hip fracture based on bone density and other risk factors. It's like a personalized fracture risk calculator.",
+    whatItMeans:
+      'Below 3% is low risk. 3-20% is moderate risk. Above 20% is high risk for hip fracture over the next 10 years.',
+    whyItMatters:
+      "FRAX helps determine if you need bone-building medications to prevent hip fractures, which can be devastating and life-changing.",
+    levelMeaning: {
+      low: "Low FRAX risk indicates good hip bone health and low fracture probability.",
+      normal: "Your FRAX hip risk is within acceptable limits for your age and risk factors.",
+      high: "High FRAX risk suggests increased likelihood of hip fractures requiring preventive treatment.",
+    },
+    historyData: [1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5],
+    comparisonData: {
+      allPopulation: 55,
+      ageSexGroup: 58,
+    },
+    tips: [
+      'Focus on hip-strengthening exercises',
+      'Ensure adequate calcium and vitamin D',
+      'Consider bone-building medications if risk is high',
+      'Maintain good balance to prevent falls',
+      'Get regular bone density monitoring',
+    ],
+  },
+  'Right Hip Z-score': {
+    name: 'Right Hip Z-score',
+    unit: 'SD',
+    referenceRange: '>-2.0',
+    category: 'Bone Health',
+    organSystem: 'Hip',
+    lastTested: 'Dec 15, 2024',
+    percentile: 62,
+    explanation:
+      "Z-score compares your right hip bone density to others your age and gender. It helps identify if hip bone loss is age-appropriate.",
+    whatItMeans:
+      'Above -2.0 is normal for your age. Below -2.0 may indicate hip bone density lower than expected for your age group.',
+    whyItMatters:
+      "Hip Z-score helps determine if hip bone loss is normal aging or if there are underlying conditions affecting hip bone health.",
+    levelMeaning: {
+      low: "Low hip Z-scores may indicate premature hip bone loss or underlying health conditions.",
+      normal: "Your right hip Z-score is appropriate for your age group, indicating normal hip bone development.",
+      high: "Higher Z-scores indicate better hip bone density than average for your age group.",
+    },
+    historyData: [-0.5, -0.2, -0.8, -0.3, -0.6, -0.1, -1.0, -0.5, -0.2, -0.7, -0.4, -0.5],
+    comparisonData: {
+      allPopulation: 62,
+      ageSexGroup: 64,
+    },
+    tips: [
+      'Focus on hip-specific bone health strategies',
+      'Ensure adequate nutrition for hip bone strength',
+      'Stay active with hip-friendly exercises',
+      'Monitor hip bone health regularly',
+      'Discuss any concerns with your healthcare provider',
     ],
   },
 };

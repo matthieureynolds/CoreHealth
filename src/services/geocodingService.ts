@@ -65,7 +65,11 @@ export const geocodeAddress = async (address: string): Promise<LocationData | nu
     
     // Extract location details from address components
     const addressComponents = result.address_components;
+    // Try to get the most specific location name available
     const city = addressComponents.find(comp => comp.types.includes('locality'))?.long_name || 
+                 addressComponents.find(comp => comp.types.includes('sublocality'))?.long_name ||
+                 addressComponents.find(comp => comp.types.includes('sublocality_level_1'))?.long_name ||
+                 addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name ||
                  addressComponents.find(comp => comp.types.includes('administrative_area_level_1'))?.long_name || 
                  'Unknown City';
     
@@ -120,7 +124,11 @@ export const reverseGeocode = async (latitude: number, longitude: number): Promi
     const result = data.results[0];
     const addressComponents = result.address_components;
     
+    // Try to get the most specific location name available
     const city = addressComponents.find(comp => comp.types.includes('locality'))?.long_name || 
+                 addressComponents.find(comp => comp.types.includes('sublocality'))?.long_name ||
+                 addressComponents.find(comp => comp.types.includes('sublocality_level_1'))?.long_name ||
+                 addressComponents.find(comp => comp.types.includes('administrative_area_level_2'))?.long_name ||
                  addressComponents.find(comp => comp.types.includes('administrative_area_level_1'))?.long_name || 
                  'Unknown City';
     

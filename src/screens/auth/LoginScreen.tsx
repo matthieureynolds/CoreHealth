@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useOnboarding } from '../../hooks/useOnboarding';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types';
 
@@ -34,6 +35,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [error, setError] = useState('');
 
   const { signIn, signUp, signInWithGoogle, isLoading: authLoading } = useAuth();
+  const { resetOnboarding } = useOnboarding();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -174,6 +176,17 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
+          {/* Temporary Reset Onboarding Button */}
+          <TouchableOpacity
+            style={[styles.button, styles.resetButton]}
+            onPress={async () => {
+              await resetOnboarding();
+              Alert.alert('Onboarding Reset', 'Please restart the app to see the onboarding screen');
+            }}
+          >
+            <Text style={styles.resetButtonText}>Reset Onboarding (Test)</Text>
+          </TouchableOpacity>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -303,9 +316,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   googleButton: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#DB4437', // Official Google red
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#DB4437',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -328,6 +341,15 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     fontSize: 14,
     fontWeight: '500',
+  },
+  resetButton: {
+    backgroundColor: '#FF9500',
+    marginTop: 16,
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

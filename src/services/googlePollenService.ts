@@ -144,7 +144,7 @@ export const getGooglePollenData = async (
       return null;
     }
 
-    const url = `https://pollen.googleapis.com/v1/forecast:lookup?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
+    const url = `${API_CONFIG.GOOGLE_POLLEN_BASE_URL}${API_CONFIG.GOOGLE_POLLEN_ENDPOINT}?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
     
     const requestBody = {
       location: {

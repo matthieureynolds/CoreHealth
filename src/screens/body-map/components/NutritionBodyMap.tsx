@@ -8,8 +8,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import NutritionModal, { NutritionInfo } from '../../../components/common/NutritionModal';
-import { getNutritionInfo } from '../../../data/nutritionDatabase';
+import BiomarkerModal from '../../../components/common/BiomarkerModal';
+import { getBiomarkerInfo } from '../../../data/biomarkerDatabase';
 
 interface NutritionItem {
   name: string;
@@ -297,7 +297,7 @@ const { width, height } = Dimensions.get('window');
 const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
   onNutritionItemPress,
 }) => {
-  const [selectedNutrition, setSelectedNutrition] = useState<NutritionInfo | null>(null);
+  const [selectedBiomarker, setSelectedBiomarker] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -350,9 +350,13 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
                 key={`vitamin-${index}`}
                 style={styles.biomarkerItem}
                 onPress={() => {
-                  const nutritionInfo = getNutritionInfo(item.name);
-                  if (nutritionInfo) {
-                    setSelectedNutrition(nutritionInfo);
+                  const biomarkerInfo = getBiomarkerInfo(
+                    item.name,
+                    item.value,
+                    item.status === 'normal' ? 'normal' : item.status
+                  );
+                  if (biomarkerInfo) {
+                    setSelectedBiomarker(biomarkerInfo);
                     setModalVisible(true);
                   }
                 }}
@@ -384,9 +388,13 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
                 key={`major-${index}`}
                 style={styles.biomarkerItem}
                 onPress={() => {
-                  const nutritionInfo = getNutritionInfo(item.name);
-                  if (nutritionInfo) {
-                    setSelectedNutrition(nutritionInfo);
+                  const biomarkerInfo = getBiomarkerInfo(
+                    item.name,
+                    item.value,
+                    item.status === 'normal' ? 'normal' : item.status
+                  );
+                  if (biomarkerInfo) {
+                    setSelectedBiomarker(biomarkerInfo);
                     setModalVisible(true);
                   }
                 }}
@@ -418,9 +426,13 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
                 key={`trace-${index}`}
                 style={styles.biomarkerItem}
                 onPress={() => {
-                  const nutritionInfo = getNutritionInfo(item.name);
-                  if (nutritionInfo) {
-                    setSelectedNutrition(nutritionInfo);
+                  const biomarkerInfo = getBiomarkerInfo(
+                    item.name,
+                    item.value,
+                    item.status === 'normal' ? 'normal' : item.status
+                  );
+                  if (biomarkerInfo) {
+                    setSelectedBiomarker(biomarkerInfo);
                     setModalVisible(true);
                   }
                 }}
@@ -442,13 +454,13 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
         </View>
       </View>
 
-      {/* Nutrition Modal */}
-      <NutritionModal
+      {/* Biomarker Modal */}
+      <BiomarkerModal
         visible={modalVisible}
-        nutrition={selectedNutrition}
+        biomarker={selectedBiomarker}
         onClose={() => {
           setModalVisible(false);
-          setSelectedNutrition(null);
+          setSelectedBiomarker(null);
         }}
       />
     </View>

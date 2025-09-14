@@ -198,8 +198,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) throw error;
 
-      // For testing: signup successful, user can login immediately
-      console.log('✅ User signup successful, can login immediately:', email);
+      // Send verification email with 6-digit code
+      const { error: verifyError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+
+      if (verifyError) {
+        console.error('Error sending verification email:', verifyError);
+        // Don't throw error here, user can still proceed to verification screen
+      }
+
+      console.log('✅ User signup successful, verification email sent:', email);
+      return { success: true, user: data.user };
     } catch (error: any) {
       console.error('Sign up error:', error);
       throw new Error(error.message);

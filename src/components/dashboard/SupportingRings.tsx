@@ -38,7 +38,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<RingMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
   
   // Animation values for each ring
   const animatedRecovery = useRef(new Animated.Value(0)).current;
@@ -50,60 +49,33 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   const radius = (ringSize - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
 
-  // Animation effect - runs first, before main health score
-  useEffect(() => {
-    if (!hasAnimated) {
-      // Reset animations
-      animatedRecovery.setValue(0);
-      animatedBiomarkers.setValue(0);
-      animatedLifestyle.setValue(0);
+  // Ensure we never have 0 values when we should have actual scores
+  const safeRecovery = recovery ?? 85;
+  const safeBiomarkers = biomarkers ?? 75;
+  const safeLifestyle = lifestyle ?? 75;
 
-      // Animate all rings simultaneously
-      Animated.parallel([
-        Animated.timing(animatedRecovery, {
-          toValue: recovery,
-          duration: 1200, // Faster than main score
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedBiomarkers, {
-          toValue: biomarkers,
-          duration: 1200,
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedLifestyle, {
-          toValue: lifestyle,
-          duration: 1200,
-          useNativeDriver: false,
-        }),
-      ]).start(() => {
-        // Ensure final values are set and mark as animated
-        animatedRecovery.setValue(recovery);
-        animatedBiomarkers.setValue(biomarkers);
-        animatedLifestyle.setValue(lifestyle);
-        setHasAnimated(true);
-      });
-    } else {
-      // If already animated, ensure values are set correctly
-      animatedRecovery.setValue(recovery);
-      animatedBiomarkers.setValue(biomarkers);
-      animatedLifestyle.setValue(lifestyle);
-    }
-  }, [recovery, biomarkers, lifestyle, hasAnimated]);
+  // Debug logging
+  console.log('🔄 SupportingRings render:', { 
+    recovery, 
+    safeRecovery, 
+    biomarkers, 
+    safeBiomarkers, 
+    lifestyle, 
+    safeLifestyle 
+  });
 
-  // Ensure final values are maintained after animation
+  // Set animation values directly - no complex state management
   useEffect(() => {
-    if (hasAnimated) {
-      animatedRecovery.setValue(recovery);
-      animatedBiomarkers.setValue(biomarkers);
-      animatedLifestyle.setValue(lifestyle);
-    }
-  }, [recovery, biomarkers, lifestyle, hasAnimated]);
+    animatedRecovery.setValue(safeRecovery);
+    animatedBiomarkers.setValue(safeBiomarkers);
+    animatedLifestyle.setValue(safeLifestyle);
+  }, [safeRecovery, safeBiomarkers, safeLifestyle]);
 
   const metrics: RingMetric[] = [
     {
       id: 'recovery',
       title: 'RECOVERY',
-      value: recovery,
+      value: safeRecovery,
       color: '#30D158',
       icon: 'refresh',
       subtitle: 'Sleep & HRV'
@@ -111,7 +83,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
     {
       id: 'biomarkers',
       title: 'BIOMARKERS',
-      value: biomarkers,
+      value: safeBiomarkers,
       color: '#007AFF',
       icon: 'water',
       subtitle: 'Lab Results'
@@ -119,7 +91,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
     {
       id: 'lifestyle',
       title: 'LIFESTYLE',
-      value: lifestyle,
+      value: safeLifestyle,
       color: '#FF9F0A',
       icon: 'fitness',
       subtitle: 'Activity & Habits'
@@ -171,6 +143,93 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
       default:
         return [];
     }
+  };
+
+  const getPrettyMetricName = (metric?: RingMetric | null): string => {
+    if (!metric) return '';
+    switch (metric.id) {
+      case 'recovery':
+        return 'Recovery';
+      case 'biomarkers':
+        return 'Biomarkers';
+      case 'lifestyle':
+        return 'Lifestyle';
+      default: {
+        const lower = metric.title?.toLowerCase?.() || '';
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      }
+    }
+  };
+
+  const renderMetricDistributionCurve = (metric: RingMetric) => {
+    const chartWidth = 380; // keep width within modal maxWidth
+    const chartHeight = 74; // ~additional 15% shorter
+    const padding = 20;
+    const curveWidth = chartWidth - (padding * 2);
+    const curveHeight = chartHeight - (padding * 2);
+
+    const mean = 50;
+    const stdDev = 28; // ~additional 15% wider than before
+    const amplitude = 0.245; // ~additional 15% flatter (0.288 * 0.85)
+
+    // Build bell curve points across 0..100
+    const points: { x: number; y: number }[] = [];
+    for (let x = 0; x <= curveWidth; x += 2) {
+      const normalizedX = (x / curveWidth) * 100;
+      const yVal = Math.exp(-0.5 * Math.pow((normalizedX - mean) / stdDev, 2));
+      const chartY = curveHeight - (yVal * curveHeight * amplitude) - 10;
+      points.push({ x: x + padding, y: chartY });
+    }
+
+    const pathData = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+
+    // User marker position by value (0-100)
+    const userPosition = (Math.max(0, Math.min(metric.value, 100)) / 100) * curveWidth;
+    const userNormalizedX = (userPosition / curveWidth) * 100;
+    const userYVal = Math.exp(-0.5 * Math.pow((userNormalizedX - mean) / stdDev, 2));
+    const userChartY = curveHeight - (userYVal * curveHeight * amplitude) - 10;
+
+    // Build tail path (from user x to end)
+    const tailPoints = points.filter(p => p.x >= userPosition + padding);
+    const tailPathData = tailPoints.length > 0
+      ? `M ${[ { x: userPosition + padding, y: userChartY }, ...tailPoints ].map(p => `${p.x},${p.y}`).join(' L ')}`
+      : '';
+
+    return (
+      <Svg width={chartWidth} height={chartHeight}>
+        {/* Main curve in white */}
+        <Path d={pathData} stroke="#FFFFFF" strokeWidth="2" fill="none" />
+
+        {/* Mean dashed line at 50 */}
+        <Path
+          d={`M ${padding + curveWidth/2},${padding} L ${padding + curveWidth/2},${curveHeight - 10}`}
+          stroke="#8E8E93"
+          strokeWidth="1"
+          strokeDasharray="4,6"
+          opacity="0.6"
+        />
+
+        {/* Colored tail after user's position */}
+        {tailPathData !== '' && (
+          <Path d={tailPathData} stroke={metric.color} strokeWidth="2" fill="none" />
+        )}
+
+        {/* User marker */}
+        <Circle
+          cx={userPosition + padding}
+          cy={userChartY}
+          r="5"
+          fill="#FFFFFF"
+          stroke={metric.color}
+          strokeWidth="2"
+        />
+
+        {/* X-axis labels */}
+        <SvgText x={padding} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="start">0</SvgText>
+        <SvgText x={padding + curveWidth/2} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="middle">50</SvgText>
+        <SvgText x={padding + curveWidth} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="end">100</SvgText>
+      </Svg>
+    );
   };
 
   // Create animated ring component
@@ -280,13 +339,13 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectedMetric?.title} Score</Text>
               <TouchableOpacity 
                 onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
+                style={styles.closeButtonLeft}
               >
-                <Ionicons name="close" size={24} color="#8E8E93" />
+                <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
+              <Text style={styles.modalTitle}>{getPrettyMetricName(selectedMetric)} Score Details</Text>
             </View>
             
             {selectedMetric && (
@@ -305,45 +364,24 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
                 <View style={styles.section}>
                   <Text style={styles.modalSectionTitle}>Distribution</Text>
                   <View style={styles.distributionContainer}>
-                    <Svg height="120" width="100%">
-                      {/* Bell curve distribution */}
-                      <Path
-                        d="M 20 100 Q 50 20 80 100 Q 110 20 140 100 Q 170 20 200 100 Q 230 20 260 100 Q 290 20 320 100"
-                        stroke={selectedMetric.color}
-                        strokeWidth="3"
-                        fill="none"
-                      />
-                      {/* User's position marker */}
-                      <Circle
-                        cx={20 + (selectedMetric.value / 100) * 300}
-                        cy={100 - (selectedMetric.value / 100) * 60}
-                        r="6"
-                        fill={selectedMetric.color}
-                        stroke="#FFFFFF"
-                        strokeWidth="2"
-                      />
-                      {/* X-axis labels */}
-                      <SvgText x="20" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">0</SvgText>
-                      <SvgText x="170" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">50</SvgText>
-                      <SvgText x="320" y="115" fontSize="12" fill="#8E8E93" textAnchor="middle">100</SvgText>
-                    </Svg>
+                    {renderMetricDistributionCurve(selectedMetric)}
                     <Text style={styles.distributionText}>
-                      You're in the {Math.round(selectedMetric.value)}th percentile
+                      {Math.round(selectedMetric.value)}th percentile
                     </Text>
                   </View>
                 </View>
 
                 {/* Description Section */}
                 <View style={styles.section}>
-                  <Text style={styles.modalSectionTitle}>What This Means</Text>
-                  <Text style={styles.descriptionText}>
+                  <Text style={styles.modalSectionTitle}>What This Means:</Text>
+                  <Text style={styles.descriptionTextJustified}>
                     {getMetricDescription(selectedMetric)}
                   </Text>
                 </View>
 
                 {/* How It's Measured Section */}
                 <View style={styles.section}>
-                  <Text style={styles.modalSectionTitle}>How It's Measured</Text>
+                  <Text style={styles.modalSectionTitle}>How It's Measured:</Text>
                   {getMetricDetails(selectedMetric).map((detail, index) => (
                     <View key={index} style={styles.measurementItem}>
                       <Ionicons name={detail.icon as any} size={20} color={detail.color} />
@@ -456,7 +494,7 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
@@ -466,8 +504,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    textAlign: 'center',
   },
   closeButton: {
+    padding: 4,
+  },
+  closeButtonLeft: {
+    position: 'absolute',
+    left: 16,
+    top: 16,
     padding: 4,
   },
   modalBody: {
@@ -527,6 +572,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     lineHeight: 24,
+  },
+  descriptionTextJustified: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    lineHeight: 24,
+    textAlign: 'justify',
   },
   measurementItem: {
     flexDirection: 'row',

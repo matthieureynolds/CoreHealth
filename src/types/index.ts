@@ -231,6 +231,11 @@ export interface TravelHealth {
   medicationAvailability?: MedicationAvailability[];
   travelMedicationKit?: TravelMedicationKit;
   overallRiskLevel: RiskLevel;
+  // Nearest medical facilities
+  nearestHospital?: string;
+  nearestPharmacy?: string;
+  nearestHospitalData?: any;
+  nearestPharmacyData?: any;
 }
 
 export interface HealthcareFacilities {
@@ -322,10 +327,17 @@ export type RootStackParamList = {
 };
 
 export type AuthStackParamList = {
+  Onboarding: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
-  EmailVerification: undefined;
+  EmailSent: { email: string };
+  EmailVerification: { email: string };
+  PersonalInfo: undefined;
+  MedicalDocuments: undefined;
+  DeviceConnection: undefined;
+  Permissions: undefined;
+  FinishOnboarding: undefined;
 };
 
 export type MainTabParamList = {

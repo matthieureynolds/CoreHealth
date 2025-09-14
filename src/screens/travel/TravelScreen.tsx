@@ -8,6 +8,7 @@ import { useHealthData } from '../../context/HealthDataContext';
 import { useSettings } from '../../context/SettingsContext';
 import JetLagPlanningCard from '../../components/dashboard/JetLagPlanningCard';
 import { JetLagPlanningEvent } from '../../types';
+import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../services/citySearchService';
 
 interface Trip {
   id: string;
@@ -48,28 +49,8 @@ interface HealthMetric {
   icon: string;
 }
 
-const popularCities = [
-  'Tokyo, Japan',
-  'Paris, France',
-  'New York, USA',
-  'London, UK',
-  'Sydney, Australia',
-  'Bangkok, Thailand',
-  'Singapore',
-  'Dubai, UAE',
-  'Hong Kong',
-  'Barcelona, Spain',
-  'Rome, Italy',
-  'Amsterdam, Netherlands',
-  'Vienna, Austria',
-  'Prague, Czech Republic',
-  'Budapest, Hungary',
-  'Copenhagen, Denmark',
-  'Stockholm, Sweden',
-  'Oslo, Norway',
-  'Helsinki, Finland',
-  'Reykjavik, Iceland'
-];
+// Get popular cities from service
+const popularCities = getPopularCities();
 
 const TravelScreen: React.FC = () => {
   const { settings } = useSettings();
@@ -93,7 +74,9 @@ const TravelScreen: React.FC = () => {
   const [showInlineSuggestions, setShowInlineSuggestions] = useState(false);
   // Inline search (no modal)
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
+  const [citySearchResults, setCitySearchResults] = useState<CitySearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearchingCities, setIsSearchingCities] = useState(false);
   const [apiErrors, setApiErrors] = useState<{
     airQuality?: string;
     pollen?: string;
@@ -188,7 +171,7 @@ const TravelScreen: React.FC = () => {
       value: 'Low',
       status: 'good',
       description: 'Sea level - No altitude sickness risk',
-      icon: 'trending-up'
+      icon: 'mountain-outline'
     },
     {
       name: 'Disease Outbreaks',
@@ -208,80 +191,142 @@ const TravelScreen: React.FC = () => {
     }
   }, [travelHealth]);
 
-  // Filter cities based on search input
+  // Search cities using API
   useEffect(() => {
-    if (searchLocation.trim()) {
+    const searchCitiesAsync = async () => {
+      if (searchLocation.trim() && searchLocation.length >= 2) {
+        setIsSearchingCities(true);
+        try {
+          const results = await searchAllLocations(searchLocation, 15);
+          setCitySearchResults(results);
+          // Also filter popular cities for fallback
       const filtered = popularCities.filter(city =>
         city.toLowerCase().includes(searchLocation.toLowerCase())
       );
       setFilteredCities(filtered);
+        } catch (error) {
+          console.error('Error searching locations:', error);
+          // Fallback to popular cities filter
+          const filtered = popularCities.filter(city =>
+            city.toLowerCase().includes(searchLocation.toLowerCase())
+          );
+          setFilteredCities(filtered);
+        } finally {
+          setIsSearchingCities(false);
+        }
     } else {
+        setCitySearchResults([]);
       setFilteredCities([]);
     }
+    };
+
+    const timeoutId = setTimeout(searchCitiesAsync, 300); // Debounce search
+    return () => clearTimeout(timeoutId);
   }, [searchLocation]);
 
-  // Filter trip destination suggestions
+  // Search trip destination suggestions using API
   useEffect(() => {
-    if (newTripDestination.trim()) {
+    const searchTripDestinationsAsync = async () => {
+      if (newTripDestination.trim() && newTripDestination.length >= 2) {
+        console.log('🔍 Searching for trip destination:', newTripDestination);
+        try {
+          const results = await searchAllLocations(newTripDestination, 12);
+          console.log('🔍 Search results:', results);
+          const cityNames = results.map(city => `${city.name}, ${city.country}`);
+          console.log('🔍 City names:', cityNames);
+          setTripSuggestions(cityNames);
+        } catch (error) {
+          console.error('Error searching trip destinations:', error);
+          // Fallback to popular cities filter
       const filtered = popularCities.filter(city =>
         city.toLowerCase().includes(newTripDestination.toLowerCase())
       );
-      if (filtered.length === 1 && filtered[0].toLowerCase() === newTripDestination.toLowerCase()) {
-        setTripSuggestions([]);
-      } else {
+      console.log('🔍 Fallback suggestions:', filtered);
       setTripSuggestions(filtered);
       }
       } else {
+      console.log('🔍 Clearing trip suggestions - query too short');
       setTripSuggestions([]);
     }
+    };
+
+    const timeoutId = setTimeout(searchTripDestinationsAsync, 300);
+    return () => clearTimeout(timeoutId);
   }, [newTripDestination]);
 
-  // Filter departure location suggestions
+  // Search departure location suggestions using API
   useEffect(() => {
-    if (newTripDepartureLocation.trim()) {
+    const searchDepartureLocationsAsync = async () => {
+      if (newTripDepartureLocation.trim() && newTripDepartureLocation.length >= 2) {
+        try {
+          const results = await searchAllLocations(newTripDepartureLocation, 12);
+          const cityNames = results.map(city => `${city.name}, ${city.country}`);
+          setDepartureSuggestions(cityNames);
+        } catch (error) {
+          console.error('Error searching departure locations:', error);
+          // Fallback to popular cities filter
       const filtered = popularCities.filter(city =>
         city.toLowerCase().includes(newTripDepartureLocation.toLowerCase())
       );
-      if (filtered.length === 1 && filtered[0].toLowerCase() === newTripDepartureLocation.toLowerCase()) {
-        setDepartureSuggestions([]);
-      } else {
       setDepartureSuggestions(filtered);
       }
     } else {
       setDepartureSuggestions([]);
     }
+    };
+
+    const timeoutId = setTimeout(searchDepartureLocationsAsync, 300);
+    return () => clearTimeout(timeoutId);
   }, [newTripDepartureLocation]);
 
-  // Filter edit trip destination suggestions
+  // Search edit trip destination suggestions using API
   useEffect(() => {
-    if (editTripDestination.trim()) {
+    const searchEditTripDestinationsAsync = async () => {
+      if (editTripDestination.trim() && editTripDestination.length >= 2) {
+        try {
+          const results = await searchAllLocations(editTripDestination, 12);
+          const cityNames = results.map(city => `${city.name}, ${city.country}`);
+          setEditTripSuggestions(cityNames);
+        } catch (error) {
+          console.error('Error searching edit trip destinations:', error);
+          // Fallback to popular cities filter
       const filtered = popularCities.filter(city =>
         city.toLowerCase().includes(editTripDestination.toLowerCase())
       );
-      if (filtered.length === 1 && filtered[0].toLowerCase() === editTripDestination.toLowerCase()) {
-        setEditTripSuggestions([]);
-      } else {
       setEditTripSuggestions(filtered);
       }
     } else {
       setEditTripSuggestions([]);
     }
+    };
+
+    const timeoutId = setTimeout(searchEditTripDestinationsAsync, 300);
+    return () => clearTimeout(timeoutId);
   }, [editTripDestination]);
 
-  // Filter edit trip departure location suggestions
+  // Search edit trip departure location suggestions using API
   useEffect(() => {
-    if (editTripDepartureLocation.trim()) {
-      const filtered = popularCities.filter(city =>
-        city.toLowerCase().includes(editTripDepartureLocation.toLowerCase())
-      );
-      if (filtered.length === 1 && filtered[0].toLowerCase() === editTripDepartureLocation.toLowerCase()) {
-        setEditTripDepartureSuggestions([]);
-      } else {
-      setEditTripDepartureSuggestions(filtered);
-      }
+    const searchEditDepartureLocationsAsync = async () => {
+      if (editTripDepartureLocation.trim() && editTripDepartureLocation.length >= 2) {
+        try {
+          const results = await searchAllLocations(editTripDepartureLocation, 12);
+          const cityNames = results.map(city => `${city.name}, ${city.country}`);
+          setEditTripDepartureSuggestions(cityNames);
+        } catch (error) {
+          console.error('Error searching edit departure locations:', error);
+          // Fallback to popular cities filter
+          const filtered = popularCities.filter(city =>
+            city.toLowerCase().includes(editTripDepartureLocation.toLowerCase())
+          );
+          setEditTripDepartureSuggestions(filtered);
+        }
     } else {
       setEditTripDepartureSuggestions([]);
     }
+    };
+
+    const timeoutId = setTimeout(searchEditDepartureLocationsAsync, 300);
+    return () => clearTimeout(timeoutId);
   }, [editTripDepartureLocation]);
 
   const handleRefresh = async () => {
@@ -542,8 +587,14 @@ const TravelScreen: React.FC = () => {
     }
   };
 
-  // Fixed, muted pastel icon colors per metric (do not vary with score)
-  const getMetricFixedIconColor = (metricId: string): string => {
+  // Status-based icon colors that match the health status
+  const getMetricFixedIconColor = (metricId: string, status?: string): string => {
+    // Use status-based colors if status is provided
+    if (status) {
+      return getStatusColor(status);
+    }
+    
+    // Fallback to fixed colors for backward compatibility
     switch (metricId) {
       case 'air_quality':
         return '#A1A1A6'; // Grey
@@ -1383,12 +1434,10 @@ const TravelScreen: React.FC = () => {
                     value={searchLocation}
                     onChangeText={(text) => {
                       setSearchLocation(text);
+                      // The useEffect will handle the API search automatically
                       if (text.trim()) {
-                        const filtered = popularCities.filter(city => city.toLowerCase().includes(text.toLowerCase()));
-                        setFilteredCities(filtered.slice(0, 8));
                         setShowInlineSuggestions(true);
                       } else {
-                        setFilteredCities([]);
                         setShowInlineSuggestions(false);
                       }
                     }}
@@ -1459,9 +1508,42 @@ const TravelScreen: React.FC = () => {
                     )}
                   </TouchableOpacity>
                         )}
-                        {filteredCities.length > 0 && filteredCities.map((city, index) => (
+                        {(citySearchResults.length > 0 || filteredCities.length > 0) && (
+                          <View style={styles.suggestionsContainer}>
+                            {isSearchingCities && (
+                              <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="small" color="#007AFF" />
+                                <Text style={styles.loadingText}>Searching cities...</Text>
+                              </View>
+                            )}
+                            
+                            {/* API Search Results */}
+                            {citySearchResults.length > 0 && citySearchResults.map((city, index) => (
                           <TouchableOpacity 
-                            key={index}
+                                key={`api-${city.placeId}`}
+                                style={[styles.suggestionItem, index < citySearchResults.length - 1 ? styles.suggestionItemDivider : null]}
+                                onPress={() => {
+                                  setShowInlineSuggestions(false);
+                                  const cityName = `${city.name}, ${city.country}`;
+                                  setSearchLocation(cityName);
+                                  setCitySearchResults([]);
+                                  setFilteredCities([]);
+                                  handleLocationSelect(cityName);
+                                  Keyboard.dismiss();
+                                }}
+                              >
+                                <Ionicons name="location" size={16} color="#007AFF" />
+                                <View style={styles.suggestionContent}>
+                                  <Text style={styles.suggestionText}>{city.name}</Text>
+                                  <Text style={styles.suggestionSubtext}>{city.country}</Text>
+                                </View>
+                              </TouchableOpacity>
+                            ))}
+                            
+                            {/* Popular Cities Fallback */}
+                            {citySearchResults.length === 0 && filteredCities.length > 0 && filteredCities.map((city, index) => (
+                              <TouchableOpacity 
+                                key={`popular-${index}`}
                             style={[styles.suggestionItem, index < filteredCities.length - 1 ? styles.suggestionItemDivider : null]}
                             onPress={() => {
                               setShowInlineSuggestions(false);
@@ -1471,10 +1553,12 @@ const TravelScreen: React.FC = () => {
                               Keyboard.dismiss();
                             }}
                           >
-                            <Ionicons name="location" size={16} color="#007AFF" />
+                                <Ionicons name="location" size={16} color="#8E8E93" />
                             <Text style={styles.suggestionText}>{city}</Text>
                           </TouchableOpacity>
                         ))}
+                          </View>
+                        )}
                       </ScrollView>
                 </View>
                   )}
@@ -1531,8 +1615,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Air Quality */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'air_quality', label: 'Air Quality', status: 'moderate', score: getMetricScore('Air Quality') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('air_quality')}20` }]}> 
-                       <Ionicons name="cloud" size={20} color={getMetricFixedIconColor('air_quality')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('air_quality', 'moderate')}20` }]}> 
+                       <Ionicons name="cloud-outline" size={20} color={getMetricFixedIconColor('air_quality', 'moderate')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Air Quality</Text>
@@ -1546,8 +1630,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Water Safety */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'water_safety', label: 'Water Safety', status: 'good', score: getMetricScore('Water Safety') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('water_safety')}20` }]}> 
-                      <Ionicons name="water" size={20} color={getMetricFixedIconColor('water_safety')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('water_safety', 'good')}20` }]}> 
+                      <Ionicons name="water-outline" size={20} color={getMetricFixedIconColor('water_safety', 'good')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Water Safety</Text>
@@ -1561,8 +1645,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* UV Index */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'uv_index', label: 'UV Index', status: 'moderate', score: getMetricScore('UV Index') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('uv_index')}20` }]}> 
-                      <Ionicons name="sunny" size={20} color={getMetricFixedIconColor('uv_index')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('uv_index', 'moderate')}20` }]}> 
+                      <Ionicons name="sunny" size={20} color={getMetricFixedIconColor('uv_index', 'moderate')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>UV Index</Text>
@@ -1576,8 +1660,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Food Safety */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'food_safety', label: 'Food Safety', status: 'good', score: getMetricScore('Food Safety') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('food_safety')}20` }]}> 
-                      <Ionicons name="restaurant" size={20} color={getMetricFixedIconColor('food_safety')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('food_safety', 'good')}20` }]}> 
+                      <Ionicons name="restaurant" size={20} color={getMetricFixedIconColor('food_safety', 'good')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Food Safety</Text>
@@ -1591,8 +1675,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Pollen Level */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'pollen', label: 'Pollen', status: 'moderate', score: getMetricScore('Pollen Level') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('pollen')}20` }]}> 
-                       <Ionicons name="leaf" size={20} color={getMetricFixedIconColor('pollen')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('pollen', 'moderate')}20` }]}> 
+                       <Ionicons name="flower-outline" size={20} color={getMetricFixedIconColor('pollen', 'moderate')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Pollen</Text>
@@ -1606,8 +1690,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Altitude */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'altitude', label: 'Altitude', status: 'good', score: getMetricScore('Altitude') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('altitude')}20` }]}> 
-                      <Ionicons name="trending-up" size={20} color={getMetricFixedIconColor('altitude')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
+                      <Ionicons name="mountain-outline" size={20} color={getStatusColor('good')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Altitude</Text>
@@ -1621,8 +1705,8 @@ const TravelScreen: React.FC = () => {
                   
                   {/* Disease Outbreaks */}
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'outbreaks', label: 'Disease Outbreaks', status: 'good', score: getMetricScore('Disease Outbreaks') }); setMetricModalVisible(true); }}>
-                     <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('outbreaks')}20` }]}> 
-                      <Ionicons name="medical" size={20} color={getMetricFixedIconColor('outbreaks')} />
+                     <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
+                      <Ionicons name="bug-outline" size={20} color={getStatusColor('good')} />
                     </View>
                     <View style={styles.metricContent}>
                       <Text style={styles.metricName}>Disease Outbreaks</Text>
@@ -2032,11 +2116,13 @@ const TravelScreen: React.FC = () => {
               />
               {tripSuggestions.length > 0 && (
                 <View style={styles.suggestionsContainer}>
+                  {console.log('🔍 Rendering suggestions:', tripSuggestions)}
                   {tripSuggestions.slice(0, 5).map((city, index) => (
                     <TouchableOpacity
                       key={index}
                       style={styles.suggestionItem}
                       onPress={() => {
+                        console.log('🔍 Selected suggestion:', city);
                         setNewTripDestination(city);
                         setTripSuggestions([]);
                         Keyboard.dismiss();
@@ -2352,7 +2438,7 @@ const TravelScreen: React.FC = () => {
           <View style={styles.modalContainerDetailed}>
             <View style={styles.modalHeaderDetailed}>
               <View style={[styles.modalIconCircleDetailed, { backgroundColor: `${getStatusColor(selectedMetric.status)}20` }]}>
-                <Ionicons name={selectedMetric.id === 'pollen' ? 'leaf' : selectedMetric.id === 'uv_index' ? 'sunny' : selectedMetric.id === 'air_quality' ? 'cloud' : 'information-circle'} size={32} color={getStatusColor(selectedMetric.status)} />
+                <Ionicons name={selectedMetric.id === 'pollen' ? 'flower-outline' : selectedMetric.id === 'uv_index' ? 'sunny' : selectedMetric.id === 'air_quality' ? 'cloud-outline' : selectedMetric.id === 'water_safety' ? 'water-outline' : selectedMetric.id === 'outbreaks' ? 'bug-outline' : selectedMetric.id === 'altitude' ? 'mountain-outline' : 'information-circle'} size={32} color={getStatusColor(selectedMetric.status)} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.modalTitleDetailed}>{selectedMetric.label}</Text>
@@ -2891,6 +2977,34 @@ const styles = StyleSheet.create({
   suggestionItemDivider: {
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A3C',
+  },
+  suggestionsContainer: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 220,
+    overflow: 'hidden',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
+  },
+  loadingText: {
+    color: '#8E8E93',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  suggestionContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  suggestionSubtext: {
+    color: '#8E8E93',
+    fontSize: 12,
+    marginTop: 2,
   },
   suggestionText: {
     fontSize: 16,
