@@ -172,7 +172,7 @@ const CirculationBodyMap: React.FC<CirculationBodyMapProps> = ({
     <View style={styles.container}>
       <View style={styles.bodyOutline}>
         <Image
-          source={require('../../../../assets/circulation body.png')}
+          source={require('../../../../assets/circulation_body.png')}
           style={styles.circulationImage}
           resizeMode="contain"
         />

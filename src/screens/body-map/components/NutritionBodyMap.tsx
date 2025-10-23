@@ -470,14 +470,9 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
-    paddingHorizontal: 20,
-    paddingTop: 20,
   },
   mainContent: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
   },
   header: {
     marginBottom: 32,

@@ -16,3 +16,9 @@ export { default as MedicalDocumentsScreen } from './onboarding/MedicalDocuments
 export { default as DeviceConnectionScreen } from './onboarding/DeviceConnectionScreen';
 export { default as PermissionsScreen } from './onboarding/PermissionsScreen';
 export { default as FinishOnboardingScreen } from './onboarding/FinishOnboardingScreen';
+
+// Profile screens - moved to src/features/profile/
+// export { default as LifestyleSettingsScreen } from '../features/profile/LifestyleSettingsScreen';
+// export { default as LifestyleInfoScreen } from '../features/profile/LifestyleInfoScreen';
+// export { default as CommunityLeaderboardScreen } from '../features/profile/CommunityLeaderboardScreen';
+// export { default as SymptomRegisteredScreen } from '../features/profile/SymptomRegisteredScreen';

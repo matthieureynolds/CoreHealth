@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput, ActivityIndicator, Platform, Keyboard, Linking } from 'react-native';
-import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
+// import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import PagerView from 'react-native-pager-view';
@@ -417,10 +417,18 @@ const TravelScreen: React.FC = () => {
     const destOffset = getCityUtcOffsetHours(destCity) ?? 0;
     const tzDiff = destOffset - originOffset; // positive means eastward (ahead), negative westward
 
+    // Get user's actual bedtime and wake time from settings
+    const userBedtime = settings.lifestyle.sleepSchedule.bedTime;
+    const userWakeTime = settings.lifestyle.sleepSchedule.wakeUpTime;
+    
+    // Parse user's bedtime and wake time to minutes
+    const [bedHours, bedMinutes] = userBedtime.split(':').map(Number);
+    const [wakeHours, wakeMinutes] = userWakeTime.split(':').map(Number);
+    const baseBedMinutes = bedHours * 60 + bedMinutes;
+    const baseWakeMinutes = wakeHours * 60 + wakeMinutes;
+
     // 1.5 hours per day before arrival
     const days = Math.max(2, Math.ceil(Math.abs(tzDiff) / 1.5));
-    const baseBedMinutes = 21 * 60 + 30; // 21:30
-    const baseWakeMinutes = 6 * 60 + 30; // 06:30
     const stepMinutes = 90 * (isOutbound ? (tzDiff >= 0 ? -1 : 1) : (tzDiff >= 0 ? 1 : -1));
     const toHHMM = (m: number) => {
       const mm = ((m % (24 * 60)) + 24 * 60) % (24 * 60);
@@ -2530,7 +2538,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
     paddingBottom: 2,
     backgroundColor: '#000000',
   },

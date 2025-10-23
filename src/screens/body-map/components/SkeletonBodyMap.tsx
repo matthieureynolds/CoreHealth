@@ -468,7 +468,7 @@ const SkeletonBodyMap: React.FC<SkeletonBodyMapProps> = ({ onPartPress, onZoneSe
       {/* Skeleton body image with clinical zones */}
       <View style={styles.bodyOutline}>
         <Image
-          source={require('../../../../assets/skeleton page.png')}
+          source={require('../../../../assets/skeleton_page.png')}
           style={styles.skeletonImage}
           resizeMode="contain"
         />

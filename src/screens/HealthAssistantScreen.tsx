@@ -30,6 +30,10 @@ import * as Speech from 'expo-speech';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
 import { formatDateBySetting, formatTimeBySetting, formatShortDateBySetting } from '../utils/dateFormat';
+import { MessageComposer } from '../components/chat/MessageComposer';
+import { ChatList, ChatMessage as NewChatMessage } from '../components/chat/ChatList';
+import { useSendAnimation } from '../hooks/useSendAnimation';
+import { TelegramMediaPicker } from '../components/chat/TelegramMediaPicker';
 
 interface ChatMessage {
   id: string;
@@ -48,6 +52,8 @@ const HealthAssistantScreen: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [inputText, setInputText] = useState('');
+  const sendAnim = useSendAnimation();
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const autoScrollEnabledRef = useRef<boolean>(true);
@@ -350,14 +356,24 @@ const HealthAssistantScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
       setStreamingMessageId(null);
+      
+      // Update the user message status to 'sent' after animation
+      setMessages(prev => prev.map(msg => 
+        msg.id === userMessage.id ? { ...msg, status: 'sent' as const } : msg
+      ));
+      
       // Append final content once
       if (currentContent && currentContent.trim().length > 0) {
-        setMessages(prev => [...prev, {
+        setMessages(prev => {
+          const newMessages = [...prev, {
           id: assistantMessageId,
           role: 'assistant',
           content: stripEmojis(currentContent),
           timestamp: new Date(),
-        }]);
+          }];
+          console.log('🤖 Messages after adding assistant response:', newMessages);
+          return newMessages;
+        });
       }
       // Persist conversation and update sessions list
       try {
@@ -380,6 +396,138 @@ const HealthAssistantScreen: React.FC = () => {
         console.warn('Failed to persist conversation/session:', persistErr);
       }
     }
+  };
+
+  const handleSendWithAnimation = async (text: string, clientId: string) => {
+    if (!text.trim() || isLoading) return;
+
+    console.log('🚀 Sending message:', text);
+
+    const userMessage: ChatMessage = {
+      id: generateId('u'),
+      role: 'user',
+      content: text.trim(),
+      timestamp: new Date(),
+    };
+
+    // Add message with sending status for animation
+    const pendingMessage = { ...userMessage, status: 'sending' as const };
+    setMessages(prev => {
+      const newMessages = [...prev, pendingMessage];
+      console.log('📝 Messages after adding user message:', newMessages);
+      return newMessages;
+    });
+    setIsLoading(true);
+
+    // Prepare streaming without mutating messages yet
+    const assistantMessageId = generateId('a');
+    setStreamingMessageId(assistantMessageId);
+    let currentContent = '';
+
+    try {
+      // Simulate streaming response
+      const sampleResponses = [
+        "Based on your health data, I can see several important patterns. Your recent biomarker results show good overall health, but there are a few areas we should focus on. Your vitamin D levels are slightly below optimal, which is common during winter months. I'd recommend increasing your sun exposure and considering a vitamin D supplement. Additionally, your sleep patterns could be improved - aim for 7-9 hours of quality sleep per night.",
+        "Great question! Looking at your nutrition data, I notice you're doing well with protein intake but could benefit from more fiber. Try incorporating more leafy greens, whole grains, and legumes into your diet. Also, staying hydrated is crucial - aim for 8-10 glasses of water daily. Your current exercise routine is solid, but consider adding some strength training 2-3 times per week for better overall fitness.",
+        "Your lab results look promising! Most markers are within normal ranges. However, I notice your cholesterol levels are slightly elevated. This is manageable through diet and exercise. Focus on reducing saturated fats and increasing omega-3 fatty acids. Your blood pressure is excellent, and your glucose levels are well-controlled. Keep up the good work with your current lifestyle choices!"
+      ];
+      
+      const selectedResponse = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+      const words = selectedResponse.split(' ');
+
+      // Stream the response with throttling to avoid UI jitter
+      for (let i = 0; i < words.length; i++) {
+        currentContent += (i > 0 ? ' ' : '') + words[i];
+        
+        const now = Date.now();
+        const shouldUpdate = (i % 3 === 0) || i === words.length - 1 || (now - lastStreamUpdateAtRef.current) > 120;
+        if (shouldUpdate) {
+          lastStreamUpdateAtRef.current = now;
+        }
+
+        // Throttle auto-scroll
+        if ((now - lastAutoScrollAtRef.current) > 200 || i === words.length - 1) {
+          lastAutoScrollAtRef.current = now;
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }
+
+        // Small delay for streaming feel
+        await new Promise(resolve => setTimeout(resolve, 35 + Math.random() * 65));
+      }
+
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setStreamingMessageId(null);
+      
+      // Update the user message status to 'sent' after animation
+      setMessages(prev => prev.map(msg => 
+        msg.id === userMessage.id ? { ...msg, status: 'sent' as const } : msg
+      ));
+      
+      // Append final content once
+      if (currentContent && currentContent.trim().length > 0) {
+        setMessages(prev => {
+          const newMessages = [...prev, {
+            id: assistantMessageId,
+            role: 'assistant',
+            content: stripEmojis(currentContent),
+            timestamp: new Date(),
+          }];
+          console.log('🤖 Messages after adding assistant response:', newMessages);
+          return newMessages;
+        });
+      }
+      // Persist conversation and update sessions list
+      try {
+        const latest = [...messages];
+        await HealthAssistantService.saveConversationHistory(latest);
+        const titleCandidate = (latest.find(m => m.role === 'user')?.content || latest[0]?.content || 'Chat')
+          .toString()
+          .slice(0, 30);
+        const session: ChatSession = {
+          id: currentChatId,
+          title: titleCandidate.length === 30 ? `${titleCandidate}…` : titleCandidate,
+          messages: latest,
+          timestamp: latest[0]?.timestamp || new Date(),
+          lastUpdated: new Date(),
+        };
+        await HealthAssistantService.saveChatSession(session);
+        const sessions = await HealthAssistantService.loadAllChatSessions();
+        setChatSessions(sessions);
+      } catch (persistErr) {
+        console.warn('Failed to persist conversation/session:', persistErr);
+      }
+    }
+  };
+
+  const handleImageSelected = (uri: string) => {
+    // Handle image selection from media picker
+    const imageMessage: ChatMessage = {
+      id: generateId('u'),
+      role: 'user',
+      content: '[Image]',
+      timestamp: new Date(),
+      imageUri: uri,
+    };
+    
+    setMessages(prev => [...prev, imageMessage]);
+  };
+
+  const handleDocumentSelected = (uri: string, name: string) => {
+    // Handle document selection from media picker
+    const documentMessage: ChatMessage = {
+      id: generateId('u'),
+      role: 'user',
+      content: `[Document: ${name}]`,
+      timestamp: new Date(),
+      documentUri: uri,
+      documentName: name,
+    };
+    
+    setMessages(prev => [...prev, documentMessage]);
   };
 
   // Voice input handler with proper audio recording
@@ -996,64 +1144,14 @@ const HealthAssistantScreen: React.FC = () => {
   };
   const MessageBubbleMemo = memo(MessageBubble);
 
-  const QuickActions = () => (
-    <View style={styles.quickActionsContainer}>
-      <Text style={styles.quickActionsTitle}>Quick Start</Text>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.quickActionsScroll}
-      >
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setInputText('How are my biomarkers looking?')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.quickActionIcon}>
-            <Ionicons name="analytics" size={20} color="#007AFF" />
-          </View>
-          <Text style={styles.quickActionText}>Biomarkers</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setInputText('What should I eat today?')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.quickActionIcon}>
-            <Ionicons name="nutrition" size={20} color="#30D158" />
-          </View>
-          <Text style={styles.quickActionText}>Nutrition</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setInputText('Give me a workout plan')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.quickActionIcon}>
-            <Ionicons name="fitness" size={20} color="#FF9500" />
-          </View>
-          <Text style={styles.quickActionText}>Exercise</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setInputText('How can I improve my sleep?')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.quickActionIcon}>
-            <Ionicons name="moon" size={20} color="#AF52DE" />
-          </View>
-          <Text style={styles.quickActionText}>Sleep</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
+  // QuickActions removed for Telegram-style interface
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
+      {/* Telegram-style background pattern */}
+      <View style={styles.telegramBackground} />
       
       {/* Modern Header */}
       <View style={styles.header}>
@@ -1286,32 +1384,26 @@ const HealthAssistantScreen: React.FC = () => {
       >
         
         {/* Chat Messages */}
-        <ScrollView 
-          ref={scrollViewRef}
-          style={styles.messagesContainer}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.messagesContent}
-          scrollEventThrottle={16}
-          keyboardShouldPersistTaps="handled"
-          onScroll={(e) => {
-            const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-            const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
-            autoScrollEnabledRef.current = distanceFromBottom < 80;
+        <ChatList 
+          messages={messages
+            .filter(msg => msg && msg.id && msg.content && msg.role) // Filter out invalid messages
+            .map(msg => ({
+              id: msg.id,
+              clientId: msg.id,
+              text: msg.content,
+              role: msg.role,
+              status: (msg as any).status || 'sent',
+              timestamp: msg.timestamp,
+            }))}
+          onMessageLayout={(clientId, rect) => {
+            // Handle message layout for animation
+            sendAnim.setEndRect(clientId, rect);
           }}
-          // Avoid onContentSizeChange jumping during typing; we rely on focus/keyboard events instead
-        >
-          {/* Quick Actions */}
-          <QuickActions />
-          
-          {/* Messages */}
-          {messages.map((message) => (
-            <MessageBubbleMemo key={message.id} message={message} />
-          ))}
+        />
           
           {/* Loading Indicator */}
           {isLoading && (
             <View style={styles.loadingContainer}>
-              <View style={styles.loadingBubble}>
                 <View style={styles.assistantAvatar}>
                   <Image 
                     source={require('../../assets/Turtle.png')} 
@@ -1324,94 +1416,26 @@ const HealthAssistantScreen: React.FC = () => {
                     <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot1Anim }] }]} />
                     <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot2Anim }] }]} />
                     <Animated.View style={[styles.loadingDot, { transform: [{ scale: dot3Anim }] }]} />
-                  </View>
                 </View>
               </View>
             </View>
           )}
-        </ScrollView>
 
-        {/* Modern Input Section */}
-        <View style={styles.inputContainer}>
-          {/* Background group for plus + actions (rounded rectangle) */}
-          {fabOpen && (
-            <View pointerEvents="none" style={styles.fabGroupBackground} />
-          )}
-          {/* FAB Actions vertically above the plus button */}
-        {fabOpen && (
-          <View style={styles.fabActionsContainer}>
-            <TouchableOpacity style={styles.fabAction} onPress={() => { setFabOpen(false); handleImageInput(); }}>
-              <Ionicons name="camera" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.fabAction} onPress={() => { setFabOpen(false); handleDocumentInput(); }}>
-              <Ionicons name="attach" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        )}
-          <View style={styles.inputRow}>
-            {/* Plus button on the left */}
-            <TouchableOpacity 
-              style={[styles.inputActionButton, styles.plusButton, fabOpen && styles.inputActionButtonExpanded]}
-              onPress={toggleFab}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-            
-            <View style={[
-              styles.textInputContainer,
-              isRecording && { borderColor: '#FF3B30', borderWidth: 2 }
-            ]}>
-              <TextInput
-                style={styles.textInput}
-                value={inputText}
-                onChangeText={(t) => {
-                  // Avoid reflows by only updating when value actually changes
-                  if (t !== inputText) setInputText(t);
-                }}
-                onFocus={scrollToBottomNow}
-                placeholder={isRecording ? "" : "Ask me anything about health..."}
-                placeholderTextColor={isRecording ? "#FF3B30" : "#8E8E93"}
-                multiline
-                maxLength={500}
-                onSubmitEditing={sendMessage}
-                keyboardAppearance="dark"
-                editable={!isRecording}
-                blurOnSubmit={false}
-              />
-              {/* ChatGPT-like recording waveform (inside input box) */}
-              {isRecording && (
-                <View pointerEvents="none" style={styles.recordingWaveOverlay}>
-                  <View style={styles.recordingWaveInner}>
-                    {waveformAnimValues.map((v, idx) => (
-                      <Animated.View key={idx} style={[styles.waveBar, { transform: [{ scaleY: v }] }]} />
-                    ))}
-                  </View>
-                </View>
-              )}
-            </View>
-            
-            {/* Microphone/Send button on the right */}
-            <Animated.View style={[
-              styles.inputActionButton,
-              isRecording && { backgroundColor: '#FF3B30' },
-              isRecording && { transform: [{ scale: recordingPulseAnim }] }
-            ]}>
-              <TouchableOpacity 
-                onPress={inputText.trim() ? sendMessage : handleVoiceInput}
-                activeOpacity={0.7}
-                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Ionicons 
-                  name={inputText.trim() ? "arrow-up" : (isRecording ? "stop" : "mic")} 
-                  size={24} 
-                  color={inputText.trim() ? "#FFFFFF" : (isRecording ? "#FFFFFF" : "#8E8E93")} 
-                />
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        </View>
+        {/* Modern Input Section with Animation */}
+        <MessageComposer 
+          onSend={handleSendWithAnimation}
+          disabled={isLoading}
+          onCameraPress={() => setShowMediaPicker(true)}
+        />
       </KeyboardAvoidingView>
+
+      {/* Telegram-style Media Picker */}
+      <TelegramMediaPicker
+        visible={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onImageSelected={handleImageSelected}
+        onDocumentSelected={handleDocumentSelected}
+      />
     </View>
   );
 };
@@ -1419,16 +1443,28 @@ const HealthAssistantScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0B0B0F',
+  },
+  telegramBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0B0B0F',
+    // Telegram-style subtle pattern
+    opacity: 0.3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 32, // Match DashboardScreen
-    paddingBottom: 2, // Match DashboardScreen
-    backgroundColor: '#0A0A0A',
+    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
+    paddingBottom: 16,
+    backgroundColor: 'rgba(11, 11, 15, 0.95)',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   headerContent: {
     flex: 1,
@@ -1460,48 +1496,11 @@ const styles = StyleSheet.create({
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: 'transparent',
   },
   messagesContent: {
     paddingHorizontal: 16,
     paddingBottom: 20,
-  },
-  quickActionsContainer: {
-    marginVertical: 16,
-  },
-  quickActionsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  quickActionsScroll: {
-    paddingRight: 16,
-  },
-  quickActionButton: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginRight: 12,
-    alignItems: 'center',
-    minWidth: 100,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-  },
-  quickActionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#3A3A3C',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  quickActionText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#FFFFFF',
   },
   messageContainer: {
     marginVertical: 8,
@@ -1557,28 +1556,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   userMessageBubble: {
-    backgroundColor: '#2563EB',
-    borderBottomRightRadius: 8,
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    marginLeft: 32, // more space from left
-    alignSelf: 'flex-end',
-    width: 'auto', // only as wide as text
-  },
-  assistantMessageBubble: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    borderTopLeftRadius: 4,
+    backgroundColor: '#0088CC',
+    borderBottomRightRadius: 4,
+    borderTopRightRadius: 18,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginRight: 40,
+    marginLeft: 60,
+    alignSelf: 'flex-end',
+    maxWidth: '75%',
+  },
+  assistantMessageBubble: {
+    backgroundColor: '#2A2A2A',
+    borderRadius: 18,
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+    borderTopRightRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 60,
+    maxWidth: '75%',
   },
   messageText: {
     fontSize: 16,
@@ -1586,10 +1585,10 @@ const styles = StyleSheet.create({
   },
   userMessageText: {
     color: '#FFFFFF',
-    textAlign: 'right',
+    textAlign: 'left',
   },
   assistantMessageText: {
-    color: '#0B1220',
+    color: '#FFFFFF',
   },
   messageFooter: {
     flexDirection: 'row',
@@ -1608,22 +1607,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   loadingContainer: {
-    alignItems: 'flex-start',
-    marginVertical: 8,
-  },
-  loadingBubble: {
-    backgroundColor: '#2A2A2A',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 8,
+    paddingHorizontal: 16,
   },
   loadingContent: {
     marginLeft: 12,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   loadingDots: {
@@ -1670,17 +1661,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   inputContainer: {
-    backgroundColor: '#1A1A1A',
-    borderTopWidth: 0,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(11, 11, 15, 0.95)',
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 32,
-    margin: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    paddingBottom: 16,
   },
   recordingWaveContainer: {
     position: 'absolute',
@@ -1753,13 +1739,12 @@ const styles = StyleSheet.create({
   textInputContainer: {
     flex: 1,
     backgroundColor: '#2A2A2A',
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     maxHeight: 120,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    marginRight: 10,
+    borderWidth: 0,
+    marginRight: 8,
     overflow: 'hidden',
   },
   textInput: {

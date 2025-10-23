@@ -41,7 +41,7 @@
     },
     "plugins": [
       "expo-font",
-      "expo-dev-client"
+      "expo-web-browser"
     ],
     "scheme": "corehealth"
   }

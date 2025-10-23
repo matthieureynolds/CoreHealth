@@ -266,11 +266,13 @@ export const generateJetLagData = (
   originTimezone: string,
   destinationTimezone: string,
   originLocation: string = 'Home',
-  destinationLocation: string = 'Destination'
+  destinationLocation: string = 'Destination',
+  currentBedtime: string = "22:00",
+  currentWakeTime: string = "07:00"
 ): JetLagData => {
   const timeZoneDifference = calculateTimeZoneDifference(originTimezone, destinationTimezone);
   const severity = calculateJetLagSeverity(timeZoneDifference);
-  const sleepAdjustment = generateSleepScheduleAdjustment(timeZoneDifference);
+  const sleepAdjustment = generateSleepScheduleAdjustment(timeZoneDifference, currentBedtime, currentWakeTime);
   const lightSchedule = generateLightExposureSchedule(timeZoneDifference, originTimezone, destinationTimezone);
   const destinationTime = getCurrentDestinationTime(destinationTimezone);
 
@@ -299,10 +301,12 @@ export const createJetLagPlanningEvent = (
   departureDate: string,
   originTimezone: string,
   originLocation: string = 'Home',
-  returnDate?: string
+  returnDate?: string,
+  currentBedtime: string = "22:00",
+  currentWakeTime: string = "07:00"
 ) => {
   const timeZoneDifference = calculateTimeZoneDifference(originTimezone, destinationTimezone);
-  const sleepAdjustment = generateSleepScheduleAdjustment(timeZoneDifference);
+  const sleepAdjustment = generateSleepScheduleAdjustment(timeZoneDifference, currentBedtime, currentWakeTime);
   const lightExposureSchedule = generateLightExposureSchedule(timeZoneDifference, originTimezone, destinationTimezone);
   
   // Calculate preparation start date (departure date - days to adjust)

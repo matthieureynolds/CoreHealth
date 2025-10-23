@@ -23,28 +23,29 @@ const MainNavigator: React.FC = () => {
 
           switch (route.name) {
             case 'Dashboard':
-              iconName = focused ? 'home' : 'home-outline';
+              iconName = 'home';
               break;
             case 'BodyMap':
-              iconName = focused ? 'body' : 'body-outline';
+              iconName = 'body';
               break;
             case 'Profile':
-              iconName = focused ? 'person' : 'person-outline';
+              iconName = 'person';
               break;
             case 'HealthAssistant':
-              iconName = focused ? 'medical' : 'medical-outline';
+              iconName = 'chatbubbles';
               break;
             case 'Travel':
-              iconName = focused ? 'airplane' : 'airplane-outline';
+              iconName = 'airplane';
               break;
             default:
-              iconName = 'ellipse-outline';
+              iconName = 'ellipse';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={focused ? 32 : 24} color={focused ? '#007AFF' : '#FFFFFF'} />;
         },
         tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarInactiveTintColor: '#FFFFFF',
+        tabBarShowLabel: false,
         headerStyle: {
           backgroundColor: '#000000',
         },
@@ -53,8 +54,14 @@ const MainNavigator: React.FC = () => {
           fontWeight: 'bold',
         },
         tabBarStyle: {
-          backgroundColor: '#1C1C1E',
-          borderTopColor: '#2C2C2E',
+          backgroundColor: '#000000',
+          borderTopColor: '#000000',
+          borderTopWidth: 0,
+          height: 90,
+          paddingTop: 8,
+          paddingBottom: 25,
+          elevation: 0,
+          shadowOpacity: 0,
         },
       })}
     >

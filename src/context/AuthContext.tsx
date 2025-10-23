@@ -83,72 +83,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log('🔐 AuthContext: Initializing authentication system');
-    console.log('📡 AuthContext: Connecting to Supabase auth...');
-    
-    // Test Supabase connection
-    const testConnection = async () => {
+    // Get initial session - with timeout to prevent hanging
+    const initAuth = async () => {
       try {
-        console.log('🌐 Testing Supabase connection...');
-        const { data, error } = await supabase.from('profiles').select('count').limit(1);
-        if (error) {
-          console.error('❌ Supabase connection test failed:', error);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase timeout')), 3000)
+        );
+        
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        
+        setSession(session);
+        if (session?.user) {
+          setUser(transformSupabaseUser(session.user));
         } else {
-          console.log('✅ Supabase connection test successful');
+          // No session, try to load mock user data
+          const mockUser = await loadMockUserData();
+          if (mockUser) {
+            setUser(mockUser);
+          }
         }
       } catch (error) {
-        console.error('❌ Supabase connection test error:', error);
+        console.log('🔧 Supabase connection failed, using mock auth');
+        // Load mock user data if Supabase fails
+        const mockUser = await loadMockUserData();
+        if (mockUser) {
+          setUser(mockUser);
+        }
+      } finally {
+        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
     
-    testConnection();
-    
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log(
-        '🔍 AuthContext: Checking for existing session...',
-        session ? '✅ Found' : '❌ None',
-      );
-      setSession(session);
-      if (session?.user) {
-        console.log(
-          '👤 AuthContext: User found in session:',
-          session.user.email,
-        );
-        setUser(transformSupabaseUser(session.user));
-      } else {
-        // No session, try to load mock user data
-        const mockUser = await loadMockUserData();
-        if (mockUser) {
-          console.log('📱 Loading existing mock user data');
-          setUser(mockUser);
-        }
-      }
-      setIsLoading(false);
-      console.log('⚡ AuthContext: Initial auth check complete');
-      setIsInitializing(false);
-    });
+    initAuth();
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Listen for auth changes - with timeout protection
+    let subscription: any;
+    try {
+      const authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session?.user) {
         try {
-          // TEMPORARY FIX: Skip database profile creation for now
-          // await DataService.initializeUserData(
-          //   session.user.id,
-          //   session.user.email!,
-          //   session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
-          // );
-          console.log(
-            '⚡ Skipping database profile creation - using mock data',
-          );
+            console.log('⚡ Skipping database profile creation - using mock data');
           setUser(transformSupabaseUser(session.user));
         } catch (error) {
           console.error('Error initializing user data:', error);
-          // Still set the user even if profile creation fails
           setUser(transformSupabaseUser(session.user));
         }
       } else {
@@ -156,6 +136,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       setIsLoading(false);
     });
+      subscription = authSubscription.data.subscription;
+    } catch (error) {
+      console.log('🔧 Auth state listener failed, using mock auth only');
+      subscription = { unsubscribe: () => {} };
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -184,6 +169,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) => {
     setIsLoading(true);
     try {
+      console.log('🔧 Using mock authentication (Supabase unavailable)');
+      
+      // Create mock user
+      const mockUser: User = {
+        id: 'mock-user-123',
+        email: email,
+        firstName: displayName.split(' ')[0] || '',
+        surname: displayName.split(' ').slice(1).join(' ') || '',
+        preferredName: displayName,
+        photoURL: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Store mock user data
+      await AsyncStorage.setItem('mockUserData', JSON.stringify(mockUser));
+      setUser(mockUser);
+      
+      console.log('✅ Mock user created successfully:', mockUser);
+      return;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -222,14 +228,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('🔐 Attempting to sign in with email:', email);
-      
-      // TEMPORARY: Mock authentication for testing
-      // TODO: Remove this when Supabase is fixed
-      console.log('⚠️ Using mock authentication (Supabase connection failed)');
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🔧 Using mock authentication (Supabase unavailable)');
       
       // Try to load existing mock user data first
       let mockUser = await loadMockUserData();
@@ -282,8 +281,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      // TEMPORARY: Mock sign out for testing
-      console.log('⚠️ Using mock sign out (Supabase connection failed)');
+      console.log('🔧 Using mock sign out (Supabase unavailable)');
+      
       setUser(null);
       setSession(null);
       // Clear stored mock user data

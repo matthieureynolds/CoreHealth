@@ -322,20 +322,20 @@ export class HealthAssistantService {
     const healthContext = this.formatHealthDataForAI(healthData);
     const memoryContext = this.formatMemoryContextForAI(userContext);
     
-    return `You're a friendly, knowledgeable health assistant—think of yourself as a health-savvy friend who's passionate about wellness, nutrition, fitness, and helping people understand their bodies. You love making health feel approachable, fun, and practical.
+    return `You are a knowledgeable and friendly health assistant. You help people understand their health data, answer health questions, and provide practical wellness advice.
 
-Here's what I know about this person:
+User's Health Information:
 ${healthContext}
 
 ${memoryContext}
 
-Chat naturally, like a supportive friend! Use casual, encouraging language, and don't be overly formal. You can use emojis, ask follow-up questions, and share interesting health tips in a relaxed, actionable way.
-
-Always give practical, step-by-step advice when possible. If you notice something important, gently suggest they check with a healthcare provider, but never say 'I am not a doctor.'
-
-Keep the conversation focused on health and wellness. If they ask about something unrelated, gently steer it back to health topics.
-
-Be helpful, curious, and engaging—just like chatting with someone who really cares about their well-being! Always try to make your advice actionable and relevant to their situation. If you can, offer encouragement and ask what they'd like to focus on next.`;
+Guidelines:
+- Be conversational and supportive, like a knowledgeable friend
+- Give practical, actionable advice
+- If asked about medical concerns, suggest consulting a healthcare provider
+- Focus on health, wellness, nutrition, fitness, and lifestyle topics
+- Keep responses helpful and relevant
+- Use clear, easy-to-understand language`;
   }
 
   /**
@@ -344,35 +344,15 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
   private static formatMemoryContextForAI(userContext: UserHealthContext | null): string {
     if (!userContext) return '';
 
-    let memoryContext = '\n=== CONVERSATION MEMORY ===\n';
-    
-    // Conversation history
-    memoryContext += `We've had ${userContext.conversationCount} conversations together.\n`;
-    memoryContext += `Last conversation: ${userContext.lastConversationDate.toLocaleDateString()}\n`;
-    
-    // Favorite topics
-    if (userContext.favoriteTopics.length > 0) {
-      memoryContext += `You often ask about: ${userContext.favoriteTopics.join(', ')}\n`;
-    }
+    let memoryContext = '';
     
     // Health goals
     if (Object.keys(userContext.healthGoals).length > 0) {
-      memoryContext += '\nYour health goals:\n';
+      memoryContext += '\nHealth Goals:\n';
       Object.entries(userContext.healthGoals).forEach(([key, goal]) => {
-        memoryContext += `• ${goal.goal} (${goal.progress}% complete)\n`;
+        memoryContext += `• ${goal.goal}\n`;
       });
     }
-    
-    // Recent insights
-    if (Object.keys(userContext.personalInsights).length > 0) {
-      memoryContext += '\nRecent insights about you:\n';
-      Object.entries(userContext.personalInsights).slice(-3).forEach(([key, insight]) => {
-        memoryContext += `• ${insight.insight}\n`;
-      });
-    }
-    
-    // Learned preferences
-    memoryContext += `\nI've learned you prefer: ${userContext.learnedPreferences.responseLength} responses, ${userContext.learnedPreferences.technicalLevel} explanations, ${userContext.learnedPreferences.communicationStyle} communication style.\n`;
     
     return memoryContext;
   }
@@ -444,10 +424,10 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
         body: JSON.stringify({
           model: 'gpt-4o',
           messages,
-          temperature: 0.6, // Balanced between consistency and creativity
-          max_tokens: 1000, // Allow more detailed responses
-          presence_penalty: 0.1, // Encourage staying on topic
-          frequency_penalty: 0.1, // Reduce repetition
+          temperature: 0.7, // Slightly more creative but still focused
+          max_tokens: 800, // Reasonable response length
+          presence_penalty: 0.0, // Don't force topic changes
+          frequency_penalty: 0.0, // Allow natural repetition if needed
         }),
       });
 
@@ -657,7 +637,7 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
   }): string {
     if (!healthData) return 'No current health data available.';
 
-    let formattedData = '=== CURRENT HEALTH PROFILE ===\n';
+    let formattedData = '';
 
     // User Demographics
     if (healthData.profile) {
@@ -665,65 +645,30 @@ Be helpful, curious, and engaging—just like chatting with someone who really c
       if (displayName) {
         formattedData += `Name: ${displayName}\n`;
       }
-      formattedData += `User: ${healthData.profile.age || 'age unknown'} year old ${healthData.profile.gender || 'gender not specified'}\n`;
+      if (healthData.profile.age) {
+        formattedData += `Age: ${healthData.profile.age}\n`;
+      }
+      if (healthData.profile.gender) {
+        formattedData += `Gender: ${healthData.profile.gender}\n`;
+      }
       if (healthData.profile.height && healthData.profile.weight) {
         const bmi = (healthData.profile.weight / Math.pow(healthData.profile.height / 100, 2)).toFixed(1);
-        formattedData += `BMI: ${bmi} (Height: ${healthData.profile.height}cm, Weight: ${healthData.profile.weight}kg)\n`;
+        formattedData += `BMI: ${bmi}\n`;
       }
     }
 
-    // Health Score Analysis
-    if (healthData.healthScore) {
-      formattedData += `\n=== HEALTH SCORES ===\n`;
-      formattedData += `Overall Health Score: ${healthData.healthScore.overall}/100\n`;
-      if (healthData.healthScore.recovery) formattedData += `Recovery Score: ${healthData.healthScore.recovery}/100\n`;
-      if (healthData.healthScore.activity) formattedData += `Activity Score: ${healthData.healthScore.activity}/100\n`;
+    // Health Score
+    if (healthData.healthScore?.overall) {
+      formattedData += `Health Score: ${healthData.healthScore.overall}/100\n`;
     }
 
-    // Biomarker Analysis
+    // Recent Biomarkers (simplified)
     if (healthData.biomarkers?.length) {
-      formattedData += `\n=== BIOMARKERS (Recent) ===\n`;
-      
-      // Group biomarkers by system
-      const systems = {
-        'Cardiovascular': ['cholesterol', 'hdl', 'ldl', 'triglycerides', 'blood pressure', 'heart rate'],
-        'Metabolic': ['glucose', 'insulin', 'hba1c', 'diabetes'],
-        'Liver Function': ['alt', 'ast', 'bilirubin', 'alp'],
-        'Kidney Function': ['creatinine', 'egfr', 'bun', 'urea'],
-        'Inflammatory': ['crp', 'esr', 'inflammation'],
-        'Other': []
-      };
-
-      Object.keys(systems).forEach(system => {
-        const systemBiomarkers = healthData.biomarkers?.filter(b => 
-          systems[system as keyof typeof systems].some(keyword => 
-            b.name.toLowerCase().includes(keyword)
-          )
-        ) || [];
-
-        if (systemBiomarkers.length > 0) {
-          formattedData += `\n${system}:\n`;
-          systemBiomarkers.forEach(biomarker => {
-            const status = this.assessBiomarkerStatus(biomarker);
-            formattedData += `  • ${biomarker.name}: ${biomarker.value} ${biomarker.unit} [${status}]\n`;
-          });
-        }
+      formattedData += `\nRecent Biomarkers:\n`;
+      healthData.biomarkers.slice(0, 5).forEach(biomarker => {
+        const status = this.assessBiomarkerStatus(biomarker);
+        formattedData += `• ${biomarker.name}: ${biomarker.value} ${biomarker.unit} (${status})\n`;
       });
-
-      // Add ungrouped biomarkers
-      const ungrouped = healthData.biomarkers?.filter(b => 
-        !Object.values(systems).flat().some(keyword => 
-          b.name.toLowerCase().includes(keyword)
-        )
-      ) || [];
-
-      if (ungrouped.length > 0) {
-        formattedData += `\nOther Biomarkers:\n`;
-        ungrouped.forEach(biomarker => {
-          const status = this.assessBiomarkerStatus(biomarker);
-          formattedData += `  • ${biomarker.name}: ${biomarker.value} ${biomarker.unit} [${status}]\n`;
-        });
-      }
     }
 
     return formattedData;

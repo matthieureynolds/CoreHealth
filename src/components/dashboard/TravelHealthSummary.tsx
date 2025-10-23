@@ -473,7 +473,8 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
     return (
       <View style={styles.rangeIndicatorContainer}>
-        <Svg width={barWidth} height={45}>
+        {Svg ? (
+          <Svg width={barWidth} height={45}>
           {/* Range bar segments with gaps */}
           {rangeData.segments.map((segment, index) => {
             const gap = 2; // Gap between segments
@@ -538,6 +539,13 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
             );
           })}
         </Svg>
+        ) : (
+          <View style={styles.rangeIndicatorContainer}>
+            <Text style={styles.currentScoreText}>
+              Range indicator not available
+            </Text>
+          </View>
+        )}
         
         {/* Current score info */}
         <View style={styles.currentScoreContainer}>
@@ -716,6 +724,12 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
                   />
                 )}
               </View>
+              
+              {/* Nearby Medical Facilities */}
+              <View style={{ marginTop: 17 }}>
+                <Text style={styles.sectionTitle}>Nearby Medical Facilities</Text>
+              </View>
+              
               {/* Closest facilities */}
               {closestFacilities.map(facility => (
               <TouchableOpacity

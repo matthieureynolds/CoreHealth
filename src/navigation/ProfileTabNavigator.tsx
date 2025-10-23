@@ -7,48 +7,48 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { ProfileTabParamList } from '../types';
 
-import ProfileDetailsScreen from '../screens/profile/ProfileDetailsScreen';
-import SettingsScreen from '../screens/profile/SettingsScreen';
-import EditProfileScreen from '../screens/profile/EditProfileScreen';
-import EditNameScreen from '../screens/profile/EditNameScreen';
-import EditPhysicalStatsScreen from '../screens/profile/EditPhysicalStatsScreen';
-import HealthIDsScreen from '../screens/profile/HealthIDsScreen';
-import ConditionsScreen from '../screens/profile/ConditionsScreen';
-import MedicationsScreen from '../screens/profile/MedicationsScreen';
-import AllergiesScreen from '../screens/profile/AllergiesScreen';
-import FamilyHistoryScreen from '../screens/profile/FamilyHistoryScreen';
-import VaccinationsScreen from '../screens/profile/VaccinationsScreen';
-import ScreeningsScreen from '../screens/profile/ScreeningsScreen';
-import UploadMedicalRecordScreen from '../screens/profile/UploadMedicalRecordScreen';
-import ViewMedicalRecordsScreen from '../screens/profile/ViewMedicalRecordsScreen';
-import GenerateHealthReportScreen from '../screens/profile/GenerateHealthReportScreen';
-import ShareWithDoctorScreen from '../screens/profile/ShareWithDoctorScreen';
-import MedicalHistoryScreen from '../screens/profile/MedicalHistoryScreen';
-import EmergencyContactsScreen from '../screens/profile/EmergencyContactsScreen';
-import PrimaryDoctorScreen from '../screens/profile/PrimaryDoctorScreen';
-import BiomarkerVisibilityScreen from '../screens/profile/BiomarkerVisibilityScreen';
-import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
-import TermsOfServiceScreen from '../screens/profile/TermsOfServiceScreen';
-import AboutScreen from '../screens/profile/AboutScreen';
-// New Settings Screens
-import AccountSettingsScreen from '../screens/profile/AccountSettingsScreen';
-import EmailPasswordScreen from '../screens/profile/EmailPasswordScreen';
-// Removed: ConnectedAccountsScreen, TwoFactorAuthScreen
-import ConnectedDevicesScreen from '../screens/profile/ConnectedDevicesScreen';
-import DisplayFormatScreen from '../screens/profile/DisplayFormatScreen';
-import NotificationsScreen from '../screens/profile/NotificationsScreen';
-import DataSyncScreen from '../screens/profile/DataSyncScreen';
-import PrivacySecurityScreen from '../screens/profile/PrivacySecurityScreen';
-import LegalComplianceScreen from '../screens/profile/LegalComplianceScreen';
-import TermsScreen from '../screens/profile/TermsScreen';
-import PrivacyPolicyScreen from '../screens/profile/PrivacyPolicyScreen';
-import ConsentFormsScreen from '../screens/profile/ConsentFormsScreen';
-import ComplianceNoticesScreen from '../screens/profile/ComplianceNoticesScreen';
-import DataProcessingAgreementScreen from '../screens/profile/DataProcessingAgreementScreen';
-import DataRetentionPolicyScreen from '../screens/profile/DataRetentionPolicyScreen';
-import SupportHelpScreen from '../screens/profile/SupportHelpScreen';
-import FAQScreen from '../screens/profile/FAQScreen';
-import AppInfoScreen from '../screens/profile/AppInfoScreen';
+import ProfileDetailsScreen from '../features/profile/ProfileDetailsScreen';
+import SettingsScreen from '../features/profile/SettingsScreen';
+import EditProfileScreen from '../features/profile/EditProfileScreen';
+import EditNameScreen from '../features/profile/EditNameScreen';
+import EditPhysicalStatsScreen from '../features/profile/EditPhysicalStatsScreen';
+import LifestyleInfoScreen from '../features/profile/LifestyleInfoScreen';
+import CommunityLeaderboardScreen from '../features/profile/CommunityLeaderboardScreen';
+import SymptomRegisteredScreen from '../features/profile/SymptomRegisteredScreen';
+import HealthIDsScreen from '../features/profile/HealthIDsScreen';
+import ConditionsScreen from '../features/profile/ConditionsScreen';
+import MedicationsScreen from '../features/profile/MedicationsScreen';
+import AllergiesScreen from '../features/profile/AllergiesScreen';
+import FamilyHistoryScreen from '../features/profile/FamilyHistoryScreen';
+import VaccinationsScreen from '../features/profile/VaccinationsScreen';
+import ScreeningsScreen from '../features/profile/ScreeningsScreen';
+import UploadMedicalRecordScreen from '../features/profile/UploadMedicalRecordScreen';
+import ViewMedicalRecordsScreen from '../features/profile/ViewMedicalRecordsScreen';
+import GenerateHealthReportScreen from '../features/profile/GenerateHealthReportScreen';
+import ShareWithDoctorScreen from '../features/profile/ShareWithDoctorScreen';
+import MedicalHistoryScreen from '../features/profile/MedicalHistoryScreen';
+import EmergencyContactsScreen from '../features/profile/EmergencyContactsScreen';
+import PrimaryDoctorScreen from '../features/profile/PrimaryDoctorScreen';
+import BiomarkerVisibilityScreen from '../features/profile/BiomarkerVisibilityScreen';
+import HelpSupportScreen from '../features/profile/HelpSupportScreen';
+import TermsOfServiceScreen from '../features/profile/5B-SETTINGS/2-Data-Privacy/3-Legal-Compliance/1-Legal-Documents/1-Terms-Conditions/TermsOfServiceScreen';
+import PrivacyPolicyScreen from '../features/profile/5B-SETTINGS/2-Data-Privacy/3-Legal-Compliance/1-Legal-Documents/2-Privacy-Policy/PrivacyPolicyScreen';
+import ConsentFormsScreen from '../features/profile/5B-SETTINGS/2-Data-Privacy/3-Legal-Compliance/1-Legal-Documents/3-Consent-Forms/ConsentFormsScreen';
+import ComplianceNoticesScreen from '../features/profile/5B-SETTINGS/2-Data-Privacy/3-Legal-Compliance/1-Legal-Documents/4-HIPAA-GDPR/ComplianceNoticesScreen';
+import DataProcessingAgreementScreen from '../features/profile/DataProcessingAgreementScreen';
+import DataRetentionPolicyScreen from '../features/profile/DataRetentionPolicyScreen';
+import SupportHelpScreen from '../features/profile/SupportHelpScreen';
+import FAQScreen from '../features/profile/FAQScreen';
+import AppInfoScreen from '../features/profile/AppInfoScreen';
+import AccountSettingsScreen from '../features/profile/AccountSettingsScreen';
+import EmailPasswordScreen from '../features/profile/EmailPasswordScreen';
+import ConnectedDevicesScreen from '../features/profile/ConnectedDevicesScreen';
+import DisplayFormatScreen from '../features/profile/DisplayFormatScreen';
+import LifestyleSettingsScreen from '../features/profile/LifestyleSettingsScreen';
+import NotificationsScreen from '../features/profile/NotificationsScreen';
+import DataSyncScreen from '../features/profile/DataSyncScreen';
+import PrivacySecurityScreen from '../features/profile/PrivacySecurityScreen';
+import LegalComplianceScreen from '../features/profile/LegalComplianceScreen';
 // Removed unused imports for non-existent screens/modals
 // import ProfilePicturePicker from '../components/ProfilePicturePicker';
 
@@ -152,6 +152,30 @@ const ProfileTabNavigator: React.FC = () => {
         component={EditPhysicalStatsScreen}
         options={{
           title: 'Edit Physical Stats',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="LifestyleInfo"
+        component={LifestyleInfoScreen}
+        options={{
+          title: 'Lifestyle Info',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="CommunityLeaderboard"
+        component={CommunityLeaderboardScreen}
+        options={{
+          title: 'Health Community',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="SymptomRegistered"
+        component={SymptomRegisteredScreen}
+        options={{
+          title: 'Symptom Registered',
           headerShown: false,
         }}
       />
@@ -285,7 +309,7 @@ const ProfileTabNavigator: React.FC = () => {
       {/* Legacy screens removed; using new legal document screens below */}
       <Stack.Screen
         name="About"
-        component={AboutScreen}
+        component={AppInfoScreen}
         options={{
           title: 'About CoreHealth',
         }}
@@ -325,6 +349,14 @@ const ProfileTabNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen
+        name="LifestyleSettings"
+        component={LifestyleSettingsScreen}
+        options={{
+          title: 'Personal Info - Lifestyle',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
         options={{
@@ -357,7 +389,7 @@ const ProfileTabNavigator: React.FC = () => {
           headerShown: false,
         }}
       />
-      <Stack.Screen name="TermsOfService" component={TermsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} options={{ headerShown: false }} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ConsentForms" component={ConsentFormsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ComplianceNotices" component={ComplianceNoticesScreen} options={{ headerShown: false }} />

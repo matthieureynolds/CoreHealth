@@ -17,6 +17,7 @@ import { getBiomarkerInfo } from '../../data/biomarkerDatabase';
 import HealthChatModal from '../../components/dashboard/HealthChatModal';
 import LabResultDetailModal from '../../components/dashboard/LabResultDetailModal';
 import TwitterLoadingIndicator from '../../components/common/TwitterLoadingIndicator';
+import QuickSymptomLogModal from '../../components/QuickSymptomLogModal';
 
 // New redesigned components
 import HeroHealthScore from '../../components/dashboard/HeroHealthScore';
@@ -44,6 +45,7 @@ const DashboardScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [labResultModalVisible, setLabResultModalVisible] = useState(false);
+  const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
 
   // Get current location on component mount and refresh periodically
@@ -256,11 +258,11 @@ const DashboardScreen: React.FC = () => {
   // Calculate mock values for demo
   console.log('🏥 Dashboard health score:', healthScore);
   
-  // More robust fallback values - force values if health score is null
-  const overallHealthScore = healthScore?.overall ?? 82;
-  const recoveryScore = healthScore?.recovery ?? 85;
-  const biomarkersScore = healthScore?.overall ? Math.round(healthScore.overall * 0.9) : 75;
-  const lifestyleScore = healthScore?.activity ?? 75;
+  // More robust fallback values - force values if health score is null or 0
+  const overallHealthScore = (healthScore?.overall && healthScore.overall > 0) ? healthScore.overall : 82;
+  const recoveryScore = (healthScore?.recovery && healthScore.recovery > 0) ? healthScore.recovery : 85;
+  const biomarkersScore = (healthScore?.overall && healthScore.overall > 0) ? Math.round(healthScore.overall * 0.9) : 75;
+  const lifestyleScore = (healthScore?.activity && healthScore.activity > 0) ? healthScore.activity : 75;
   
   // Emergency fallback if all values are 0
   const finalRecoveryScore = recoveryScore === 0 ? 85 : recoveryScore;
@@ -300,10 +302,15 @@ const DashboardScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
         <Text style={styles.greeting}>
-            {`Good ${getTimeOfDay()}, ${user?.preferredName || user?.firstName || ''}`}
+            {`Good ${getTimeOfDay()}, ${user?.firstName || user?.preferredName || ''}`}
         </Text>
       </View>
-        {/* Removed headerRight icons and buttons */}
+        <TouchableOpacity 
+          style={styles.plusButton}
+          onPress={() => setShowSymptomModal(true)}
+        >
+          <Ionicons name="add" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -311,6 +318,9 @@ const DashboardScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        bounces={true}
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
       >
         {/* Hero Health Score */}
         <View style={styles.firstComponent}>
@@ -380,6 +390,15 @@ const DashboardScreen: React.FC = () => {
           setSelectedLabResult(null);
         }}
       />
+
+      <QuickSymptomLogModal
+        visible={showSymptomModal}
+        onClose={() => setShowSymptomModal(false)}
+        onSuccess={() => {
+          // Optionally refresh data or show success message
+          console.log('Symptom logged successfully');
+        }}
+      />
     </View>
   );
 };
@@ -394,7 +413,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start', // Keep greeting at the top
     paddingHorizontal: 20,
-    paddingTop: 32, // Lower greeting more
+    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
     paddingBottom: 2, // Tighter fit
     backgroundColor: '#000000',
   },
@@ -431,6 +450,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#007AFF30',
+  },
+  plusButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   scrollContainer: {
     flex: 1,

@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/api';
+import { getCurrentUVIndex, UVIndexData } from './uvIndexService';
 
 // Weather data interfaces
 export interface WeatherData {
@@ -82,28 +83,35 @@ export const getCurrentWeather = async (latitude: number, longitude: number): Pr
 };
 
 /**
- * Get UV Index from OpenWeatherMap
+ * Get UV Index using static data service
  */
 export const getUVIndex = async (latitude: number, longitude: number): Promise<number> => {
   try {
-    if (!API_CONFIG.OPENWEATHER_API_KEY) {
-      console.warn('OpenWeather API key not found, cannot get UV data');
-      return 5; // Default moderate UV
-    }
-
-    const url = `${API_CONFIG.OPENWEATHER_BASE_URL}${API_CONFIG.UV_INDEX_ENDPOINT}?lat=${latitude}&lon=${longitude}&appid=${API_CONFIG.OPENWEATHER_API_KEY}`;
-
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`UV API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return Math.round(data.value || 5);
+    const uvData = getCurrentUVIndex(latitude, longitude);
+    return uvData.uvIndex;
   } catch (error) {
-    console.error('Error fetching UV data:', error);
+    console.error('Error getting UV data:', error);
     return 5; // Default moderate UV
+  }
+};
+
+/**
+ * Get detailed UV Index data using static service
+ */
+export const getUVIndexData = async (latitude: number, longitude: number): Promise<UVIndexData> => {
+  try {
+    return getCurrentUVIndex(latitude, longitude);
+  } catch (error) {
+    console.error('Error getting UV data:', error);
+    // Return default UV data
+    return {
+      uvIndex: 5,
+      category: 'Moderate',
+      description: 'Some sun protection required',
+      recommendation: 'Wear sunscreen and protective clothing',
+      color: '#FFFF00',
+      timestamp: new Date().toISOString()
+    };
   }
 };
 

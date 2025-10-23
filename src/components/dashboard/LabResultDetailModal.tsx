@@ -32,7 +32,7 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
   labResult,
   onClose,
 }) => {
-  if (!labResult) return null;
+  if (!visible || !labResult) return null;
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -283,7 +283,8 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
 
     return (
       <View style={styles.rangeIndicatorContainer}>
-        <Svg width={barWidth} height={50} style={styles.rangeIndicatorSvg}>
+        {Svg ? (
+          <Svg width={barWidth} height={50} style={styles.rangeIndicatorSvg}>
           {/* Range bar segments */}
           {rangeData.segments.map((segment, index) => {
             const x = index * (segmentWidth + gap);
@@ -339,6 +340,13 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
             );
           })}
         </Svg>
+        ) : (
+          <View style={styles.rangeIndicatorContainer}>
+            <Text style={styles.currentScoreText}>
+              Range indicator not available
+            </Text>
+          </View>
+        )}
         
         {/* Current score info */}
         <View style={styles.currentScoreContainer}>

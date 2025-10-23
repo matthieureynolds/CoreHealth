@@ -355,6 +355,9 @@ export type ProfileTabParamList = {
   EditProfile: undefined;
   EditName: undefined;
   EditPhysicalStats: undefined;
+  LifestyleInfo: undefined;
+  CommunityLeaderboard: undefined;
+  SymptomRegistered: undefined;
   HealthIDs: undefined;
   Conditions: undefined;
   Medications: undefined;
@@ -383,6 +386,7 @@ export type ProfileTabParamList = {
   DisplayFormat: undefined;
   Appearance: undefined;
   Notifications: undefined;
+  LifestyleSettings: undefined;
   TravelSettings: undefined;
   DataSync: undefined;
   PrivacySecurity: undefined;
@@ -480,6 +484,81 @@ export interface JetLagPlanningEvent {
   status: 'upcoming' | 'active' | 'completed';
   createdAt: string;
   updatedAt: string;
+}
+
+// Enhanced Jet Lag System Types
+export interface Trip {
+  id: string;
+  user_id: string;
+  title: string | null; // e.g., "Milan → Tokyo"
+  origin_iata: string; // e.g., "MXP"
+  dest_iata: string; // e.g., "HND"
+  dep_local: string; // "2025-10-20T21:15" ISO8601
+  arr_local: string; // "2025-10-21T17:45" ISO8601
+  origin_tz: string; // "Europe/Rome"
+  dest_tz: string; // "Asia/Tokyo"
+  dep_utc: string; // system-derived ISO8601
+  arr_utc: string; // system-derived ISO8601
+  tz_diff_hours: number; // e.g., +7, -9, etc.
+  direction: "east" | "west";
+  plan_style: "gentle" | "aggressive";
+  prefs: {
+    sleep_window_local: { start: string; end: string }; // "HH:mm" format
+    chronotype: "morning" | "neutral" | "evening";
+    caffeine: boolean;
+    melatonin: boolean;
+    naps: boolean;
+  };
+  status: "draft" | "active" | "archived";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanDay {
+  id: string;
+  trip_id: string;
+  date_local: string; // "YYYY-MM-DD" - date in relevant local zone
+  location: {
+    label: string; // "Milan", "In flight", "Tokyo"
+    tz: string; // IANA TZ used for display on that day
+    segment: "pre" | "in_flight" | "post" | "layover";
+  };
+  actions: Action[];
+  notes: string[]; // optional helper text
+}
+
+export interface Action {
+  type: "sleep" | "seek_light" | "avoid_light" | "caffeine_ok" | "caffeine_cutoff" | "melatonin" | "nap";
+  start_local: string | null; // "HH:mm" - required for interval types
+  end_local: string | null;
+  at_local: string | null; // "HH:mm" - for point-in-time items (melatonin, cutoff)
+  intensity?: "low" | "moderate" | "high"; // e.g., for light-seeking emphasis
+  rationale?: string; // brief explanation ("advancing clock")
+}
+
+export interface NowCard {
+  trip_id: string;
+  generated_at_local: string; // ISO8601
+  current_location_tz: string;
+  current_action: {
+    label: string; // "Seek bright light"
+    window: { start_local: string; end_local: string };
+    explain: string; // one-liner ("helps advance to Tokyo time")
+    cta: "Done" | "Snooze";
+  } | null;
+  next_action_preview?: string; // "Next: avoid light 20:30–23:00"
+}
+
+export interface FlightLookupResult {
+  carrier: string;
+  number: string;
+  origin_iata: string;
+  dest_iata: string;
+  dep_local: string;
+  arr_local: string;
+  origin_tz: string;
+  dest_tz: string;
+  operating_carrier?: string; // for code-shares
 }
 
 export interface TimeZoneInfo {

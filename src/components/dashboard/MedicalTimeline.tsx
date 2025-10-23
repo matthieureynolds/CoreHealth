@@ -477,31 +477,25 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                  category === 'nextMonth' ? 'Next Month' : 'Future'}
               </Text>
               {categoryEvents.map((event) => (
-        <Swipeable
-          key={event.id}
-          renderRightActions={() => renderRightActions(event.id)}
-          rightThreshold={40}
-        >
-          <View style={styles.eventRow}>
-            <TouchableOpacity
-              style={styles.eventCard}
-              onPress={() => handleEventPress(event)}
-            >
-              <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
-                <Ionicons name={event.icon} size={20} color={event.iconColor} />
-              </View>
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-                <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
-              </View>
-              {event.status === 'DUE' && (
-                <Text style={styles.dueStatus}>{event.status}</Text>
-              )}
-              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
-        </Swipeable>
+        <View style={styles.eventRow}>
+          <TouchableOpacity
+            style={styles.eventCard}
+            onPress={() => handleEventPress(event)}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
+              <Ionicons name={event.icon} size={20} color={event.iconColor} />
+            </View>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventTitle}>{event.title}</Text>
+              <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+              <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
+            </View>
+            {event.status === 'DUE' && (
+              <Text style={styles.dueStatus}>{event.status}</Text>
+            )}
+            <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+          </TouchableOpacity>
+        </View>
               ))}
             </View>
             );
@@ -514,9 +508,13 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           <View style={styles.modalContent}>
             <View style={styles.detailsModalHeader}>
               <TouchableOpacity 
-                onPress={() => setAddModalVisible(false)}
+                onPress={() => {
+                  console.log('Close button pressed - Add Modal');
+                  setAddModalVisible(false);
+                }}
                 style={styles.closeButtonLeft}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.7}
               >
                 <Ionicons name="close" size={28} color="#FF3B30" />
               </TouchableOpacity>
@@ -710,8 +708,13 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
           <View style={styles.modalContent}>
             <View style={styles.detailsModalHeader}>
               <TouchableOpacity 
-                onPress={() => setDetailsModalVisible(false)}
+                onPress={() => {
+                  console.log('Close button pressed - Details Modal');
+                  setDetailsModalVisible(false);
+                }}
                 style={styles.closeButtonLeft}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.7}
               >
                 <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
@@ -924,7 +927,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     top: 16,
-    padding: 4,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    zIndex: 10,
   },
   modalBody: {
     padding: 20,

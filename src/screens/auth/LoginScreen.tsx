@@ -79,10 +79,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               placeholder="Email"
               placeholderTextColor="#8E8E93"
               value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (error) setError('');
-              }}
+              onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -101,10 +98,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               placeholder="Password"
               placeholderTextColor="#8E8E93"
               value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (error) setError('');
-              }}
+              onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
             />
@@ -215,8 +209,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   logo: {
-    width: 200,
-    height: 200,
+    width: 120,
+    height: 120,
     resizeMode: 'contain',
     marginBottom: 8,
   },

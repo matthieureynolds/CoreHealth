@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   StatusBar,
+  Pressable,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +33,8 @@ import BodySystemSelector, {
 import SkeletonBodyMap from './components/SkeletonBodyMap';
 import CirculationBodyMap from './components/CirculationBodyMap';
 import NutritionBodyMap from './components/NutritionBodyMap';
+import AddDataModal from '../../components/common/AddDataModal';
+import BiomarkerSummaryCard from '../../components/BiomarkerSummaryCard';
 
 const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
@@ -52,6 +55,7 @@ const BodyMapScreen: React.FC = () => {
   const [selectedSystem, setSelectedSystem] =
     useState<BodySystemType>('organs');
   const [slideAnim] = useState(new Animated.Value(0));
+  const [showAddDataModal, setShowAddDataModal] = useState(false);
 
   const systems: BodySystemType[] = ['organs', 'skeleton', 'circulation', 'nutrition'];
   const getWindowDimensions = () => {
@@ -352,6 +356,17 @@ const BodyMapScreen: React.FC = () => {
     console.log('Nutrition item pressed:', item.name);
   };
 
+  const handleAddData = (data: any) => {
+    console.log('Data added:', data);
+    // Here you would typically save the data to your health data context
+    // For now, we'll just show an alert
+    Alert.alert(
+      'Data Added Successfully',
+      `Successfully added ${data.biomarkers?.length || 0} biomarkers from your scan.`,
+      [{ text: 'OK' }]
+    );
+  };
+
   const renderBodyMap = () => {
     const currentIndex = systems.indexOf(selectedSystem);
     
@@ -467,107 +482,6 @@ const BodyMapScreen: React.FC = () => {
     );
   };
 
-  const renderDocumentUploadSection = () => {
-    const getSectionTitle = () => {
-      if (uploadedDocuments.length === 0) {
-        return 'Upload Lab Results';
-      }
-      return `Uploaded Documents (${uploadedDocuments.length})`;
-    };
-
-    const getSectionDescription = () => {
-      if (uploadedDocuments.length === 0) {
-        return 'Scan or upload your lab results to see biomarkers on your body map';
-      }
-      return 'Tap on any document to process it with AI and extract biomarkers';
-    };
-
-    const getSupportedFormats = () => {
-      return 'Supports: PDF, JPG, PNG, HEIC';
-    };
-
-    return (
-      <View style={styles.uploadSection}>
-        <View style={styles.uploadHeader}>
-          <Text style={styles.uploadTitle}>{getSectionTitle()}</Text>
-          <Text style={styles.uploadDescription}>{getSectionDescription()}</Text>
-          <Text style={styles.uploadFormats}>{getSupportedFormats()}</Text>
-        </View>
-
-        <View style={styles.uploadButtonsContainer}>
-        <TouchableOpacity
-            style={styles.uploadButton}
-          onPress={handleCameraPress}
-            activeOpacity={0.8}
-          >
-            <View style={styles.uploadButtonContent}>
-              <View style={styles.uploadButtonIcon}>
-                <Ionicons name="camera" size={24} color="#007AFF" />
-              </View>
-              <Text style={styles.uploadButtonText}>Scan Document</Text>
-              <Text style={styles.uploadButtonSubtext}>Use Camera</Text>
-            </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-            style={styles.uploadButton}
-          onPress={handleDocumentPicker}
-            activeOpacity={0.8}
-          >
-            <View style={styles.uploadButtonContent}>
-              <View style={styles.uploadButtonIcon}>
-                <Ionicons name="folder-open" size={24} color="#007AFF" />
-              </View>
-              <Text style={styles.uploadButtonText}>Choose File</Text>
-              <Text style={styles.uploadButtonSubtext}>From Device</Text>
-            </View>
-        </TouchableOpacity>
-      </View>
-
-      {uploadedDocuments.length > 0 && (
-          <View style={styles.documentsList}>
-            <Text style={styles.documentsTitle}>Recent Documents</Text>
-            {uploadedDocuments.map((doc, index) => (
-            <View key={doc.id} style={styles.documentItem}>
-                <View style={styles.documentInfo}>
-                <Ionicons
-                  name={doc.type === 'camera' ? 'camera' : 'document'}
-                  size={20}
-                    color="#8E8E93"
-                />
-                  <View style={styles.documentDetails}>
-                    <Text style={styles.documentName} numberOfLines={1}>
-                      {doc.name}
-                </Text>
-                    <Text style={styles.documentMeta}>
-                      {doc.timestamp.toLocaleDateString()} • {doc.type}
-                </Text>
-              </View>
-                </View>
-
-                <View style={styles.documentActions}>
-                  {isProcessing === doc.id ? (
-                    <View style={styles.processingIndicator}>
-                      <ActivityIndicator size="small" color="#007AFF" />
-                      <Text style={styles.processingText}>{processingStep}</Text>
-                    </View>
-                  ) : (
-              <TouchableOpacity
-                      style={styles.processButton}
-                onPress={() => handleProcessDocument(doc)}
-                      activeOpacity={0.7}
-              >
-                      <Text style={styles.processButtonText}>Scan Results</Text>
-              </TouchableOpacity>
-                  )}
-                </View>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-  };
 
   const renderInfoPanel = () => {
     if (!selectedOrganData) return null;
@@ -669,19 +583,78 @@ const BodyMapScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
         >
           {/* Body Map */}
-          {selectedSystem === 'nutrition' ? (
-            renderBodyMap()
-          ) : (
             <View style={styles.bodyMapContainer}>
               {renderBodyMap()}
             </View>
-          )}
 
           {/* Biomarker Results */}
           {renderBiomarkerResults()}
 
-          {/* Document Upload Section */}
-          {renderDocumentUploadSection()}
+          {/* WHOOP-style Biomarker Summary - Simple Test Version */}
+          <View style={{
+            backgroundColor: 'rgba(22,24,30,0.75)',
+            borderRadius: 16,
+            padding: 16,
+            marginHorizontal: 16,
+            marginTop: 16,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.06)',
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 }}>
+              Biomarker Summary
+            </Text>
+            <Text style={{ fontSize: 14, color: '#9AA3AF', marginBottom: 20 }}>
+              Your health biomarkers at a glance
+            </Text>
+            
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ 
+                width: 120, 
+                height: 120, 
+                borderRadius: 60, 
+                backgroundColor: '#2C2C2E',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 20
+              }}>
+                <Text style={{ fontSize: 36, fontWeight: 'bold', color: '#FFFFFF' }}>65</Text>
+                <Text style={{ fontSize: 12, color: '#9AA3AF', marginTop: 4, letterSpacing: 1 }}>BIOMARKERS</Text>
+              </View>
+              
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#00E676', marginRight: 8 }} />
+                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Optimal</Text>
+                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>52</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#2196F3', marginRight: 8 }} />
+                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Sufficient</Text>
+                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>10</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF9800', marginRight: 8 }} />
+                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Out of Range</Text>
+                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>3</Text>
+                </View>
+                
+                <Pressable
+                  onPress={() => setShowAddDataModal(true)}
+                  style={{
+                    backgroundColor: '#1976D2',
+                    borderRadius: 12,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFFFFF' }}>
+                    Upload Lab Results
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
 
           {/* Bottom spacing */}
           <View style={styles.bottomSpacing} />
@@ -700,6 +673,22 @@ const BodyMapScreen: React.FC = () => {
           setSelectedBiomarker(null);
         }}
       />
+
+      {/* Add Data Modal */}
+      <AddDataModal
+        visible={showAddDataModal}
+        onClose={() => setShowAddDataModal(false)}
+        onDataAdded={handleAddData}
+      />
+
+      {/* Floating Add Button */}
+      <TouchableOpacity
+        style={styles.floatingAddButton}
+        onPress={() => setShowAddDataModal(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -714,7 +703,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 32, // Match Health Assistant height
+    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
     paddingBottom: 2, // Match Health Assistant height
     backgroundColor: '#000000',
   },
@@ -1109,6 +1098,26 @@ const styles = StyleSheet.create({
   },
   biomarkerList: {
     paddingHorizontal: 20,
+  },
+  floatingAddButton: {
+    position: 'absolute',
+    top: 120,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF3B30',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 9999,
   },
 });
 

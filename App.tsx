@@ -10,12 +10,33 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/context/AuthContext';
 import { HealthDataProvider } from './src/context/HealthDataContext';
 import { SettingsProvider } from './src/context/SettingsContext';
+import BedtimeReminderModal from './src/components/BedtimeReminderModal';
+import { useBedtimeReminder } from './src/hooks/useBedtimeReminder';
 
 const AppContent: React.FC = () => {
+  const { showModal, type, bedtime } = useBedtimeReminder();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (showModal && type) {
+      setModalVisible(true);
+    }
+  }, [showModal, type]);
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
   return (
     <NavigationContainer>
       <RootNavigator />
       <StatusBar style="light" backgroundColor="#111" />
+      <BedtimeReminderModal
+        visible={modalVisible}
+        onClose={handleCloseModal}
+        type={type || 'bedtime'}
+        bedtime={bedtime}
+      />
     </NavigationContainer>
   );
 };

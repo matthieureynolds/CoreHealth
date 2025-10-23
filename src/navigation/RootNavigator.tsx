@@ -1,5 +1,11 @@
 import React from 'react';
+import { Platform } from 'react-native';
+
 import { createStackNavigator } from '@react-navigation/stack';
+
+// Use platform-specific logic elsewhere in the code
+// Example:
+// const Stack = Platform.OS !== 'web' ? createStackNavigator() : createWebNavigator();
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../types';
 
@@ -13,7 +19,7 @@ const RootNavigator: React.FC = () => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen visible={true} />;
   }
 
   return (

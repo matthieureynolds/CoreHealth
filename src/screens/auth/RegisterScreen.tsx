@@ -38,39 +38,43 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { signUp } = useAuth();
 
 
-  const handleFirstNameComplete = (text: string) => {
+  const handleFirstNameChange = (text: string) => {
     setFirstName(text);
-    if (text.trim().length > 0 && currentStep === 1) {
-      setTimeout(() => {
-        setCurrentStep(2);
-      }, 500);
+  };
+
+  const handleFirstNameEndEditing = () => {
+    if (firstName.trim().length > 0 && currentStep === 1) {
+      setCurrentStep(2);
     }
   };
 
-  const handleSurnameComplete = (text: string) => {
+  const handleSurnameChange = (text: string) => {
     setSurname(text);
-    if (text.trim().length > 0 && currentStep === 2) {
-      setTimeout(() => {
-        setCurrentStep(3);
-      }, 500);
+  };
+
+  const handleSurnameEndEditing = () => {
+    if (surname.trim().length > 0 && currentStep === 2) {
+      setCurrentStep(3);
     }
   };
 
-  const handleEmailComplete = (text: string) => {
+  const handleEmailChange = (text: string) => {
     setEmail(text);
-    if (text.trim().length > 0 && currentStep === 3) {
-      setTimeout(() => {
-        setCurrentStep(4);
-      }, 500);
+  };
+
+  const handleEmailEndEditing = () => {
+    if (email.trim().length > 0 && currentStep === 3) {
+      setCurrentStep(4);
     }
   };
 
-  const handlePasswordComplete = (text: string) => {
+  const handlePasswordChange = (text: string) => {
     setPassword(text);
-    if (text.trim().length > 0 && currentStep === 4) {
-      setTimeout(() => {
-        setCurrentStep(5);
-      }, 500);
+  };
+
+  const handlePasswordEndEditing = () => {
+    if (password.trim().length > 0 && currentStep === 4) {
+      setCurrentStep(5);
     }
   };
 
@@ -155,7 +159,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.input}
                 placeholder="First Name"
                 value={firstName}
-                onChangeText={handleFirstNameComplete}
+                onChangeText={handleFirstNameChange}
+                onEndEditing={handleFirstNameEndEditing}
                 autoCapitalize="words"
               />
               {firstName && currentStep > 1 && (
@@ -177,7 +182,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.input}
                 placeholder="Surname"
                 value={surname}
-                onChangeText={handleSurnameComplete}
+                onChangeText={handleSurnameChange}
+                onEndEditing={handleSurnameEndEditing}
                 autoCapitalize="words"
               />
               {surname && currentStep > 2 && (
@@ -199,7 +205,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.input}
                 placeholder="Email"
                 value={email}
-                onChangeText={handleEmailComplete}
+                onChangeText={handleEmailChange}
+                onEndEditing={handleEmailEndEditing}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -223,7 +230,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                 style={styles.input}
                 placeholder="Password"
                 value={password}
-                onChangeText={handlePasswordComplete}
+                onChangeText={handlePasswordChange}
+                onEndEditing={handlePasswordEndEditing}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
@@ -294,7 +302,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000', // Dark background
   },
   scrollContent: {
     flexGrow: 1,
@@ -319,7 +327,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#A0A0A0', // Light gray for dark mode
     marginTop: 8,
     textAlign: 'center',
   },
@@ -331,13 +339,13 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: '#666',
+    color: '#A0A0A0', // Light gray for dark mode
     marginBottom: 8,
     textAlign: 'center',
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#333333', // Dark gray for dark mode
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -350,11 +358,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: '#333333', // Dark border
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#1C1C1E', // Dark input background
   },
   inputIcon: {
     marginRight: 12,
@@ -363,7 +371,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#000',
+    color: '#FFFFFF', // White text for dark mode
   },
   eyeIcon: {
     padding: 4,

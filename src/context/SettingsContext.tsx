@@ -20,6 +20,7 @@ import {
   HealthEmergencySettings,
   TravelSettings,
   AccessibilitySettings,
+  LifestyleSettings,
   BiomarkerSettings,
   AppSettings,
 } from '../types/settings';
@@ -36,8 +37,12 @@ interface SettingsContextType {
   updateHealthEmergencySettings: (updates: Partial<HealthEmergencySettings>) => Promise<void>;
   updateTravelSettings: (updates: Partial<TravelSettings>) => Promise<void>;
   updateAccessibilitySettings: (updates: Partial<AccessibilitySettings>) => Promise<void>;
+  updateLifestyleSettings: (updates: Partial<LifestyleSettings>) => Promise<void>;
   updateBiomarkerSettings: (updates: Partial<BiomarkerSettings>) => Promise<void>;
   updateAppSettings: (updates: Partial<AppSettings>) => Promise<void>;
+  
+  // Generic update function
+  updateSettings: (category: keyof UserSettings, updates: any) => Promise<void>;
   
   // Utility actions
   resetSettings: () => Promise<void>;
@@ -96,6 +101,11 @@ function settingsReducer(state: UserSettings, action: SettingsAction): UserSetti
       return {
         ...state,
         accessibility: { ...state.accessibility, ...action.payload },
+      };
+    case 'UPDATE_LIFESTYLE':
+      return {
+        ...state,
+        lifestyle: { ...state.lifestyle, ...action.payload },
       };
     case 'UPDATE_BIOMARKERS':
       return {
@@ -254,6 +264,14 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     await saveSettings(newSettings);
   };
 
+  const updateLifestyleSettings = async (updates: Partial<LifestyleSettings>) => {
+    const newSettings = { ...settings };
+    newSettings.lifestyle = { ...newSettings.lifestyle, ...updates };
+    
+    dispatch({ type: 'UPDATE_LIFESTYLE', payload: updates });
+    await saveSettings(newSettings);
+  };
+
   const updateBiomarkerSettings = async (updates: Partial<BiomarkerSettings>) => {
     const newSettings = { ...settings };
     newSettings.biomarkers = { ...newSettings.biomarkers, ...updates };
@@ -267,6 +285,16 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     newSettings.app = { ...newSettings.app, ...updates };
     
     dispatch({ type: 'UPDATE_APP', payload: updates });
+    await saveSettings(newSettings);
+  };
+
+  // Generic update function
+  const updateSettings = async (category: keyof UserSettings, updates: any) => {
+    const newSettings = { ...settings };
+    newSettings[category] = { ...newSettings[category], ...updates };
+    
+    const actionType = `UPDATE_${category.toUpperCase()}` as keyof typeof SettingsAction;
+    dispatch({ type: actionType as any, payload: updates });
     await saveSettings(newSettings);
   };
 
@@ -364,8 +392,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     updateHealthEmergencySettings,
     updateTravelSettings,
     updateAccessibilitySettings,
+    updateLifestyleSettings,
     updateBiomarkerSettings,
     updateAppSettings,
+    updateSettings,
     resetSettings,
     exportSettings,
     importSettings,
