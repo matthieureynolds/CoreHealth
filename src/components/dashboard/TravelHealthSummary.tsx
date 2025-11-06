@@ -11,6 +11,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import JetLagPlanningCard from './JetLagPlanningCard';
 import EmptyState from '../common/EmptyState';
@@ -52,6 +55,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   travelHealth
 }) => {
   const { settings } = useSettings();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   
   // Get real environmental data from travelHealth prop or use fallback
   const environmentalMetrics: EnvironmentalMetric[] = React.useMemo(() => {
@@ -203,8 +207,19 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         key={metric.id}
         style={styles.metricCard}
         onPress={() => {
-          setSelectedMetric(metric);
-          setModalVisible(true);
+          if (metric.id === 'air_quality' || metric.id === 'pollen' || metric.id === 'water_quality') {
+            navigation.navigate('EnvironmentalMetric', {
+              metricId: metric.id as 'air_quality' | 'pollen' | 'water_quality',
+              label: metric.label,
+              value: String(metric.value),
+              status: metric.status,
+              score: metric.score || 0,
+              icon: metric.icon,
+            });
+          } else {
+            setSelectedMetric(metric);
+            setModalVisible(true);
+          }
         }}
       >
         <View style={styles.metricCardContent}>

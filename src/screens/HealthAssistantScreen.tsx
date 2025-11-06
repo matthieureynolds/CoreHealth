@@ -16,6 +16,7 @@ import {
   Easing,
   Modal,
   Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +35,12 @@ import { MessageComposer } from '../components/chat/MessageComposer';
 import { ChatList, ChatMessage as NewChatMessage } from '../components/chat/ChatList';
 import { useSendAnimation } from '../hooks/useSendAnimation';
 import { TelegramMediaPicker } from '../components/chat/TelegramMediaPicker';
+import { parseAssistantCommand } from '../assistant/parser';
+import { dispatch as dispatchCommand, postTimeline, togglesMark } from '../assistant/commandBus';
+import type { Command } from '../assistant/commandBus';
+import { DateTimeCollector, SeverityCollector, MgCollector } from '../components/chat/InlineSlots';
+import { SymptomPlan } from '../components/chat/SymptomPlan';
+import { supabase } from '../config/supabase';
 
 interface ChatMessage {
   id: string;
@@ -46,7 +53,7 @@ interface ChatMessage {
 }
 
 const HealthAssistantScreen: React.FC = () => {
-  const { profile, biomarkers, healthScore } = useHealthData();
+  const { profile, biomarkers, healthScore, deviceData, labResults, bodySystems, travelHealth } = useHealthData();
   const { settings } = useSettings();
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -64,6 +71,9 @@ const HealthAssistantScreen: React.FC = () => {
   const fabScale = useRef(new Animated.Value(1)).current;
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
+  
+  // Animated value for new chat modal bottom sheet
+  const newChatModalTranslateY = useRef(new Animated.Value(1000)).current;
   const [chatHistory, setChatHistory] = useState<Array<{id: string, title: string, timestamp: Date}>>([
     {
       id: 'chat_1',
@@ -112,6 +122,18 @@ const HealthAssistantScreen: React.FC = () => {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const lastStreamUpdateAtRef = useRef<number>(0);
   const lastAutoScrollAtRef = useRef<number>(0);
+  const [pendingCommand, setPendingCommand] = useState<Command | null>(null);
+  const [isDispatching, setIsDispatching] = useState(false);
+  const [activeSymptomPlan, setActiveSymptomPlan] = useState<any | null>(null);
+  const [activeSymptomId, setActiveSymptomId] = useState<string | null>(null);
+  const [toggleState, setToggleState] = useState<Record<string, boolean>>({});
+  const [showPlanHistory, setShowPlanHistory] = useState(false);
+  const [planHistoryLoading, setPlanHistoryLoading] = useState(false);
+  const [planHistory, setPlanHistory] = useState<Array<{ id: string; created_at: string; side?: string; region?: string; severity?: number; completed?: number; total?: number }>>([]);
+  const [showTimelineHistory, setShowTimelineHistory] = useState(false);
+  const [timelineHistoryLoading, setTimelineHistoryLoading] = useState(false);
+  const [timelineHistory, setTimelineHistory] = useState<Array<{ id: string; occurred_at: string; title: string; meta?: any }>>([]);
+  const [timelineHistoryTitle, setTimelineHistoryTitle] = useState('History');
 
   // Image input modal state
   const [showImageInputModal, setShowImageInputModal] = useState(false);
@@ -207,9 +229,17 @@ const HealthAssistantScreen: React.FC = () => {
           if (history.length > 0) {
             setMessages(history);
           } else {
-            // Show personalized greeting for new conversations
+            // Show simple friendly greeting for new conversations
+            const profileForAI = profile ? {
+              ...profile,
+              displayName: (user as any)?.displayName ?? (profile as any)?.displayName,
+              preferredName: (user as any)?.preferredName ?? (profile as any)?.preferredName,
+              firstName: (user as any)?.firstName ?? (profile as any)?.firstName,
+              surname: (user as any)?.surname ?? (profile as any)?.surname,
+            } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName } as any : null);
+
             const greeting = await HealthAssistantService.getPersonalizedGreeting(
-              profile,
+              profileForAI as any,
               biomarkers || [],
               healthScore
             );
@@ -231,7 +261,7 @@ const HealthAssistantScreen: React.FC = () => {
           setMessages([{
             id: '1',
             role: 'assistant',
-            content: stripEmojis(`Hi there! 👋 I'm your health assistant. I'm here to help you understand your health data and chat about anything health-related. What's on your mind today?`),
+            content: stripEmojis("Hello! I'm Torto. How can I help you today? I'm an AI health assistant for educational information and support — not a substitute for professional medical advice. Always consult your doctor for diagnosis or treatment."),
             timestamp: new Date(),
           }]);
         }
@@ -314,45 +344,50 @@ const HealthAssistantScreen: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
-    // Prepare streaming without mutating messages yet
+    // Prepare streaming with a visible placeholder assistant message
     const assistantMessageId = generateId('a');
     setStreamingMessageId(assistantMessageId);
     let currentContent = '';
+    setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date() }]);
+  // Create placeholder message we can stream into
+  setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date() }]);
+  // Insert a placeholder assistant message so we can stream into it
+  setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date() }]);
 
     try {
-      // Simulate streaming response
-      const sampleResponses = [
-        "Based on your health data, I can see several important patterns. Your recent biomarker results show good overall health, but there are a few areas we should focus on. Your vitamin D levels are slightly below optimal, which is common during winter months. I'd recommend increasing your sun exposure and considering a vitamin D supplement. Additionally, your sleep patterns could be improved - aim for 7-9 hours of quality sleep per night.",
-        "Great question! Looking at your nutrition data, I notice you're doing well with protein intake but could benefit from more fiber. Try incorporating more leafy greens, whole grains, and legumes into your diet. Also, staying hydrated is crucial - aim for 8-10 glasses of water daily. Your current exercise routine is solid, but consider adding some strength training 2-3 times per week for better overall fitness.",
-        "Your lab results look promising! Most markers are within normal ranges. However, I notice your cholesterol levels are slightly elevated. This is manageable through diet and exercise. Focus on reducing saturated fats and increasing omega-3 fatty acids. Your blood pressure is excellent, and your glucose levels are well-controlled. Keep up the good work with your current lifestyle choices!"
-      ];
-      
-      const selectedResponse = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
-      const words = selectedResponse.split(' ');
+      // Get assistant response with health context (true token streaming)
+      const profileForAI = profile ? {
+        ...profile,
+        displayName: (user as any)?.displayName ?? (profile as any)?.displayName,
+        preferredName: (user as any)?.preferredName ?? (profile as any)?.preferredName,
+        firstName: (user as any)?.firstName ?? (profile as any)?.firstName,
+        surname: (user as any)?.surname ?? (profile as any)?.surname,
+        email: (user as any)?.email ?? (profile as any)?.email,
+      } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName, email: (user as any)?.email } as any : null);
 
-      // Stream the response with throttling to avoid UI jitter
-      for (let i = 0; i < words.length; i++) {
-        currentContent += (i > 0 ? ' ' : '') + words[i];
-        
-        const now = Date.now();
-        const shouldUpdate = (i % 3 === 0) || i === words.length - 1 || (now - lastStreamUpdateAtRef.current) > 120;
-        if (shouldUpdate) {
-          lastStreamUpdateAtRef.current = now;
+      currentContent = await HealthAssistantService.streamChatWithAssistant(
+        userMessage.content,
+        [...messages, userMessage] as any,
+        { profile: profileForAI as any, biomarkers, healthScore, deviceData, settings, labResults, bodySystems, travelHealth },
+        (acc) => {
+          const now = Date.now();
+          if ((now - lastStreamUpdateAtRef.current) > 80) {
+            lastStreamUpdateAtRef.current = now;
+            const snapshot = acc;
+            setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: snapshot } : m));
+            if ((now - lastAutoScrollAtRef.current) > 120) {
+              lastAutoScrollAtRef.current = now;
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }
+          }
         }
-
-        // Throttle auto-scroll
-        if ((now - lastAutoScrollAtRef.current) > 200 || i === words.length - 1) {
-          lastAutoScrollAtRef.current = now;
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }
-
-        // Small delay for streaming feel
-        await new Promise(resolve => setTimeout(resolve, 35 + Math.random() * 65));
-      }
+      );
 
     } catch (error) {
       console.error('Error getting AI response:', error);
       Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');
+      // Fill placeholder with an error message so the bubble isn't blank
+      setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: 'Sorry, I had trouble responding. Please check your connection and try again.' } : m));
     } finally {
       setIsLoading(false);
       setStreamingMessageId(null);
@@ -362,18 +397,12 @@ const HealthAssistantScreen: React.FC = () => {
         msg.id === userMessage.id ? { ...msg, status: 'sent' as const } : msg
       ));
       
-      // Append final content once
+      // Ensure final content is set and parse commands
       if (currentContent && currentContent.trim().length > 0) {
-        setMessages(prev => {
-          const newMessages = [...prev, {
-          id: assistantMessageId,
-          role: 'assistant',
-          content: stripEmojis(currentContent),
-          timestamp: new Date(),
-          }];
-          console.log('🤖 Messages after adding assistant response:', newMessages);
-          return newMessages;
-        });
+        const finalText = stripEmojis(currentContent);
+        setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: finalText } : m));
+        const cmd = parseAssistantCommand(finalText);
+        if (cmd) setPendingCommand(cmd);
       }
       // Persist conversation and update sessions list
       try {
@@ -398,6 +427,136 @@ const HealthAssistantScreen: React.FC = () => {
     }
   };
 
+  const humanizeCommand = (cmd: Command): string => {
+    switch (cmd.type) {
+      case 'SUPPLEMENT_VITC_RECOMMEND': return 'Recommend Vitamin C plan';
+      case 'APPT_RESCHEDULE_DENTIST': return 'Reschedule dentist appointment';
+      case 'SYMPTOM_LOG_LEG_PAIN': return 'Log leg pain and start plan';
+      case 'ALLERGY_UPDATE_PNUT': return 'Update peanut allergy';
+      case 'TRAVEL_ADD_COUNTRY_CARD': return 'Add country card';
+      case 'LAB_SUBMIT_RESULTS': return 'Submit lab results';
+      case 'TRIP_CHANGE_DATES': return 'Change trip dates';
+    }
+  };
+
+  const openTimelineHistory = async (type: 'Supplement'|'Appointment'|'Lab', title: string) => {
+    setTimelineHistoryTitle(title);
+    setShowTimelineHistory(true);
+    setTimelineHistoryLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('timeline_entries')
+        .select('id, occurred_at, title, meta, type')
+        .eq('type', type)
+        .order('occurred_at', { ascending: false })
+        .limit(15);
+      if (error) throw error;
+      setTimelineHistory((data || []).map((row: any) => ({
+        id: row.id as string,
+        occurred_at: row.occurred_at as string,
+        title: row.title as string,
+        meta: row.meta as any,
+      })));
+    } catch {
+      setTimelineHistory([]);
+    } finally {
+      setTimelineHistoryLoading(false);
+    }
+  };
+
+  const logTimelineForCommand = async (cmd: Command, result: any) => {
+    try {
+      switch (cmd.type) {
+        case 'SUPPLEMENT_VITC_RECOMMEND': {
+          const dose = result?.recommendedDoseMg ?? cmd.payload?.dosePreferenceMg ?? 500;
+          await postTimeline({
+            type: 'Supplement',
+            title: `Vitamin C plan (${dose} mg)`,
+            meta: { nutrient: 'vitamin_c', doseMg: dose, rationale: cmd.payload?.reason }
+          });
+          break;
+        }
+        case 'APPT_RESCHEDULE_DENTIST': {
+          await postTimeline({
+            type: 'Appointment',
+            title: `Dentist rescheduled`,
+            meta: { old: result?.oldDateTime, new: result?.newDateTime, status: result?.status }
+          });
+          break;
+        }
+        case 'SYMPTOM_LOG_LEG_PAIN': {
+          const side = cmd.payload?.side || 'unspecified';
+          const region = cmd.payload?.region || 'leg';
+          await postTimeline({
+            type: 'Symptom',
+            title: `${side} ${region} pain logged`.replace(/^unspecified\s/i, ''),
+            meta: { severity: cmd.payload?.severity, onset: cmd.payload?.onsetDate, planId: result?.symptomId }
+          });
+          break;
+        }
+        case 'ALLERGY_UPDATE_PNUT': {
+          await postTimeline({
+            type: 'Allergy',
+            title: `Peanut allergy ${cmd.payload?.action}`,
+            meta: { severity: cmd.payload?.severity, epiPen: cmd.payload?.epiPenOwned, status: result?.status }
+          });
+          break;
+        }
+        case 'TRAVEL_ADD_COUNTRY_CARD': {
+          await postTimeline({
+            type: 'Travel',
+            title: `Country card added (${cmd.payload?.country})`,
+            meta: { country: cmd.payload?.country, cardType: cmd.payload?.cardType }
+          });
+          break;
+        }
+        case 'LAB_SUBMIT_RESULTS': {
+          await postTimeline({
+            type: 'Lab',
+            title: `New blood panel submitted (${cmd.payload?.panel})`,
+            meta: { specimenDate: cmd.payload?.specimenDate, updatedCount: result?.updatedBiomarkers?.length }
+          });
+          break;
+        }
+        case 'TRIP_CHANGE_DATES': {
+          await postTimeline({
+            type: 'Travel',
+            title: `Trip dates changed (${cmd.payload?.destination || 'Trip'})`,
+            meta: { start: cmd.payload?.startDate, end: cmd.payload?.endDate }
+          });
+          break;
+        }
+      }
+    } catch (e) {
+      console.warn('Timeline write failed:', e);
+    }
+  };
+
+  const confirmPendingCommand = async () => {
+    if (!pendingCommand || isDispatching) return;
+    try {
+      setIsDispatching(true);
+      const result = await dispatchCommand(pendingCommand);
+      await logTimelineForCommand(pendingCommand, result);
+      // Capture Symptom Plan
+      if (pendingCommand.type === 'SYMPTOM_LOG_LEG_PAIN' && result?.plan) {
+        setActiveSymptomPlan(result.plan);
+        setActiveSymptomId(result.symptomId || null);
+        const init: Record<string, boolean> = {};
+        try {
+          (result.plan.steps || []).forEach((s: any) => { if (s?.toggleKey) init[s.toggleKey] = false; });
+        } catch {}
+        setToggleState(init);
+      }
+      Alert.alert('Done', `${humanizeCommand(pendingCommand)} completed.`);
+      setPendingCommand(null);
+    } catch (e: any) {
+      Alert.alert('Action failed', e?.message || 'Unable to complete the action.');
+    } finally {
+      setIsDispatching(false);
+    }
+  };
+
   const handleSendWithAnimation = async (text: string, clientId: string) => {
     if (!text.trim() || isLoading) return;
 
@@ -419,45 +578,36 @@ const HealthAssistantScreen: React.FC = () => {
     });
     setIsLoading(true);
 
-    // Prepare streaming without mutating messages yet
+    // Prepare streaming with a visible placeholder assistant message
     const assistantMessageId = generateId('a');
     setStreamingMessageId(assistantMessageId);
     let currentContent = '';
+    setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date() }]);
 
     try {
-      // Simulate streaming response
-      const sampleResponses = [
-        "Based on your health data, I can see several important patterns. Your recent biomarker results show good overall health, but there are a few areas we should focus on. Your vitamin D levels are slightly below optimal, which is common during winter months. I'd recommend increasing your sun exposure and considering a vitamin D supplement. Additionally, your sleep patterns could be improved - aim for 7-9 hours of quality sleep per night.",
-        "Great question! Looking at your nutrition data, I notice you're doing well with protein intake but could benefit from more fiber. Try incorporating more leafy greens, whole grains, and legumes into your diet. Also, staying hydrated is crucial - aim for 8-10 glasses of water daily. Your current exercise routine is solid, but consider adding some strength training 2-3 times per week for better overall fitness.",
-        "Your lab results look promising! Most markers are within normal ranges. However, I notice your cholesterol levels are slightly elevated. This is manageable through diet and exercise. Focus on reducing saturated fats and increasing omega-3 fatty acids. Your blood pressure is excellent, and your glucose levels are well-controlled. Keep up the good work with your current lifestyle choices!"
-      ];
-      
-      const selectedResponse = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
-      const words = selectedResponse.split(' ');
-
-      // Stream the response with throttling to avoid UI jitter
-      for (let i = 0; i < words.length; i++) {
-        currentContent += (i > 0 ? ' ' : '') + words[i];
-        
-        const now = Date.now();
-        const shouldUpdate = (i % 3 === 0) || i === words.length - 1 || (now - lastStreamUpdateAtRef.current) > 120;
-        if (shouldUpdate) {
-          lastStreamUpdateAtRef.current = now;
+      // True token streaming using service
+      currentContent = await HealthAssistantService.streamChatWithAssistant(
+        userMessage.content,
+        [...messages, userMessage] as any,
+        { profile, biomarkers, healthScore },
+        (acc) => {
+          const now = Date.now();
+          if ((now - lastStreamUpdateAtRef.current) > 80) {
+            lastStreamUpdateAtRef.current = now;
+            setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: acc } : m));
+            if ((now - lastAutoScrollAtRef.current) > 120) {
+              lastAutoScrollAtRef.current = now;
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }
+          }
         }
-
-        // Throttle auto-scroll
-        if ((now - lastAutoScrollAtRef.current) > 200 || i === words.length - 1) {
-          lastAutoScrollAtRef.current = now;
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }
-
-        // Small delay for streaming feel
-        await new Promise(resolve => setTimeout(resolve, 35 + Math.random() * 65));
-      }
+      );
 
     } catch (error) {
       console.error('Error getting AI response:', error);
       Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');
+      // Ensure placeholder shows an error message instead of remaining blank
+      setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: 'Sorry, I had trouble responding. Please check your connection and try again.' } : m));
     } finally {
       setIsLoading(false);
       setStreamingMessageId(null);
@@ -467,18 +617,10 @@ const HealthAssistantScreen: React.FC = () => {
         msg.id === userMessage.id ? { ...msg, status: 'sent' as const } : msg
       ));
       
-      // Append final content once
+      // Ensure final content is set
       if (currentContent && currentContent.trim().length > 0) {
-        setMessages(prev => {
-          const newMessages = [...prev, {
-            id: assistantMessageId,
-            role: 'assistant',
-            content: stripEmojis(currentContent),
-            timestamp: new Date(),
-          }];
-          console.log('🤖 Messages after adding assistant response:', newMessages);
-          return newMessages;
-        });
+        const finalText = stripEmojis(currentContent);
+        setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: finalText } : m));
       }
       // Persist conversation and update sessions list
       try {
@@ -949,6 +1091,22 @@ const HealthAssistantScreen: React.FC = () => {
     });
   };
 
+  // Animate new chat modal bottom sheet when opening/closing
+  useEffect(() => {
+    if (showNewChatModal) {
+      // Start from off-screen and slide up
+      newChatModalTranslateY.setValue(1000);
+      Animated.spring(newChatModalTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
+    } else {
+      newChatModalTranslateY.setValue(0);
+    }
+  }, [showNewChatModal]);
+
   // Chat management functions
   const startNewChat = async (withMemory: boolean) => {
     const newChatId = `chat_${Date.now()}`;
@@ -1090,8 +1248,8 @@ const HealthAssistantScreen: React.FC = () => {
         ]}>
           {message.role === 'assistant' && (
             <View style={styles.assistantAvatar}>
-              <Image 
-                source={require('../../assets/Turtle.png')} 
+                <Image 
+                  source={require('../../assets/Turtle2.png')} 
                 style={styles.avatarImage}
                 resizeMode="contain"
               />
@@ -1266,36 +1424,95 @@ const HealthAssistantScreen: React.FC = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-      {/* New Chat Modal */}
-      <Modal visible={showNewChatModal} animationType="fade" transparent onRequestClose={() => setShowNewChatModal(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}>
-          {/* Tap outside to close */}
-          <TouchableOpacity
-            onPress={() => setShowNewChatModal(false)}
-            activeOpacity={1}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}
-          />
-          <View style={{ backgroundColor: '#181A20', borderRadius: 24, padding: 28, width: 320, zIndex: 1 }}>
-            {/* Header with red close (top-left) and centered title */}
-            <View style={{ marginBottom: 16, justifyContent: 'center' }}>
-              <TouchableOpacity
-                onPress={() => setShowNewChatModal(false)}
-                hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
-                activeOpacity={0.7}
-                accessibilityLabel="Close"
-                style={{ position: 'absolute', left: 0, top: -8, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Ionicons name="close" size={22} color="#FF3B30" />
-              </TouchableOpacity>
-              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>Start New Chat</Text>
-            </View>
-            <Text style={{ color: '#aaa', fontSize: 16, marginBottom: 24, textAlign: 'center' }}>Would you like this chat to have memory?</Text>
-            <TouchableOpacity style={{ backgroundColor: '#007AFF', borderRadius: 12, padding: 14, marginBottom: 12 }} onPress={() => startNewChat(true)}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>With Memory</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ backgroundColor: '#232A34', borderRadius: 12, padding: 14, marginBottom: 4 }} onPress={() => startNewChat(false)}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>No Memory</Text>
-            </TouchableOpacity>
+      {/* New Chat Modal - Bottom Sheet Style */}
+      <Modal 
+        visible={showNewChatModal} 
+        transparent 
+        animationType="none"
+        presentationStyle="overFullScreen"
+        onRequestClose={() => setShowNewChatModal(false)}
+      >
+        <View style={styles.newChatModalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setShowNewChatModal(false)}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View style={styles.newChatBottomSheetContainer}>
+            <Animated.View
+              style={[
+                styles.newChatBottomSheetContent,
+                {
+                  transform: [{ translateY: newChatModalTranslateY }],
+                },
+              ]}
+            >
+              {/* Handle bar */}
+              <View style={styles.newChatBottomSheetHandleContainer}>
+                <View style={styles.newChatBottomSheetHandle} />
+              </View>
+
+              {/* Header */}
+              <View style={styles.newChatBottomSheetHeader} pointerEvents="box-none">
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    Animated.timing(newChatModalTranslateY, {
+                      toValue: 1000,
+                      duration: 250,
+                      useNativeDriver: true,
+                    }).start(() => {
+                      setShowNewChatModal(false);
+                      newChatModalTranslateY.setValue(0);
+                    });
+                  }}
+                  style={styles.newChatBottomSheetCloseButton}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+                <Text style={styles.newChatBottomSheetTitle}>Start New Chat</Text>
+                <View style={{ width: 32 }} />
+              </View>
+
+              {/* Content */}
+              <View style={styles.newChatBottomSheetBody}>
+                <Text style={styles.newChatQuestion}>Would you like this chat to have memory?</Text>
+                <TouchableOpacity 
+                  style={styles.newChatButtonWithMemory} 
+                  onPress={() => {
+                    Animated.timing(newChatModalTranslateY, {
+                      toValue: 1000,
+                      duration: 250,
+                      useNativeDriver: true,
+                    }).start(() => {
+                      setShowNewChatModal(false);
+                      newChatModalTranslateY.setValue(0);
+                      startNewChat(true);
+                    });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.newChatButtonText}>With Memory</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.newChatButtonNoMemory} 
+                  onPress={() => {
+                    Animated.timing(newChatModalTranslateY, {
+                      toValue: 1000,
+                      duration: 250,
+                      useNativeDriver: true,
+                    }).start(() => {
+                      setShowNewChatModal(false);
+                      newChatModalTranslateY.setValue(0);
+                      startNewChat(false);
+                    });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.newChatButtonText}>No Memory</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
           </View>
         </View>
       </Modal>
@@ -1382,34 +1599,63 @@ const HealthAssistantScreen: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        {/* Inline slot collectors when needed (lightweight demo) */}
+        {pendingCommand?.type === 'APPT_RESCHEDULE_DENTIST' && (
+          <DateTimeCollector label="Pick new date & time" onPicked={(iso, time) => {
+            setPendingCommand({ type: 'APPT_RESCHEDULE_DENTIST', payload: { ...(pendingCommand as any).payload, newDate: iso, newTime: time } });
+          }} />
+        )}
+        {pendingCommand?.type === 'SYMPTOM_LOG_LEG_PAIN' && (
+          <SeverityCollector onPicked={(sev) => {
+            setPendingCommand({ type: 'SYMPTOM_LOG_LEG_PAIN', payload: { ...(pendingCommand as any).payload, severity: sev } });
+          }} />
+        )}
+        {pendingCommand?.type === 'SUPPLEMENT_VITC_RECOMMEND' && (
+          <MgCollector onPicked={(mg) => {
+            setPendingCommand({ type: 'SUPPLEMENT_VITC_RECOMMEND', payload: { ...(pendingCommand as any).payload, dosePreferenceMg: mg } });
+          }} />
+        )}
         
-        {/* Chat Messages */}
-        <ChatList 
-          messages={messages
-            .filter(msg => msg && msg.id && msg.content && msg.role) // Filter out invalid messages
-            .map(msg => ({
-              id: msg.id,
-              clientId: msg.id,
-              text: msg.content,
-              role: msg.role,
-              status: (msg as any).status || 'sent',
-              timestamp: msg.timestamp,
-            }))}
-          onMessageLayout={(clientId, rect) => {
-            // Handle message layout for animation
-            sendAnim.setEndRect(clientId, rect);
+        {/* Chat Messages (ScrollView) */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          onContentSizeChange={() => {
+            if (autoScrollEnabledRef.current) {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }
           }}
-        />
+          onScrollBeginDrag={() => { autoScrollEnabledRef.current = false; }}
+          onScrollEndDrag={() => { /* user can re-enable by tapping send/new msg */ }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ChatList 
+            messages={messages
+              .filter(msg => msg && msg.id && msg.content && msg.role) // Filter out invalid messages
+              .map(msg => ({
+                id: msg.id,
+                clientId: msg.id,
+                text: msg.content,
+                role: msg.role,
+                status: (msg as any).status || 'sent',
+                timestamp: msg.timestamp,
+              }))}
+            onMessageLayout={(clientId, rect) => {
+              // Handle message layout for animation
+              sendAnim.setEndRect(clientId, rect);
+            }}
+            streamingId={streamingMessageId || undefined}
+          />
+        </ScrollView>
           
           {/* Loading Indicator */}
           {isLoading && (
             <View style={styles.loadingContainer}>
                 <View style={styles.assistantAvatar}>
-                  <Image 
-                    source={require('../../assets/Turtle.png')} 
-                    style={styles.avatarImage}
-                    resizeMode="contain"
-                  />
+                  {/* Torto thinking while waiting */}
+                  {React.createElement(require('../components/chat/TortoAvatar').TortoAvatar, { state: 'thinking', size: 28 })}
                 </View>
                 <View style={styles.loadingContent}>
                   <View style={styles.loadingDots}>
@@ -1421,13 +1667,201 @@ const HealthAssistantScreen: React.FC = () => {
             </View>
           )}
 
+        {/* Action confirmation banner */}
+        {pendingCommand && (
+          <View style={styles.confirmBar}>
+            <Text style={styles.confirmText}>{humanizeCommand(pendingCommand)}</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity style={[styles.confirmBtn, styles.confirmBtnPrimary]} onPress={confirmPendingCommand} disabled={isDispatching}>
+                <Text style={styles.confirmBtnText}>{isDispatching ? 'Working…' : 'Confirm & Log'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.confirmBtn, styles.confirmBtnSecondary]} onPress={() => setPendingCommand(null)} disabled={isDispatching}>
+                <Text style={styles.confirmBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Quick history link for current intent */}
+        {pendingCommand?.type === 'SUPPLEMENT_VITC_RECOMMEND' && (
+          <View style={styles.historyLinkRow}>
+            <TouchableOpacity onPress={() => openTimelineHistory('Supplement', 'Supplement History')}>
+              <Text style={styles.historyLinkText}>View supplement history</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {pendingCommand?.type === 'APPT_RESCHEDULE_DENTIST' && (
+          <View style={styles.historyLinkRow}>
+            <TouchableOpacity onPress={() => openTimelineHistory('Appointment', 'Appointment History')}>
+              <Text style={styles.historyLinkText}>View appointment history</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {pendingCommand?.type === 'LAB_SUBMIT_RESULTS' && (
+          <View style={styles.historyLinkRow}>
+            <TouchableOpacity onPress={() => openTimelineHistory('Lab', 'Lab History')}>
+              <Text style={styles.historyLinkText}>View lab history</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Symptom Plan (persisted) */}
+        {activeSymptomPlan && (
+          <View style={styles.planContainer}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planHeaderText}>Leg pain recovery plan</Text>
+              <Text style={styles.planCompletion}>
+                {Object.values(toggleState).filter(Boolean).length}/{(activeSymptomPlan.steps || []).length}
+              </Text>
+            </View>
+            <SymptomPlan
+              plan={activeSymptomPlan}
+              onToggle={async (toggleKey, completed) => {
+                setToggleState(prev => ({ ...prev, [toggleKey]: completed }));
+                try {
+                  await togglesMark({ toggleKey, completed, symptomId: activeSymptomId || undefined });
+                } catch (err) {
+                  // revert on error
+                  setToggleState(prev => ({ ...prev, [toggleKey]: !completed }));
+                }
+              }}
+            />
+            <View style={{ paddingHorizontal: 16, marginTop: 8, alignItems: 'flex-end' }}>
+              <TouchableOpacity onPress={async () => {
+                setShowPlanHistory(true);
+                setPlanHistoryLoading(true);
+                try {
+                  const { data: events, error: e1 } = await supabase
+                    .from('symptom_events')
+                    .select('id, created_at, side, region, severity')
+                    .eq('kind', 'leg_pain')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                  if (e1) throw e1;
+                  const ids = (events || []).map((ev: any) => ev.id);
+                  let togglesMap: Record<string, { total: number; completed: number }> = {};
+                  if (ids.length > 0) {
+                    const { data: toggles, error: e2 } = await supabase
+                      .from('symptom_toggles')
+                      .select('symptom_id, toggle_key, completed')
+                      .in('symptom_id', ids);
+                    if (e2) throw e2;
+                    (toggles || []).forEach((t: any) => {
+                      const key = t.symptom_id as string;
+                      if (!togglesMap[key]) togglesMap[key] = { total: 0, completed: 0 };
+                      togglesMap[key].total += 1;
+                      if (t.completed) togglesMap[key].completed += 1;
+                    });
+                  }
+                  const merged = (events || []).map((ev: any) => ({
+                    id: ev.id as string,
+                    created_at: ev.created_at as string,
+                    side: ev.side as string | undefined,
+                    region: ev.region as string | undefined,
+                    severity: ev.severity as number | undefined,
+                    completed: togglesMap[ev.id]?.completed || 0,
+                    total: togglesMap[ev.id]?.total || 0,
+                  }));
+                  setPlanHistory(merged);
+                } catch {
+                  setPlanHistory([]);
+                } finally {
+                  setPlanHistoryLoading(false);
+                }
+              }}>
+                <Text style={{ color: '#93C5FD', fontWeight: '700', fontSize: 12 }}>View history</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Modern Input Section with Animation */}
         <MessageComposer 
           onSend={handleSendWithAnimation}
           disabled={isLoading}
-          onCameraPress={() => setShowMediaPicker(true)}
+          onAttachPress={() => setShowMediaPicker(true)}
+          onMicPress={handleVoiceInput}
+          hasChatted={messages.some(m => m.role === 'user')}
         />
       </KeyboardAvoidingView>
+
+      {/* Plan History Modal */}
+      <Modal visible={showPlanHistory} animationType="slide" transparent onRequestClose={() => setShowPlanHistory(false)}>
+        <View style={styles.historyOverlay}>
+          <View style={styles.historyCard}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Leg Pain History</Text>
+              <TouchableOpacity onPress={() => setShowPlanHistory(false)}>
+                <Ionicons name="close" size={22} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1 }}>
+              {planHistoryLoading ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="small" color="#93C5FD" />
+                  <Text style={{ color: '#9CA3AF', marginTop: 8 }}>Loading…</Text>
+                </View>
+              ) : (
+                <ScrollView contentContainerStyle={{ paddingVertical: 8 }}>
+                  {planHistory.length === 0 ? (
+                    <Text style={{ color: '#9CA3AF', textAlign: 'center', marginTop: 16 }}>No history yet.</Text>
+                  ) : planHistory.map(item => (
+                    <View key={item.id} style={styles.historyRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.historyRowTitle}>{item.region || 'leg'} • {item.side || 'unspecified'}</Text>
+                        <Text style={styles.historyRowMeta}>Severity {item.severity ?? '-'} • {new Date(item.created_at).toLocaleString()}</Text>
+                      </View>
+                      <Text style={styles.historyProgress}>{item.completed}/{item.total}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Timeline History Modal (Supplements/Appointments/Labs) */}
+      <Modal visible={showTimelineHistory} animationType="slide" transparent onRequestClose={() => setShowTimelineHistory(false)}>
+        <View style={styles.historyOverlay}>
+          <View style={styles.historyCard}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>{timelineHistoryTitle}</Text>
+              <TouchableOpacity onPress={() => setShowTimelineHistory(false)}>
+                <Ionicons name="close" size={22} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flex: 1 }}>
+              {timelineHistoryLoading ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="small" color="#93C5FD" />
+                  <Text style={{ color: '#9CA3AF', marginTop: 8 }}>Loading…</Text>
+                </View>
+              ) : (
+                <ScrollView contentContainerStyle={{ paddingVertical: 8 }}>
+                  {timelineHistory.length === 0 ? (
+                    <Text style={{ color: '#9CA3AF', textAlign: 'center', marginTop: 16 }}>No history yet.</Text>
+                  ) : timelineHistory.map(item => (
+                    <View key={item.id} style={styles.historyRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.historyRowTitle}>{item.title}</Text>
+                        <Text style={styles.historyRowMeta}>{new Date(item.occurred_at).toLocaleString()}</Text>
+                      </View>
+                      {item.meta?.doseMg ? (
+                        <Text style={styles.historyProgress}>{item.meta.doseMg} mg</Text>
+                      ) : item.meta?.updatedCount ? (
+                        <Text style={styles.historyProgress}>{item.meta.updatedCount} upd.</Text>
+                      ) : item.meta?.new ? (
+                        <Text style={styles.historyProgress}>→ {String(item.meta.new).slice(11,16)}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Telegram-style Media Picker */}
       <TelegramMediaPicker
@@ -1443,7 +1877,7 @@ const HealthAssistantScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0B0F',
+    backgroundColor: '#000000',
   },
   telegramBackground: {
     position: 'absolute',
@@ -1451,8 +1885,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#0B0B0F',
-    // Telegram-style subtle pattern
+    backgroundColor: '#000000',
     opacity: 0.3,
   },
   header: {
@@ -1499,7 +1932,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   messagesContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingBottom: 20,
   },
   messageContainer: {
@@ -1632,6 +2065,127 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#007AFF',
     marginHorizontal: 3,
+  },
+  planContainer: {
+    marginTop: 8,
+  },
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 4,
+  },
+  planHeaderText: {
+    color: '#E5E7EB',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  planCompletion: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  confirmBar: {
+    backgroundColor: '#1E293B',
+    borderTopWidth: 1,
+    borderTopColor: '#0F172A',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  confirmText: {
+    color: '#E2E8F0',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 12,
+    flex: 1,
+  },
+  confirmBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  confirmBtnPrimary: {
+    backgroundColor: '#10B981',
+  },
+  confirmBtnSecondary: {
+    backgroundColor: '#334155',
+  },
+  confirmBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  historyLinkRow: {
+    paddingHorizontal: 16,
+    marginTop: 6,
+    marginBottom: 4,
+    alignItems: 'flex-end',
+  },
+  historyLinkText: {
+    color: '#93C5FD',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  historyOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  historyCard: {
+    width: '100%',
+    maxWidth: 420,
+    height: '70%',
+    backgroundColor: '#111827',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1F2937',
+    padding: 12,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    marginBottom: 4,
+  },
+  historyTitle: {
+    color: '#E5E7EB',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#000000',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderWidth: 1,
+    borderColor: '#1F2937',
+  },
+  historyRowTitle: {
+    color: '#E5E7EB',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  historyRowMeta: {
+    color: '#9CA3AF',
+    fontSize: 12,
+  },
+  historyProgress: {
+    color: '#93C5FD',
+    fontWeight: '800',
   },
   messageImage: {
     width: 180,
@@ -1870,6 +2424,103 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginTop: 4,
+  },
+  // New Chat Modal Bottom Sheet Styles
+  newChatModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  newChatBottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+  newChatBottomSheetContent: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  newChatBottomSheetHandleContainer: {
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newChatBottomSheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 2,
+  },
+  newChatBottomSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    zIndex: 10,
+  },
+  newChatBottomSheetCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newChatBottomSheetTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    flex: 1,
+  },
+  newChatBottomSheetBody: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  newChatQuestion: {
+    color: '#aaa',
+    fontSize: 16,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  newChatButtonWithMemory: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newChatButtonNoMemory: {
+    backgroundColor: '#232A34',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newChatButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

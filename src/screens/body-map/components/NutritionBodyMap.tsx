@@ -315,15 +315,24 @@ const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
     }
   };
 
-  const vitamins = nutritionData.filter(item => item.category === 'vitamin');
-  const majorMinerals = nutritionData.filter(item => 
-    item.category === 'mineral' && 
-    ['Calcium', 'Magnesium', 'Phosphorus', 'Potassium', 'Sodium', 'Chloride', 'Sulfur'].includes(item.name)
-  );
-  const traceMinerals = nutritionData.filter(item => 
-    item.category === 'mineral' && 
-    ['Iron', 'Zinc', 'Copper', 'Iodine', 'Selenium', 'Manganese', 'Chromium', 'Molybdenum', 'Fluoride'].includes(item.name)
-  );
+  const vitamins = nutritionData
+    .filter(item => item.category === 'vitamin')
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const majorMinerals = nutritionData
+    .filter(item => 
+      item.category === 'mineral' && 
+      ['Calcium', 'Magnesium', 'Phosphorus', 'Potassium', 'Sodium', 'Chloride', 'Sulfur'].includes(item.name)
+    )
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const traceMinerals = nutritionData
+    .filter(item => 
+      item.category === 'mineral' && 
+      ['Iron', 'Zinc', 'Copper', 'Iodine', 'Selenium', 'Manganese', 'Chromium', 'Molybdenum', 'Fluoride'].includes(item.name)
+    )
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <View style={styles.container}>

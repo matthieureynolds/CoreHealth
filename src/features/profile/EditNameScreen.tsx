@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
+import { useHealthData } from '../../context/HealthDataContext';
 import { ProfileTabParamList } from '../../types';
 
 type EditNameScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
@@ -23,24 +24,36 @@ interface NameData {
   firstName: string;
   surname: string;
   preferredName: string;
+  username: string;
 }
 
 const EditNameScreen: React.FC = () => {
   const navigation = useNavigation<EditNameScreenNavigationProp>();
-  const { user, updateUserName } = useAuth();
+  const { user, updateUserName, updateUsername } = useAuth();
+  const { updateProfile } = useHealthData();
   const [nameData, setNameData] = useState<NameData>({
     firstName: '',
     surname: '',
     preferredName: '',
+    username: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  const sanitize = (raw: string) =>
+    raw
+      .toLowerCase()
+      .replace(/[^a-z0-9_\.]/g, '')
+      .replace(/\.{2,}/g, '.')
+      .replace(/^\.|\.$/g, '');
+
   useEffect(() => {
     if (user) {
+      const baseUsername = user.username || user.preferredName || user.firstName || '';
       setNameData({
         firstName: user.firstName || '',
         surname: user.surname || '',
         preferredName: user.preferredName || '',
+        username: sanitize(baseUsername.replace(/\s+/g, '.')),
       });
     }
   }, [user]);
@@ -77,6 +90,18 @@ const EditNameScreen: React.FC = () => {
         nameData.surname.trim(),
         finalPreferredName
       );
+      // Also update profile display name so it reflects immediately in Profile screens
+      const displayName = `${nameData.firstName.trim()} ${nameData.surname.trim()}`.trim();
+      try {
+        await updateProfile({ displayName });
+      } catch {}
+      // Optionally update username if provided and valid
+      const cleaned = sanitize(nameData.username || '');
+      if (cleaned && cleaned.length >= 3 && cleaned.length <= 20 && /^[a-z0-9](?:[a-z0-9_.]*[a-z0-9])?$/.test(cleaned)) {
+        if (cleaned !== (user?.username || '')) {
+          await updateUsername(cleaned);
+        }
+      }
       
       Alert.alert('Success', 'Name updated successfully');
     } catch (error) {
@@ -92,17 +117,18 @@ const EditNameScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
+      <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Name</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Edit Name</Text>
         <TouchableOpacity
           style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
           onPress={handleSave}
+          hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
           disabled={isLoading}
         >
           {isLoading ? (
@@ -161,6 +187,21 @@ const EditNameScreen: React.FC = () => {
             autoCorrect={false}
           />
         </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Username</Text>
+          <TextInput
+            style={styles.input}
+            value={nameData.username}
+            onChangeText={(text) => setNameData({ ...nameData, username: sanitize(text) })}
+            placeholder="your.username"
+            placeholderTextColor="#666"
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={20}
+          />
+          <Text style={{ color: '#888', fontSize: 12, marginTop: 6 }}>3–20 chars; letters, numbers, underscore, dot</Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -169,7 +210,7 @@ const EditNameScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -181,6 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
+    zIndex: 2,
   },
   backButton: {
     padding: 8,
@@ -208,7 +250,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     top: 23.5,
-    zIndex: 1,
+    zIndex: 10,
   },
   saveButtonDisabled: {
     opacity: 0.5,

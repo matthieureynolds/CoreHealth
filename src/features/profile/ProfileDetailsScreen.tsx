@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,15 @@ import {
   Alert,
   Image,
   Modal,
+  TouchableWithoutFeedback,
+  Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../context/AuthContext';
+import { calculateProfileCompletion } from '../../utils/profileCompletion';
 import ProfilePicturePicker from '../../components/ProfilePicturePicker';
 import { useHealthData } from '../../context/HealthDataContext';
 import { ProfileTabParamList } from '../../types';
@@ -26,6 +29,35 @@ const ProfileDetailsScreen: React.FC = () => {
   const { profile, updateProfile } = useHealthData();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [tempBirthDate, setTempBirthDate] = useState<Date | null>(null);
+  
+  // Animated value for gender picker bottom sheet
+  const genderPickerTranslateY = useRef(new Animated.Value(1000)).current;
+
+  // Initialize tempBirthDate when picker opens
+  useEffect(() => {
+    if (showDatePicker) {
+      setTempBirthDate(profile?.birthDate ? new Date(profile.birthDate) : new Date());
+    } else {
+      setTempBirthDate(null);
+    }
+  }, [showDatePicker, profile?.birthDate]);
+
+  // Animate gender picker bottom sheet when opening/closing
+  useEffect(() => {
+    if (showGenderPicker) {
+      // Start from off-screen and slide up
+      genderPickerTranslateY.setValue(1000);
+      Animated.spring(genderPickerTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
+    } else {
+      genderPickerTranslateY.setValue(0);
+    }
+  }, [showGenderPicker]);
 
   // Picker options
   const genderOptions = [
@@ -43,19 +75,29 @@ const ProfileDetailsScreen: React.FC = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Scrollable Profile Header (avatar, name) */}
       <View style={styles.profileHeader}>
+        <TouchableOpacity onPress={() => navigation.navigate('CommunityLeaderboard' as never)} style={styles.headerCommunityButton}>
+          <FontAwesome5 name="users" size={22} color="#0A84FF" solid />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings' as never)} style={styles.headerSettingsButton}>
+          <Ionicons name="settings-sharp" size={24} color="#0A84FF" />
+        </TouchableOpacity>
         <ProfilePicturePicker
           currentPhotoURL={user?.photoURL}
           onPhotoSelected={handlePhotoSelected}
           size={110}
           userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
+          progressPercent={calculateProfileCompletion(user, profile)}
         />
-        <Text style={styles.profileName}>
+        <Text style={[styles.profileName, { marginTop: 2 }]}> 
           {user?.firstName && user?.surname
             ? `${user.firstName} ${user.surname}`
             : user?.displayName || 'User'}
         </Text>
-        <Text style={styles.profileEmail}>
-          {user?.preferredName || user?.firstName || 'matthieu.reynolds_04'}
+        <Text style={[styles.profileEmail, { marginTop: 2 }]}> 
+          {`@${(user?.username || user?.preferredName || user?.firstName || 'user')
+            .toString()
+            .replace(/\s+/g, '.')
+            .toLowerCase()}`}
         </Text>
       </View>
       {/* Personal Info Card */}
@@ -64,11 +106,16 @@ const ProfileDetailsScreen: React.FC = () => {
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
           <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Name</Text>
-          <Text style={styles.cardValue}>
-            {user?.firstName && user?.surname 
-              ? `${user.firstName} ${user.surname}` 
-              : user?.displayName || 'Not set'}
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.cardValue}>
+              {user?.firstName && user?.surname 
+                ? `${user.firstName} ${user.surname}` 
+                : user?.displayName || 'Not set'}
             </Text>
+            {user?.username ? (
+              <Text style={[styles.cardValue, { color: '#9AA3AF', marginTop: 2 }]}>@{user.username}</Text>
+            ) : null}
+          </View>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => setShowDatePicker(true)}>
@@ -203,16 +250,7 @@ const ProfileDetailsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Community Card */}
-      <View style={[styles.card, styles.cardTightBottom]}>
-        <Text style={styles.cardHeader}>COMMUNITY</Text>
-        <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('CommunityLeaderboard')}>
-          <Ionicons name="trophy-outline" size={22} color="#FFD700" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Health Leaderboard</Text>
-          <Text style={styles.cardValue}>Monthly & Overall</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-      </View>
+      {/* Community Card removed by request */}
 
       {/* Date of Birth Picker */}
       <Modal
@@ -224,15 +262,48 @@ const ProfileDetailsScreen: React.FC = () => {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <View style={{ width: 44 }} />
-              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.closeButton}>
+              <TouchableOpacity onPress={() => {
+                setTempBirthDate(null);
+                setShowDatePicker(false);
+              }} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  const dateToSave = tempBirthDate || (profile?.birthDate ? new Date(profile.birthDate) : new Date());
+                  const today = new Date();
+                  const birthDate = new Date(dateToSave);
+                  let age = today.getFullYear() - birthDate.getFullYear();
+                  const monthDiff = today.getMonth() - birthDate.getMonth();
+                  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                  }
+                  if (age >= 1 && age <= 150) {
+                    try {
+                      updateProfile({
+                        ...profile,
+                        age,
+                        birthDate: dateToSave.toISOString(),
+                      });
+                      setShowDatePicker(false);
+                      setTempBirthDate(null);
+                    } catch (error) {
+                      console.error('Error updating birth date:', error);
+                      Alert.alert('Error', 'Failed to save date of birth. Please try again.');
+                    }
+                  } else {
+                    Alert.alert('Error', 'Please select a valid date of birth');
+                  }
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="checkmark" size={24} color="#34C759" />
               </TouchableOpacity>
             </View>
             <View style={styles.datePickerBody}>
               <DateTimePicker
-                value={profile?.birthDate ? new Date(profile.birthDate) : new Date()}
+                value={tempBirthDate || (profile?.birthDate ? new Date(profile.birthDate) : new Date())}
                 mode="date"
                 display="spinner"
                 maximumDate={new Date()}
@@ -242,84 +313,101 @@ const ProfileDetailsScreen: React.FC = () => {
                 themeVariant="dark"
                 onChange={(event, selectedDate) => {
                   if (selectedDate) {
-                    const today = new Date();
-                    const birthDate = new Date(selectedDate);
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const monthDiff = today.getMonth() - birthDate.getMonth();
-                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                      age--;
-                    }
-                    if (age >= 1 && age <= 150) {
-                      try {
-                        updateProfile({
-                          ...profile,
-                          age,
-                          birthDate: selectedDate.toISOString(),
-                        });
-                      } catch (error) {
-                        console.error('Error updating birth date:', error);
-                        Alert.alert('Error', 'Failed to save date of birth. Please try again.');
-                      }
-                    } else {
-                      Alert.alert('Error', 'Please select a valid date of birth');
-                    }
+                    setTempBirthDate(selectedDate);
                   }
                 }}
               />
             </View>
-            <TouchableOpacity
-              style={styles.datePickerSaveButton}
-              onPress={() => setShowDatePicker(false)}
-            >
-              <Text style={styles.datePickerSaveButtonText}>Done</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Gender Picker */}
+      {/* Gender Picker - Bottom Sheet Style */}
       <Modal
         visible={showGenderPicker}
-        transparent={true}
-        animationType="fade"
+        transparent
+        animationType="none"
+        presentationStyle="overFullScreen"
         onRequestClose={() => setShowGenderPicker(false)}
       >
-        <View style={styles.datePickerOverlay}>
-          <View style={styles.datePickerContainer}>
-            <View style={styles.datePickerHeader}>
-              <View style={{ width: 44 }} />
-              <Text style={styles.datePickerTitle}>Select Gender</Text>
-              <TouchableOpacity onPress={() => setShowGenderPicker(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#FF3B30" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.ethnicityPickerOptions} showsVerticalScrollIndicator={false}>
-              {genderOptions.map((option) => (
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setShowGenderPicker(false)}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View style={styles.bottomSheetContainer}>
+            <Animated.View
+              style={[
+                styles.bottomSheetContent,
+                {
+                  transform: [{ translateY: genderPickerTranslateY }],
+                },
+              ]}
+            >
+              {/* Handle bar */}
+              <View style={styles.bottomSheetHandleContainer}>
+                <View style={styles.bottomSheetHandle} />
+              </View>
+
+              {/* Header */}
+              <View style={styles.bottomSheetHeader} pointerEvents="box-none">
                 <TouchableOpacity
-                  key={option.value}
-                  style={styles.ethnicityPickerOption}
-          onPress={() => {
-                    try {
-                      updateProfile({
-                        ...profile,
-                        gender: option.value as 'male' | 'female',
-                      });
-                      setShowGenderPicker(false);
-                    } catch (error) {
-                      console.error('Error updating gender:', error);
-                      Alert.alert('Error', 'Failed to update gender. Please try again.');
-                    }
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setShowGenderPicker(false);
                   }}
+                  style={styles.bottomSheetCloseButton}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.ethnicityPickerOptionText}>{option.label}</Text>
-                  {profile?.gender === option.value && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
-                  )}
+                  <Ionicons name="close" size={20} color="#FF3B30" />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-      </View>
-      </View>
+                <Text style={styles.bottomSheetTitle}>Select Gender</Text>
+                <View style={{ width: 32 }} />
+              </View>
+
+              {/* Options List */}
+              <ScrollView
+                style={styles.bottomSheetBody}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.bottomSheetBodyContent}
+              >
+                {genderOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.optionItem}
+                    onPress={() => {
+                      try {
+                        updateProfile({
+                          ...profile,
+                          gender: option.value as 'male' | 'female',
+                        });
+                        Animated.timing(genderPickerTranslateY, {
+                          toValue: 1000,
+                          duration: 250,
+                          useNativeDriver: true,
+                        }).start(() => {
+                          setShowGenderPicker(false);
+                          genderPickerTranslateY.setValue(0);
+                        });
+                      } catch (error) {
+                        console.error('Error updating gender:', error);
+                        Alert.alert('Error', 'Failed to update gender. Please try again.');
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.optionContent}>
+                      <Text style={styles.optionLabel}>{option.label}</Text>
+                    </View>
+                    {profile?.gender === option.value && (
+                      <Ionicons name="checkmark" size={20} color="#34C759" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </Animated.View>
+          </View>
+        </View>
       </Modal>
     </ScrollView>
   );
@@ -328,21 +416,33 @@ const ProfileDetailsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   profileHeader: {
     alignItems: 'center',
-    backgroundColor: '#222',
-    paddingTop: 24,
-    paddingBottom: 32,
+    backgroundColor: '#000000',
+    paddingTop: 66,
+    paddingBottom: 18,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  headerSettingsButton: {
+    position: 'absolute',
+    right: 16,
+    top: 58,
+    padding: 8,
+  },
+  headerCommunityButton: {
+    position: 'absolute',
+    left: 16,
+    top: 58,
+    padding: 8,
   },
   avatarContainer: {
     marginBottom: 12,
@@ -351,13 +451,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#333',
+    backgroundColor: '#1C1C1E',
   },
   avatarPlaceholder: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#333',
+    backgroundColor: '#1C1C1E',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -375,7 +475,7 @@ const styles = StyleSheet.create({
   profileEmail: {
     color: '#aaa',
     fontSize: 15,
-    marginBottom: 0,
+    marginBottom: 20,
   },
   editProfileButton: {
     flexDirection: 'row',
@@ -589,6 +689,99 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     flex: 1,
+  },
+  // Bottom Sheet Styles for Gender Picker
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  bottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+  bottomSheetContent: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  bottomSheetHandleContainer: {
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomSheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 2,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    zIndex: 10,
+  },
+  bottomSheetCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomSheetTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    flex: 1,
+  },
+  bottomSheetBody: {
+    flex: 0,
+  },
+  bottomSheetBodyContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 0,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2A2A2A',
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionLabel: {
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 2,
+  },
+  optionDescription: {
+    fontSize: 14,
+    color: '#888',
   },
 });
 

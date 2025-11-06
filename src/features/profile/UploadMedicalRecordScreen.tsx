@@ -356,7 +356,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -10,
     right: -10,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
     borderRadius: 12,
   },
   detailsSection: {
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   modalHeader: {
     flexDirection: 'row',

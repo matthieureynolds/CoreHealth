@@ -6,6 +6,7 @@ export interface User {
   firstName?: string;
   surname?: string;
   preferredName?: string;
+  username?: string;
   photoURL?: string;
   emailVerified?: boolean;
   createdAt: Date;
@@ -90,6 +91,58 @@ export interface UserProfile {
   healthIDs?: HealthID[];
   doctors?: Doctor[];
   medicalRecords?: MedicalRecord[];
+}
+
+// Family Link: RelationshipLink, HereditarySignal (encrypted delivery), DerivedRiskFeature
+export type RelationshipDegree = 'parent' | 'child' | 'sibling' | 'partner' | 'other';
+export type RelationshipDirection = 'one_way' | 'reciprocal';
+export type RelationshipStatus = 'pending' | 'active' | 'revoked';
+
+export interface RelationshipLink {
+  id: string;
+  ownerSupabaseUid: string; // auth.users.id of the owner
+  relativeUidHash: string; // salted hash of relative handle/uid
+  relativeSupabaseUid?: string | null; // optional for routing
+  degree: RelationshipDegree;
+  direction: RelationshipDirection;
+  status: RelationshipStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RelationDegreeToRecipients = 'parent' | 'child' | 'sibling' | 'partner';
+
+export interface HereditarySignal {
+  id: string;
+  issuerSupabaseUid: string; // sender
+  recipientSupabaseUid: string; // addressed recipient
+  relationDegreeToRecipients: RelationDegreeToRecipients;
+  conditionCode: string; // ICD/SNOMED or normalized
+  onsetAgeBand: string; // e.g., "50–59"
+  severityBand?: string | null;
+  lifestyleComponent?: string | null;
+  expiresAt?: string | null;
+  status: 'active' | 'revoked';
+  ciphertext: string; // opaque E2EE payload
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Locally derived feature flags computed on-device
+export interface DerivedRiskFeature {
+  key:
+    | 'pc_screening_earlier'
+    | 'breast_cancer_watchlist'
+    | 't2d_family_risk'
+    | 'cad_family_risk'
+    | 'colorectal_earlier'
+    | 'glaucoma_watchlist'
+    | string; // allow future expansion
+  value: boolean;
+  rationale?: string; // brief reason (no PII)
+  sourceSignalIds: string[]; // hereditary_signals ids that contributed
+  createdAt: string;
+  expiresAt?: string | null;
 }
 
 // Health Data Types
@@ -324,6 +377,22 @@ export interface LocationData {
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
+  EnvironmentalMetric: {
+    metricId: 'air_quality' | 'pollen' | 'water_quality';
+    label: string;
+    value: string;
+    status: 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous';
+    score?: number;
+    icon?: string;
+  };
+  ScoreDetail: {
+    id: 'recovery' | 'biomarkers' | 'lifestyle';
+    title: string;
+    value: number;
+    color: string;
+    icon: string;
+    subtitle?: string;
+  };
 };
 
 export type AuthStackParamList = {
@@ -354,9 +423,11 @@ export type ProfileTabParamList = {
   Settings: undefined;
   EditProfile: undefined;
   EditName: undefined;
+  EditUsername: undefined;
   EditPhysicalStats: undefined;
   LifestyleInfo: undefined;
   CommunityLeaderboard: undefined;
+  CircleDetail: { name?: string; members?: number } | undefined;
   SymptomRegistered: undefined;
   HealthIDs: undefined;
   Conditions: undefined;
@@ -377,6 +448,8 @@ export type ProfileTabParamList = {
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   About: undefined;
+  FamilyLink: undefined;
+  FamilyLinkConsent: undefined;
   // New Settings Screens
   AccountSettings: undefined;
   EmailPassword: undefined;

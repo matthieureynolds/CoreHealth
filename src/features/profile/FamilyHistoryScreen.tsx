@@ -15,6 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
+import familyService from '../../services/familyService';
 import { FamilyCondition, AttachedFile } from '../../types';
 import * as DocumentPicker from 'expo-document-picker';
 import FileViewerModal from '../../components/common/FileViewerModal';
@@ -22,6 +23,7 @@ import FileViewerModal from '../../components/common/FileViewerModal';
 const FamilyHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
+  const [linkCount, setLinkCount] = useState<number>(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [relation, setRelation] = useState('');
   const [showRelationPicker, setShowRelationPicker] = useState(false);
@@ -48,6 +50,21 @@ const FamilyHistoryScreen: React.FC = () => {
     'Grandfather', 'Grandmother',
     'Uncle', 'Aunt', 'Cousin'
   ];
+
+  React.useEffect(() => {
+    const loadLinks = async () => {
+      try {
+        const links = await familyService.listLinks();
+        const active = links.filter(l => l.status === 'active').length;
+        setLinkCount(active);
+      } catch (e) {
+        // silent
+      }
+    };
+    const unsubscribe = (navigation as any).addListener?.('focus', loadLinks);
+    loadLinks();
+    return unsubscribe;
+  }, [navigation]);
 
   const commonConditions = [
     'Diabetes Type 1', 'Diabetes Type 2', 'Hypertension', 'Heart Disease',
@@ -215,6 +232,22 @@ const FamilyHistoryScreen: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Family History List */}
         <View style={styles.content}>
+          {/* Family Link (Risk-Only) Entry */}
+          <TouchableOpacity
+            style={[styles.familyCard, { borderColor: '#0A84FF' }]}
+            onPress={() => (navigation as any).navigate('FamilyLink')}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="link-outline" size={22} color="#0A84FF" style={{ marginRight: 10 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.relation}>Family Link (Risk-Only)</Text>
+                <Text style={styles.condition}>Leverage family history without sharing anyone’s data</Text>
+                <Text style={styles.ageOfOnset}>Active links: {linkCount}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#888" />
+            </View>
+          </TouchableOpacity>
+
           {profile?.familyHistory?.length ? (
             profile.familyHistory.map((familyCondition) => (
               <View key={familyCondition.id} style={styles.familyCard}>
@@ -528,7 +561,7 @@ const FamilyHistoryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -706,7 +739,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
     position: 'relative',
   },
   modalHeader: {

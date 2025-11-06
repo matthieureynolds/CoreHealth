@@ -505,19 +505,24 @@ const PrivacySecurityScreen: React.FC = () => {
     },
   ];
 
+  const navigateToFamilyLink = () => {
+    // @ts-ignore route exists in Profile stack
+    navigation.navigate('FamilyLink');
+  };
+
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <View style={styles.header} pointerEvents="box-none">
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Privacy & Security</Text>
+          <Text style={styles.headerTitle} pointerEvents="none">Privacy & Security</Text>
           <View style={{ width: 24 }} />
         </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* Security Toggles */}
@@ -578,6 +583,18 @@ const PrivacySecurityScreen: React.FC = () => {
       {/* Privacy Actions */}
       <View style={styles.card}>
         <Text style={styles.cardHeader}>PRIVACY</Text>
+        <TouchableOpacity 
+          style={[styles.cardRow, isLoading && styles.disabledRow]} 
+          onPress={navigateToFamilyLink}
+          disabled={isLoading}
+        >
+          <Ionicons name="link-outline" size={22} color="#0A84FF" style={styles.cardIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.cardLabel, isLoading && styles.disabledText]}>Family Link (Risk-Only)</Text>
+            <Text style={styles.cardSub}>Leverage family history without sharing anyone’s data</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.cardRow, isLoading && styles.disabledRow]} 
           onPress={handleDataSharing}
@@ -662,7 +679,7 @@ const PrivacySecurityScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -674,6 +691,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

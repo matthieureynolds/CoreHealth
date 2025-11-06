@@ -27,6 +27,7 @@ export const PROFILE_ROUTES = {
   DATA_PRIVACY: 'DataPrivacy',
   DATA_SYNC: 'DataSync',
   PRIVACY_SECURITY: 'PrivacySecurity',
+  FAMILY_LINK: 'FamilyLink',
   DATA_SHARING_SETTINGS: 'DataSharingSettings',
   HEALTH_DATA_DOWNLOAD: 'HealthDataDownload',
   DELETE_ACCOUNT: 'DeleteAccount',

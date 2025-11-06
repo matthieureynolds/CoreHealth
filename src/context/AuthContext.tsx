@@ -34,6 +34,7 @@ interface AuthContextType {
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   updateUserDisplayName: (displayName: string) => Promise<void>; // Add update display name
   updateUserName: (firstName: string, surname: string, preferredName: string) => Promise<void>; // Add update full name
+  updateUsername: (username: string) => Promise<void>;
   updateUserPhoto: (photoURL: string) => Promise<void>; // Add update profile photo
 }
 
@@ -155,6 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       firstName: supabaseUser.user_metadata?.first_name || '',
       surname: supabaseUser.user_metadata?.surname || '',
       preferredName: supabaseUser.user_metadata?.preferred_name || '',
+      username: supabaseUser.user_metadata?.username || undefined,
       photoURL: supabaseUser.user_metadata?.avatar_url,
       emailVerified: supabaseUser.email_confirmed_at ? true : false,
       createdAt: new Date(supabaseUser.created_at),
@@ -178,6 +180,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         firstName: displayName.split(' ')[0] || '',
         surname: displayName.split(' ').slice(1).join(' ') || '',
         preferredName: displayName,
+        username: displayName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '.')
+          .replace(/(^\.|\.$)/g, ''),
         photoURL: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -242,6 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           firstName: 'Test',
           surname: 'User',
           preferredName: 'Test',
+          username: 'test.user',
           photoURL: undefined,
           emailVerified: true,
           createdAt: new Date(),
@@ -504,7 +511,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!session) {
         console.log('⚠️ Using mock authentication for name update');
         // Update local state only for mock auth
-        const updatedUser = user ? { ...user, firstName, surname, preferredName } : null;
+        const displayName = preferredName || [firstName, surname].filter(Boolean).join(' ');
+        const updatedUser = user ? { ...user, firstName, surname, preferredName, displayName } : null;
         setUser(updatedUser);
         if (updatedUser) {
           await saveMockUserData(updatedUser);
@@ -519,14 +527,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           first_name: firstName,
           surname: surname,
           preferred_name: preferredName,
+          display_name: preferredName || `${firstName} ${surname}`,
         },
       });
       if (error) throw error;
-      setUser(prevUser => prevUser ? { ...prevUser, firstName, surname, preferredName } : null);
+      setUser(prevUser => prevUser ? { ...prevUser, firstName, surname, preferredName, displayName: preferredName || `${firstName} ${surname}` } : null);
       console.log('✅ User full name updated successfully');
     } catch (error: any) {
       console.error('Update full name error:', error);
       throw new Error(error.message);
+    }
+  };
+
+  const updateUsername = async (username: string) => {
+    try {
+      const sanitized = username
+        .toLowerCase()
+        .replace(/[^a-z0-9_\.]/g, '')
+        .replace(/\.{2,}/g, '.')
+        .replace(/^\.|\.$/g, '');
+
+      if (!sanitized || sanitized.length < 3) {
+        throw new Error('Username must be at least 3 characters and contain only letters, numbers, underscores, or dots.');
+      }
+
+      // Mock mode
+      if (!session) {
+        const updatedUser = user ? { ...user, username: sanitized } : null;
+        setUser(updatedUser);
+        if (updatedUser) {
+          await saveMockUserData(updatedUser);
+        }
+        return;
+      }
+
+      // Supabase metadata update
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          username: sanitized,
+        },
+      });
+      if (error) throw error;
+      setUser(prev => (prev ? { ...prev, username: sanitized } : prev));
+    } catch (error: any) {
+      console.error('Update username error:', error);
+      throw new Error(error.message || 'Failed to update username');
     }
   };
 
@@ -577,6 +622,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updatePassword,
     updateUserDisplayName, // Add to context
     updateUserName, // Add to context
+    updateUsername,
     updateUserPhoto, // Add to context
   };
 

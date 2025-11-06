@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Dimensions,
   StatusBar,
   SafeAreaView,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,8 +24,11 @@ interface TelegramMediaPickerProps {
   onDocumentSelected: (uri: string, name: string) => void;
 }
 
-const { width } = Dimensions.get('window');
-const itemSize = (width - 48) / 3; // 3 columns with padding
+const { width, height } = Dimensions.get('window');
+const H_PADDING = 16;
+const GAP = 8;
+const availableWidth = width - H_PADDING * 2 - GAP * 2; // 3 columns => 2 gaps
+const itemSize = availableWidth / 3; // 3 columns
 
 export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
   visible,
@@ -31,8 +36,65 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
   onImageSelected,
   onDocumentSelected,
 }) => {
-  const [activeTab, setActiveTab] = useState<'gallery' | 'file' | 'location' | 'reply'>('gallery');
+  const [activeTab, setActiveTab] = useState<'gallery' | 'file'>('gallery');
   const [recentPhotos, setRecentPhotos] = useState<string[]>([]);
+  const photosScrollRef = useRef<ScrollView>(null);
+  const midHeight = Math.round(height * 0.42);
+  const fullHeight = Math.round(height * 0.9);
+  const sheetHeight = useRef(new Animated.Value(midHeight)).current;
+  const [expanded, setExpanded] = useState(false);
+  const prevOffsetRef = useRef(0);
+  const currentHeightRef = useRef(midHeight);
+
+  useEffect(() => {
+    if (!visible) {
+      sheetHeight.setValue(midHeight);
+      setExpanded(false);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    const id = sheetHeight.addListener(({ value }) => {
+      currentHeightRef.current = value as number;
+    });
+    return () => sheetHeight.removeListener(id);
+  }, [sheetHeight]);
+
+  const animateSheet = (toExpanded: boolean) => {
+    setExpanded(toExpanded);
+    Animated.spring(sheetHeight, {
+      toValue: toExpanded ? fullHeight : midHeight,
+      useNativeDriver: false,
+      damping: 18,
+      stiffness: 140,
+      mass: 0.9,
+    }).start();
+  };
+
+  const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val));
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 3,
+      onPanResponderGrant: () => {
+        // no-op
+      },
+      onPanResponderMove: (_, g) => {
+        const start = currentHeightRef.current;
+        const next = clamp(start - g.dy, midHeight, fullHeight);
+        sheetHeight.setValue(next);
+      },
+      onPanResponderRelease: () => {
+        const threshold = (midHeight + fullHeight) / 2;
+        animateSheet(currentHeightRef.current >= threshold);
+      },
+      onPanResponderTerminate: () => {
+        const threshold = (midHeight + fullHeight) / 2;
+        animateSheet(currentHeightRef.current >= threshold);
+      }
+    })
+  ).current;
 
   const handleTakePhoto = async () => {
     try {
@@ -109,7 +171,21 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
             </TouchableOpacity>
 
             {/* Recent Photos Grid */}
-            <ScrollView style={styles.photosGrid} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              ref={photosScrollRef}
+              style={styles.photosGrid}
+              showsVerticalScrollIndicator={false}
+              onScroll={(e) => {
+                const y = e.nativeEvent.contentOffset.y;
+                // If at mid snap and the user begins scrolling up from top, expand sheet
+                if (!expanded && prevOffsetRef.current === 0 && y > 0) {
+                  photosScrollRef.current?.scrollTo({ y: 0, animated: false });
+                  animateSheet(true);
+                }
+                prevOffsetRef.current = y;
+              }}
+              scrollEventThrottle={16}
+            >
               <View style={styles.photosContainer}>
                 {recentPhotos.map((photo, index) => (
                   <TouchableOpacity
@@ -148,22 +224,7 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
           </View>
         );
 
-      case 'location':
-        return (
-          <View style={styles.locationContainer}>
-            <TouchableOpacity style={styles.locationOption} onPress={handleLocation}>
-              <Ionicons name="location" size={24} color="#007AFF" />
-              <Text style={styles.locationOptionText}>Share Current Location</Text>
-            </TouchableOpacity>
-          </View>
-        );
-
-      case 'reply':
-        return (
-          <View style={styles.replyContainer}>
-            <Text style={styles.replyText}>Reply functionality coming soon</Text>
-          </View>
-        );
+      
 
       default:
         return null;
@@ -171,38 +232,25 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>Recents</Text>
-            <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <Animated.View style={[styles.sheet, { height: sheetHeight }]}> 
+          {/* Header */}
+          <View style={styles.header} {...panResponder.panHandlers}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle}>Recents</Text>
+            </View>
+            <View style={styles.rightSpacer} />
           </View>
-          
-          <TouchableOpacity style={styles.moreButton}>
-            <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {renderTabContent()}
-        </View>
+          {/* Content */}
+          <View style={styles.content}>{renderTabContent()}</View>
 
-        {/* Bottom Navigation */}
-        <View style={styles.bottomNavigation}>
+          {/* Bottom Navigation */}
+          <View style={styles.bottomNavigation}>
           <TouchableOpacity
             style={[styles.navItem, activeTab === 'gallery' && styles.navItemActive]}
             onPress={() => setActiveTab('gallery')}
@@ -236,50 +284,24 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
               File
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.navItem, activeTab === 'location' && styles.navItemActive]}
-            onPress={() => setActiveTab('location')}
-          >
-            <Ionicons 
-              name="location" 
-              size={24} 
-              color={activeTab === 'location' ? '#007AFF' : '#8E8E93'} 
-            />
-            <Text style={[
-              styles.navItemText,
-              activeTab === 'location' && styles.navItemTextActive
-            ]}>
-              Location
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.navItem, activeTab === 'reply' && styles.navItemActive]}
-            onPress={() => setActiveTab('reply')}
-          >
-            <Ionicons 
-              name="arrow-undo" 
-              size={24} 
-              color={activeTab === 'reply' ? '#007AFF' : '#8E8E93'} 
-            />
-            <Text style={[
-              styles.navItemText,
-              activeTab === 'reply' && styles.navItemTextActive
-            ]}>
-              Reply
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+          </View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  backdrop: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
     backgroundColor: '#000000',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -301,6 +323,8 @@ const styles = StyleSheet.create({
   headerCenter: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -311,21 +335,23 @@ const styles = StyleSheet.create({
   moreButton: {
     padding: 8,
   },
+  rightSpacer: { width: 52 },
   content: {
     flex: 1,
   },
   galleryContainer: {
     flex: 1,
-    padding: 16,
+    padding: H_PADDING,
   },
   cameraButton: {
     width: itemSize,
-    height: itemSize,
+    height: itemSize * 2 + GAP,
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    marginRight: GAP,
     borderWidth: 1,
     borderColor: '#2C2C2E',
   },
@@ -343,12 +369,13 @@ const styles = StyleSheet.create({
   photosContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   photoItem: {
     width: itemSize,
     height: itemSize,
-    marginBottom: 8,
+    marginBottom: GAP,
+    marginRight: GAP,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -386,32 +413,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 12,
   },
-  locationContainer: {
-    flex: 1,
-    padding: 16,
-    justifyContent: 'center',
-  },
-  locationOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-  },
-  locationOptionText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  replyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  replyText: {
-    color: '#8E8E93',
-    fontSize: 16,
-  },
+  // removed location and reply styles
   bottomNavigation: {
     flexDirection: 'row',
     paddingHorizontal: 16,

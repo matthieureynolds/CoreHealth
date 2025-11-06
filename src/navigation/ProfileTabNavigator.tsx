@@ -1,8 +1,6 @@
 import React from 'react';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { ProfileTabParamList } from '../types';
@@ -11,9 +9,9 @@ import ProfileDetailsScreen from '../features/profile/ProfileDetailsScreen';
 import SettingsScreen from '../features/profile/SettingsScreen';
 import EditProfileScreen from '../features/profile/EditProfileScreen';
 import EditNameScreen from '../features/profile/EditNameScreen';
+import EditUsernameScreen from '../features/profile/EditUsernameScreen';
 import EditPhysicalStatsScreen from '../features/profile/EditPhysicalStatsScreen';
 import LifestyleInfoScreen from '../features/profile/LifestyleInfoScreen';
-import CommunityLeaderboardScreen from '../features/profile/CommunityLeaderboardScreen';
 import SymptomRegisteredScreen from '../features/profile/SymptomRegisteredScreen';
 import HealthIDsScreen from '../features/profile/HealthIDsScreen';
 import ConditionsScreen from '../features/profile/ConditionsScreen';
@@ -49,65 +47,14 @@ import NotificationsScreen from '../features/profile/NotificationsScreen';
 import DataSyncScreen from '../features/profile/DataSyncScreen';
 import PrivacySecurityScreen from '../features/profile/PrivacySecurityScreen';
 import LegalComplianceScreen from '../features/profile/LegalComplianceScreen';
+import FamilyLinkScreen from '../features/profile/FamilyLinkScreen';
+import FamilyLinkConsentScreen from '../features/profile/FamilyLinkConsentScreen';
+import CommunityLeaderboardScreen from '../features/profile/CommunityLeaderboardScreen';
+import CircleDetailScreen from '../features/profile/CircleDetailScreen';
 // Removed unused imports for non-existent screens/modals
 // import ProfilePicturePicker from '../components/ProfilePicturePicker';
 
-const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator<ProfileTabParamList>();
-
-// Tab Navigator for Profile and Settings
-const ProfileTabsNavigator: React.FC = () => {
-  const { user } = useAuth();
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#111' }} edges={['top']}>
-      {/* Profile header moved into ProfileDetailsScreen to enable scrolling */}
-
-      {/* Tabs */}
-      <Tab.Navigator
-        screenOptions={{
-          tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: '#888',
-          tabBarIndicatorStyle: {
-            backgroundColor: '#007AFF',
-          },
-          tabBarStyle: {
-            backgroundColor: '#111',
-            elevation: 0,
-            shadowOpacity: 0,
-            borderBottomWidth: 0,
-          },
-          tabBarLabelStyle: {
-            fontSize: 15,
-            fontWeight: '600',
-            textTransform: 'none',
-          },
-        }}
-      >
-        <Tab.Screen
-          name="ProfileDetails"
-          component={ProfileDetailsScreen}
-          options={{
-            title: 'Profile',
-            tabBarIcon: ({ color }: { color: string }) => (
-              <Ionicons name="person" size={18} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{
-            title: 'Settings',
-            tabBarIcon: ({ color }: { color: string }) => (
-              <Ionicons name="settings" size={18} color={color} />
-            ),
-          }}
-        />
-      </Tab.Navigator>
-    </SafeAreaView>
-  );
-};
 
 // Stack Navigator for Profile section with detail screens
 const ProfileTabNavigator: React.FC = () => {
@@ -115,7 +62,7 @@ const ProfileTabNavigator: React.FC = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#111',
+          backgroundColor: '#000000',
           elevation: 0,
           shadowOpacity: 0,
         },
@@ -128,9 +75,18 @@ const ProfileTabNavigator: React.FC = () => {
       }}
     >
       <Stack.Screen
-        name="ProfileTabs"
-        component={ProfileTabsNavigator}
-        options={{ headerShown: false }}
+        name="ProfileDetails"
+        component={ProfileDetailsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Settings',
+        }}
       />
       <Stack.Screen
         name="EditProfile"
@@ -144,6 +100,14 @@ const ProfileTabNavigator: React.FC = () => {
         component={EditNameScreen}
         options={{
           title: 'Edit Name',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EditUsername"
+        component={EditUsernameScreen}
+        options={{
+          title: 'Edit Username',
           headerShown: false,
         }}
       />
@@ -167,7 +131,15 @@ const ProfileTabNavigator: React.FC = () => {
         name="CommunityLeaderboard"
         component={CommunityLeaderboardScreen}
         options={{
-          title: 'Health Community',
+          title: 'Community',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="CircleDetail"
+        component={CircleDetailScreen}
+        options={{
+          title: 'Circle',
           headerShown: false,
         }}
       />
@@ -382,6 +354,22 @@ const ProfileTabNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen
+        name="FamilyLink"
+        component={FamilyLinkScreen}
+        options={{
+          title: 'Family Link',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="FamilyLinkConsent"
+        component={FamilyLinkConsentScreen}
+        options={{
+          title: 'Consent & Broadcast',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="LegalCompliance"
         component={LegalComplianceScreen}
         options={{
@@ -432,7 +420,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   avatarPlaceholder: {
     width: 80,

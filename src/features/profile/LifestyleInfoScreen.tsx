@@ -15,6 +15,7 @@ import { ProfileTabParamList } from '../../types';
 import { useSettings } from '../../context/SettingsContext';
 import { LifestyleSettings } from '../../types/settings';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import IOSDatePicker from '../../components/IOSDatePicker';
 
 type LifestyleInfoScreenNavigationProp = StackNavigationProp<ProfileTabParamList, 'LifestyleInfo'>;
 
@@ -170,33 +171,31 @@ const LifestyleInfoScreen: React.FC = () => {
 
       {/* Time Pickers */}
       {showWakeUpPicker && (
-        <View style={styles.timePickerContainer}>
-          <DateTimePicker
-            value={timeStringToDate(formData.sleepSchedule.wakeUpTime)}
-            mode="time"
-            is24Hour={true}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleWakeUpTimeChange}
-            textColor="#FFFFFF"
-            themeVariant="dark"
-            style={styles.timePicker}
-          />
-        </View>
+        <IOSDatePicker
+          visible
+          title="Wake Up Time"
+          mode="time"
+          value={timeStringToDate(formData.sleepSchedule.wakeUpTime)}
+          onCancel={() => setShowWakeUpPicker(false)}
+          onConfirm={(date) => {
+            handleWakeUpTimeChange(null as any, date);
+            setShowWakeUpPicker(false);
+          }}
+        />
       )}
 
       {showBedTimePicker && (
-        <View style={styles.timePickerContainer}>
-          <DateTimePicker
-            value={timeStringToDate(formData.sleepSchedule.bedTime)}
-            mode="time"
-            is24Hour={true}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleBedTimeChange}
-            textColor="#FFFFFF"
-            themeVariant="dark"
-            style={styles.timePicker}
-          />
-        </View>
+        <IOSDatePicker
+          visible
+          title="Bed Time"
+          mode="time"
+          value={timeStringToDate(formData.sleepSchedule.bedTime)}
+          onCancel={() => setShowBedTimePicker(false)}
+          onConfirm={(date) => {
+            handleBedTimeChange(null as any, date);
+            setShowBedTimePicker(false);
+          }}
+        />
       )}
     </View>
   );
@@ -205,7 +204,7 @@ const LifestyleInfoScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -214,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   backButton: {
     padding: 10,

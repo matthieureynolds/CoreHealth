@@ -1,5 +1,5 @@
 export const colors = {
-  bg: '#0F1115',
+  bg: '#000000',
   card: 'rgba(22,24,30,0.75)',
   ringTrack: 'rgba(255,255,255,0.08)',
   textPrimary: '#FFFFFF',

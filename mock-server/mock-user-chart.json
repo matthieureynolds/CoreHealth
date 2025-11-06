@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "generatedAt": "2025-01-01T00:00:00.000Z",
+  "user": { "email": "demo@example.com", "displayName": "Demo User" },
+  "profile": { "age": 30, "gender": "other", "height": 170, "weight": 70 },
+  "biomarkers": [],
+  "labResults": [],
+  "deviceData": [],
+  "connectedDevices": ["Apple Health", "Oura Ring"],
+  "healthScore": { "overall": 82 },
+  "settings": { "general": { "timeFormat": "24h", "dateFormat": "DD/MM/YYYY", "units": "metric", "language": "English", "theme": "auto" } },
+  "notifications": { "medicationAlerts": ["1 hour before", "2 hours before"], "appointmentAlerts": ["1 hour before"], "toggles": { "medication": true, "appointment": true } },
+  "legal": { "tos": { "lastUpdated": "December 2024" }, "privacy": { "effectiveDate": "1 January 2025" } },
+  "lastSyncAt": "2025-01-01T12:00:00.000Z"
+}
+
+

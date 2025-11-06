@@ -45,11 +45,6 @@ const ProfileScreen: React.FC = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.displayName?.charAt(0) || 'U'}
-            </Text>
-          </View>
           <Text style={styles.name}>{user?.displayName || 'User'}</Text>
           <Text style={styles.email}>{user?.email}</Text>
         </View>
@@ -189,10 +184,10 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#000000',
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#000000',
     paddingBottom: 20,
   },
   profileHeader: {
@@ -201,38 +196,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
   },
   avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   email: {
     fontSize: 16,
-    color: '#666',
+    color: '#8E8E93',
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1C1C1E',
     marginTop: 20,
     paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#8E8E93',
     marginTop: 20,
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -244,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: '#2C2C2E',
   },
   profileItemLeft: {
     flexDirection: 'row',
@@ -253,7 +238,7 @@ const styles = StyleSheet.create({
   },
   profileItemTitle: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginLeft: 16,
   },
   profileItemRight: {
@@ -262,7 +247,7 @@ const styles = StyleSheet.create({
   },
   profileItemValue: {
     fontSize: 16,
-    color: '#666',
+    color: '#8E8E93',
     marginRight: 8,
   },
   signOutButton: {
@@ -287,7 +272,7 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -309,13 +294,13 @@ const styles = StyleSheet.create({
   quickActionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 4,
   },
   quickActionSubtitle: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#9AA3AF',
     textAlign: 'center',
     lineHeight: 16,
   },

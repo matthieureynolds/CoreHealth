@@ -15,6 +15,7 @@ import { ProfileTabParamList } from '../../types';
 import { useSettings } from '../../context/SettingsContext';
 import { LifestyleSettings } from '../../types/settings';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import IOSDatePicker from '../../components/IOSDatePicker';
 
 type LifestyleSettingsScreenNavigationProp = StackNavigationProp<ProfileTabParamList, 'LifestyleSettings'>;
 
@@ -197,22 +198,30 @@ const LifestyleSettingsScreen: React.FC = () => {
 
       {/* Time Pickers */}
       {showWakeUpPicker && (
-        <DateTimePicker
-          value={timeStringToDate(formData.sleepSchedule.wakeUpTime)}
+        <IOSDatePicker
+          visible
+          title="Wake Up Time"
           mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleWakeUpTimeChange}
+          value={timeStringToDate(formData.sleepSchedule.wakeUpTime)}
+          onCancel={() => setShowWakeUpPicker(false)}
+          onConfirm={(date) => {
+            handleWakeUpTimeChange(null as any, date);
+            setShowWakeUpPicker(false);
+          }}
         />
       )}
 
       {showBedTimePicker && (
-        <DateTimePicker
-          value={timeStringToDate(formData.sleepSchedule.bedTime)}
+        <IOSDatePicker
+          visible
+          title="Bed Time"
           mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleBedTimeChange}
+          value={timeStringToDate(formData.sleepSchedule.bedTime)}
+          onCancel={() => setShowBedTimePicker(false)}
+          onConfirm={(date) => {
+            handleBedTimeChange(null as any, date);
+            setShowBedTimePicker(false);
+          }}
         />
       )}
     </ScrollView>

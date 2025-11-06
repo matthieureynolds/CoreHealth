@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotificationsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -20,8 +21,8 @@ const NotificationsScreen: React.FC = () => {
   const [sleepRemindersEnabled, setSleepRemindersEnabled] = useState(true);
   
   // Multiple alerts states
-  const [medicationAlerts, setMedicationAlerts] = useState(['30 minutes before']);
-  const [appointmentAlerts, setAppointmentAlerts] = useState(['1 hour before']);
+  const [medicationAlerts, setMedicationAlerts] = useState<string[]>(['30 minutes before']);
+  const [appointmentAlerts, setAppointmentAlerts] = useState<string[]>(['1 hour before']);
   const [showMedicationTimePicker, setShowMedicationTimePicker] = useState(false);
   const [showAppointmentTimePicker, setShowAppointmentTimePicker] = useState(false);
   const [editingAlertIndex, setEditingAlertIndex] = useState<number | null>(null);
@@ -38,6 +39,47 @@ const NotificationsScreen: React.FC = () => {
     '2 days before',
     '1 week before',
   ];
+
+  // Load persisted notification settings
+  useEffect(() => {
+    (async () => {
+      try {
+        const [medEn, apptEn, monthEn, weekEn, sleepEn, medAlerts, apptAlerts] = await Promise.all([
+          AsyncStorage.getItem('@notif_med_enabled'),
+          AsyncStorage.getItem('@notif_appt_enabled'),
+          AsyncStorage.getItem('@notif_monthly_enabled'),
+          AsyncStorage.getItem('@notif_weekly_enabled'),
+          AsyncStorage.getItem('@notif_sleep_enabled'),
+          AsyncStorage.getItem('@notif_med_alerts'),
+          AsyncStorage.getItem('@notif_appt_alerts'),
+        ]);
+        if (medEn !== null) setSupplementMedicationEnabled(medEn === '1');
+        if (apptEn !== null) setMedicalAppointmentsEnabled(apptEn === '1');
+        if (monthEn !== null) setMonthlyHealthSummaryEnabled(monthEn === '1');
+        if (weekEn !== null) setWeeklyHealthSummaryEnabled(weekEn === '1');
+        if (sleepEn !== null) setSleepRemindersEnabled(sleepEn === '1');
+        if (medAlerts) {
+          const parsed = JSON.parse(medAlerts);
+          if (Array.isArray(parsed) && parsed.length) setMedicationAlerts(parsed);
+        }
+        if (apptAlerts) {
+          const parsed = JSON.parse(apptAlerts);
+          if (Array.isArray(parsed) && parsed.length) setAppointmentAlerts(parsed);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  // Persist toggles
+  useEffect(() => { AsyncStorage.setItem('@notif_med_enabled', supplementMedicationEnabled ? '1' : '0'); }, [supplementMedicationEnabled]);
+  useEffect(() => { AsyncStorage.setItem('@notif_appt_enabled', medicalAppointmentsEnabled ? '1' : '0'); }, [medicalAppointmentsEnabled]);
+  useEffect(() => { AsyncStorage.setItem('@notif_monthly_enabled', monthlyHealthSummaryEnabled ? '1' : '0'); }, [monthlyHealthSummaryEnabled]);
+  useEffect(() => { AsyncStorage.setItem('@notif_weekly_enabled', weeklyHealthSummaryEnabled ? '1' : '0'); }, [weeklyHealthSummaryEnabled]);
+  useEffect(() => { AsyncStorage.setItem('@notif_sleep_enabled', sleepRemindersEnabled ? '1' : '0'); }, [sleepRemindersEnabled]);
+
+  // Persist alerts arrays
+  useEffect(() => { AsyncStorage.setItem('@notif_med_alerts', JSON.stringify(medicationAlerts)); }, [medicationAlerts]);
+  useEffect(() => { AsyncStorage.setItem('@notif_appt_alerts', JSON.stringify(appointmentAlerts)); }, [appointmentAlerts]);
 
   const handleAddAlert = (type: 'medication' | 'appointment') => {
     if (type === 'medication') {
@@ -127,16 +169,16 @@ const NotificationsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Notifications</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* Supplement & Medication Reminders */}
@@ -340,6 +382,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

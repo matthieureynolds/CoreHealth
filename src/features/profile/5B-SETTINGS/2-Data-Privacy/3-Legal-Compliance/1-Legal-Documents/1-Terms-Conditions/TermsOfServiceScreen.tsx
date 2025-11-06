@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,32 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TermsOfServiceScreen: React.FC = () => {
   const navigation = useNavigation();
+  // Persist last updated date for assistant/offline answers
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem('@legal_tos_last_updated', 'December 2024');
+      } catch {}
+    })();
+  }, []);
   
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Terms of Service</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Terms of Service</Text>
         <View style={{ width: 24 }} />
       </View>
       
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         <View style={styles.content}>
         <Text style={styles.title}>Terms of Service</Text>
         <Text style={styles.lastUpdated}>Last updated: December 2024</Text>
@@ -126,7 +135,7 @@ const TermsOfServiceScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -134,9 +143,9 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#000000',
     borderBottomWidth: 1,
-    borderBottomColor: '#C6C6C8',
+    borderBottomColor: '#2C2C2E',
     justifyContent: 'space-between',
   },
   backButton: {
@@ -149,7 +158,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#FFFFFF',
     textAlign: 'center',
     position: 'absolute',
     left: 0,
@@ -163,7 +172,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   lastUpdated: {
@@ -174,21 +183,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#FFFFFF',
     marginTop: 24,
     marginBottom: 12,
   },
   text: {
     fontSize: 16,
-    color: '#3C3C43',
+    color: '#FFFFFF',
     lineHeight: 24,
     marginBottom: 16,
     textAlign: 'justify',
   },
   importantNotice: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: '#1C1C1E',
     borderWidth: 1,
-    borderColor: '#FFE066',
+    borderColor: '#FF9F0A',
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
@@ -196,12 +205,12 @@ const styles = StyleSheet.create({
   noticeTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#B8860B',
+    color: '#FF9F0A',
     marginBottom: 8,
   },
   noticeText: {
     fontSize: 15,
-    color: '#8E7A00',
+    color: '#FFFFFF',
     lineHeight: 20,
     textAlign: 'justify',
   },

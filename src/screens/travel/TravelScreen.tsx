@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput, ActivityIndicator, Platform, Keyboard, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput, ActivityIndicator, Platform, Keyboard, Linking, Animated, RefreshControl, Easing, Image, Modal, TouchableWithoutFeedback } from 'react-native';
 // import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -7,8 +7,11 @@ import PagerView from 'react-native-pager-view';
 import { useHealthData } from '../../context/HealthDataContext';
 import { useSettings } from '../../context/SettingsContext';
 import JetLagPlanningCard from '../../components/dashboard/JetLagPlanningCard';
-import { JetLagPlanningEvent } from '../../types';
+import { JetLagPlanningEvent, PlanDay, Trip as EnhancedTrip } from '../../types';
+import { EnhancedJetLagService } from '../../services/enhancedJetLagService';
+import { PlanTimeline } from '../../components/jetlag/PlanTimeline';
 import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../services/citySearchService';
+import { useReduceMotion } from '../../lib/reduceMotion';
 
 interface Trip {
   id: string;
@@ -68,10 +71,34 @@ const TravelScreen: React.FC = () => {
   };
   const [searchLocation, setSearchLocation] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [activeTab, setActiveTab] = useState<'health' | 'trips'>('health');
   const pagerRef = useRef<any>(null);
+  const resultsOpacity = useRef(new Animated.Value(0)).current;
+  const resultsTranslateY = useRef(new Animated.Value(0)).current;
+  // Animation tuning (slower reveal)
+  // ~10x slower than the current timings
+  const REVEAL_DURATION = 11000;
+  const REVEAL_STEP_DELAY = 5500;
+  const REVEAL_STAGGER = 4500;
+  const REVEAL_TRANSLATE = 12;
+  // Curtain reveal switch and timing
+  const USE_CURTAIN_REVEAL = true;
+  const CURTAIN_DURATION_MS = 17000; // A bit quicker
+  // Gradual reveal animation registry for rows/sections
+  const rowAnimsRef = useRef<Record<string, { opacity: Animated.Value; translate: Animated.Value }>>({});
+  const getRowAnim = (key: string) => {
+    if (!rowAnimsRef.current[key]) {
+      rowAnimsRef.current[key] = {
+        opacity: new Animated.Value(0),
+        translate: new Animated.Value(REVEAL_TRANSLATE),
+      };
+    }
+    return rowAnimsRef.current[key];
+  };
   const [showInlineSuggestions, setShowInlineSuggestions] = useState(false);
+  const [inputText, setInputText] = useState('');
   // Inline search (no modal)
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
   const [citySearchResults, setCitySearchResults] = useState<CitySearchResult[]>([]);
@@ -84,6 +111,122 @@ const TravelScreen: React.FC = () => {
     healthcare?: string;
     general?: string;
   }>({});
+  // Cities list used by the typewriter placeholder
+  const loopCities = popularCities.slice(0, 8);
+
+  // Independent typewriter effect for the search placeholder
+  const [typedCityIndex, setTypedCityIndex] = useState(0);
+  const [typedCityText, setTypedCityText] = useState('');
+  const reduceMotion = useReduceMotion();
+  // Curtain reveal via animated container height (works reliably in ScrollView)
+  const [contentMeasuredHeight, setContentMeasuredHeight] = useState(0);
+  const [curtainAnimationComplete, setCurtainAnimationComplete] = useState(false);
+  const coverTranslate = useRef(new Animated.Value(0)).current;
+  const curtainStartedRef = useRef(false);
+  const typingTimeoutRef = useRef<any>(null);
+  useEffect(() => {
+    if (loopCities.length === 0) return;
+    const fullText = loopCities[typedCityIndex] || 'Tokyo, Japan';
+    let charIndex = 0;
+    setTypedCityText('');
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    const typeNext = () => {
+      charIndex += 1;
+      setTypedCityText(fullText.slice(0, charIndex));
+      if (charIndex < fullText.length) {
+        typingTimeoutRef.current = setTimeout(typeNext, 80);
+      } else {
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypedCityIndex((prev) => (prev + 1) % loopCities.length);
+        }, 1200);
+      }
+    };
+    typingTimeoutRef.current = setTimeout(typeNext, 300);
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [typedCityIndex, loopCities.length]);
+
+  // Trigger reveal when results are shown
+  useEffect(() => {
+    if (!selectedLocation || isLoading) return;
+    const reduce = reduceMotion;
+    const keys = ['summary','aq','water','uv','food','pollen','altitude','outbreaks','hospitals','vaccinations'];
+    if (reduce || USE_CURTAIN_REVEAL) {
+      keys.forEach((k) => {
+        const a = getRowAnim(k);
+        a.opacity.setValue(1);
+        a.translate.setValue(0);
+      });
+      // Prepare curtain overlay
+      if (USE_CURTAIN_REVEAL) {
+        curtainStartedRef.current = false;
+        coverTranslate.setValue(0);
+        setCurtainAnimationComplete(false);
+        // Keep hidden until measurement starts the reveal
+        resultsOpacity.setValue(0);
+      }
+      return;
+    }
+    // reset before animating (when switching destination)
+    keys.forEach((k) => {
+      const a = getRowAnim(k);
+      a.opacity.setValue(0);
+      a.translate.setValue(REVEAL_TRANSLATE);
+    });
+    const anims = keys.map((k, i) => {
+      const a = getRowAnim(k);
+      const delay = i * REVEAL_STEP_DELAY;
+      return Animated.parallel([
+        Animated.timing(a.opacity, { toValue: 1, duration: REVEAL_DURATION, delay, useNativeDriver: true }),
+        Animated.timing(a.translate, { toValue: 0, duration: REVEAL_DURATION, delay, useNativeDriver: true }),
+      ]);
+    });
+    Animated.stagger(REVEAL_STAGGER, anims).start();
+  }, [selectedLocation, isLoading, reduceMotion]);
+
+  // Start curtain animation once content height is measured
+  useEffect(() => {
+    if (!USE_CURTAIN_REVEAL) return;
+    if (!selectedLocation || isLoading) return;
+    if (reduceMotion) return;
+    if (contentMeasuredHeight <= 0) return;
+    if (curtainStartedRef.current) return;
+    curtainStartedRef.current = true;
+    coverTranslate.stopAnimation();
+    coverTranslate.setValue(0);
+  // Fade in content as curtain starts to avoid initial flash
+  resultsOpacity.stopAnimation && (resultsOpacity as any).stopAnimation?.();
+  Animated.timing(resultsOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(coverTranslate, { toValue: contentMeasuredHeight, duration: CURTAIN_DURATION_MS, easing: Easing.linear, useNativeDriver: true }).start(({ finished }) => {
+      if (finished) {
+        setCurtainAnimationComplete(true);
+      }
+    });
+  }, [contentMeasuredHeight, selectedLocation, isLoading, reduceMotion]);
+
+  // Safety: if animation hasn't started shortly after measurement, start it
+  useEffect(() => {
+    if (!USE_CURTAIN_REVEAL) return;
+    if (!selectedLocation || isLoading) return;
+    if (reduceMotion) return;
+    if (contentMeasuredHeight <= 0) return;
+    const timer = setTimeout(() => {
+      if (!curtainStartedRef.current) {
+        curtainStartedRef.current = true;
+        coverTranslate.stopAnimation();
+        coverTranslate.setValue(0);
+        resultsOpacity.stopAnimation && (resultsOpacity as any).stopAnimation?.();
+        Animated.timing(resultsOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+        Animated.timing(coverTranslate, { toValue: contentMeasuredHeight, duration: CURTAIN_DURATION_MS, easing: Easing.linear, useNativeDriver: true }).start(({ finished }) => {
+          if (finished) {
+            setCurtainAnimationComplete(true);
+          }
+        });
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [contentMeasuredHeight, selectedLocation, isLoading, reduceMotion]);
   
   // Trip planning state
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -92,11 +235,56 @@ const TravelScreen: React.FC = () => {
   const [newTripDestination, setNewTripDestination] = useState('');
   const [newTripDepartureDate, setNewTripDepartureDate] = useState(new Date());
   const [newTripReturnDate, setNewTripReturnDate] = useState<Date | undefined>(undefined);
-  const [newTripNotes, setNewTripNotes] = useState('');
   const [showDatePicker, setShowDatePicker] = useState<'departure' | 'return' | null>(null);
+  const [tempDatePickerValue, setTempDatePickerValue] = useState<Date | undefined>(undefined);
+  const datePickerInitializedRef = useRef(false);
   const [isAddingTrip, setIsAddingTrip] = useState(false);
+
+  // Debug: Track showDatePicker changes
+  useEffect(() => {
+    console.log('showDatePicker state changed:', showDatePicker);
+  }, [showDatePicker]);
+
+  // Initialize temporary date value when picker opens (only when first opening, not on every change)
+  useEffect(() => {
+    if (showDatePicker) {
+      // Only initialize once when picker opens (prevents resetting during navigation)
+      if (!datePickerInitializedRef.current) {
+        if (showDatePicker === 'departure') {
+          setTempDatePickerValue(new Date(newTripDepartureDate));
+        } else {
+          setTempDatePickerValue(new Date(newTripReturnDate || new Date()));
+        }
+        datePickerInitializedRef.current = true;
+      }
+    } else {
+      setTempDatePickerValue(undefined);
+      datePickerInitializedRef.current = false;
+    }
+  }, [showDatePicker]);
+
+  // Initialize temporary date value for edit trip picker (only when first opening, not on every change)
+  useEffect(() => {
+    if (showEditDatePicker) {
+      // Only initialize once when picker opens (prevents resetting during navigation)
+      if (!editDatePickerInitializedRef.current) {
+        if (showEditDatePicker === 'departure') {
+          setTempEditDatePickerValue(new Date(editTripDepartureDate));
+        } else {
+          setTempEditDatePickerValue(new Date(editTripReturnDate || new Date()));
+        }
+        editDatePickerInitializedRef.current = true;
+      }
+    } else {
+      setTempEditDatePickerValue(undefined);
+      editDatePickerInitializedRef.current = false;
+    }
+  }, [showEditDatePicker]);
   const [tripSuggestions, setTripSuggestions] = useState<string[]>([]);
   const [departureSuggestions, setDepartureSuggestions] = useState<string[]>([]);
+  
+  // Animated value for bottom sheet slide-up
+  const tripModalTranslateY = useRef(new Animated.Value(1000)).current;
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showTripDetails, setShowTripDetails] = useState(false);
   const [jetLagData, setJetLagData] = useState({
@@ -114,6 +302,7 @@ const TravelScreen: React.FC = () => {
   // Health metric modal state (match dashboard)
   const [metricModalVisible, setMetricModalVisible] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<any | null>(null);
+  // removed temporary reveal animation
 
   // Edit trip state
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
@@ -123,6 +312,8 @@ const TravelScreen: React.FC = () => {
   const [editTripReturnDate, setEditTripReturnDate] = useState<Date | undefined>(undefined);
   const [editTripNotes, setEditTripNotes] = useState('');
   const [showEditDatePicker, setShowEditDatePicker] = useState<'departure' | 'return' | null>(null);
+  const [tempEditDatePickerValue, setTempEditDatePickerValue] = useState<Date | undefined>(undefined);
+  const editDatePickerInitializedRef = useRef(false);
   const [editTripSuggestions, setEditTripSuggestions] = useState<string[]>([]);
   const [editTripDepartureLocation, setEditTripDepartureLocation] = useState('');
   const [editTripDepartureSuggestions, setEditTripDepartureSuggestions] = useState<string[]>([]);
@@ -355,12 +546,16 @@ const TravelScreen: React.FC = () => {
 
   const handleLocationSelect = async (city: string) => {
     setSearchLocation(city);
+    setInputText(city);
     setFilteredCities([]);
     setIsLoading(true);
+    // ensure results container will be visible when data is ready
+    resultsOpacity.setValue(1);
+    resultsTranslateY.setValue(0);
     
     try {
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 400));
       
       // For demo purposes, we'll use mock data
       const mockHealthData = {
@@ -379,32 +574,43 @@ const TravelScreen: React.FC = () => {
         diseaseOutbreaks: { value: 'None', status: 'good', description: 'No current disease outbreaks reported' }
       };
       
-      // Update context
+      // Update context immediately so UI can render
       await updateTravelHealthData(mockHealthData);
+      setSelectedLocation(city);
+      // ensure normal cards are visible
       
     } catch (error) {
       console.error('Error fetching health data:', error);
       setApiErrors(prev => ({ ...prev, general: 'Failed to fetch health data. Please try again.' }));
     } finally {
       setIsLoading(false);
+      // ensure suggestions are hidden and metrics visible
+      setShowInlineSuggestions(false);
+      resultsOpacity.setValue(1);
+      resultsTranslateY.setValue(0);
     }
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
-      setShowDatePicker(null);
-    }
-    
-    if (selectedDate) {
-      if (showDatePicker === 'departure') {
-        setNewTripDepartureDate(selectedDate);
-      } else if (showDatePicker === 'return') {
-        setNewTripReturnDate(selectedDate);
+      // Android: update immediately and close
+      if (selectedDate) {
+        if (showDatePicker === 'departure') {
+          setNewTripDepartureDate(selectedDate);
+        } else if (showDatePicker === 'return') {
+          setNewTripReturnDate(selectedDate);
+        }
       }
+      setShowDatePicker(null);
+      return;
     }
     
-    // On iOS, we don't auto-close the picker, user needs to tap Done
-    // The picker will stay open until user taps Cancel or Done
+    // iOS: Only update temporary value during scrolling
+    // Don't update the actual state until user confirms with Done button
+    // Always create a new Date object to ensure React detects the change
+    if (Platform.OS === 'ios' && selectedDate) {
+      setTempDatePickerValue(new Date(selectedDate));
+    }
   };
 
   const buildJetLagEvent = (trip: Trip, variant: 'outbound' | 'return'): JetLagPlanningEvent => {
@@ -461,6 +667,53 @@ const TravelScreen: React.FC = () => {
     };
   };
 
+  // Build Enhanced Trip for detailed PRC-based plan (single leg)
+  const buildEnhancedTrip = (trip: Trip, variant: 'outbound' | 'return'): EnhancedTrip => {
+    const isOutbound = variant === 'outbound';
+    const originCity = isOutbound ? trip.departureLocation : (trip.destination || 'Origin');
+    const destCity = isOutbound ? trip.destination : (trip.departureLocation || 'Destination');
+    const originOffset = getCityUtcOffsetHours(originCity) ?? 0;
+    const destOffset = getCityUtcOffsetHours(destCity) ?? 0;
+    const tzDiff = destOffset - originOffset; // signed
+    const direction: 'east' | 'west' = tzDiff >= 0 ? 'east' : 'west';
+
+    // Use user's stored sleep window from settings
+    const userBedtime = settings.lifestyle.sleepSchedule.bedTime;
+    const userWakeTime = settings.lifestyle.sleepSchedule.wakeUpTime;
+
+    const depDate = isOutbound ? trip.departureDate : (trip.returnDate || trip.departureDate);
+    const arrDate = depDate; // arrival not used by timeline; using dep as placeholder
+
+    const enhanced: EnhancedTrip = {
+      id: `${trip.id}-${variant}-enh` as string,
+      user_id: 'local-user',
+      title: `${originCity} → ${destCity}`,
+      origin_iata: originCity,
+      dest_iata: destCity,
+      dep_local: depDate.toISOString(),
+      arr_local: arrDate.toISOString(),
+      origin_tz: 'UTC',
+      dest_tz: 'UTC',
+      dep_utc: depDate.toISOString(),
+      arr_utc: arrDate.toISOString(),
+      tz_diff_hours: tzDiff,
+      direction,
+      plan_style: 'gentle',
+      prefs: {
+        sleep_window_local: { start: userBedtime, end: userWakeTime },
+        chronotype: 'neutral',
+        caffeine: true,
+        melatonin: false, // opt-in only
+        naps: false,
+      },
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    return enhanced;
+  };
+
   const handleAddTrip = () => {
     if (!newTripDepartureLocation.trim()) {
       Alert.alert('Error', 'Please enter a departure location');
@@ -478,7 +731,6 @@ const TravelScreen: React.FC = () => {
       departureDate: newTripDepartureDate,
       returnDate: newTripReturnDate,
       timezone: 'UTC',
-      notes: newTripNotes.trim(),
       checklist: {
         vaccines: [
           { name: 'COVID-19', completed: false },
@@ -528,7 +780,6 @@ const TravelScreen: React.FC = () => {
     setNewTripDestination('');
     setNewTripDepartureDate(new Date());
     setNewTripReturnDate(undefined);
-    setNewTripNotes('');
     setShowAddTripModal(false);
     setTripSuggestions([]);
     setDepartureSuggestions([]);
@@ -1201,17 +1452,12 @@ const TravelScreen: React.FC = () => {
     return countryFlags[country] || '🌍';
   };
 
-  // Medications section state and data
-  const [medicationsTab, setMedicationsTab] = useState<'general' | 'personalized'>('general');
+  // Medications section data
   const generalMeds: Array<{ name: string; note: string }> = [
     { name: 'Antihistamines', note: 'Recommended for allergies' },
     { name: 'Antacids', note: 'Recommended for heartburn' },
     { name: 'First Aid', note: 'Recommended for minor cuts' },
     { name: 'ORS', note: 'Recommended for food poisoning' },
-  ];
-  const personalizedMeds: Array<{ name: string; access: 'OTC' | 'Prescription' }> = [
-    { name: 'Morning Pack', access: 'OTC' },
-    { name: 'Evening Pack', access: 'Prescription' },
   ];
 
   const handleTripOptions = (trip: Trip) => {
@@ -1432,16 +1678,31 @@ const TravelScreen: React.FC = () => {
       >
         {/* Page 0: Search */}
         <View key="search">
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView 
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false} 
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFFFFF"
+          />
+        }
+      >
           <View style={styles.content}>
             {/* Location Search */}
+            <>
+            {true ? (
             <View style={styles.locationSearchContainer}>
               <View style={styles.locationSearchButton}>
                   <TextInput
                   style={styles.locationSearchInput}
-                    value={searchLocation}
-                    onChangeText={(text) => {
+                    value={inputText}
+                  onChangeText={(text) => {
+                      setInputText(text);
                       setSearchLocation(text);
+                      setSelectedLocation('');
                       // The useEffect will handle the API search automatically
                       if (text.trim()) {
                         setShowInlineSuggestions(true);
@@ -1449,24 +1710,45 @@ const TravelScreen: React.FC = () => {
                         setShowInlineSuggestions(false);
                       }
                     }}
-                  placeholder="Search for a destination..."
+                  placeholder={typedCityText ? `Search ${typedCityText}` : 'Search'}
                     placeholderTextColor="#8E8E93"
                   returnKeyType="search"
                   onFocus={() => {
-                    if (!searchLocation.trim()) {
+                    if (!inputText.trim()) {
                       setFilteredCities(popularCities.slice(0, 8));
                       setShowInlineSuggestions(true);
                     }
                   }}
+                  onEndEditing={() => {
+                    const trimmed = inputText.trim();
+                    if (!trimmed) return;
+                    // If user hasn't explicitly selected, treat end editing as submit
+                    if (trimmed && trimmed !== selectedLocation) {
+                      setShowInlineSuggestions(false);
+                      setCitySearchResults([]);
+                      setFilteredCities([]);
+                      setSelectedLocation(trimmed);
+                      setSearchLocation(trimmed);
+                      setInputText(trimmed);
+                      handleLocationSelect(trimmed);
+                    }
+                  }}
                     onSubmitEditing={() => {
-                      if (searchLocation.trim()) {
-                        handleLocationSelect(searchLocation.trim());
-                      Keyboard.dismiss();
+                      if (inputText.trim()) {
+                        setShowInlineSuggestions(false);
+                        setCitySearchResults([]);
+                        setFilteredCities([]);
+                        const submitted = inputText.trim();
+                        setSelectedLocation(submitted);
+                        setSearchLocation(submitted);
+                        setInputText(submitted);
+                        handleLocationSelect(submitted);
+                        Keyboard.dismiss();
                       }
                     }}
                   />
                 {searchLocation ? (
-                  <TouchableOpacity onPress={() => { setSearchLocation(''); setFilteredCities(popularCities.slice(0, 8)); setShowInlineSuggestions(true); }}>
+                  <TouchableOpacity onPress={() => { setInputText(''); setSearchLocation(''); setFilteredCities(popularCities.slice(0, 8)); setShowInlineSuggestions(true); }}>
                     <Ionicons name="close" size={20} color="#FF3B30" />
                   </TouchableOpacity>
                 ) : (
@@ -1534,6 +1816,8 @@ const TravelScreen: React.FC = () => {
                                   setShowInlineSuggestions(false);
                                   const cityName = `${city.name}, ${city.country}`;
                                   setSearchLocation(cityName);
+                                  setInputText(cityName);
+                                  setSelectedLocation(cityName);
                                   setCitySearchResults([]);
                                   setFilteredCities([]);
                                   handleLocationSelect(cityName);
@@ -1556,6 +1840,8 @@ const TravelScreen: React.FC = () => {
                             onPress={() => {
                               setShowInlineSuggestions(false);
                               setSearchLocation(city);
+                              setInputText(city);
+                              setSelectedLocation(city);
                               setFilteredCities([]);
                               handleLocationSelect(city);
                               Keyboard.dismiss();
@@ -1567,54 +1853,61 @@ const TravelScreen: React.FC = () => {
                         ))}
                           </View>
                         )}
-                      </ScrollView>
+              </ScrollView>
                 </View>
                   )}
-                  
-                  {/* Inline "Use current location" is presented as the first suggestion when input is empty */}
                 </View>
+            ) : null}
 
             {/* Background tap to dismiss suggestions */}
             {showInlineSuggestions && (
               <TouchableOpacity activeOpacity={1} onPress={() => { setShowInlineSuggestions(false); Keyboard.dismiss(); }} style={styles.tapDismissOverlay} />
             )}
+            </>
 
             {/* Loading State */}
-            {isLoading && (
+            {selectedLocation && isLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#007AFF" />
                 <Text style={styles.loadingText}>Loading health data...</Text>
-            </View>
+              </View>
             )}
 
             {/* Health Metrics */}
-            {searchLocation && !isLoading ? (
-              <View style={styles.metricsContainer}>
+            {selectedLocation && !isLoading ? (
+              <View>
+                <Animated.View 
+                  onLayout={(e) => {
+                    const h = e.nativeEvent.layout.height;
+                    if (h > 0 && (contentMeasuredHeight === 0 || Math.abs(h - contentMeasuredHeight) > 4)) {
+                      setContentMeasuredHeight(h);
+                    }
+                  }}
+                  style={[styles.metricsContainer, { opacity: resultsOpacity, transform: [{ translateY: resultsTranslateY }], position: 'relative' }]}>
                 {/* Result Title Row */}
                 <View style={styles.resultTitleRow}>
                   <Text style={styles.resultTitle}>
                     {(() => {
-                      // If user selected Current Location and we have travelHealth data with a proper name/country, use it
-                      const nameFromData = (travelHealth as any)?.name;
-                      const countryFromData = (travelHealth as any)?.country;
-                      if (searchLocation === 'Current Location' && nameFromData && countryFromData) {
+                      const nameFromData = (travelHealth as any)?.name || selectedLocation;
+                      const countryFromData = (travelHealth as any)?.country || getCountryFromCity(selectedLocation);
+                      if (nameFromData && countryFromData) {
                         return `${nameFromData}, ${countryFromData}`;
                       }
-                      const country = getCountryFromCity(searchLocation);
-                      const hasCountry = searchLocation.toLowerCase().includes(country.toLowerCase());
-                      return `${hasCountry ? searchLocation : `${searchLocation}, ${country}`}`;
-                    })()} {getCountryFlag((travelHealth as any)?.country || getCountryFromCity(searchLocation))}
+                      const country = getCountryFromCity(selectedLocation);
+                      const hasCountry = selectedLocation.toLowerCase().includes(country.toLowerCase());
+                      return `${hasCountry ? selectedLocation : `${selectedLocation}, ${country}`}`;
+                    })()} {getCountryFlag((travelHealth as any)?.country || getCountryFromCity(selectedLocation))}
                   </Text>
                 </View>
 
                 {/* Health Summary */}
-                <View style={styles.summaryCard}>
+                <Animated.View style={[styles.summaryCard, { opacity: getRowAnim('summary').opacity, transform: [{ translateY: getRowAnim('summary').translate }] }] }>
                   <View style={styles.summaryHeader}>
                     <Ionicons name="checkmark-circle" size={24} color="#34C759" />
                     <Text style={styles.summaryTitle}>Health Summary</Text>
                 </View>
                   <Text style={styles.summaryText}>Overall health risk is low for this destination. All major health metrics are within safe ranges.</Text>
-            </View>
+                </Animated.View>
 
                 {/* Health Metrics in Specific Order */}
                 <View style={styles.metricsSection}>
@@ -1622,6 +1915,7 @@ const TravelScreen: React.FC = () => {
                   <Text style={styles.sectionTitle}>Health Metrics</Text>
                   
                   {/* Air Quality */}
+                  <Animated.View style={{ opacity: getRowAnim('aq').opacity, transform: [{ translateY: getRowAnim('aq').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'air_quality', label: 'Air Quality', status: 'moderate', score: getMetricScore('Air Quality') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('air_quality', 'moderate')}20` }]}> 
                        <Ionicons name="cloud-outline" size={20} color={getMetricFixedIconColor('air_quality', 'moderate')} />
@@ -1635,8 +1929,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* Water Safety */}
+                  <Animated.View style={{ opacity: getRowAnim('water').opacity, transform: [{ translateY: getRowAnim('water').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'water_safety', label: 'Water Safety', status: 'good', score: getMetricScore('Water Safety') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('water_safety', 'good')}20` }]}> 
                       <Ionicons name="water-outline" size={20} color={getMetricFixedIconColor('water_safety', 'good')} />
@@ -1650,8 +1946,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* UV Index */}
+                  <Animated.View style={{ opacity: getRowAnim('uv').opacity, transform: [{ translateY: getRowAnim('uv').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'uv_index', label: 'UV Index', status: 'moderate', score: getMetricScore('UV Index') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('uv_index', 'moderate')}20` }]}> 
                       <Ionicons name="sunny" size={20} color={getMetricFixedIconColor('uv_index', 'moderate')} />
@@ -1665,8 +1963,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* Food Safety */}
+                  <Animated.View style={{ opacity: getRowAnim('food').opacity, transform: [{ translateY: getRowAnim('food').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'food_safety', label: 'Food Safety', status: 'good', score: getMetricScore('Food Safety') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('food_safety', 'good')}20` }]}> 
                       <Ionicons name="restaurant" size={20} color={getMetricFixedIconColor('food_safety', 'good')} />
@@ -1680,8 +1980,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* Pollen Level */}
+                  <Animated.View style={{ opacity: getRowAnim('pollen').opacity, transform: [{ translateY: getRowAnim('pollen').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'pollen', label: 'Pollen', status: 'moderate', score: getMetricScore('Pollen Level') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('pollen', 'moderate')}20` }]}> 
                        <Ionicons name="flower-outline" size={20} color={getMetricFixedIconColor('pollen', 'moderate')} />
@@ -1695,8 +1997,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* Altitude */}
+                  <Animated.View style={{ opacity: getRowAnim('altitude').opacity, transform: [{ translateY: getRowAnim('altitude').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'altitude', label: 'Altitude', status: 'good', score: getMetricScore('Altitude') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
                       <Ionicons name="mountain-outline" size={20} color={getStatusColor('good')} />
@@ -1710,8 +2014,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   
                   {/* Disease Outbreaks */}
+                  <Animated.View style={{ opacity: getRowAnim('outbreaks').opacity, transform: [{ translateY: getRowAnim('outbreaks').translate }] }}>
                   <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'outbreaks', label: 'Disease Outbreaks', status: 'good', score: getMetricScore('Disease Outbreaks') }); setMetricModalVisible(true); }}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
                       <Ionicons name="bug-outline" size={20} color={getStatusColor('good')} />
@@ -1725,18 +2031,21 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.metricScoreLabelText}>Score</Text>
                     </View>
                   </TouchableOpacity>
+                  </Animated.View>
                   </View>
                 </View>
 
                 {/* Nearby Hospitals */}
-                <View style={styles.hospitalsSection}>
+                <Animated.View style={[styles.hospitalsSection, { opacity: getRowAnim('hospitals').opacity, transform: [{ translateY: getRowAnim('hospitals').translate }] }] }>
                   <View style={styles.sectionGroupCard}>
                   <Text style={styles.sectionTitle}>Nearby Hospitals</Text>
                   <TouchableOpacity style={styles.hospitalCard} onPress={() => handleOpenMaps('Central Hospital')}>
                     <View style={styles.hospitalHeader}>
                       <Ionicons name="medical" size={20} color="#FF3B30" />
                       <Text style={styles.hospitalTitle}>Central Hospital</Text>
-                      <Text style={styles.hospitalDistance}>2.1km</Text>
+                      {selectedLocation === 'Current Location' ? (
+                        <Text style={styles.hospitalDistance}>2.1km</Text>
+                      ) : null}
               </View>
                     <Text style={styles.hospitalInfo}>24/7 Emergency Services • ICU Available</Text>
                   </TouchableOpacity>
@@ -1745,7 +2054,9 @@ const TravelScreen: React.FC = () => {
                     <View style={styles.hospitalHeader}>
                       <Ionicons name="medical" size={20} color="#FF3B30" />
                       <Text style={styles.hospitalTitle}>City Medical Center</Text>
-                      <Text style={styles.hospitalDistance}>3.8km</Text>
+                      {selectedLocation === 'Current Location' ? (
+                        <Text style={styles.hospitalDistance}>3.8km</Text>
+                      ) : null}
           </View>
                     <Text style={styles.hospitalInfo}>General Practice • Emergency Care</Text>
         </TouchableOpacity>
@@ -1754,7 +2065,9 @@ const TravelScreen: React.FC = () => {
                     <View style={styles.hospitalHeader}>
                       <Ionicons name="medical" size={20} color="#FF3B30" />
                       <Text style={styles.hospitalTitle}>Emergency Clinic</Text>
-                      <Text style={styles.hospitalDistance}>4.2km</Text>
+                      {selectedLocation === 'Current Location' ? (
+                        <Text style={styles.hospitalDistance}>4.2km</Text>
+                      ) : null}
           </View>
                     <Text style={styles.hospitalInfo}>Urgent Care • Walk-in Available</Text>
                     </TouchableOpacity>
@@ -1772,10 +2085,10 @@ const TravelScreen: React.FC = () => {
                       <Text style={styles.hospitalInfo}>Tap to call emergency services</Text>
                     </TouchableOpacity>
         </View>
-              </View>
+                </Animated.View>
 
                 {/* Vaccinations */}
-                <View style={styles.vaccinationSection}>
+                <Animated.View style={[styles.vaccinationSection, { opacity: getRowAnim('vaccinations').opacity, transform: [{ translateY: getRowAnim('vaccinations').translate }] }] }>
                   <View style={styles.sectionGroupCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                       <Ionicons name="shield-checkmark" size={20} color="#34C759" />
@@ -1787,27 +2100,33 @@ const TravelScreen: React.FC = () => {
                       <View style={styles.vaccineLeft}>
                         <Ionicons name="medkit" size={18} color="#FF3B30" />
                         <Text style={styles.vaccineName}>COVID-19</Text>
-                        <Text style={[styles.vaccineBadge, { color: '#FF3B30' }]}>required</Text>
-      </View>
-    </View>
+                      </View>
+                      <View style={styles.vaccineRight}>
+                        <Text style={[styles.vaccineBadge, { color: '#FF3B30' }]}>Required</Text>
+                      </View>
+                    </View>
                     <View style={styles.vaccineRow}>
                       <View style={styles.vaccineLeft}>
                         <Ionicons name="medkit" size={18} color="#FF9F0A" />
                         <Text style={styles.vaccineName}>Hepatitis A</Text>
-                        <Text style={[styles.vaccineBadge, { color: '#FF9F0A' }]}>recommended</Text>
-        </View>
-      </View>
+                      </View>
+                      <View style={styles.vaccineRight}>
+                        <Text style={[styles.vaccineBadge, { color: '#FF9F0A' }]}>Recommended</Text>
+                      </View>
+                    </View>
                     <View style={styles.vaccineRow}>
                       <View style={styles.vaccineLeft}>
                         <Ionicons name="medkit" size={18} color="#FF9F0A" />
                         <Text style={styles.vaccineName}>Typhoid</Text>
-                        <Text style={[styles.vaccineBadge, { color: '#FF9F0A' }]}>recommended</Text>
-        </View>
-            </View>
+                      </View>
+                      <View style={styles.vaccineRight}>
+                        <Text style={[styles.vaccineBadge, { color: '#FF9F0A' }]}>Recommended</Text>
+                      </View>
+                    </View>
                   </View>
-                </View>
+                </Animated.View>
 
-                {/* Medications - combined box with tabs */}
+                {/* Medications */}
                 <View style={styles.medicationSection}>
                   <View style={styles.sectionGroupCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -1815,44 +2134,55 @@ const TravelScreen: React.FC = () => {
                       <Text style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>Medications</Text>
       </View>
 
-                    {/* Medications tabs */}
-                    <View style={styles.chipsRow}>
-                      <TouchableOpacity onPress={() => setMedicationsTab('general')} style={[styles.chip, medicationsTab === 'general' && styles.chipActive]}>
-                        <Text style={[styles.chipText, medicationsTab === 'general' && styles.chipTextActive]}>General</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => setMedicationsTab('personalized')} style={[styles.chip, medicationsTab === 'personalized' && styles.chipActive]}>
-                        <Text style={[styles.chipText, medicationsTab === 'personalized' && styles.chipTextActive]}>Personalized</Text>
-                      </TouchableOpacity>
-    </View>
-
-                    {/* Content per tab */}
-                    {medicationsTab === 'general' ? (
-                      <>
-                        {generalMeds.map((m, idx) => (
-                          <View key={`gen-${m.name}-${idx}`} style={styles.vaccineRow}>
-                            <View style={styles.vaccineLeft}>
-                              <Text style={styles.vaccineName}>{m.name}</Text>
-                              <Text style={styles.vaccineBadge}>{m.note}</Text>
-        </View>
+                    {/* Medications list */}
+                    {generalMeds.map((m, idx) => (
+                      <View key={`gen-${m.name}-${idx}`} style={styles.vaccineRow}>
+                        <View style={styles.vaccineLeft}>
+                          <Text style={styles.vaccineName}>{m.name}</Text>
+                        </View>
+                        <View style={styles.vaccineRight}>
+                          <Text style={styles.vaccineBadge}>{m.note}</Text>
+                        </View>
                       </View>
-                        ))}
-                      </>
-                    ) : (
-                      <>
-                        {personalizedMeds.map((p, idx) => (
-                          <View key={`per-${p.name}-${idx}`} style={styles.vaccineRow}>
-                            <View style={styles.vaccineLeft}>
-                              <Text style={styles.vaccineName}>{p.name}</Text>
-                              <Text style={[styles.vaccineBadge, { color: p.access === 'OTC' ? '#34C759' : '#FF9F0A' }]}>
-                                {p.access === 'OTC' ? 'Over the counter' : 'Prescription required'}
-                              </Text>
-                  </View>
+                    ))}
                 </View>
-                        ))}
-                      </>
+                </View>
+                {/* Curtain overlay covering entire metrics container */}
+                {USE_CURTAIN_REVEAL && contentMeasuredHeight > 0 && (
+                  <>
+                    <Animated.View pointerEvents="none" style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: contentMeasuredHeight,
+                      zIndex: 999,
+                      backgroundColor: '#000000',
+                      transform: [{ translateY: coverTranslate.interpolate({ inputRange: [0, contentMeasuredHeight || 1], outputRange: [0, contentMeasuredHeight || 1] }) }],
+                    }} />
+                    {/* Plane icon moving with curtain - hide when animation completes */}
+                    {!curtainAnimationComplete && (
+                      <Animated.View pointerEvents="none" style={{
+                        position: 'absolute',
+                        left: '50%',
+                        marginLeft: -24, // Half of icon size to center it (48/2)
+                        top: 0, // At curtain line
+                        zIndex: 1000,
+                        transform: [
+                          { translateY: coverTranslate },
+                          { rotate: '180deg' }, // Rotate to face down (image faces up by default)
+                        ],
+                      }}>
+                        <Image 
+                          source={require('../../../assets/airplane.png')}
+                          style={{ width: 48, height: 48 }}
+                          resizeMode="contain"
+                        />
+                      </Animated.View>
                     )}
-                </View>
-                </View>
+                  </>
+                )}
+                </Animated.View>
               </View>
             ) : !isLoading ? (
               <View style={styles.emptyState}>
@@ -1860,8 +2190,8 @@ const TravelScreen: React.FC = () => {
                 <Text style={styles.emptyStateTitle}>Search for a destination</Text>
                 <Text style={styles.emptyStateText}>
                   Enter a city or country to get comprehensive health insights
-        </Text>
-      </View>
+                </Text>
+              </View>
             ) : null}
           </View>
           </ScrollView>
@@ -1881,7 +2211,16 @@ const TravelScreen: React.FC = () => {
                 {/* Add Trip Button - positioned below description like Vaccinations page */}
                 <TouchableOpacity 
                   style={styles.addTripButton}
-                  onPress={() => setShowAddTripModal(true)}
+                  onPress={() => {
+                    setShowAddTripModal(true);
+                    tripModalTranslateY.setValue(1000);
+                    Animated.spring(tripModalTranslateY, {
+                      toValue: 0,
+                      useNativeDriver: true,
+                      tension: 65,
+                      friction: 11,
+                    }).start();
+                  }}
                 >
                   <Ionicons name="add" size={24} color="#FFFFFF" />
                   <Text style={styles.addTripButtonText}>Add a Trip</Text>
@@ -1892,7 +2231,16 @@ const TravelScreen: React.FC = () => {
                 {/* Add Another Trip Button - positioned above trips */}
                 <TouchableOpacity 
                   style={[styles.addTripButton, styles.addTripButtonTop]}
-                  onPress={() => setShowAddTripModal(true)}
+                  onPress={() => {
+                    setShowAddTripModal(true);
+                    tripModalTranslateY.setValue(1000);
+                    Animated.spring(tripModalTranslateY, {
+                      toValue: 0,
+                      useNativeDriver: true,
+                      tension: 65,
+                      friction: 11,
+                    }).start();
+                  }}
                 >
                   <Ionicons name="add" size={24} color="#FFFFFF" />
                   <Text style={styles.addTripButtonText}>Add Another Trip</Text>
@@ -1905,6 +2253,16 @@ const TravelScreen: React.FC = () => {
                         event={buildJetLagEvent(trip, 'outbound')} 
                         onEditTrip={() => handleModifyTripDates(trip)}
                       />
+                      {/* Detailed PRC-based plan below the card to match mock */}
+                      {(() => {
+                        const enhanced = buildEnhancedTrip(trip, 'outbound');
+                        const planDays: PlanDay[] = EnhancedJetLagService.generatePlan(enhanced);
+                        return (
+                          <View style={{ marginTop: 12 }}>
+                            <PlanTimeline planDays={planDays} />
+                          </View>
+                        );
+                      })()}
                       <JetLagPlanningCard 
                         event={buildJetLagEvent(trip, 'return')} 
                         onEditTrip={() => handleModifyTripDates(trip)}
@@ -2043,18 +2401,86 @@ const TravelScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Add Trip Modal */}
-      {showAddTripModal && (
+      {/* Add Trip Modal - Modern Bottom Sheet Style */}
+      <Modal 
+        visible={showAddTripModal} 
+        transparent 
+        animationType="none"
+        presentationStyle="overFullScreen"
+      >
         <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { textAlign: 'center', flex: 1 }]}>Add New Trip</Text>
-              <TouchableOpacity onPress={() => setShowAddTripModal(false)}>
-                <Ionicons name="close" size={24} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
+          <TouchableWithoutFeedback 
+            onPress={() => {
+              setShowAddTripModal(false);
+              setNewTripDepartureLocation('');
+              setNewTripDestination('');
+              setNewTripDepartureDate(new Date());
+              setNewTripReturnDate(undefined);
+              tripModalTranslateY.setValue(0);
+            }}
+          >
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View style={styles.bottomSheetContainer}>
+            <Animated.View 
+              style={[
+                styles.bottomSheetContent,
+                {
+                  transform: [{ translateY: tripModalTranslateY }],
+                },
+              ]}
+            >
+              {/* Handle bar */}
+              <View style={styles.bottomSheetHandleContainer}>
+                <View style={styles.bottomSheetHandle} />
+              </View>
+              
+              {/* Header */}
+              <View style={styles.bottomSheetHeader} pointerEvents="box-none">
+                <TouchableOpacity 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setShowAddTripModal(false);
+                    setNewTripDepartureLocation('');
+                    setNewTripDestination('');
+                    setNewTripDepartureDate(new Date());
+                    setNewTripReturnDate(undefined);
+                    tripModalTranslateY.setValue(0);
+                  }}
+                  style={styles.bottomSheetCloseButton}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+                <Text style={styles.bottomSheetTitle}>Add New Trip</Text>
+                <TouchableOpacity 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    if (newTripDepartureLocation.trim() && newTripDestination.trim()) {
+                      handleAddTrip();
+                      tripModalTranslateY.setValue(0);
+                    }
+                  }}
+                  style={styles.bottomSheetCloseButton}
+                  hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                  activeOpacity={0.6}
+                >
+                  <Ionicons 
+                    name="checkmark" 
+                    size={24} 
+                    color={(!newTripDepartureLocation.trim() || !newTripDestination.trim()) ? "#8E8E93" : "#34C759"} 
+                  />
+                </TouchableOpacity>
+              </View>
 
-          <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              
+              <ScrollView 
+                style={styles.bottomSheetBody} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.bottomSheetBodyContent}
+                keyboardShouldPersistTaps="handled"
+              >
             <Text style={styles.inputLabel}>Departure Location:</Text>
             <View style={styles.inputContainer}>
               <TextInput
@@ -2147,7 +2573,13 @@ const TravelScreen: React.FC = () => {
           <Text style={styles.inputLabel}>Departure Date:</Text>
           <TouchableOpacity 
               style={styles.dateButton}
-            onPress={() => setShowDatePicker('departure')}
+            onPress={() => {
+              console.log('Departure date button pressed');
+              setShowDatePicker('departure');
+              console.log('Set showDatePicker to departure, current value:', showDatePicker);
+            }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
               <Text style={styles.dateButtonText}>
               {newTripDepartureDate.toLocaleDateString()}
@@ -2158,7 +2590,13 @@ const TravelScreen: React.FC = () => {
           <Text style={styles.inputLabel}>Return Date: (Optional)</Text>
           <TouchableOpacity 
               style={styles.dateButton}
-            onPress={() => setShowDatePicker('return')}
+            onPress={() => {
+              console.log('Return date button pressed');
+              setShowDatePicker('return');
+              console.log('Set showDatePicker to return, current value:', showDatePicker);
+            }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
               <Text style={styles.dateButtonText}>
                 {newTripReturnDate ? newTripReturnDate.toLocaleDateString() : 'Select date'}
@@ -2166,69 +2604,65 @@ const TravelScreen: React.FC = () => {
               <Ionicons name="calendar" size={16} color="#8E8E93" />
           </TouchableOpacity>
 
-            <Text style={styles.inputLabel}>Notes (Optional)</Text>
-            <TextInput
-              style={[styles.textInput, { height: 80, textAlignVertical: 'top' }]}
-              value={newTripNotes}
-              onChangeText={setNewTripNotes}
-              placeholder="Add any notes about your trip..."
-              placeholderTextColor="#8E8E93"
-              multiline
-            />
-          </ScrollView>
-
-          <View style={styles.modalButtonsSingleCentered}>
-            <TouchableOpacity
-              style={styles.primaryCenteredButton}
-                onPress={handleAddTrip}
-            >
-                <Text style={styles.modalButtonPrimaryText}>Add Trip</Text>
-            </TouchableOpacity>
+              </ScrollView>
+            </Animated.View>
           </View>
-        </View>
-      </View>
-      )}
-
-      {/* Date Picker */}
-      {showDatePicker && (
-        Platform.OS === 'ios' ? (
-          <View style={styles.datePickerModalOverlay}>
-            <View style={styles.datePickerModalContent}>
-              <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={() => setShowDatePicker(null)}>
-                  <Ionicons name="close" size={22} color="#FF3B30" />
-                </TouchableOpacity>
-                <Text style={styles.datePickerTitle}>
-                  {showDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
-          </Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(null)}>
-                  <Ionicons name="checkmark" size={22} color="#34C759" />
-          </TouchableOpacity>
-        </View>
-              <DateTimePicker
-                value={showDatePicker === 'departure' ? newTripDepartureDate : (newTripReturnDate || new Date())}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                themeVariant="dark"
-                textColor="#FFFFFF"
-                onChange={handleDateChange}
-                minimumDate={showDatePicker === 'return' ? newTripDepartureDate : new Date()}
-                style={styles.datePicker}
-              />
+          
+          {/* Date Picker Overlay - Inside the bottom sheet modal */}
+          {showDatePicker && (
+            <View style={styles.datePickerOverlay}>
+              <TouchableWithoutFeedback onPress={() => {
+                setTempDatePickerValue(undefined);
+                setShowDatePicker(null);
+              }}>
+                <View style={StyleSheet.absoluteFill} />
+              </TouchableWithoutFeedback>
+              <View style={styles.datePickerModalContent} pointerEvents="box-none">
+                <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                  <View>
+                    <View style={styles.datePickerHeader}>
+                      <TouchableOpacity onPress={() => {
+                        setTempDatePickerValue(undefined);
+                        setShowDatePicker(null);
+                      }}>
+                        <Ionicons name="close" size={22} color="#FF3B30" />
+                      </TouchableOpacity>
+                      <Text style={styles.datePickerTitle}>
+                        {showDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
+                      </Text>
+                      <TouchableOpacity onPress={() => {
+                        // Save the temporary value when Done is clicked
+                        if (tempDatePickerValue) {
+                          if (showDatePicker === 'departure') {
+                            setNewTripDepartureDate(tempDatePickerValue);
+                          } else if (showDatePicker === 'return') {
+                            setNewTripReturnDate(tempDatePickerValue);
+                          }
+                        }
+                        setTempDatePickerValue(undefined);
+                        setShowDatePicker(null);
+                      }}>
+                        <Ionicons name="checkmark" size={22} color="#34C759" />
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={tempDatePickerValue ?? (showDatePicker === 'departure' ? newTripDepartureDate : (newTripReturnDate || new Date()))}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                      themeVariant="dark"
+                      textColor="#FFFFFF"
+                      onChange={handleDateChange}
+                      minimumDate={showDatePicker === 'return' ? newTripDepartureDate : new Date()}
+                      style={styles.datePicker}
+                      key={showDatePicker} // Force re-mount when switching between departure/return
+                    />
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
             </View>
-          </View>
-        ) : (
-          <DateTimePicker
-            value={showDatePicker === 'departure' ? newTripDepartureDate : (newTripReturnDate || new Date())}
-            mode="date"
-            display="default"
-            themeVariant="dark"
-            textColor="#FFFFFF"
-            onChange={handleDateChange}
-            minimumDate={showDatePicker === 'return' ? newTripDepartureDate : new Date()}
-          />
-        )
-      )}
+          )}
+        </View>
+      </Modal>
 
       {/* Edit Trip Modal */}
       {showEditTripModal && editingTrip && (
@@ -2387,34 +2821,46 @@ const TravelScreen: React.FC = () => {
           <View style={styles.datePickerModalOverlay}>
             <View style={styles.datePickerModalContent}>
               <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={() => setShowEditDatePicker(null)}>
+                <TouchableOpacity onPress={() => {
+                  setTempEditDatePickerValue(undefined);
+                  setShowEditDatePicker(null);
+                }}>
                   <Ionicons name="close" size={22} color="#FF3B30" />
                 </TouchableOpacity>
                 <Text style={styles.datePickerTitle}>
                   {showEditDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
                 </Text>
-                <TouchableOpacity onPress={() => setShowEditDatePicker(null)}>
+                <TouchableOpacity onPress={() => {
+                  // Save the temporary value when Done is clicked
+                  if (tempEditDatePickerValue) {
+                    if (showEditDatePicker === 'departure') {
+                      setEditTripDepartureDate(tempEditDatePickerValue);
+                    } else {
+                      setEditTripReturnDate(tempEditDatePickerValue);
+                    }
+                  }
+                  setTempEditDatePickerValue(undefined);
+                  setShowEditDatePicker(null);
+                }}>
                   <Ionicons name="checkmark" size={22} color="#34C759" />
                 </TouchableOpacity>
               </View>
               <DateTimePicker
-                value={showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date())}
+                value={tempEditDatePickerValue ?? (showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date()))}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
                 themeVariant="dark"
                 textColor="#FFFFFF"
                 onChange={(event, selectedDate) => {
-                  if (selectedDate) {
-                    if (showEditDatePicker === 'departure') {
-                      setEditTripDepartureDate(selectedDate);
-                    } else {
-                      setEditTripReturnDate(selectedDate);
-                    }
+                  // iOS: Only update temporary value during scrolling
+                  // Always create a new Date object to ensure React detects the change
+                  if (Platform.OS === 'ios' && selectedDate) {
+                    setTempEditDatePickerValue(new Date(selectedDate));
                   }
-                  setShowEditDatePicker(null);
                 }}
                 minimumDate={showEditDatePicker === 'return' ? editTripDepartureDate : new Date()}
                 style={styles.datePicker}
+                key={showEditDatePicker} // Force re-mount when switching between departure/return
               />
             </View>
           </View>
@@ -3314,7 +3760,7 @@ const styles = StyleSheet.create({
   vaccineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     backgroundColor: '#2C2C2E',
     borderRadius: 12,
     padding: 12,
@@ -3326,8 +3772,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    width: '50%',
+  },
+  vaccineRight: {
+    width: '50%',
+    alignItems: 'flex-start',
   },
   vaccineName: {
+    flex: 1,
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 14,
@@ -3335,7 +3787,7 @@ const styles = StyleSheet.create({
   vaccineBadge: {
     color: '#8E8E93',
     fontSize: 12,
-    marginLeft: 6,
+    marginLeft: 0,
   },
   rowActionBtn: {
     backgroundColor: '#0A84FF',
@@ -3864,25 +4316,41 @@ jetLagTitle: {
     color: '#8E8E93',
     textDecorationLine: 'line-through',
   },
-  datePickerModalOverlay: {
+  datePickerOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10000,
+    elevation: 10000,
+  },
+  datePickerModalOverlay: {
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10000,
   },
   datePickerModalContent: {
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
     padding: 24,
     width: '90%',
+    maxWidth: 400,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#3A3A3C',
+    zIndex: 10001,
+    elevation: 10001,
   },
   datePickerHeader: {
   flexDirection: 'row',
@@ -4334,6 +4802,67 @@ jetLagTitle: {
     fontSize: 12,
     color: '#8E8E93',
     marginTop: 2,
+  },
+  // Bottom Sheet Styles
+  bottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+  bottomSheetContent: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  bottomSheetHandleContainer: {
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomSheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 2,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    zIndex: 10,
+  },
+  bottomSheetCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomSheetTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    flex: 1,
+  },
+  bottomSheetBody: {
+    flex: 0,
+  },
+  bottomSheetBodyContent: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 20,
   },
   
 });

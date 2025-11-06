@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,13 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 const ConnectedDevicesScreen: React.FC = () => {
   const navigation = useNavigation();
   
-  // Mock connected devices data (alphabetically ordered)
+  // Connected devices (persisted)
   const [connectedDevices, setConnectedDevices] = useState([
     {
       id: '2',
@@ -157,6 +158,30 @@ const ConnectedDevicesScreen: React.FC = () => {
     )
   );
 
+  // Load persisted connected devices on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem('connectedDevices');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setConnectedDevices(sortDevicesAlphabetically(parsed));
+          }
+        } else {
+          // Persist initial defaults so assistant can read them without user action
+          await AsyncStorage.setItem('connectedDevices', JSON.stringify(connectedDevices));
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const persistConnected = async (list: any[]) => {
+    try {
+      await AsyncStorage.setItem('connectedDevices', JSON.stringify(list));
+    } catch {}
+  };
+
   const handleConnectDevice = (device: any) => {
     Alert.alert(
       `Connect ${device.name}`,
@@ -167,7 +192,7 @@ const ConnectedDevicesScreen: React.FC = () => {
           text: 'Connect', 
           onPress: () => {
             // Simulate connection process
-            setTimeout(() => {
+            setTimeout(async () => {
               const newDevice = {
                 id: Date.now().toString(),
                 name: device.name,
@@ -176,7 +201,9 @@ const ConnectedDevicesScreen: React.FC = () => {
                 status: 'Connected',
                 lastSync: 'Just now',
               };
-              setConnectedDevices(prev => sortDevicesAlphabetically([...prev, newDevice]));
+              const updated = sortDevicesAlphabetically([...connectedDevices, newDevice]);
+              setConnectedDevices(updated);
+              await persistConnected(updated);
               Alert.alert('Success', `${device.name} connected successfully!`);
             }, 1000);
           }
@@ -196,7 +223,9 @@ const ConnectedDevicesScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             // Remove from connected devices and sort
-            setConnectedDevices(prev => sortDevicesAlphabetically(prev.filter(device => device.id !== deviceId)));
+            const updated = sortDevicesAlphabetically(connectedDevices.filter(device => device.id !== deviceId));
+            setConnectedDevices(updated);
+            persistConnected(updated);
             
             Alert.alert('Disconnected', `${deviceName} has been disconnected.`);
           }
@@ -247,16 +276,16 @@ const ConnectedDevicesScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Connected Devices</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Connected Devices</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* Currently Connected Section */}
@@ -345,6 +374,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

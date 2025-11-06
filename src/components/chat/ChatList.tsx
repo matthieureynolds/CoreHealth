@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, findNodeHandle } from 'react-native';
+import { View, Text, StyleSheet, findNodeHandle, Image, Animated } from 'react-native';
+import { TortoAvatar } from './TortoAvatar';
 import { measureInWindow } from 'react-native-reanimated';
 import { useSendAnimation } from '../../hooks/useSendAnimation';
 import { AnimatedOutgoing } from './AnimatedOutgoing';
@@ -17,9 +18,10 @@ export interface ChatMessage {
 interface ChatListProps {
   messages: ChatMessage[];
   onMessageLayout?: (clientId: string, rect: { x: number; y: number; w: number; h: number }) => void;
+  streamingId?: string; // assistant message currently streaming
 }
 
-export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout }) => {
+export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, streamingId }) => {
   const sendAnim = useSendAnimation();
   const [flying, setFlying] = useState<null | { 
     clientId: string; 
@@ -28,7 +30,7 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout })
     endRect: { x: number; y: number; w: number; h: number };
   }>(null);
 
-  const renderMessage = useCallback(({ item }: { item: ChatMessage }) => {
+  const renderMessage = useCallback((item: ChatMessage) => {
     // Add safety checks
     if (!item || !item.id || !item.text || !item.role) {
       console.warn('Invalid message item:', item);
@@ -39,6 +41,7 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout })
       <MessageRow
         key={item.id}
         message={item}
+        isStreaming={streamingId === item.id}
         onLayoutMeasured={async (node) => {
           const handle = findNodeHandle(node);
           if (!handle) return;
@@ -84,29 +87,57 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout })
 // Simplified message row component
 const MessageRow: React.FC<{
   message: ChatMessage;
+  isStreaming: boolean;
   onLayoutMeasured: (node: View | null) => void;
-}> = ({ message, onLayoutMeasured }) => {
+}> = ({ message, isStreaming, onLayoutMeasured }) => {
   const ref = useRef<View>(null);
+  const fade = useRef(new Animated.Value(message.role === 'assistant' ? 0 : 1)).current;
+  const slideY = useRef(new Animated.Value(message.role === 'assistant' ? 6 : 0)).current;
+
+  useEffect(() => {
+    if (message.role !== 'assistant') return;
+    Animated.parallel([
+      Animated.timing(fade, { toValue: 1, duration: 180, useNativeDriver: true }),
+      Animated.timing(slideY, { toValue: 0, duration: 180, useNativeDriver: true })
+    ]).start();
+  }, []);
+
+  useEffect(() => {
+    if (message.role !== 'assistant') return;
+    fade.setValue(0.88);
+    slideY.setValue(4);
+    Animated.parallel([
+      Animated.timing(fade, { toValue: 1, duration: 140, useNativeDriver: true }),
+      Animated.timing(slideY, { toValue: 0, duration: 140, useNativeDriver: true })
+    ]).start();
+  }, [message.text]);
 
   return (
-    <View
-      ref={ref}
-      style={[
-        styles.messageContainer,
-        message.role === 'user' ? styles.userMessage : styles.assistantMessage
-      ]}
-    >
-      <Text style={[
-        styles.messageText,
-        message.role === 'user' ? styles.userMessageText : styles.assistantMessageText
-      ]}>
-        {message.text}
-      </Text>
-      {message.status === 'sending' && (
-        <View style={styles.sendingIndicator}>
-          <Text style={styles.sendingText}>Sending...</Text>
+    <View style={[
+      styles.messageRow,
+      message.role === 'user' ? styles.rowRight : styles.rowLeft
+    ]}>
+      {message.role === 'assistant' && (
+        <View style={styles.avatarContainer}>
+          <TortoAvatar state={isStreaming ? 'talking' : 'idle'} size={28} />
         </View>
       )}
+      <View
+        ref={ref}
+        style={[
+          styles.messageContainer,
+          message.role === 'user' ? styles.userMessage : styles.assistantMessage
+        ]}
+      >
+        <Animated.Text style={[
+          styles.messageText,
+          message.role === 'user' ? styles.userMessageText : styles.assistantMessageText
+          ,
+          message.role === 'assistant' ? { opacity: fade, transform: [{ translateY: slideY }] } : null
+        ]}>
+          {message.text}
+        </Animated.Text>
+      </View>
     </View>
   );
 };
@@ -114,25 +145,51 @@ const MessageRow: React.FC<{
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingLeft: 4,
+    paddingRight: 4,
     paddingVertical: 8,
   },
-  messageContainer: {
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     marginVertical: 4,
+  },
+  rowLeft: {
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  rowRight: {
+    alignSelf: 'flex-end',
+  },
+  avatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginRight: 4,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderColor: 'transparent'
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  messageContainer: {
     maxWidth: '82%',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 20,
   },
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#007AFF',
-    borderBottomRightRadius: 4,
+    borderTopRightRadius: 4,
   },
   assistantMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#2A2A2A',
-    borderBottomLeftRadius: 4,
+    borderTopLeftRadius: 4,
   },
   messageText: {
     fontSize: 16,

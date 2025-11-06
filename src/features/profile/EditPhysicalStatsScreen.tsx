@@ -99,17 +99,19 @@ const EditPhysicalStatsScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
+      <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
+          hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Physical Stats</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Edit Physical Stats</Text>
         <TouchableOpacity
           style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
           onPress={handleSave}
+          hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
           disabled={isLoading}
         >
           {isLoading ? (
@@ -123,7 +125,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: 110 }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.inputContainer}>
@@ -219,7 +221,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -231,6 +233,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
+    zIndex: 1000,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

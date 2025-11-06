@@ -909,7 +909,7 @@ const ShareWithDoctorScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -1095,7 +1095,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   modalHeader: {
     flexDirection: 'row',

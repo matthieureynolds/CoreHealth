@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DataSyncScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -20,11 +21,18 @@ const DataSyncScreen: React.FC = () => {
     loadLastSyncTime();
   }, []);
 
-  const loadLastSyncTime = () => {
-    // In a real app, this would load from AsyncStorage or database
-    // For now, we'll use a mock time
-    const mockLastSync = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2 hours ago
-    setLastSyncTime(formatDateTime(mockLastSync));
+  const loadLastSyncTime = async () => {
+    try {
+      const iso = await AsyncStorage.getItem('@corehealth_last_sync_at');
+      if (iso) {
+        const dt = new Date(iso);
+        setLastSyncTime(formatDateTime(dt));
+      } else {
+        setLastSyncTime('Never');
+      }
+    } catch {
+      setLastSyncTime('Never');
+    }
   };
 
   const formatDateTime = (date: Date): string => {
@@ -52,6 +60,9 @@ const DataSyncScreen: React.FC = () => {
       // Update last sync time
       const now = new Date();
       setLastSyncTime(formatDateTime(now));
+      try {
+        await AsyncStorage.setItem('@corehealth_last_sync_at', now.toISOString());
+      } catch {}
       
       console.log('✅ DataSyncScreen: Sync completed successfully');
       Alert.alert(
@@ -74,16 +85,16 @@ const DataSyncScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Data & Sync</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Data & Sync</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* Last Sync Info */}
@@ -122,7 +133,7 @@ const DataSyncScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -134,6 +145,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

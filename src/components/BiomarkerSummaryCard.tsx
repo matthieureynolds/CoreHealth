@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import RadialSegments from './RadialSegments';
 import { colors } from '../theme/colors';
@@ -12,18 +12,31 @@ export default function BiomarkerSummaryCard({
   onFilterChange,
   initialFilter = 'all',
   a11yLabel = 'Biomarker Summary',
+  style,
+  hideTitle,
+  dialSize,
+  segmentCount,
 }: BiomarkerSummaryProps) {
   const [filter, setFilter] = useState<typeof initialFilter>(initialFilter);
 
   const segs = useMemo(
     () =>
-      buildSegments(total, [
-        { key: 'optimal', value: buckets.optimal, color: colors.optimal },
-        { key: 'sufficient', value: buckets.sufficient, color: colors.sufficient },
-        { key: 'out', value: buckets.out, color: colors.out },
-      ]),
+      buildSegments(
+        total,
+        [
+          { key: 'optimal', value: buckets.optimal, color: colors.optimal },
+          { key: 'sufficient', value: buckets.sufficient, color: colors.sufficient },
+          { key: 'out', value: buckets.out, color: colors.out },
+        ],
+        segmentCount ?? total
+      ),
     [total, buckets],
   );
+
+  // Ensure no stale filter selection when totals change
+  useEffect(() => {
+    setFilter('all');
+  }, [total, buckets.optimal, buckets.sufficient, buckets.out]);
 
   const legendItem = (label: string, value: number, color: string, key: keyof typeof buckets) => (
     <Pressable
@@ -35,12 +48,14 @@ export default function BiomarkerSummaryCard({
       accessibilityRole="button"
       accessibilityLabel={`${label}: ${value}`}
       style={[
-        styles.legendItem,
+        styles.legendRow,
         { opacity: filter === 'all' || filter === key ? 1 : 0.5 }
       ]}
     >
-      <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={styles.legendLabel}>{label}</Text>
+      <View style={[styles.badge, { backgroundColor: `${color}22` }]}>
+        <View style={[styles.badgeDot, { backgroundColor: color }]} />
+        <Text style={[styles.badgeLabel, { color }]}>{label}</Text>
+      </View>
       <Text style={styles.legendValue}>{value}</Text>
     </Pressable>
   );
@@ -49,15 +64,14 @@ export default function BiomarkerSummaryCard({
     <View
       accessible
       accessibilityLabel={a11yLabel}
-      style={styles.card}
+      style={[styles.card, style]}
     >
-      <Text style={styles.title}>Biomarker Summary</Text>
-      <Text style={styles.subtitle}>Your health biomarkers at a glance</Text>
+      {!hideTitle && <Text style={styles.title}>Biomarker Summary</Text>}
 
       <View style={styles.content}>
         <View style={styles.dialContainer}>
           <RadialSegments
-            size={220}
+            size={dialSize ?? 220}
             stroke={14}
             segments={segs}
             filter={filter as any}
@@ -73,14 +87,16 @@ export default function BiomarkerSummaryCard({
           {legendItem('Sufficient', buckets.sufficient, colors.sufficient, 'sufficient')}
           {legendItem('Out of Range', buckets.out, colors.out, 'out')}
 
-          <Pressable
-            onPress={onUpload}
-            accessibilityRole="button"
-            accessibilityLabel="Upload Lab Results"
-            style={styles.uploadButton}
-          >
-            <Text style={styles.uploadButtonText}>Upload Lab Results</Text>
-          </Pressable>
+          {onUpload && (
+            <Pressable
+              onPress={onUpload}
+              accessibilityRole="button"
+              accessibilityLabel="Upload Lab Results"
+              style={styles.uploadButton}
+            >
+              <Text style={styles.uploadButtonText}>Upload Lab Results</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>
@@ -104,15 +120,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 18, // match Recent Lab Results
     fontWeight: '600',
     color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   content: {
     flexDirection: 'row',
@@ -120,7 +131,7 @@ const styles = StyleSheet.create({
   },
   dialContainer: {
     position: 'relative',
-    marginRight: 24,
+    marginRight: 16,
   },
   centerContent: {
     position: 'absolute',
@@ -144,26 +155,34 @@ const styles = StyleSheet.create({
   },
   legend: {
     flex: 1,
-    gap: 16,
+    gap: 14,
   },
-  legendItem: {
+  legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
-  legendDot: {
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  badgeDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
+    marginRight: 8,
   },
-  legendLabel: {
+  badgeLabel: {
     fontSize: 16,
-    color: colors.textPrimary,
-    flex: 1,
+    fontWeight: '700',
   },
   legendValue: {
-    fontSize: 16,
-    color: colors.textSecondary,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   uploadButton: {
     marginTop: 16,

@@ -17,13 +17,9 @@ import Animated, {
   Extrapolate,
   withSpring,
   runOnJS,
-  useAnimatedGestureHandler,
   SharedValue,
 } from 'react-native-reanimated';
-import {
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-} from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { AccessibilityInfo } from 'react-native';
 
 // Constants
@@ -64,29 +60,26 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
   const target = useSharedValue(HEADER_COLLAPSED);
   const isExpanded = useSharedValue(false);
 
-  const gestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent
-  >({
-    onStart: () => {
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
       // Only allow pull-down when at the top
-      if (scrollY.value > 0) return;
-    },
-    onActive: (event) => {
+      // No-op here; gating occurs in onUpdate using scrollY
+    })
+    .onUpdate((event) => {
       if (scrollY.value <= 0) {
         dragY.value = Math.max(0, event.translationY);
       }
-    },
-    onEnd: (event) => {
+    })
+    .onEnd((event) => {
       const expandThreshold = 40;
       const velocityThreshold = 500;
-      
-      const shouldExpand = 
-        dragY.value > expandThreshold || 
-        event.velocityY > velocityThreshold;
+
+      const shouldExpand =
+        dragY.value > expandThreshold || event.velocityY > velocityThreshold;
 
       target.value = shouldExpand ? HEADER_EXPANDED : HEADER_COLLAPSED;
       isExpanded.value = shouldExpand;
-      
+
       // Spring animation for dragY
       dragY.value = withSpring(0, {
         damping: 20,
@@ -98,8 +91,7 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
       if (onExpandChange) {
         runOnJS(onExpandChange)(shouldExpand);
       }
-    },
-  });
+    });
 
   // Calculate header height with scroll and drag
   const headerHeight = useAnimatedStyle(() => {
@@ -246,7 +238,7 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
   };
 
   return (
-    <PanGestureHandler onGestureEvent={gestureHandler}>
+    <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.header, headerHeight]}>
         {/* Blur Background */}
         <Animated.View style={[styles.blurContainer, blurStyle]}>
@@ -308,7 +300,7 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
           )}
         </View>
       </Animated.View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 };
 
@@ -318,7 +310,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
     zIndex: 1000,
     overflow: 'hidden',
   },

@@ -5,12 +5,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Modal,
-  ScrollView,
   Animated,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types';
 
 const { width } = Dimensions.get('window');
 
@@ -36,6 +38,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   lifestyle, 
   onRingPress 
 }) => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [selectedMetric, setSelectedMetric] = useState<RingMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   
@@ -50,9 +53,9 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   const circumference = radius * 2 * Math.PI;
 
   // Ensure we never have 0 values when we should have actual scores
-  const safeRecovery = recovery ?? 85;
-  const safeBiomarkers = biomarkers ?? 75;
-  const safeLifestyle = lifestyle ?? 75;
+  const safeRecovery = (recovery && recovery > 0) ? recovery : 85;
+  const safeBiomarkers = (biomarkers && biomarkers > 0) ? biomarkers : 75;
+  const safeLifestyle = (lifestyle && lifestyle > 0) ? lifestyle : 75;
 
   // Debug logging
   console.log('🔄 SupportingRings render:', { 
@@ -255,8 +258,14 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
       <TouchableOpacity
         style={styles.ringContainer}
         onPress={() => {
-          setSelectedMetric(metric);
-          setModalVisible(true);
+          navigation.navigate('ScoreDetail', {
+            id: metric.id as 'recovery' | 'biomarkers' | 'lifestyle',
+            title: metric.title.charAt(0) + metric.title.slice(1).toLowerCase(),
+            value: metric.value,
+            color: metric.color,
+            icon: metric.icon,
+            subtitle: metric.subtitle,
+          });
           onRingPress?.(metric.id);
         }}
         activeOpacity={0.8}

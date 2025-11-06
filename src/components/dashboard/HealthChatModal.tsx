@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
 import { useSettings } from '../../context/SettingsContext';
+import { useAuth } from '../../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthData } from '../../context/HealthDataContext';
 import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../services/healthAssistantService';
@@ -28,8 +29,9 @@ interface HealthChatModalProps {
 }
 
 const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) => {
-  const { profile, biomarkers, healthScore } = useHealthData();
+  const { profile, biomarkers, healthScore, deviceData, labResults, bodySystems, travelHealth } = useHealthData();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<HealthChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,8 +61,17 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
         setMessages(existingHistory);
       } else {
         // Create personalized greeting
+        const profileForAI = profile ? {
+          ...profile,
+          displayName: (profile as any)?.displayName || (user as any)?.displayName,
+          preferredName: (profile as any)?.preferredName || (user as any)?.preferredName,
+          firstName: (profile as any)?.firstName || (user as any)?.firstName,
+          surname: (profile as any)?.surname || (user as any)?.surname,
+          email: (profile as any)?.email || (user as any)?.email,
+        } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName, email: (user as any)?.email } as any : null);
+
         const personalizedGreeting = await HealthAssistantService.getPersonalizedGreeting(
-          profile,
+          profileForAI as any,
           biomarkers,
           healthScore
         );
@@ -90,7 +101,7 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
       const fallbackMessage: HealthChatMessage = {
         id: 'welcome-fallback',
         role: 'assistant',
-        content: "Hi! I'm your AI health assistant. I can help you understand your health data and provide personalized recommendations. What would you like to know?",
+        content: "Hello! I'm Torto. How can I help you today? I'm an AI health assistant for educational information and support — not a substitute for professional medical advice. Always consult your doctor for diagnosis or treatment.",
         timestamp: new Date()
       };
       setMessages([fallbackMessage]);
@@ -122,10 +133,19 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
 
     try {
       // Get full response from service first
+      const profileForAI = profile ? {
+        ...profile,
+        displayName: (profile as any)?.displayName || (user as any)?.displayName,
+        preferredName: (profile as any)?.preferredName || (user as any)?.preferredName,
+        firstName: (profile as any)?.firstName || (user as any)?.firstName,
+        surname: (profile as any)?.surname || (user as any)?.surname,
+        email: (profile as any)?.email || (user as any)?.email,
+      } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName, email: (user as any)?.email } as any : null);
+
       const responseText = await HealthAssistantService.chatWithAssistant(
         userMessage.content,
         [...messages, userMessage],
-        { profile, biomarkers, healthScore }
+        { profile: profileForAI as any, biomarkers, healthScore, deviceData, settings, labResults, bodySystems, travelHealth }
       );
 
       // Simulate streaming typing effect

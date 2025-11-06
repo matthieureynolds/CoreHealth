@@ -28,7 +28,10 @@ import {
   ExtremeHeatWarning,
   HydrationRecommendation,
   ActivitySafetyData,
+  DerivedRiskFeature,
 } from '../types';
+import familyService from '../services/familyService';
+import { deriveFeaturesFromSignals } from '../services/familyRiskService';
 import { 
   getGoogleAirQualityData,
   getGoogleAirQualityStatus,
@@ -61,9 +64,10 @@ import {
 import { 
   calculateHydrationRecommendation
 } from '../services/hydrationService';
-import { 
+import {
   generateActivitySafetyData
 } from '../services/activitySafetyService';
+import { refreshUserSnapshot } from '../services/userSnapshotService';
 import {
   getMedicationAvailability,
   getMultipleMedicationsAvailability,
@@ -77,6 +81,18 @@ import {
   getWaterQualityIcon
 } from '../services/waterQualityService';
 
+// Map device display names from UI to internal device types used for assistant context
+function mapDeviceNameToType(name: string): DeviceData['deviceType'] {
+  const n = (name || '').toLowerCase();
+  if (n.includes('whoop')) return 'whoop';
+  if (n.includes('apple')) return 'apple_watch';
+  if (n.includes('eight sleep') || n.includes('8 sleep')) return 'eight_sleep';
+  if (n.includes('toothbrush')) return 'smart_toothbrush';
+  if (n.includes('u-scan') || n.includes('u scan') || n.includes('toilet')) return 'smart_toilet';
+  // Fallback to apple_watch as a generic wearable type
+  return 'apple_watch';
+}
+
 interface HealthDataContextType {
   profile: UserProfile | null;
   biomarkers: Biomarker[];
@@ -88,6 +104,8 @@ interface HealthDataContextType {
   bodySystems: BodySystem[];
   jetLagPlanningEvents: JetLagPlanningEvent[];
   isLoading: boolean;
+  derivedRiskFeatures?: DerivedRiskFeature[];
+  refreshFamilyRiskFeatures?: () => Promise<void>;
 
   // Profile methods
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
@@ -157,6 +175,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [originTimezone, setOriginTimezoneState] = useState<string | null>(null);
   const [originLocation, setOriginLocationState] = useState<string>('Home');
+  const [derivedRiskFeatures, setDerivedRiskFeatures] = useState<DerivedRiskFeature[]>([]);
 
   useEffect(() => {
     // Clear any corrupted health score data on app start
@@ -193,6 +212,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         storedOriginTimezone,
         storedOriginLocation,
         storedJetLagPlanningEvents,
+        storedConnectedDevices,
       ] = await Promise.all([
         AsyncStorage.getItem('profile'),
         AsyncStorage.getItem('biomarkers'),
@@ -203,6 +223,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
         AsyncStorage.getItem('originTimezone'),
         AsyncStorage.getItem('originLocation'),
         AsyncStorage.getItem('jetLagPlanningEvents'),
+        AsyncStorage.getItem('connectedDevices'),
       ]);
 
       if (storedProfile) {
@@ -246,6 +267,42 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       if (parsedBiomarkers) setBiomarkers(parsedBiomarkers);
       if (parsedLabResults) setLabResults(parsedLabResults);
       if (parsedDeviceData) setDeviceData(parsedDeviceData);
+      // Merge connected devices list (from settings screen) into deviceData for assistant
+      try {
+        if (storedConnectedDevices) {
+          const connected = JSON.parse(storedConnectedDevices) as Array<{ name: string; status: string }>;
+          const mapped: DeviceData[] = (connected || [])
+            .filter(d => d && /connected/i.test(d.status || ''))
+            .map((d, idx) => ({
+              id: `conn-${idx}`,
+              deviceType: mapDeviceNameToType(d.name),
+              timestamp: new Date(),
+              metrics: {},
+            }));
+          if (mapped.length) {
+            setDeviceData(prev => {
+              const prevOrEmpty = Array.isArray(prev) ? prev : [];
+              return [...prevOrEmpty, ...mapped];
+            });
+          }
+        }
+      } catch {}
+      // Persist a definitive last sync timestamp for assistant queries
+      try {
+        const allEvents: DeviceData[] = [
+          ...(Array.isArray(parsedDeviceData) ? parsedDeviceData : []),
+        ];
+        let lastTs: number | null = null;
+        allEvents.forEach((ev: any) => {
+          const t = ev?.timestamp ? new Date(ev.timestamp).getTime() : NaN;
+          if (Number.isFinite(t)) {
+            if (lastTs === null || t > lastTs) lastTs = t;
+          }
+        });
+        if (lastTs) {
+          await AsyncStorage.setItem('@corehealth_last_sync_at', new Date(lastTs).toISOString());
+        }
+      } catch {}
       if (parsedInsights) setDailyInsights(parsedInsights);
       if (parsedHealthScore && parsedHealthScore.overall > 0) {
         console.log('🏥 Loaded health score from storage:', parsedHealthScore);
@@ -271,6 +328,17 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       await generateMockData();
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const refreshFamilyRiskFeatures = async () => {
+    try {
+      const signals = await familyService.listIncomingSignals();
+      const features = deriveFeaturesFromSignals(signals);
+      setDerivedRiskFeatures(features);
+      await AsyncStorage.setItem('derivedRiskFeatures', JSON.stringify(features));
+    } catch (e) {
+      console.warn('Family risk refresh failed', e);
     }
   };
 
@@ -598,6 +666,11 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       const updatedData = [...deviceData, data];
       await AsyncStorage.setItem('deviceData', JSON.stringify(updatedData));
       setDeviceData(updatedData);
+      // Update last sync timestamp for assistant queries
+      try {
+        const ts = data?.timestamp ? new Date(data.timestamp).toISOString() : new Date().toISOString();
+        await AsyncStorage.setItem('@corehealth_last_sync_at', ts);
+      } catch {}
     } catch (error) {
       console.error('Failed to sync device data:', error);
       throw error;
@@ -652,6 +725,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
 
       setDailyInsights(insights);
       await AsyncStorage.setItem('dailyInsights', JSON.stringify(insights));
+      try { await refreshUserSnapshot(); } catch {}
     } catch (error) {
       console.error('Failed to generate daily insights:', error);
     }
@@ -1236,6 +1310,8 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     bodySystems,
     jetLagPlanningEvents,
     isLoading,
+    derivedRiskFeatures,
+    refreshFamilyRiskFeatures,
     updateProfile,
     addBiomarker,
     updateBiomarker,

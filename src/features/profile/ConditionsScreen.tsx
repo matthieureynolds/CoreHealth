@@ -233,18 +233,19 @@ const ConditionsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Medical Conditions</Text>
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-            <Ionicons name="add" size={24} color="#007AFF" />
-          </TouchableOpacity>
-        </View>
+      {/* Header fixed above scroll content */}
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} pointerEvents="none">Medical Conditions</Text>
+        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
 
+      {/* Spacer to push content below fixed header */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Conditions List */}
         <View style={styles.content}>
           {profile?.medicalHistory?.length ? (
@@ -581,7 +582,7 @@ const ConditionsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,
@@ -596,6 +597,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderBottomWidth: 1,
     borderBottomColor: '#222',
+    zIndex: 1000,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
   },
   backButton: {
     padding: 8,
@@ -790,7 +797,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   modalHeader: {
     flexDirection: 'row',

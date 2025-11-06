@@ -17,7 +17,7 @@ const Stack = createStackNavigator<ProfileStackParamList>();
 // Profile Tabs Navigator
 const ProfileTabsNavigator: React.FC = () => {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#111' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }} edges={['top']}>
       <Tab.Navigator
         screenOptions={{
           tabBarActiveTintColor: '#007AFF',
@@ -26,7 +26,7 @@ const ProfileTabsNavigator: React.FC = () => {
             backgroundColor: '#007AFF',
           },
           tabBarStyle: {
-            backgroundColor: '#111',
+            backgroundColor: '#000000',
             elevation: 0,
             shadowOpacity: 0,
             borderBottomWidth: 0,

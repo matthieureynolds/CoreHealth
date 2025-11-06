@@ -17,16 +17,16 @@ const LegalComplianceScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}> 
-        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none"> 
+        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Legal & Compliance</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Legal & Compliance</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>LEGAL DOCUMENTS</Text>
         <TouchableOpacity style={[styles.cardRow, styles.tallRow50]} onPress={() => (navigation as any).navigate('TermsOfService')}>
@@ -98,6 +98,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,

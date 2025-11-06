@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
     zIndex: 9999,
   },
   content: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     height: 200, // Made even bigger
   },
   factContainer: {
-    backgroundColor: '#F7FAFC',
+    backgroundColor: '#1C1C1E',
     padding: 20,
     borderRadius: 16,
     marginBottom: 40,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   },
   factText: {
     fontSize: 16,
-    color: '#2D3748',
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4299E1',
+    backgroundColor: '#007AFF',
     marginHorizontal: 4,
   },
 });

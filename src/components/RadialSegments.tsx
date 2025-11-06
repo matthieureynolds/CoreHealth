@@ -1,13 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Svg, G, Circle } from 'react-native-svg';
-import Animated, { 
-  useSharedValue, 
-  withTiming, 
-  useAnimatedProps,
-  Easing 
-} from 'react-native-reanimated';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 type RadialProps = {
   size?: number;
@@ -24,7 +16,7 @@ export default function RadialSegments({
   gapDeg = 2.4,
   segments,
   filter = 'all',
-  animate = true,
+  animate = true, // kept for API compatibility, no-op now
 }: RadialProps) {
   const r = (size - stroke) / 2;
   const cx = size / 2;
@@ -55,26 +47,11 @@ export default function RadialSegments({
           const dash = (Math.PI * 2 * r) * (sweep / 360);
           const gap = (Math.PI * 2 * r) * (gapDeg / 360);
 
-          const progress = useSharedValue(animate ? 0 : 1);
-          
-          const animatedProps = useAnimatedProps(() => ({
-            strokeDashoffset: (1 - progress.value) * (dash + gap),
-          }));
-
-          useEffect(() => {
-            if (animate) {
-              progress.value = withTiming(1, { 
-                duration: 750, 
-                easing: Easing.out(Easing.cubic) 
-              });
-            }
-          }, [animate]);
-
           const highlight = filter === 'all' || filter === seg.key ? 1 : 0.25;
 
           return (
             <G key={i} rotation={angle} originX={cx} originY={cy}>
-              <AnimatedCircle
+              <Circle
                 cx={cx}
                 cy={cy}
                 r={r}
@@ -82,7 +59,6 @@ export default function RadialSegments({
                 strokeOpacity={highlight}
                 strokeWidth={stroke}
                 strokeDasharray={`${dash},${gap}`}
-                animatedProps={animatedProps}
                 fill="none"
               />
             </G>

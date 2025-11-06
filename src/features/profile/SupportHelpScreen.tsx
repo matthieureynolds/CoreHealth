@@ -44,16 +44,16 @@ const SupportHelpScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Support & Help</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Support & Help</Text>
         <View style={{ width: 24 }} />
       </View>
       
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         {/* Support Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
@@ -100,6 +100,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,
@@ -175,7 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalContainer: {
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
     borderRadius: 12,
     padding: 20,
     width: '85%',

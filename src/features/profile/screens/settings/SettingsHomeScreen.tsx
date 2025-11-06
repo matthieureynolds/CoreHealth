@@ -14,10 +14,11 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { calculateProfileCompletion } from '../../../../utils/profileCompletion';
 import { useHealthData } from '../../../../context/HealthDataContext';
 
 import { PROFILE_ROUTES } from '../../navigation/routeNames';
-import { HeaderProfile } from '../../../../../components/common/HeaderProfile';
+import { HeaderProfile } from '../../../../components/common/HeaderProfile';
 
 const HEADER_COLLAPSED = 96;
 
@@ -37,27 +38,7 @@ const SettingsHomeScreen: React.FC = () => {
     console.log('Header expanded:', expanded);
   };
 
-  // Calculate profile completion percentage
-  const calculateProfileCompletion = () => {
-    const fields = [
-      user?.firstName,
-      user?.surname,
-      profile?.age,
-      profile?.gender,
-      profile?.height,
-      profile?.weight,
-      profile?.medicalHistory?.length > 0,
-      profile?.medications?.length > 0,
-      profile?.allergies?.length > 0,
-      profile?.vaccinations?.length > 0,
-    ];
-    
-    const completedFields = fields.filter(field => field).length;
-    const completionPercentage = Math.round((completedFields / fields.length) * 100);
-    return completionPercentage;
-  };
-
-  const profileCompletion = calculateProfileCompletion();
+  const profileCompletion = calculateProfileCompletion(user, profile);
 
   const settingsCategories = [
     {
@@ -178,7 +159,7 @@ const SettingsHomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111',
+    backgroundColor: '#000000',
   },
   scrollView: {
     flex: 1,

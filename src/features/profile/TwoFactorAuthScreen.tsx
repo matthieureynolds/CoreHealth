@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   secondaryButton: { backgroundColor: '#2C2C2E', paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
   secondaryButtonText: { color: '#FFFFFF', fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  modalContainer: { backgroundColor: '#111', borderRadius: 12, padding: 20, width: '85%' },
+  modalContainer: { backgroundColor: '#000000', borderRadius: 12, padding: 20, width: '85%' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   modalTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: '600' },
   codeItemDark: { backgroundColor: '#1C1C1E', padding: 12, borderRadius: 8 },

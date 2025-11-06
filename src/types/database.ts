@@ -251,6 +251,114 @@ export interface Database {
           updated_at?: string;
         };
       };
+      relationship_links: {
+        Row: {
+          id: string;
+          owner_supabase_uid: string;
+          relative_uid_hash: string;
+          relative_supabase_uid: string | null;
+          degree: 'parent' | 'child' | 'sibling' | 'partner' | 'other';
+          direction: 'one_way' | 'reciprocal';
+          status: 'pending' | 'active' | 'revoked';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_supabase_uid: string;
+          relative_uid_hash: string;
+          relative_supabase_uid?: string | null;
+          degree: 'parent' | 'child' | 'sibling' | 'partner' | 'other';
+          direction: 'one_way' | 'reciprocal';
+          status?: 'pending' | 'active' | 'revoked';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_supabase_uid?: string;
+          relative_uid_hash?: string;
+          relative_supabase_uid?: string | null;
+          degree?: 'parent' | 'child' | 'sibling' | 'partner' | 'other';
+          direction?: 'one_way' | 'reciprocal';
+          status?: 'pending' | 'active' | 'revoked';
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      hereditary_signals: {
+        Row: {
+          id: string;
+          issuer_supabase_uid: string;
+          recipient_supabase_uid: string;
+          relation_degree_to_recipients: 'parent' | 'child' | 'sibling' | 'partner';
+          condition_code: string;
+          onset_age_band: string;
+          severity_band: string | null;
+          lifestyle_component: string | null;
+          expires_at: string | null;
+          status: 'active' | 'revoked';
+          ciphertext: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          issuer_supabase_uid: string;
+          recipient_supabase_uid: string;
+          relation_degree_to_recipients: 'parent' | 'child' | 'sibling' | 'partner';
+          condition_code: string;
+          onset_age_band: string;
+          severity_band?: string | null;
+          lifestyle_component?: string | null;
+          expires_at?: string | null;
+          status?: 'active' | 'revoked';
+          ciphertext: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          issuer_supabase_uid?: string;
+          recipient_supabase_uid?: string;
+          relation_degree_to_recipients?: 'parent' | 'child' | 'sibling' | 'partner';
+          condition_code?: string;
+          onset_age_band?: string;
+          severity_band?: string | null;
+          lifestyle_component?: string | null;
+          expires_at?: string | null;
+          status?: 'active' | 'revoked';
+          ciphertext?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      signal_receipts: {
+        Row: {
+          id: string;
+          signal_id: string;
+          issuer_supabase_uid: string;
+          consent_hash: string;
+          scope: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          signal_id: string;
+          issuer_supabase_uid: string;
+          consent_hash: string;
+          scope: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          signal_id?: string;
+          issuer_supabase_uid?: string;
+          consent_hash?: string;
+          scope?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

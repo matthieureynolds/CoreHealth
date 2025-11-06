@@ -33,7 +33,7 @@ interface FormData {
 
 const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation<EditProfileScreenNavigationProp>();
-  const { user } = useAuth();
+  const { user, updateUserDisplayName, updateUserName } = useAuth();
   const { profile, updateProfile } = useHealthData();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -150,6 +150,20 @@ const EditProfileScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
+      // Update account name so assistant can read it
+      const displayName = (formData.displayName || '').trim();
+      if (displayName) {
+        try {
+          await updateUserDisplayName(displayName);
+        } catch {}
+        const parts = displayName.split(' ').filter(Boolean);
+        const first = parts[0] || displayName;
+        const surname = parts.slice(1).join(' ');
+        try {
+          await updateUserName(first, surname, first);
+        } catch {}
+      }
+
       await updateProfile({
         ...profile,
         age,

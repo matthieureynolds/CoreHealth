@@ -24,6 +24,8 @@ import {
   BiomarkerSettings,
   AppSettings,
 } from '../types/settings';
+import { HealthAssistantService } from '../services/healthAssistantService';
+import { refreshUserSnapshot } from '../services/userSnapshotService';
 
 interface SettingsContextType {
   settings: UserSettings;
@@ -153,8 +155,22 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
         
         dispatch({ type: 'LOAD_SETTINGS', payload: mergedSettings });
         console.log('✅ Settings loaded successfully');
+        // Immediately sync to assistant so offline answers are up-to-date
+        try {
+          await HealthAssistantService.syncSettingsSnapshot(mergedSettings);
+          await refreshUserSnapshot();
+        } catch (syncErr) {
+          console.warn('Assistant settings sync (load) failed:', syncErr);
+        }
       } else {
         console.log('📱 Using default settings (first launch)');
+        // Ensure assistant has a baseline snapshot on first launch
+        try {
+          await HealthAssistantService.syncSettingsSnapshot(defaultSettings);
+          await refreshUserSnapshot();
+        } catch (syncErr) {
+          console.warn('Assistant settings sync (defaults) failed:', syncErr);
+        }
       }
     } catch (error) {
       console.error('❌ Error loading settings:', error);
@@ -167,6 +183,13 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     try {
       await AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings));
       console.log('💾 Settings saved to storage');
+      // Keep Torto in sync immediately across the app
+      try {
+        await HealthAssistantService.syncSettingsSnapshot(newSettings);
+        await refreshUserSnapshot();
+      } catch (syncErr) {
+        console.warn('Assistant settings sync failed:', syncErr);
+      }
     } catch (error) {
       console.error('❌ Error saving settings:', error);
     }

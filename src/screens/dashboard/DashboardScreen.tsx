@@ -332,9 +332,9 @@ const DashboardScreen: React.FC = () => {
 
         {/* Supporting Rings */}
         <SupportingRings 
-          recovery={85}
-          biomarkers={75}
-          lifestyle={75}
+          recovery={finalRecoveryScore}
+          biomarkers={finalBiomarkersScore}
+          lifestyle={finalLifestyleScore}
           onRingPress={handleRingPress}
         />
 

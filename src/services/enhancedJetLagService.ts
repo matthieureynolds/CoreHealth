@@ -221,11 +221,21 @@ export class EnhancedJetLagService {
     originalSleep: { start: string; end: string },
     cumulativeShift: number
   ): { start: string; end: string } {
-    const shiftMinutes = cumulativeShift * 60;
-    
+    // Positive cumulativeShift indicates eastbound (advance clock → earlier times)
+    // Negative indicates westbound (delay clock → later times)
+    const minutes = Math.abs(cumulativeShift) * 60;
+
+    if (cumulativeShift > 0) {
+      // Earlier bed and wake times
+      return {
+        start: this.subtractMinutes(originalSleep.start, minutes),
+        end: this.subtractMinutes(originalSleep.end, minutes)
+      };
+    }
+    // Later bed and wake times
     return {
-      start: this.addMinutes(originalSleep.start, shiftMinutes),
-      end: this.addMinutes(originalSleep.end, shiftMinutes)
+      start: this.addMinutes(originalSleep.start, minutes),
+      end: this.addMinutes(originalSleep.end, minutes)
     };
   }
   

@@ -16,7 +16,7 @@ Create a `.env` file in your project root with:
 
 ```bash
 # OpenAI API Key (Required for Health Assistant)
-EXPO_PUBLIC_OPENAI_API_KEY=sk-your-actual-api-key-here
+EXPO_PUBLIC_OPENAI_API_KEY=sk-proj-YOUR_API_KEY_HERE
 ```
 
 ### 3. Restart Development Server

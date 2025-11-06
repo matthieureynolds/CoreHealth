@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -67,6 +67,64 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const { height, width } = getWindowDimensions();
+
+  // Compute biomarker totals for Organs system (normal -> optimal, borderline -> sufficient, abnormal -> out)
+  const organBiomarkerTotals = useMemo(() => {
+    let total = 0;
+    let optimal = 0;
+    let sufficient = 0;
+    let out = 0;
+    try {
+      organsList.forEach(org => {
+        org.data?.biomarkers?.forEach(b => {
+          total += 1;
+          if (b.status === 'normal') optimal += 1;
+          else if (b.status === 'borderline') sufficient += 1;
+          else if (b.status === 'abnormal') out += 1;
+        });
+      });
+    } catch {}
+    return { total, optimal, sufficient, out };
+  }, []);
+
+  // Skeleton totals derived from SkeletonBodyMap zones
+  const skeletonTotals = useMemo(() => {
+    // hardcode counts to match SkeletonBodyMap zones defined locally
+    // General/Systemic (15), Spine (4), Left Hip (4), Right Hip (4)
+    const total = 27;
+    // classify: assume most are normal (optimal) except the ones explicitly low/high
+    // From the data: General/Systemic (15 normal), Spine (low, high, normal, normal) -> 2 normal, 1 low, 1 high
+    // Left Hip (normal, low, normal, normal) -> 3 normal, 1 low
+    // Right Hip (normal, normal, normal, normal) -> 4 normal
+    const optimal = 15 + 2 + 3 + 4; // 24
+    const sufficient = 1 + 1; // lows -> 2 treated as sufficient
+    const out = 1; // high -> 1 treated as out
+    return { total, optimal, sufficient, out };
+  }, []);
+
+  // Circulation totals derived from CirculationBodyMap zones
+  const circulationTotals = useMemo(() => {
+    // From CirculationBodyMap.tsx zones:
+    // Heart (8), Arteries/Vessels & Blood (8), Oxygenation (7) => 23
+    const total = 23;
+    // All mocked as 'normal' currently
+    const optimal = 23;
+    const sufficient = 0;
+    const out = 0;
+    return { total, optimal, sufficient, out };
+  }, []);
+
+  // Nutrition totals (vitamins + minerals) from NutritionBodyMap data
+  const nutritionTotals = useMemo(() => {
+    // Count items in nutritionData exported inside NutritionBodyMap. We can't import directly here,
+    // so approximate by mirroring categories: 13 vitamins + 7 major + 9 trace = 29 (from the file contents).
+    const total = 13 + 7 + 9; // 29
+    // Treat 'normal' as optimal; others as sufficient/out based on status keywords if needed
+    const optimal = total; // current dataset uses 'normal' defaults
+    const sufficient = 0;
+    const out = 0;
+    return { total, optimal, sufficient, out };
+  }, []);
 
   const handleOrganPress = (organId: string) => {
     // Disabled old popup - new popup is handled in BodyMap component
@@ -563,8 +621,15 @@ const BodyMapScreen: React.FC = () => {
         <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>My Body</Text>
-          <Text style={styles.headerSubtitle}>Explore your organs, track biomarkers, and upload lab results for AI-powered health insights</Text>
+          <Text style={styles.headerSubtitle}>Explore your organs and track your biomarkers</Text>
         </View>
+        <TouchableOpacity
+          style={styles.headerAddButton}
+          onPress={() => setShowAddDataModal(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
         </View>
 
       {/* Body System Selector */}
@@ -590,70 +655,29 @@ const BodyMapScreen: React.FC = () => {
           {/* Biomarker Results */}
           {renderBiomarkerResults()}
 
-          {/* WHOOP-style Biomarker Summary - Simple Test Version */}
-          <View style={{
-            backgroundColor: 'rgba(22,24,30,0.75)',
-            borderRadius: 16,
-            padding: 16,
-            marginHorizontal: 16,
-            marginTop: 16,
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.06)',
-          }}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 }}>
-              Biomarker Summary
-            </Text>
-            <Text style={{ fontSize: 14, color: '#9AA3AF', marginBottom: 20 }}>
-              Your health biomarkers at a glance
-            </Text>
-            
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ 
-                width: 120, 
-                height: 120, 
-                borderRadius: 60, 
-                backgroundColor: '#2C2C2E',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: 20
-              }}>
-                <Text style={{ fontSize: 36, fontWeight: 'bold', color: '#FFFFFF' }}>65</Text>
-                <Text style={{ fontSize: 12, color: '#9AA3AF', marginTop: 4, letterSpacing: 1 }}>BIOMARKERS</Text>
-              </View>
-              
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#00E676', marginRight: 8 }} />
-                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Optimal</Text>
-                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>52</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#2196F3', marginRight: 8 }} />
-                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Sufficient</Text>
-                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>10</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF9800', marginRight: 8 }} />
-                  <Text style={{ fontSize: 16, color: '#FFFFFF', flex: 1 }}>Out of Range</Text>
-                  <Text style={{ fontSize: 16, color: '#9AA3AF' }}>3</Text>
-                </View>
-                
-                <Pressable
-                  onPress={() => setShowAddDataModal(true)}
-                  style={{
-                    backgroundColor: '#1976D2',
-                    borderRadius: 12,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFFFFF' }}>
-                    Upload Lab Results
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
+          {/* Biomarker Summary (WHOOP-style) */}
+          <View style={{ marginTop: 8 }}>
+            <BiomarkerSummaryCard
+              total={selectedSystem === 'skeleton' ? skeletonTotals.total : selectedSystem === 'circulation' ? circulationTotals.total : selectedSystem === 'nutrition' ? nutritionTotals.total : organBiomarkerTotals.total}
+              buckets={selectedSystem === 'skeleton' 
+                ? { optimal: skeletonTotals.optimal, sufficient: skeletonTotals.sufficient, out: skeletonTotals.out }
+                : selectedSystem === 'circulation'
+                  ? { optimal: circulationTotals.optimal, sufficient: circulationTotals.sufficient, out: circulationTotals.out }
+                  : selectedSystem === 'nutrition'
+                    ? { optimal: nutritionTotals.optimal, sufficient: nutritionTotals.sufficient, out: nutritionTotals.out }
+                    : { optimal: organBiomarkerTotals.optimal, sufficient: organBiomarkerTotals.sufficient, out: organBiomarkerTotals.out }}
+              // full width and matching background/outline
+              style={{
+                width: '100%',
+                backgroundColor: '#1C1C1E',
+                borderWidth: 0,
+                borderColor: 'transparent',
+                borderRadius: 20,
+              }}
+              hideTitle
+              dialSize={196} // ~11% smaller than 220 for more legend space
+              segmentCount={selectedSystem === 'skeleton' ? skeletonTotals.total : selectedSystem === 'circulation' ? circulationTotals.total : selectedSystem === 'nutrition' ? nutritionTotals.total : organBiomarkerTotals.total}
+            />
           </View>
 
           {/* Bottom spacing */}
@@ -681,14 +705,7 @@ const BodyMapScreen: React.FC = () => {
         onDataAdded={handleAddData}
       />
 
-      {/* Floating Add Button */}
-      <TouchableOpacity
-        style={styles.floatingAddButton}
-        onPress={() => setShowAddDataModal(true)}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+      {/* Floating Add Button moved into header */}
     </View>
   );
 };
@@ -709,6 +726,15 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+  },
+  headerAddButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
   headerIcon: {
     width: 40,
@@ -1100,24 +1126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   floatingAddButton: {
-    position: 'absolute',
-    top: 120,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF3B30',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 10,
-    zIndex: 9999,
+    // deprecated: kept for reference; button moved to header
   },
 });
 

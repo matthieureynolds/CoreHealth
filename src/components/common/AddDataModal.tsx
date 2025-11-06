@@ -271,7 +271,7 @@ const AddDataModal: React.FC<AddDataModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0B0F',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  TouchableWithoutFeedback,
+  Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +22,9 @@ const DisplayFormatScreen: React.FC = () => {
   const [selectedTimeFormat, setSelectedTimeFormat] = useState(settings.general.timeFormat);
   const [selectedLanguage, setSelectedLanguage] = useState(mapLanguageToCode(settings.general.language));
   const [showPicker, setShowPicker] = useState<string | null>(null);
+  
+  // Animated value for bottom sheet
+  const pickerModalTranslateY = useRef(new Animated.Value(1000)).current;
 
   useEffect(() => {
     setSelectedUnits(settings.general.units);
@@ -26,6 +32,22 @@ const DisplayFormatScreen: React.FC = () => {
     setSelectedTimeFormat(settings.general.timeFormat);
     setSelectedLanguage(mapLanguageToCode(settings.general.language));
   }, [settings.general]);
+
+  // Animate bottom sheet when opening/closing
+  useEffect(() => {
+    if (showPicker !== null) {
+      // Start from off-screen and slide up
+      pickerModalTranslateY.setValue(1000);
+      Animated.spring(pickerModalTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
+    } else {
+      pickerModalTranslateY.setValue(0);
+    }
+  }, [showPicker]);
 
   function mapLanguageToCode(lang: string): string {
     switch (lang) {
@@ -133,7 +155,25 @@ const DisplayFormatScreen: React.FC = () => {
         await updateGeneralSettings({ language: mapCodeToLanguage(value) });
         break;
     }
-    setShowPicker(null);
+    Animated.timing(pickerModalTranslateY, {
+      toValue: 1000,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowPicker(null);
+      pickerModalTranslateY.setValue(0);
+    });
+  };
+
+  const handleClosePicker = () => {
+    Animated.timing(pickerModalTranslateY, {
+      toValue: 1000,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowPicker(null);
+      pickerModalTranslateY.setValue(0);
+    });
   };
 
   const getOptions = (type: string) => {
@@ -188,16 +228,16 @@ const DisplayFormatScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <View style={styles.header} pointerEvents="box-none">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Display & Format</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">Display & Format</Text>
         <View style={{ width: 24 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
         <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>DISPLAY & FORMAT</Text>
         {formatItems.map((item, index) => (
@@ -218,50 +258,85 @@ const DisplayFormatScreen: React.FC = () => {
         ))}
       </View>
 
-      {/* Picker Modal */}
+      {/* Picker Modal - Modern Bottom Sheet Style */}
       <Modal
         visible={showPicker !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowPicker(null)}
+        transparent
+        animationType="none"
+        presentationStyle="overFullScreen"
+        onRequestClose={handleClosePicker}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowPicker(null)}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>
-              {showPicker === 'units' && 'Units'}
-              {showPicker === 'dateFormat' && 'Date Format'}
-              {showPicker === 'timeFormat' && 'Time Format'}
-              {showPicker === 'language' && 'Language'}
-            </Text>
-            <View style={{ width: 60 }} />
-          </View>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={handleClosePicker}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+          <View style={styles.bottomSheetContainer}>
+            <Animated.View
+              style={[
+                styles.bottomSheetContent,
+                {
+                  transform: [{ translateY: pickerModalTranslateY }],
+                },
+              ]}
+            >
+              {/* Handle bar */}
+              <View style={styles.bottomSheetHandleContainer}>
+                <View style={styles.bottomSheetHandle} />
+              </View>
 
-          <ScrollView style={styles.modalContent}>
-            {showPicker && showPicker !== 'theme' && getOptions(showPicker).map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.optionItem}
-                onPress={() => handleSelect(showPicker, option.value)}
+              {/* Header */}
+              <View style={styles.bottomSheetHeader} pointerEvents="box-none">
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleClosePicker();
+                  }}
+                  style={styles.bottomSheetCloseButton}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+                <Text style={styles.bottomSheetTitle}>
+                  {showPicker === 'units' && 'Units'}
+                  {showPicker === 'dateFormat' && 'Date Format'}
+                  {showPicker === 'timeFormat' && 'Time Format'}
+                  {showPicker === 'language' && 'Language'}
+                </Text>
+                <View style={{ width: 32 }} />
+              </View>
+
+              {/* Options List */}
+              <ScrollView
+                style={styles.bottomSheetBody}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.bottomSheetBodyContent}
               >
-                <View style={styles.optionContent}>
-                  <Text style={styles.optionLabel}>{option.label}</Text>
-                  {option.description && (
-                    <Text style={styles.optionDescription}>{option.description}</Text>
-                  )}
-                </View>
-                {(showPicker === 'theme' && settings.general.theme === option.value) ||
-                 (showPicker === 'units' && selectedUnits === option.value) ||
-                 (showPicker === 'dateFormat' && selectedDateFormat === option.value) ||
-                 (showPicker === 'timeFormat' && selectedTimeFormat === option.value) ||
-                 (showPicker === 'language' && selectedLanguage === option.value) ? (
-                  <Ionicons name="checkmark" size={20} color="#007AFF" />
-                ) : null}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                {showPicker && showPicker !== 'theme' && getOptions(showPicker).map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.optionItem}
+                    onPress={() => handleSelect(showPicker, option.value)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.optionContent}>
+                      <Text style={styles.optionLabel}>{option.label}</Text>
+                      {option.description && (
+                        <Text style={styles.optionDescription}>{option.description}</Text>
+                      )}
+                    </View>
+                    {(showPicker === 'theme' && settings.general.theme === option.value) ||
+                     (showPicker === 'units' && selectedUnits === option.value) ||
+                     (showPicker === 'dateFormat' && selectedDateFormat === option.value) ||
+                     (showPicker === 'timeFormat' && selectedTimeFormat === option.value) ||
+                     (showPicker === 'language' && selectedLanguage === option.value) ? (
+                      <Ionicons name="checkmark" size={20} color="#34C759" />
+                    ) : null}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </Animated.View>
+          </View>
         </View>
       </Modal>
       </ScrollView>
@@ -284,6 +359,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#222',
     justifyContent: 'space-between',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
   },
   backButton: {
     padding: 8,
@@ -357,41 +438,85 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: 'auto',
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#111',
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
   },
-  modalHeader: {
+  bottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    zIndex: 1000,
+    pointerEvents: 'box-none',
+  },
+  bottomSheetContent: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    width: '100%',
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  bottomSheetHandleContainer: {
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomSheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 2,
+  },
+  bottomSheetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    paddingTop: 8,
+    paddingBottom: 16,
+    zIndex: 10,
   },
-  cancelButton: {
-    fontSize: 16,
-    color: '#007AFF',
+  bottomSheetCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  modalContent: {
+  bottomSheetTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
     flex: 1,
-    padding: 20,
+  },
+  bottomSheetBody: {
+    flex: 0,
+  },
+  bottomSheetBodyContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 0,
   },
   optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#2A2A2A',
   },
   optionContent: {
     flex: 1,
