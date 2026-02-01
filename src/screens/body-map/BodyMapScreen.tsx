@@ -623,13 +623,6 @@ const BodyMapScreen: React.FC = () => {
           <Text style={styles.headerTitle}>My Body</Text>
           <Text style={styles.headerSubtitle}>Explore your organs and track your biomarkers</Text>
         </View>
-        <TouchableOpacity
-          style={styles.headerAddButton}
-          onPress={() => setShowAddDataModal(true)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
         </View>
 
       {/* Body System Selector */}
@@ -726,15 +719,6 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-  },
-  headerAddButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FF3B30',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 12,
   },
   headerIcon: {
     width: 40,

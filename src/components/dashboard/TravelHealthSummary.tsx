@@ -18,7 +18,7 @@ import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import JetLagPlanningCard from './JetLagPlanningCard';
 import EmptyState from '../common/EmptyState';
 import { useSettings } from '../../context/SettingsContext';
-import { convertDistanceLabel } from '../../utils/units';
+import { convertDistanceLabel, metersToDisplay } from '../../utils/units';
 
 interface EnvironmentalMetric {
   id: string;
@@ -179,26 +179,31 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Real closest facilities from props with actual distance data
+  // Real closest facilities – API distance is in meters; convert to km/mi for display.
+  // If value is large (>100), treat as meters; if small, treat as km (defensive for different API shapes).
+  const units: 'metric' | 'imperial' = settings?.general?.units === 'imperial' ? 'imperial' : 'metric';
+  const formatFacilityDistance = (raw: unknown): string => {
+    const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? parseFloat(raw) : NaN;
+    if (!Number.isFinite(n) || n < 0) return units === 'imperial' ? '— mi' : '— km';
+    const meters = n >= 100 ? n : n * 1000; // >100 => meters (e.g. 4919); else assume km (e.g. 2.5)
+    return metersToDisplay(meters, units);
+  };
   const closestFacilities = [
     ...(nearestHospital && nearestHospitalData ? [{ 
       id: 'hospital1', 
       name: nearestHospital, 
       type: 'Hospital', 
-      distance: nearestHospitalData.distance ? `${nearestHospitalData.distance.toFixed(1)} km` : '1.2 mi',
-      travelTime: '8 mins' // Could calculate based on distance if needed
+      distance: formatFacilityDistance(nearestHospitalData.distance),
+      travelTime: '8 mins'
     }] : []),
     ...(nearestPharmacy && nearestPharmacyData ? [{ 
       id: 'pharmacy1', 
       name: nearestPharmacy, 
       type: 'Pharmacy', 
-      distance: nearestPharmacyData.distance ? `${nearestPharmacyData.distance.toFixed(1)} km` : '0.8 mi',
-      travelTime: '6 mins' // Could calculate based on distance if needed
+      distance: formatFacilityDistance(nearestPharmacyData.distance),
+      travelTime: '6 mins'
     }] : [])
-  ].map(f => ({
-    ...f,
-    distance: convertDistanceLabel(f.distance, settings?.general?.units === 'imperial' ? 'imperial' : 'metric')
-  }));
+  ];
 
   const renderEnvironmentalMetric = (metric: EnvironmentalMetric) => {
     const statusColor = getStatusColor(metric.status);

@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput, ActivityIndicator, Platform, Keyboard, Linking, Animated, RefreshControl, Easing, Image, Modal, TouchableWithoutFeedback } from 'react-native';
-// import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types';
+import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import PagerView from 'react-native-pager-view';
 import { useHealthData } from '../../context/HealthDataContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useAuth } from '../../context/AuthContext';
 import JetLagPlanningCard from '../../components/dashboard/JetLagPlanningCard';
 import { JetLagPlanningEvent, PlanDay, Trip as EnhancedTrip } from '../../types';
-import { EnhancedJetLagService } from '../../services/enhancedJetLagService';
+import { EnhancedJetLagService, FlightLookupService } from '../../services/enhancedJetLagService';
 import { PlanTimeline } from '../../components/jetlag/PlanTimeline';
 import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../services/citySearchService';
 import { useReduceMotion } from '../../lib/reduceMotion';
@@ -55,7 +59,10 @@ interface HealthMetric {
 // Get popular cities from service
 const popularCities = getPopularCities();
 
+type Nav = StackNavigationProp<RootStackParamList>;
+
 const TravelScreen: React.FC = () => {
+  const navigation = useNavigation<Nav>();
   const { settings } = useSettings();
 
   const is12h = settings?.general?.timeFormat === '12h';
@@ -231,6 +238,115 @@ const TravelScreen: React.FC = () => {
   // Trip planning state
   const [trips, setTrips] = useState<Trip[]>([]);
   const [showAddTripModal, setShowAddTripModal] = useState(false);
+  const [flightCarrier, setFlightCarrier] = useState('');
+  const [flightNumber, setFlightNumber] = useState('');
+  const [detectedAirline, setDetectedAirline] = useState<string | null>(null);
+  const [isLookingUpFlight, setIsLookingUpFlight] = useState(false);
+  const [flightLookupResult, setFlightLookupResult] = useState<any>(null);
+  const [flightDetailsExpanded, setFlightDetailsExpanded] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+
+  // Airline code to name mapping
+  const airlineCodes: Record<string, string> = {
+    'QR': 'Qatar Airways',
+    'AA': 'American Airlines',
+    'DL': 'Delta Air Lines',
+    'UA': 'United Airlines',
+    'BA': 'British Airways',
+    'AF': 'Air France',
+    'LH': 'Lufthansa',
+    'EK': 'Emirates',
+    'SQ': 'Singapore Airlines',
+    'CX': 'Cathay Pacific',
+    'JL': 'Japan Airlines',
+    'NH': 'All Nippon Airways',
+    'QF': 'Qantas',
+    'VS': 'Virgin Atlantic',
+    'KL': 'KLM',
+    'IB': 'Iberia',
+    'LX': 'Swiss International Air Lines',
+    'OS': 'Austrian Airlines',
+    'SN': 'Brussels Airlines',
+    'TK': 'Turkish Airlines',
+    'EY': 'Etihad Airways',
+    'NZ': 'Air New Zealand',
+    'AC': 'Air Canada',
+    'WS': 'WestJet',
+    'AS': 'Alaska Airlines',
+    'B6': 'JetBlue Airways',
+    'WN': 'Southwest Airlines',
+    'F9': 'Frontier Airlines',
+    'NK': 'Spirit Airlines',
+  };
+
+  // Mock flight data for testing
+  const getMockFlightDetails = (carrier: string, number: string) => {
+    const mockFlights: Record<string, any> = {
+      'QR012': {
+        carrier: 'QR',
+        number: '012',
+        origin_iata: 'LHR',
+        dest_iata: 'DOH',
+        origin_city: 'London',
+        dest_city: 'Doha',
+        dep_local: '2026-01-01T18:55:00',
+        arr_local: '2026-01-02T04:35:00',
+        origin_tz: 'Europe/London',
+        dest_tz: 'Asia/Qatar',
+      },
+      'QR123': {
+        carrier: 'QR',
+        number: '123',
+        origin_iata: 'JFK',
+        dest_iata: 'DOH',
+        origin_city: 'New York',
+        dest_city: 'Doha',
+        dep_local: '2026-01-01T22:30:00',
+        arr_local: '2026-01-02T18:15:00',
+        origin_tz: 'America/New_York',
+        dest_tz: 'Asia/Qatar',
+      },
+      'AA128': {
+        carrier: 'AA',
+        number: '128',
+        origin_iata: 'JFK',
+        dest_iata: 'LAX',
+        origin_city: 'New York',
+        dest_city: 'Los Angeles',
+        dep_local: '2026-01-01T08:00:00',
+        arr_local: '2026-01-01T11:30:00',
+        origin_tz: 'America/New_York',
+        dest_tz: 'America/Los_Angeles',
+      },
+    };
+    
+    const key = `${carrier.toUpperCase()}${number}`;
+    return mockFlights[key] || null;
+  };
+
+  // Detect airline when carrier code changes
+  useEffect(() => {
+    const code = flightCarrier.toUpperCase().trim();
+    if (code && airlineCodes[code]) {
+      setDetectedAirline(airlineCodes[code]);
+    } else {
+      setDetectedAirline(null);
+    }
+  }, [flightCarrier]);
+
+  // Show flight details when flight number is entered
+  useEffect(() => {
+    if (flightCarrier.trim() && flightNumber.trim()) {
+      const details = getMockFlightDetails(flightCarrier, flightNumber);
+      if (details) {
+        setFlightLookupResult(details);
+      } else {
+        setFlightLookupResult(null);
+      }
+    } else {
+      setFlightLookupResult(null);
+    }
+  }, [flightCarrier, flightNumber]);
   const [newTripDepartureLocation, setNewTripDepartureLocation] = useState('');
   const [newTripDestination, setNewTripDestination] = useState('');
   const [newTripDepartureDate, setNewTripDepartureDate] = useState(new Date());
@@ -252,7 +368,7 @@ const TravelScreen: React.FC = () => {
       if (!datePickerInitializedRef.current) {
         if (showDatePicker === 'departure') {
           setTempDatePickerValue(new Date(newTripDepartureDate));
-        } else {
+        } else if (showDatePicker === 'return') {
           setTempDatePickerValue(new Date(newTripReturnDate || new Date()));
         }
         datePickerInitializedRef.current = true;
@@ -712,6 +828,50 @@ const TravelScreen: React.FC = () => {
     };
 
     return enhanced;
+  };
+
+  const handleFlightLookup = async () => {
+    if (!flightCarrier.trim() || !flightNumber.trim()) {
+      Alert.alert('Error', 'Please enter both carrier and flight number');
+      return;
+    }
+
+    try {
+      setIsLookingUpFlight(true);
+      const dateString = new Date().toISOString().split('T')[0]; // Use today's date as default
+      const result = await FlightLookupService.lookupFlight(
+        flightCarrier.toUpperCase().trim(),
+        flightNumber.trim(),
+        dateString
+      );
+
+      if (result) {
+        // Flight found - populate form with flight data
+        setFlightLookupResult(result);
+        setNewTripDepartureLocation(result.origin_iata);
+        setNewTripDestination(result.dest_iata);
+        setNewTripDepartureDate(new Date(result.dep_local));
+        // Show manual entry to confirm/edit details
+        setShowManualEntry(true);
+        Alert.alert('Flight Found', 'Flight details loaded. Please review and confirm.');
+      } else {
+        // Flight not found - show manual entry
+        Alert.alert(
+          'Flight Not Found',
+          'We couldn\'t find that flight. Please enter the details manually.',
+          [
+            { text: 'OK', onPress: () => setShowManualEntry(true) }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Flight lookup error:', error);
+      Alert.alert('Error', 'Failed to lookup flight. Please enter details manually.', [
+        { text: 'OK', onPress: () => setShowManualEntry(true) }
+      ]);
+    } finally {
+      setIsLookingUpFlight(false);
+    }
   };
 
   const handleAddTrip = () => {
@@ -1511,13 +1671,25 @@ const TravelScreen: React.FC = () => {
     );
   };
 
-  // Open native phone sheet directly for emergency number
+  // Open native phone sheet for emergency number (called after user confirms)
   const handleCallEmergency = () => {
     try {
       Linking.openURL('tel:112');
     } catch (e) {
       Alert.alert('Unable to call', 'This device cannot place phone calls.');
     }
+  };
+
+  // Show "Are you sure you want to call?" confirmation (iPhone-style) then call if confirmed
+  const handleEmergencyContactPress = () => {
+    Alert.alert(
+      'Call Emergency Services?',
+      'Are you sure you want to call 112?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call', onPress: handleCallEmergency },
+      ]
+    );
   };
 
   const handleModifyTripDates = (trip: Trip) => {
@@ -1914,9 +2086,9 @@ const TravelScreen: React.FC = () => {
                   <View style={styles.sectionGroupCard}>
                   <Text style={styles.sectionTitle}>Health Metrics</Text>
                   
-                  {/* Air Quality */}
+                  {/* Air Quality - same screen as home page */}
                   <Animated.View style={{ opacity: getRowAnim('aq').opacity, transform: [{ translateY: getRowAnim('aq').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'air_quality', label: 'Air Quality', status: 'moderate', score: getMetricScore('Air Quality') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'air_quality', label: 'Air Quality', value: 'Moderate', status: 'moderate', score: getMetricScore('Air Quality'), icon: 'cloud-outline' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('air_quality', 'moderate')}20` }]}> 
                        <Ionicons name="cloud-outline" size={20} color={getMetricFixedIconColor('air_quality', 'moderate')} />
                     </View>
@@ -1931,9 +2103,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* Water Safety */}
+                  {/* Water Safety - same screen as home page */}
                   <Animated.View style={{ opacity: getRowAnim('water').opacity, transform: [{ translateY: getRowAnim('water').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'water_safety', label: 'Water Safety', status: 'good', score: getMetricScore('Water Safety') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'water_quality', label: 'Water Safety', value: 'Safe', status: 'good', score: getMetricScore('Water Safety'), icon: 'water-outline' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('water_safety', 'good')}20` }]}> 
                       <Ionicons name="water-outline" size={20} color={getMetricFixedIconColor('water_safety', 'good')} />
                     </View>
@@ -1948,9 +2120,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* UV Index */}
+                  {/* UV Index - same format as Air Quality */}
                   <Animated.View style={{ opacity: getRowAnim('uv').opacity, transform: [{ translateY: getRowAnim('uv').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'uv_index', label: 'UV Index', status: 'moderate', score: getMetricScore('UV Index') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'uv_index', label: 'UV Index', value: 'Moderate', status: 'moderate', score: getMetricScore('UV Index'), icon: 'sunny' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('uv_index', 'moderate')}20` }]}> 
                       <Ionicons name="sunny" size={20} color={getMetricFixedIconColor('uv_index', 'moderate')} />
                     </View>
@@ -1965,9 +2137,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* Food Safety */}
+                  {/* Food Safety - same format as Air Quality */}
                   <Animated.View style={{ opacity: getRowAnim('food').opacity, transform: [{ translateY: getRowAnim('food').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'food_safety', label: 'Food Safety', status: 'good', score: getMetricScore('Food Safety') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'food_safety', label: 'Food Safety', value: 'Good', status: 'good', score: getMetricScore('Food Safety'), icon: 'restaurant' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('food_safety', 'good')}20` }]}> 
                       <Ionicons name="restaurant" size={20} color={getMetricFixedIconColor('food_safety', 'good')} />
                     </View>
@@ -1982,9 +2154,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* Pollen Level */}
+                  {/* Pollen Level - same screen as home page */}
                   <Animated.View style={{ opacity: getRowAnim('pollen').opacity, transform: [{ translateY: getRowAnim('pollen').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'pollen', label: 'Pollen', status: 'moderate', score: getMetricScore('Pollen Level') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'pollen', label: 'Pollen', value: 'High', status: 'moderate', score: getMetricScore('Pollen Level'), icon: 'flower-outline' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getMetricFixedIconColor('pollen', 'moderate')}20` }]}> 
                        <Ionicons name="flower-outline" size={20} color={getMetricFixedIconColor('pollen', 'moderate')} />
                     </View>
@@ -1999,9 +2171,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* Altitude */}
+                  {/* Altitude - same format as Air Quality */}
                   <Animated.View style={{ opacity: getRowAnim('altitude').opacity, transform: [{ translateY: getRowAnim('altitude').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'altitude', label: 'Altitude', status: 'good', score: getMetricScore('Altitude') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'altitude', label: 'Altitude', value: 'Low', status: 'good', score: getMetricScore('Altitude'), icon: 'trending-up' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
                       <Ionicons name="mountain-outline" size={20} color={getStatusColor('good')} />
                     </View>
@@ -2016,9 +2188,9 @@ const TravelScreen: React.FC = () => {
                   </TouchableOpacity>
                   </Animated.View>
                   
-                  {/* Disease Outbreaks */}
+                  {/* Disease Outbreaks - same format as Air Quality */}
                   <Animated.View style={{ opacity: getRowAnim('outbreaks').opacity, transform: [{ translateY: getRowAnim('outbreaks').translate }] }}>
-                  <TouchableOpacity style={styles.metricRowCard} onPress={() => { setSelectedMetric({ id: 'outbreaks', label: 'Disease Outbreaks', status: 'good', score: getMetricScore('Disease Outbreaks') }); setMetricModalVisible(true); }}>
+                  <TouchableOpacity style={styles.metricRowCard} onPress={() => navigation.navigate('EnvironmentalMetric', { metricId: 'outbreaks', label: 'Disease Outbreaks', value: 'None', status: 'good', score: getMetricScore('Disease Outbreaks'), icon: 'bug-outline' })}>
                      <View style={[styles.metricIconCircle, { backgroundColor: `${getStatusColor('good')}20` }]}> 
                       <Ionicons name="bug-outline" size={20} color={getStatusColor('good')} />
                     </View>
@@ -2072,10 +2244,10 @@ const TravelScreen: React.FC = () => {
                     <Text style={styles.hospitalInfo}>Urgent Care • Walk-in Available</Text>
                     </TouchableOpacity>
 
-                    {/* Emergency Contact (inline) */}
+                    {/* Emergency Contact (inline) - confirm before calling */}
                     <TouchableOpacity 
                       style={styles.hospitalCard}
-                      onPress={handleCallEmergency}
+                      onPress={handleEmergencyContactPress}
                     >
                       <View style={styles.hospitalHeader}>
                         <Ionicons name="call" size={20} color="#FF3B30" />
@@ -2212,6 +2384,11 @@ const TravelScreen: React.FC = () => {
                 <TouchableOpacity 
                   style={styles.addTripButton}
                   onPress={() => {
+                    setFlightCarrier('');
+                    setFlightNumber('');
+                    setDetectedAirline(null);
+                    setShowManualEntry(false);
+                    setFlightLookupResult(null);
                     setShowAddTripModal(true);
                     tripModalTranslateY.setValue(1000);
                     Animated.spring(tripModalTranslateY, {
@@ -2232,6 +2409,11 @@ const TravelScreen: React.FC = () => {
                 <TouchableOpacity 
                   style={[styles.addTripButton, styles.addTripButtonTop]}
                   onPress={() => {
+                    setFlightCarrier('');
+                    setFlightNumber('');
+                    setDetectedAirline(null);
+                    setShowManualEntry(false);
+                    setFlightLookupResult(null);
                     setShowAddTripModal(true);
                     tripModalTranslateY.setValue(1000);
                     Animated.spring(tripModalTranslateY, {
@@ -2412,6 +2594,10 @@ const TravelScreen: React.FC = () => {
           <TouchableWithoutFeedback 
             onPress={() => {
               setShowAddTripModal(false);
+              setFlightCarrier('');
+              setFlightNumber('');
+              setShowManualEntry(false);
+              setFlightLookupResult(null);
               setNewTripDepartureLocation('');
               setNewTripDestination('');
               setNewTripDepartureDate(new Date());
@@ -2441,6 +2627,11 @@ const TravelScreen: React.FC = () => {
                   onPress={(e) => {
                     e.stopPropagation();
                     setShowAddTripModal(false);
+                    setFlightCarrier('');
+                    setFlightNumber('');
+                    setDetectedAirline(null);
+                    setShowManualEntry(false);
+                    setFlightLookupResult(null);
                     setNewTripDepartureLocation('');
                     setNewTripDestination('');
                     setNewTripDepartureDate(new Date());
@@ -2457,19 +2648,28 @@ const TravelScreen: React.FC = () => {
                 <TouchableOpacity 
                   onPress={(e) => {
                     e.stopPropagation();
-                    if (newTripDepartureLocation.trim() && newTripDestination.trim()) {
-                      handleAddTrip();
-                      tripModalTranslateY.setValue(0);
+                    if (showManualEntry) {
+                      if (newTripDepartureLocation.trim() && newTripDestination.trim()) {
+                        handleAddTrip();
+                        tripModalTranslateY.setValue(0);
+                      }
+                    } else {
+                      handleFlightLookup();
                     }
                   }}
                   style={styles.bottomSheetCloseButton}
                   hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                   activeOpacity={0.6}
+                  disabled={showManualEntry ? (!newTripDepartureLocation.trim() || !newTripDestination.trim()) : (!flightCarrier.trim() || !flightNumber.trim() || isLookingUpFlight)}
                 >
                   <Ionicons 
-                    name="checkmark" 
+                    name={showManualEntry ? "checkmark" : "search"} 
                     size={24} 
-                    color={(!newTripDepartureLocation.trim() || !newTripDestination.trim()) ? "#8E8E93" : "#34C759"} 
+                    color={
+                      showManualEntry 
+                        ? ((!newTripDepartureLocation.trim() || !newTripDestination.trim()) ? "#8E8E93" : "#34C759")
+                        : ((!flightCarrier.trim() || !flightNumber.trim() || isLookingUpFlight) ? "#8E8E93" : "#34C759")
+                    } 
                   />
                 </TouchableOpacity>
               </View>
@@ -2481,6 +2681,167 @@ const TravelScreen: React.FC = () => {
                 contentContainerStyle={styles.bottomSheetBodyContent}
                 keyboardShouldPersistTaps="handled"
               >
+            {!showManualEntry ? (
+              <>
+                {detectedAirline ? (
+                  <View style={styles.airlineHeader}>
+                    <Text style={styles.airlineName}>{detectedAirline}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.airlineHeader}>
+                    <Text style={styles.airlineName}>Flight Number</Text>
+                  </View>
+                )}
+                <View style={styles.inputContainer}>
+                  <View style={styles.flightInputRow}>
+                    <View style={styles.flightCarrierInput}>
+                      <TextInput
+                        style={styles.textInput}
+                        value={flightCarrier}
+                        onChangeText={setFlightCarrier}
+                        placeholder="AA"
+                        placeholderTextColor="#8E8E93"
+                        autoCapitalize="characters"
+                        maxLength={2}
+                      />
+                    </View>
+                    <View style={styles.flightNumberInput}>
+                      <TextInput
+                        style={styles.textInput}
+                        value={flightNumber}
+                        onChangeText={setFlightNumber}
+                        placeholder="128"
+                        placeholderTextColor="#8E8E93"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {flightLookupResult && (
+                  <View>
+                    <TouchableOpacity 
+                      style={styles.flightDetailsCard}
+                      activeOpacity={0.7}
+                      onPress={() => setFlightDetailsExpanded(!flightDetailsExpanded)}
+                    >
+                      <Text style={styles.flightNumberText}>
+                        {flightLookupResult.carrier} {flightLookupResult.number}
+                      </Text>
+                      <View style={styles.flightDetailsGrid}>
+                        <View style={styles.flightDetailsColumn}>
+                          <View style={styles.flightRouteItem}>
+                            <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '45deg' }] }} />
+                            <Text style={styles.flightCity}>{flightLookupResult.origin_city}</Text>
+                          </View>
+                          <View style={styles.flightRouteItem}>
+                            <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '-45deg' }] }} />
+                            <Text style={styles.flightCity}>{flightLookupResult.dest_city}</Text>
+                          </View>
+                        </View>
+                        <View style={styles.flightDetailsColumn}>
+                          <Text style={styles.flightDate}>
+                            {new Date(flightLookupResult.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </Text>
+                          <Text style={styles.flightDate}>
+                            {new Date(flightLookupResult.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </Text>
+                        </View>
+                        <View style={styles.flightDetailsColumn}>
+                          <Text style={styles.flightTime}>
+                            {new Date(flightLookupResult.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                          </Text>
+                          <Text style={styles.flightTime}>
+                            {new Date(flightLookupResult.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                          </Text>
+                        </View>
+                        {!flightDetailsExpanded && (
+                          <View style={styles.flightArrowColumn}>
+                            <Ionicons name="chevron-forward" size={20} color="#059669" />
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    {flightDetailsExpanded && (
+                      <View style={styles.flightActionsContainer}>
+                        <TouchableOpacity 
+                          style={styles.addAnotherFlightButton}
+                          onPress={() => {
+                            // TODO: Add logic to add another flight
+                            Alert.alert('Add Another Flight', 'This will allow you to add a connecting flight');
+                          }}
+                        >
+                          <Ionicons name="add" size={18} color="#059669" />
+                          <Text style={styles.addAnotherFlightText}>Add another flight</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          style={styles.continueButton}
+                          onPress={() => {
+                            // Create trip from flight data
+                            const newTrip: Trip = {
+                              id: Date.now().toString(),
+                              departureLocation: flightLookupResult.origin_city,
+                              destination: flightLookupResult.dest_city,
+                              departureDate: new Date(flightLookupResult.dep_local),
+                              returnDate: undefined,
+                              timezone: flightLookupResult.dest_tz,
+                              checklist: {
+                                vaccines: [
+                                  { name: 'COVID-19', completed: false },
+                                  { name: 'Hepatitis A', completed: false },
+                                  { name: 'Typhoid', completed: false }
+                                ],
+                                medicines: [
+                                  { name: 'Pain relievers', completed: false },
+                                  { name: 'Anti-diarrheal', completed: false },
+                                  { name: 'Motion sickness', completed: false }
+                                ]
+                              },
+                              jetLagPlanner: {
+                                departureTime: new Date(flightLookupResult.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                arrivalTime: new Date(flightLookupResult.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                outboundPlan: {
+                                  direction: 'outbound',
+                                  timezoneAdjustment: '+0',
+                                  circadianPlan: []
+                                }
+                              }
+                            };
+                            
+                            setTrips(prev => [...prev, newTrip]);
+                            setShowAddTripModal(false);
+                            setFlightCarrier('');
+                            setFlightNumber('');
+                            setDetectedAirline(null);
+                            setFlightLookupResult(null);
+                            setFlightDetailsExpanded(false);
+                            tripModalTranslateY.setValue(0);
+                            Alert.alert('Success', 'Trip added successfully!');
+                          }}
+                        >
+                          <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {isLookingUpFlight && (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#007AFF" />
+                    <Text style={styles.loadingText}>Looking up flight...</Text>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={[styles.manualEntryButton, { marginTop: 16 }]}
+                  onPress={() => setShowManualEntry(true)}
+                >
+                  <Text style={styles.manualEntryButtonText}>Enter details manually instead</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
             <Text style={styles.inputLabel}>Departure Location:</Text>
             <View style={styles.inputContainer}>
               <TextInput
@@ -2603,7 +2964,8 @@ const TravelScreen: React.FC = () => {
             </Text>
               <Ionicons name="calendar" size={16} color="#8E8E93" />
           </TouchableOpacity>
-
+              </>
+            )}
               </ScrollView>
             </Animated.View>
           </View>
@@ -3466,6 +3828,142 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     textAlign: 'left',
     flex: 1,
+  },
+  airlineHeader: {
+    marginBottom: 16,
+  },
+  airlineName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  combinedFlightInput: {
+    width: '100%',
+  },
+  combinedFlightTextInput: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  flightDetailsCard: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  flightNumberText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    fontWeight: '400',
+    marginBottom: 12,
+  },
+  flightDetailsGrid: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 16,
+  },
+  flightDetailsColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  flightArrowColumn: {
+    width: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
+  flightRouteItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 20,
+  },
+  flightCity: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '400',
+  },
+  flightDate: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '400',
+    minHeight: 20,
+  },
+  flightTime: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '400',
+    minHeight: 20,
+  },
+  flightActionsContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  addAnotherFlightButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#059669',
+    backgroundColor: 'transparent',
+    gap: 8,
+  },
+  addAnotherFlightText: {
+    fontSize: 16,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  continueButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#059669',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  flightInputRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  flightCarrierInput: {
+    flex: 0.4,
+  },
+  flightNumberInput: {
+    flex: 0.6,
+  },
+  flightInputHint: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  manualEntryButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  manualEntryButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
   },
   dateButton: {
     width: '100%',
@@ -4818,6 +5316,9 @@ jetLagTitle: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     width: '100%',
+    maxHeight: '90%',
+    minHeight: '70%',
+    paddingBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.25,
@@ -4862,7 +5363,7 @@ jetLagTitle: {
   },
   bottomSheetBodyContent: {
     paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 20,
+    paddingBottom: 40,
   },
   
 });

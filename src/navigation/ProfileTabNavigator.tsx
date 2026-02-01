@@ -22,6 +22,7 @@ import VaccinationsScreen from '../features/profile/VaccinationsScreen';
 import ScreeningsScreen from '../features/profile/ScreeningsScreen';
 import UploadMedicalRecordScreen from '../features/profile/UploadMedicalRecordScreen';
 import ViewMedicalRecordsScreen from '../features/profile/ViewMedicalRecordsScreen';
+import PastAppointmentsScreen from '../features/profile/PastAppointmentsScreen';
 import GenerateHealthReportScreen from '../features/profile/GenerateHealthReportScreen';
 import ShareWithDoctorScreen from '../features/profile/ShareWithDoctorScreen';
 import MedicalHistoryScreen from '../features/profile/MedicalHistoryScreen';
@@ -220,6 +221,14 @@ const ProfileTabNavigator: React.FC = () => {
         component={ViewMedicalRecordsScreen}
         options={{
           title: 'View Medical Records',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="PastAppointments"
+        component={PastAppointmentsScreen}
+        options={{
+          title: 'Past Appointments',
           headerShown: false,
         }}
       />

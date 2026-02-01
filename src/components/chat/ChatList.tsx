@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, findNodeHandle, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, findNodeHandle, UIManager, Image, Animated, Easing } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { TortoAvatar } from './TortoAvatar';
-import { measureInWindow } from 'react-native-reanimated';
 import { useSendAnimation } from '../../hooks/useSendAnimation';
 import { AnimatedOutgoing } from './AnimatedOutgoing';
 import { shouldReduceMotion } from '../../lib/reduceMotion';
@@ -42,24 +42,14 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, s
         key={item.id}
         message={item}
         isStreaming={streamingId === item.id}
-        onLayoutMeasured={async (node) => {
+        onLayoutMeasured={(node) => {
           const handle = findNodeHandle(node);
           if (!handle) return;
-          
-          try {
-            const measurement = await measureInWindow(handle);
-            const rect = { 
-              x: measurement.x, 
-              y: measurement.y, 
-              w: measurement.width, 
-              h: measurement.height 
-            };
-            
+          UIManager.measureInWindow(handle, (x, y, width, height) => {
+            const rect = { x, y, w: width, h: height };
             sendAnim.setEndRect(item.clientId, rect);
             onMessageLayout?.(item.clientId, rect);
-          } catch (error) {
-            console.error('Error measuring message layout:', error);
-          }
+          });
         }}
       />
     );
@@ -84,6 +74,16 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, s
   );
 };
 
+// Format timestamp for display
+const formatTimestamp = (date: Date): string => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes.toString().padStart(2, '0');
+  return `${displayHours}:${displayMinutes} ${ampm}`;
+};
+
 // Simplified message row component
 const MessageRow: React.FC<{
   message: ChatMessage;
@@ -93,6 +93,11 @@ const MessageRow: React.FC<{
   const ref = useRef<View>(null);
   const fade = useRef(new Animated.Value(message.role === 'assistant' ? 0 : 1)).current;
   const slideY = useRef(new Animated.Value(message.role === 'assistant' ? 6 : 0)).current;
+
+  // Swipe-to-reveal timestamp for user messages
+  const translateX = useRef(new Animated.Value(0)).current;
+  const timestampOpacity = useRef(new Animated.Value(0)).current;
+  const MAX_SWIPE_DISTANCE = -58; // enough to reveal full timestamp (e.g. "12 PM") without overdoing it
 
   useEffect(() => {
     if (message.role !== 'assistant') return;
@@ -112,6 +117,82 @@ const MessageRow: React.FC<{
     ]).start();
   }, [message.text]);
 
+  // Handle pan gesture for user messages
+  const lastTranslationX = useRef(0);
+  
+  const onGestureEvent = (event: any) => {
+    const translationX = event.nativeEvent.translationX;
+    
+    // Only allow left swipe (negative values)
+    if (translationX > 0) {
+      translateX.setValue(0);
+      timestampOpacity.setValue(0);
+      lastTranslationX.current = 0;
+      return;
+    }
+    
+    // Clamp to max distance
+    const clampedX = Math.max(translationX, MAX_SWIPE_DISTANCE);
+    translateX.setValue(clampedX);
+    lastTranslationX.current = clampedX;
+    
+    // Calculate timestamp opacity based on drag progress (0 to 1)
+    const progress = Math.abs(clampedX) / Math.abs(MAX_SWIPE_DISTANCE);
+    timestampOpacity.setValue(progress);
+  };
+
+  const onHandlerStateChange = (event: any) => {
+    const { state, translationX } = event.nativeEvent;
+    
+    if (state === State.ACTIVE) {
+      // Gesture is active, already handled in onGestureEvent
+      return;
+    }
+    
+    if (state === State.END || state === State.CANCELLED) {
+      // Spring back to original position
+      translateX.setValue(lastTranslationX.current);
+      timestampOpacity.setValue(Math.abs(lastTranslationX.current) / Math.abs(MAX_SWIPE_DISTANCE));
+      
+      Animated.parallel([
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 15,
+          stiffness: 200,
+        }),
+        Animated.spring(timestampOpacity, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 15,
+          stiffness: 200,
+        }),
+      ]).start();
+      
+      lastTranslationX.current = 0;
+    }
+  };
+
+  const messageBubble = (
+    <Animated.View
+      style={[
+        styles.messageContainer,
+        message.role === 'user' ? styles.userMessage : styles.assistantMessage,
+        message.role === 'user' && {
+          transform: [{ translateX }],
+        },
+      ]}
+    >
+      <Animated.Text style={[
+        styles.messageText,
+        message.role === 'user' ? styles.userMessageText : styles.assistantMessageText,
+        message.role === 'assistant' ? { opacity: fade, transform: [{ translateY: slideY }] } : null
+      ]}>
+        {message.text}
+      </Animated.Text>
+    </Animated.View>
+  );
+
   return (
     <View style={[
       styles.messageRow,
@@ -122,22 +203,33 @@ const MessageRow: React.FC<{
           <TortoAvatar state={isStreaming ? 'talking' : 'idle'} size={28} />
         </View>
       )}
-      <View
-        ref={ref}
-        style={[
-          styles.messageContainer,
-          message.role === 'user' ? styles.userMessage : styles.assistantMessage
-        ]}
-      >
-        <Animated.Text style={[
-          styles.messageText,
-          message.role === 'user' ? styles.userMessageText : styles.assistantMessageText
-          ,
-          message.role === 'assistant' ? { opacity: fade, transform: [{ translateY: slideY }] } : null
-        ]}>
-          {message.text}
-        </Animated.Text>
-      </View>
+      
+      {message.role === 'user' ? (
+        <View style={styles.userMessageWrapper}>
+          {/* Swipeable message bubble */}
+          <PanGestureHandler
+            onGestureEvent={onGestureEvent}
+            onHandlerStateChange={onHandlerStateChange}
+            activeOffsetX={[-10, 10]} // Activate when swiping horizontally
+            failOffsetY={[-5, 5]} // Fail if swiping vertically more than 5dp
+          >
+            <Animated.View>
+              {messageBubble}
+            </Animated.View>
+          </PanGestureHandler>
+          
+          {/* Timestamp that appears on the right side as user swipes */}
+          <Animated.View style={[styles.timestampContainer, { opacity: timestampOpacity }]}>
+            <Text style={styles.timestampText}>
+              {formatTimestamp(message.timestamp)}
+            </Text>
+          </Animated.View>
+        </View>
+      ) : (
+        <View ref={ref} onLayout={() => onLayoutMeasured(ref.current)}>
+          {messageBubble}
+        </View>
+      )}
     </View>
   );
 };
@@ -160,6 +252,26 @@ const styles = StyleSheet.create({
   },
   rowRight: {
     alignSelf: 'flex-end',
+  },
+  userMessageWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    justifyContent: 'flex-end',
+    alignSelf: 'flex-end',
+  },
+  timestampContainer: {
+    position: 'absolute',
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+    pointerEvents: 'none',
+  },
+  timestampText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '500',
   },
   avatarContainer: {
     width: 32,

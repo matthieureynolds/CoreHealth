@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, findNodeHandle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { measureInWindow } from 'react-native-reanimated';
 import { useSendAnimation } from '../../hooks/useSendAnimation';
 // import { useHaptics } from '../../lib/haptics';
 import { useReduceMotion } from '../../lib/reduceMotion';

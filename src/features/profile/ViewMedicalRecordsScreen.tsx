@@ -159,9 +159,14 @@ const ViewMedicalRecordsScreen: React.FC = () => {
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Medical Records</Text>
-          <TouchableOpacity onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
-            <Ionicons name="filter" size={24} color="#007AFF" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => navigation.navigate('UploadMedicalRecord')} style={styles.uploadHeaderButton}>
+              <Ionicons name="add" size={24} color="#007AFF" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
+              <Ionicons name="filter" size={24} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Filter Display */}
@@ -466,11 +471,18 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     top: -55,
   },
-  filterButton: {
-    padding: 8,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
     position: 'absolute',
     right: 3,
     top: -45.8,
+  },
+  uploadHeaderButton: {
+    padding: 8,
+  },
+  filterButton: {
+    padding: 8,
   },
   filterDisplay: {
     flexDirection: 'row',

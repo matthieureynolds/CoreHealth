@@ -245,6 +245,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           allergies: [],
           medications: [],
           screenings: [],
+          pastAppointments: [],
           lifestyle: {
             smoking: { status: 'never' },
             alcohol: { frequency: 'never' },

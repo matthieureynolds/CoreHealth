@@ -21,6 +21,9 @@ import { format } from 'date-fns';
 import FileViewerModal from '../common/FileViewerModal';
 import EmptyState from '../common/EmptyState';
 import { useSettings } from '../../context/SettingsContext';
+import { useHealthData } from '../../context/HealthDataContext';
+import { recordAdherence, getDateKey } from '../../utils/medicationAdherence';
+import type { Screening } from '../../types';
 
 interface MedicalEvent {
   id: string;
@@ -42,7 +45,11 @@ interface MedicalTimelineProps {
 
 const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   const { settings } = useSettings();
+  const { profile, updateProfile } = useHealthData();
   const [showMore, setShowMore] = useState(false);
+  const [showBloodPressureModal, setShowBloodPressureModal] = useState(false);
+  const [bloodPressureReading, setBloodPressureReading] = useState('');
+  const [pendingBpEventId, setPendingBpEventId] = useState<string | null>(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState<Date | null>(null);
@@ -243,7 +250,60 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
   ]);
 
   const handleEventAction = (eventId: string, action: 'done' | 'ignore') => {
-    setEvents(events.filter(event => event.id !== eventId));
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+    if (action === 'done' && event.title === 'Blood Pressure Check') {
+      setPendingBpEventId(eventId);
+      setBloodPressureReading('');
+      setShowBloodPressureModal(true);
+      return;
+    }
+    const dateKey = getDateKey(new Date());
+    const adherenceAction = action === 'done' ? 'took' as const : 'skipped' as const;
+    recordAdherence(event.title, dateKey, adherenceAction).catch(() => {});
+    setEvents(events.filter(e => e.id !== eventId));
+  };
+
+  const closeBloodPressureModal = () => {
+    const idToRemove = pendingBpEventId;
+    setPendingBpEventId(null);
+    setShowBloodPressureModal(false);
+    setBloodPressureReading('');
+    if (idToRemove) {
+      const dateKey = getDateKey(new Date());
+      recordAdherence('Blood Pressure Check', dateKey, 'took').catch(() => {});
+      setEvents(prev => prev.filter(e => e.id !== idToRemove));
+    }
+  };
+
+  const saveBloodPressureAndClose = () => {
+    if (!profile || !pendingBpEventId) {
+      closeBloodPressureModal();
+      return;
+    }
+    const reading = bloodPressureReading.trim();
+    let result: 'normal' | 'abnormal' | 'inconclusive' = 'normal';
+    if (reading) {
+      const match = reading.match(/(\d+)\s*\/\s*(\d+)/);
+      if (match) {
+        const systolic = parseInt(match[1], 10);
+        const diastolic = parseInt(match[2], 10);
+        if (systolic > 130 || diastolic > 80) result = 'abnormal';
+      }
+    }
+    const newScreening: Screening = {
+      id: Date.now().toString(),
+      name: 'Blood Pressure',
+      date: new Date(),
+      result,
+      notes: reading ? `${reading} mmHg` : undefined,
+    };
+    const updatedScreenings = [...(profile.screenings || []), newScreening];
+    updateProfile({ ...profile, screenings: updatedScreenings }).then(() => {
+      closeBloodPressureModal();
+    }).catch(() => {
+      closeBloodPressureModal();
+    });
   };
 
   const handleEventPress = (event: MedicalEvent) => {
@@ -592,30 +652,64 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = ({ onEventPress }) => {
                  category === 'nextMonth' ? 'Next Month' : 'Future'}
               </Text>
               {categoryEvents.map((event) => (
-        <View style={styles.eventRow}>
-          <TouchableOpacity
-            style={styles.eventCard}
-            onPress={() => handleEventPress(event)}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
-              <Ionicons name={event.icon} size={20} color={event.iconColor} />
-            </View>
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-              <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
-            </View>
-            {event.status === 'DUE' && (
-              <Text style={styles.dueStatus}>{event.status}</Text>
-            )}
-            <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
+        <Swipeable
+          key={event.id}
+          renderRightActions={() => renderRightActions(event.id)}
+          friction={2}
+          rightThreshold={40}
+        >
+          <View style={styles.eventRow}>
+            <TouchableOpacity
+              style={styles.eventCard}
+              onPress={() => handleEventPress(event)}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: event.iconColor + '20' }]}>
+                <Ionicons name={event.icon} size={20} color={event.iconColor} />
+              </View>
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+                <Text style={styles.eventTime}>{formatEventTimeForDisplay(event.time)}</Text>
+              </View>
+              {event.status === 'DUE' && (
+                <Text style={styles.dueStatus}>{event.status}</Text>
+              )}
+              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+            </TouchableOpacity>
+          </View>
+        </Swipeable>
               ))}
             </View>
             );
           })
       )}
+
+      {/* Blood Pressure Check – Done: optional score then save to screenings */}
+      <Modal visible={showBloodPressureModal} transparent animationType="fade">
+        <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={styles.bpModalCard}>
+            <Text style={styles.bpModalTitle}>Blood pressure?</Text>
+            <Text style={styles.bpModalSubtitle}>Add your reading or skip</Text>
+            <TextInput
+              style={styles.bpModalInput}
+              value={bloodPressureReading}
+              onChangeText={setBloodPressureReading}
+              placeholder="e.g. 120/80"
+              placeholderTextColor="#8E8E93"
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+            />
+            <View style={styles.bpModalButtons}>
+              <TouchableOpacity style={styles.bpModalSkip} onPress={closeBloodPressureModal}>
+                <Text style={styles.bpModalSkipText}>Skip</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.bpModalSave} onPress={saveBloodPressureAndClose}>
+                <Text style={styles.bpModalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Add/Edit Appointment Modal - Modern Bottom Sheet Style */}
       <Modal 
@@ -1147,6 +1241,57 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  bpModalCard: {
+    alignSelf: 'center',
+    width: '90%',
+    maxWidth: 340,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  bpModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  bpModalSubtitle: {
+    color: '#8E8E93',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  bpModalInput: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+    marginBottom: 20,
+  },
+  bpModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'flex-end',
+  },
+  bpModalSkip: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#3A3A3C',
+  },
+  bpModalSkipText: { color: '#FFFFFF', fontWeight: '600', fontSize: 16 },
+  bpModalSave: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#007AFF',
+  },
+  bpModalSaveText: { color: '#FFFFFF', fontWeight: '600', fontSize: 16 },
   modalContent: {
     backgroundColor: '#2C2C2E',
     borderRadius: 16,

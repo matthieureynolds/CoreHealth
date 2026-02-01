@@ -7,9 +7,14 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../../context/HealthDataContext';
 import { useAuth } from '../../context/AuthContext';
+import { RootStackParamList } from '../../types';
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 import BiomarkerModal, {
   BiomarkerInfo,
 } from '../../components/common/BiomarkerModal';
@@ -27,6 +32,7 @@ import TravelHealthSummary from '../../components/dashboard/TravelHealthSummary'
 import MedicalTimeline from '../../components/dashboard/MedicalTimeline';
 
 const DashboardScreen: React.FC = () => {
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const { 
     healthScore, 
@@ -258,13 +264,13 @@ const DashboardScreen: React.FC = () => {
   // Calculate mock values for demo
   console.log('🏥 Dashboard health score:', healthScore);
   
-  // More robust fallback values - force values if health score is null or 0
-  const overallHealthScore = (healthScore?.overall && healthScore.overall > 0) ? healthScore.overall : 82;
+  // More robust fallback values - never show 0; use defaults until real score is loaded
+  const overallHealthScore = Math.max(1, (healthScore?.overall && healthScore.overall > 0) ? healthScore.overall : 82);
   const recoveryScore = (healthScore?.recovery && healthScore.recovery > 0) ? healthScore.recovery : 85;
   const biomarkersScore = (healthScore?.overall && healthScore.overall > 0) ? Math.round(healthScore.overall * 0.9) : 75;
   const lifestyleScore = (healthScore?.activity && healthScore.activity > 0) ? healthScore.activity : 75;
   
-  // Emergency fallback if all values are 0
+  // Emergency fallback so rings never show 0 at start
   const finalRecoveryScore = recoveryScore === 0 ? 85 : recoveryScore;
   const finalBiomarkersScore = biomarkersScore === 0 ? 75 : biomarkersScore;
   const finalLifestyleScore = lifestyleScore === 0 ? 75 : lifestyleScore;
@@ -326,7 +332,7 @@ const DashboardScreen: React.FC = () => {
         <View style={styles.firstComponent}>
           <HeroHealthScore 
             score={overallHealthScore}
-            onPress={() => console.log('Health score pressed')}
+            onPress={() => navigation.navigate('HealthScoreDetail')}
           />
         </View>
 

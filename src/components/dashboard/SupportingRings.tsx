@@ -235,10 +235,12 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
     );
   };
 
-  // Create animated ring component
+  // Create animated ring component – initial fill from metric.value so the ring shows filled from first paint
   const AnimatedRing = ({ metric, animatedValue }: { metric: RingMetric, animatedValue: Animated.Value }) => {
-    const [displayValue, setDisplayValue] = useState(0);
-    const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
+    const valuePct = Math.max(0, Math.min(100, metric.value));
+    const initialOffset = circumference - (valuePct / 100) * circumference;
+    const [displayValue, setDisplayValue] = useState(Math.max(1, metric.value));
+    const [strokeDashoffset, setStrokeDashoffset] = useState(initialOffset);
     
     useEffect(() => {
       const listener = animatedValue.addListener(({ value }) => {
@@ -246,7 +248,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
         setDisplayValue(roundedValue);
         setStrokeDashoffset(circumference - (roundedValue / 100) * circumference);
       });
-      
       return () => {
         animatedValue.removeListener(listener);
       };

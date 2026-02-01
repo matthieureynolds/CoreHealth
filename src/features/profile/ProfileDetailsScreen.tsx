@@ -10,8 +10,11 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Animated,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,6 +26,17 @@ import { ProfileTabParamList } from '../../types';
 
 type ProfileDetailsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
+// Constants for collapsing header
+const COLLAPSE_DISTANCE = 120;
+const AVATAR_LARGE = 110;
+const AVATAR_SMALL = 32;
+const NAME_LARGE = 24;
+const NAME_SMALL = 18;
+const USERNAME_LARGE = 15;
+const USERNAME_SMALL = 12;
+const HEADER_BG_START = 20;
+const HEADER_BG_END = 100;
+
 const ProfileDetailsScreen: React.FC = () => {
   const navigation = useNavigation<ProfileDetailsScreenNavigationProp>();
   const { user, updateUserPhoto } = useAuth();
@@ -30,6 +44,10 @@ const ProfileDetailsScreen: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [tempBirthDate, setTempBirthDate] = useState<Date | null>(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  
+  // Animated value for scroll position
+  const scrollY = useRef(new Animated.Value(0)).current;
   
   // Animated value for gender picker bottom sheet
   const genderPickerTranslateY = useRef(new Animated.Value(1000)).current;
@@ -59,6 +77,16 @@ const ProfileDetailsScreen: React.FC = () => {
     }
   }, [showGenderPicker]);
 
+  // Track scroll position to enable/disable header interactions
+  useEffect(() => {
+    const listenerId = scrollY.addListener(({ value }) => {
+      setIsHeaderVisible(value > COLLAPSE_DISTANCE / 2);
+    });
+    return () => {
+      scrollY.removeListener(listenerId);
+    };
+  }, [scrollY]);
+
   // Picker options
   const genderOptions = [
     { value: 'male', label: 'Male' },
@@ -71,35 +99,224 @@ const ProfileDetailsScreen: React.FC = () => {
     }
   };
 
+  // Interpolations for collapsing header
+  const avatarScale = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [1, AVATAR_SMALL / AVATAR_LARGE],
+    extrapolate: 'clamp',
+  });
+
+  // Calculate the distance the avatar needs to travel
+  // From center of screen to left side of sticky header
+  const headerTopPadding = Platform.OS === 'ios' ? 44 : 20;
+  const headerContentPadding = 8;
+  const stickyHeaderY = headerTopPadding + headerContentPadding + AVATAR_SMALL / 2;
+  const initialAvatarY = 66 + AVATAR_LARGE / 2; // Initial position from top
+  const avatarTranslateY = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [0, stickyHeaderY - initialAvatarY],
+    extrapolate: 'clamp',
+  });
+
+  // Avatar stays centered (no horizontal translation)
+
+  const largeNameOpacity = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const largeNameTranslateY = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [0, -50],
+    extrapolate: 'clamp',
+  });
+
+  const largeUsernameOpacity = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const largeUsernameTranslateY = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [0, -50],
+    extrapolate: 'clamp',
+  });
+
+  const nameSize = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [NAME_LARGE, NAME_SMALL],
+    extrapolate: 'clamp',
+  });
+
+  const usernameSize = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [USERNAME_LARGE, USERNAME_SMALL],
+    extrapolate: 'clamp',
+  });
+
+  const headerBgOpacity = scrollY.interpolate({
+    inputRange: [HEADER_BG_START, HEADER_BG_END],
+    outputRange: [0, 1], // Fully opaque (not transparent)
+    extrapolate: 'clamp',
+  });
+
+  // Blur intensity - using static value, opacity controls visibility
+  // const headerBlurIntensity = scrollY.interpolate({
+  //   inputRange: [HEADER_BG_START, HEADER_BG_END],
+  //   outputRange: [0, 15],
+  //   extrapolate: 'clamp',
+  // });
+
+  const stickyHeaderOpacity = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const stickyHeaderTranslateY = scrollY.interpolate({
+    inputRange: [0, COLLAPSE_DISTANCE],
+    outputRange: [-20, 0],
+    extrapolate: 'clamp',
+  });
+
+  const userName = user?.firstName && user?.surname
+    ? `${user.firstName} ${user.surname}`
+    : user?.displayName || 'User';
+  
+  const userUsername = `@${(user?.username || user?.preferredName || user?.firstName || 'user')
+    .toString()
+    .replace(/\s+/g, '.')
+    .toLowerCase()}`;
+
+  const profileCompletion = calculateProfileCompletion(user, profile);
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Scrollable Profile Header (avatar, name) */}
-      <View style={styles.profileHeader}>
-        <TouchableOpacity onPress={() => navigation.navigate('CommunityLeaderboard' as never)} style={styles.headerCommunityButton}>
-          <FontAwesome5 name="users" size={22} color="#0A84FF" solid />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings' as never)} style={styles.headerSettingsButton}>
-          <Ionicons name="settings-sharp" size={24} color="#0A84FF" />
-        </TouchableOpacity>
-        <ProfilePicturePicker
-          currentPhotoURL={user?.photoURL}
-          onPhotoSelected={handlePhotoSelected}
-          size={110}
-          userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
-          progressPercent={calculateProfileCompletion(user, profile)}
-        />
-        <Text style={[styles.profileName, { marginTop: 2 }]}> 
-          {user?.firstName && user?.surname
-            ? `${user.firstName} ${user.surname}`
-            : user?.displayName || 'User'}
-        </Text>
-        <Text style={[styles.profileEmail, { marginTop: 2 }]}> 
-          {`@${(user?.username || user?.preferredName || user?.firstName || 'user')
-            .toString()
-            .replace(/\s+/g, '.')
-            .toLowerCase()}`}
-        </Text>
-      </View>
+    <View style={styles.container}>
+      {/* Sticky Header */}
+      <Animated.View
+        style={[
+          styles.stickyHeader,
+          {
+            opacity: stickyHeaderOpacity,
+            transform: [{ translateY: stickyHeaderTranslateY }],
+          },
+        ]}
+        pointerEvents={isHeaderVisible ? 'auto' : 'none'}
+      >
+        <Animated.View
+          style={[
+            styles.stickyHeaderBackground,
+            {
+              opacity: headerBgOpacity,
+            },
+          ]}
+        >
+          <BlurView
+            intensity={15}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        <View style={styles.stickyHeaderContent}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CommunityLeaderboard' as never)}
+            style={styles.stickyHeaderCommunityButton}
+          >
+            <FontAwesome5 name="users" size={20} color="#0A84FF" solid />
+          </TouchableOpacity>
+          <View style={styles.stickyHeaderTextContainer}>
+            <Text style={styles.stickyHeaderName} numberOfLines={1}>
+              {userName}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings' as never)}
+            style={styles.stickyHeaderSettingsButton}
+          >
+            <Ionicons name="settings" size={22} color="#0A84FF" />
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      <Animated.ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
+        {/* Scrollable Profile Header (avatar, name) */}
+        <View style={styles.profileHeader}>
+          <TouchableOpacity onPress={() => navigation.navigate('CommunityLeaderboard' as never)} style={styles.headerCommunityButton}>
+            <FontAwesome5 name="users" size={22} color="#0A84FF" solid />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings' as never)} style={styles.headerSettingsButton}>
+            <Ionicons name="settings" size={24} color="#0A84FF" />
+          </TouchableOpacity>
+          
+          {/* Animated Avatar */}
+          <Animated.View
+            style={[
+              styles.animatedAvatarContainer,
+              {
+                transform: [
+                  { scale: avatarScale },
+                  { translateY: avatarTranslateY },
+                ],
+              },
+            ]}
+          >
+            <ProfilePicturePicker
+              currentPhotoURL={user?.photoURL}
+              onPhotoSelected={handlePhotoSelected}
+              size={AVATAR_LARGE}
+              userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
+              progressPercent={profileCompletion}
+            />
+          </Animated.View>
+          
+          {/* Animated Name + green verified tick when profile 100% complete */}
+          <Animated.View
+            style={[
+              {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: 2,
+                opacity: largeNameOpacity,
+                transform: [{ translateY: largeNameTranslateY }],
+              },
+            ]}
+          >
+            <Animated.Text
+              style={[styles.profileName, { fontSize: nameSize }]}
+            >
+              {userName}
+            </Animated.Text>
+            {profileCompletion >= 100 && (
+              <Ionicons name="checkmark-circle" size={22} color="#34C759" style={{ marginLeft: 6 }} />
+            )}
+          </Animated.View>
+          
+          {/* Animated Username */}
+          <Animated.Text
+            style={[
+              styles.profileEmail,
+              {
+                marginTop: 2,
+                opacity: largeUsernameOpacity,
+                fontSize: usernameSize,
+                transform: [{ translateY: largeUsernameTranslateY }],
+              },
+            ]}
+          >
+            {userUsername}
+          </Animated.Text>
+        </View>
       {/* Personal Info Card */}
       <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>PERSONAL INFO</Text>
@@ -189,6 +406,12 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardValue}>Track & Analyze</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
         </TouchableOpacity>
+        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PastAppointments')}>
+          <Ionicons name="calendar-outline" size={22} color="#34C759" style={styles.cardIcon} />
+          <Text style={styles.cardLabel}>Past Appointments</Text>
+          <Text style={styles.cardValue}>{profile?.pastAppointments?.length ? `${profile.pastAppointments.length} appointments` : 'None'}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.cardRow, styles.tallRow50, styles.lastRow]} onPress={() => navigation.navigate('Screenings')}>
           <Ionicons name="search-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Screenings</Text>
@@ -202,11 +425,6 @@ const ProfileDetailsScreen: React.FC = () => {
       {/* Record Management Card */}
       <View style={[styles.card, styles.cardTightBottom]}>
         <Text style={styles.cardHeader}>RECORD MANAGEMENT</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('UploadMedicalRecord')}>
-          <Ionicons name="camera-outline" size={22} color="#FF6B6B" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Upload Medical Record</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
         <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ViewMedicalRecords')}>
           <Ionicons name="folder-outline" size={22} color="#4ECDC4" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>View Medical Records</Text>
@@ -409,7 +627,8 @@ const ProfileDetailsScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </Animated.ScrollView>
+    </View>
   );
 };
 
@@ -418,11 +637,62 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  stickyHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    paddingTop: Platform.OS === 'ios' ? 44 : 20,
+    paddingBottom: 12,
+    minHeight: Platform.OS === 'ios' ? 88 : 64,
+  },
+  stickyHeaderBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000000', // Fully opaque black
+  },
+  stickyHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    position: 'relative',
+  },
+  stickyHeaderCommunityButton: {
+    marginRight: 12,
+    padding: 4,
+  },
+  stickyHeaderSettingsButton: {
+    position: 'absolute',
+    right: 16,
+    padding: 4,
+  },
+  stickyHeaderTextContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stickyHeaderName: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  stickyHeaderUsername: {
+    color: '#aaa',
+    fontSize: 12,
+  },
   profileHeader: {
     alignItems: 'center',
     backgroundColor: '#000000',
     paddingTop: 66,
-    paddingBottom: 18,
+    paddingBottom: 8,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginBottom: 0,
@@ -431,6 +701,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
+  },
+  animatedAvatarContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   headerSettingsButton: {
     position: 'absolute',
@@ -475,7 +750,7 @@ const styles = StyleSheet.create({
   profileEmail: {
     color: '#aaa',
     fontSize: 15,
-    marginBottom: 20,
+    marginBottom: 8,
   },
   editProfileButton: {
     flexDirection: 'row',
@@ -496,7 +771,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#181818',
     borderRadius: 20,
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 12,
     marginBottom: 18,
     paddingVertical: 12,
     paddingHorizontal: 16,

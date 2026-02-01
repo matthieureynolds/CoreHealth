@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import IOSDatePicker from '../../components/IOSDatePicker';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useHealthData } from '../../context/HealthDataContext';
 import { Medication, AttachedFile } from '../../types';
 import * as DocumentPicker from 'expo-document-picker';
 import FileViewerModal from '../../components/common/FileViewerModal';
+import { getAdherence, getLastNDays, type AdherenceData } from '../../utils/medicationAdherence';
 
 const MedicationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -40,6 +41,18 @@ const MedicationsScreen: React.FC = () => {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [dateModeStart, setDateModeStart] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [dateModeEnd, setDateModeEnd] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [adherenceData, setAdherenceData] = useState<AdherenceData>({});
+  const [expandedAdherenceMed, setExpandedAdherenceMed] = useState<string | null>(null);
+
+  const loadAdherence = useCallback(async () => {
+    const data = await getAdherence();
+    setAdherenceData(data);
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadAdherence(); }, [loadAdherence]));
+
+  const TIMELINE_MEDICATION_NAMES = ['Vitamin D Supplement'];
+  const adherenceMedicationNames = [...TIMELINE_MEDICATION_NAMES, ...Object.keys(adherenceData)].filter((name, i, arr) => arr.indexOf(name) === i);
 
   const commonMedications = [
     'Aspirin', 'Ibuprofen', 'Acetaminophen', 'Omeprazole', 'Lisinopril',
@@ -213,10 +226,57 @@ const MedicationsScreen: React.FC = () => {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
-        {/* Medications List */}
+        {/* Adherence – tap a medication to see which days you took vs skipped (no description) */}
+        <View style={styles.adherenceSection}>
+          <Text style={styles.adherenceSectionTitle}>Adherence</Text>
+          {adherenceMedicationNames.map((medName) => {
+            const byDate = adherenceData[medName] ?? {};
+            const last14 = getLastNDays(14);
+            const isExpanded = expandedAdherenceMed === medName;
+            return (
+              <View key={medName} style={styles.adherenceCard}>
+                <TouchableOpacity
+                  style={styles.adherenceCardHeader}
+                  onPress={() => setExpandedAdherenceMed(isExpanded ? null : medName)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.adherenceCardHeaderLeft}>
+                    <Text style={styles.adherenceMedName}>{medName}</Text>
+                    <Text style={styles.adherenceCardSubtitle}>Tap to see days</Text>
+                  </View>
+                  <Ionicons name={isExpanded ? 'chevron-down' : 'chevron-forward'} size={20} color="#8E8E93" />
+                </TouchableOpacity>
+                {isExpanded && (
+                  <View style={styles.adherenceExpandedContent}>
+                    <View style={styles.adherenceDaysRow}>
+                      {last14.map((dateKey) => {
+                        const action = byDate[dateKey];
+                        const isTook = action === 'took';
+                        const isSkipped = action === 'skipped';
+                        const label = dateKey.slice(-2);
+                        return (
+                          <View key={dateKey} style={styles.adherenceDayWrap}>
+                            <View style={[styles.adherenceDay, isTook && styles.adherenceDayTook, isSkipped && styles.adherenceDaySkipped]}>
+                              {isTook && <Ionicons name="checkmark" size={14} color="#fff" />}
+                              {isSkipped && <Ionicons name="close" size={14} color="#fff" />}
+                            </View>
+                            <Text style={styles.adherenceDayLabel}>{label}</Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                    <Text style={styles.adherenceLegend}>Last 14 days • green = took, orange = skipped</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
         <View style={styles.content}>
           {profile?.medications?.length ? (
-            profile.medications.map((medication) => (
+            <>
+              {(profile?.medications ?? []).map((medication) => (
               <View key={medication.id} style={styles.medicationCard}>
                 <View style={styles.medicationHeader}>
                   <View style={styles.medicationInfo}>
@@ -255,7 +315,8 @@ const MedicationsScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-            ))
+            ))}
+            </>
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="medical-outline" size={64} color="#666" />
@@ -534,6 +595,63 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  adherenceSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  adherenceSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 12,
+  },
+  adherenceCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+  },
+  adherenceCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  adherenceCardHeaderLeft: { flex: 1 },
+  adherenceMedName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  adherenceCardSubtitle: { fontSize: 12, color: '#8E8E93' },
+  adherenceExpandedContent: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  adherenceDaysRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  adherenceDayWrap: { alignItems: 'center', width: 28 },
+  adherenceDay: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#3A3A3C',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  adherenceDayTook: { backgroundColor: '#34C759' },
+  adherenceDaySkipped: { backgroundColor: '#FF9500' },
+  adherenceDayLabel: { fontSize: 10, color: '#8E8E93' },
+  adherenceLegend: { fontSize: 11, color: '#8E8E93' },
   medicationCard: {
     backgroundColor: '#1C1C1E',
     borderRadius: 16,

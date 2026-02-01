@@ -58,6 +58,17 @@ export interface MedicalRecord {
   tags?: string[];
 }
 
+export interface PastAppointment {
+  id: string;
+  title: string;
+  doctor?: string;
+  date: Date;
+  location?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  notes?: string;
+}
+
 export interface HealthID {
   id: string;
   country: string;
@@ -91,6 +102,7 @@ export interface UserProfile {
   healthIDs?: HealthID[];
   doctors?: Doctor[];
   medicalRecords?: MedicalRecord[];
+  pastAppointments?: PastAppointment[];
 }
 
 // Family Link: RelationshipLink, HereditarySignal (encrypted delivery), DerivedRiskFeature
@@ -378,7 +390,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   EnvironmentalMetric: {
-    metricId: 'air_quality' | 'pollen' | 'water_quality';
+    metricId: 'air_quality' | 'pollen' | 'water_quality' | 'uv_index' | 'food_safety' | 'altitude' | 'outbreaks';
     label: string;
     value: string;
     status: 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous';
@@ -393,6 +405,7 @@ export type RootStackParamList = {
     icon: string;
     subtitle?: string;
   };
+  HealthScoreDetail: undefined;
 };
 
 export type AuthStackParamList = {
@@ -438,6 +451,7 @@ export type ProfileTabParamList = {
   Screenings: undefined;
   UploadMedicalRecord: undefined;
   ViewMedicalRecords: undefined;
+  PastAppointments: undefined;
   GenerateHealthReport: undefined;
   ShareWithDoctor: undefined;
   MedicalHistory: undefined;

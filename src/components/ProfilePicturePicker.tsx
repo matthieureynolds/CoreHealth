@@ -21,6 +21,7 @@ interface ProfilePicturePickerProps {
   size?: number;
   userInitial?: string; // Add user initial for fallback
   progressPercent?: number; // 0-100 to render circular progress
+  showProgressLabel?: boolean; // Whether to show the progress label below avatar
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -31,13 +32,15 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
   size = 120,
   userInitial,
   progressPercent = 0,
+  showProgressLabel = true,
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Layout values for ring gap
-  const ringStrokeWidth = Math.max(4, Math.round(size * 0.06));
-  const ringGap = 1; // minimal visual gap
-  const inset = PixelRatio.roundToNearestPixel(ringStrokeWidth / 2 + ringGap);
+  const isComplete = typeof progressPercent === 'number' && progressPercent >= 100;
+  // When complete: no ring, avatar full size. Otherwise: ring gap and inset.
+  const ringStrokeWidth = Math.max(3, Math.round(size * 0.04));
+  const ringGap = 1;
+  const inset = isComplete ? 0 : PixelRatio.roundToNearestPixel(ringStrokeWidth / 2 + ringGap);
   const innerSize = PixelRatio.roundToNearestPixel(size - inset * 2);
   const innerRadius = innerSize / 2;
 
@@ -165,16 +168,32 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
           )}
         </View>
 
-        {/* Progress ring overlay */}
-        <ProgressRing size={size} percent={progressPercent} />
+        {/* Progress ring overlay - hidden when profile 100% complete */}
+        {!isComplete && (
+          <ProgressRing size={size} percent={progressPercent} strokeWidth={ringStrokeWidth} />
+        )}
       </TouchableOpacity>
 
-      {/* Progress label below the avatar */}
-      <View style={{ alignItems: 'center', marginTop: 6, marginBottom: 14 }}>
-        <Text style={{ color: '#A1A1AA', fontSize: 12, fontWeight: '700', letterSpacing: 0.4 }}>
-          {`${Math.max(0, Math.min(100, typeof progressPercent === 'number' ? progressPercent : 0))}% COMPLETE`}
-        </Text>
-      </View>
+      {/* Progress label below the avatar - hidden when profile 100% complete */}
+      {showProgressLabel && !isComplete && (
+        <View style={{ alignItems: 'center', marginTop: 6, marginBottom: 10 }}>
+          <View style={{
+            backgroundColor: '#FFFFFF',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.08,
+            shadowRadius: 2,
+            elevation: 2,
+          }}>
+            <Text style={{ color: '#000000', fontSize: 10, fontWeight: '700', letterSpacing: 0.3 }}>
+              {`${Math.max(0, Math.min(100, typeof progressPercent === 'number' ? progressPercent : 0))}% COMPLETE`}
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Options Modal */}
       <Modal
@@ -217,9 +236,9 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
   );
 };
 
-const ProgressRing = ({ size, percent }: { size: number; percent: number }) => {
-  const strokeWidth = Math.max(4, Math.round(size * 0.06));
-  const radius = size / 2 - strokeWidth / 2; // ring hugs the container
+const ProgressRing = ({ size, percent, strokeWidth: strokeWidthProp }: { size: number; percent: number; strokeWidth?: number }) => {
+  const strokeWidth = strokeWidthProp ?? Math.max(3, Math.round(size * 0.04)); // Thin ring
+  const radius = size / 2 - strokeWidth / 2;
   const center = size / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.max(0, Math.min(100, isNaN(percent) ? 0 : percent));
@@ -229,19 +248,21 @@ const ProgressRing = ({ size, percent }: { size: number; percent: number }) => {
   return (
     <View style={{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center', zIndex: 1, pointerEvents: 'none' as any }}>
       <Svg width={size} height={size}>
+        {/* White background ring */}
         <Circle
           cx={center}
           cy={center}
           r={radius}
-          stroke="#2C2C2E"
+          stroke="#FFFFFF"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
+        {/* Progress ring - using teal color (we'll add gradient after restart) */}
         <Circle
           cx={center}
           cy={center}
           r={radius}
-          stroke="#0A84FF"
+          stroke="#4ECDC4"
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={`${circumference} ${circumference}`}

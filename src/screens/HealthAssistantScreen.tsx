@@ -92,11 +92,18 @@ const HealthAssistantScreen: React.FC = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState<string>('default');
+  const [currentChatHasMemory, setCurrentChatHasMemory] = useState(true); // Track if current chat has memory
   // Persisted history loader state
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [persistedHistory, setPersistedHistory] = useState<ChatMessage[] | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  
+  // Ash animation for no-memory chat when switching
+  const [showMessagesAshAnimation, setShowMessagesAshAnimation] = useState(false);
+  const messagesFadeAnim = useRef(new Animated.Value(1)).current;
+  const messagesContainerRef = useRef<View>(null);
+  const [messagesContainerLayout, setMessagesContainerLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   // Audio recording state and refs
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -1109,12 +1116,34 @@ const HealthAssistantScreen: React.FC = () => {
 
   // Chat management functions
   const startNewChat = async (withMemory: boolean) => {
+    // If current chat is no-memory and has messages, show ash animation
+    if (!currentChatHasMemory && messages.length > 0) {
+      setShowMessagesAshAnimation(true);
+      // Fade out messages - slower, more dramatic
+      Animated.timing(messagesFadeAnim, {
+        toValue: 0,
+        duration: 1200, // Increased from 600ms
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+      
+      // Wait for ash animation to complete before switching (ash takes ~1500ms)
+      setTimeout(async () => {
+        await proceedWithNewChat(withMemory);
+      }, 1600); // Wait for particles to fully animate and disappear (1400ms + 200ms delay)
+    } else {
+      // No animation needed, proceed directly
+      await proceedWithNewChat(withMemory);
+    }
+  };
+
+  const proceedWithNewChat = async (withMemory: boolean) => {
     const newChatId = `chat_${Date.now()}`;
     const chatTitle = `Chat ${chatHistory.length + 1}`;
     
-    // Save current conversation as a session if it has messages
+    // Save current conversation as a session if it has messages and has memory
     try {
-      if (messages.length > 0) {
+      if (messages.length > 0 && currentChatHasMemory) {
         const currentChatTitle = (messages.find(m => m.role === 'user')?.content || messages[0]?.content || 'Chat')
           .toString()
           .slice(0, 30);
@@ -1133,7 +1162,12 @@ const HealthAssistantScreen: React.FC = () => {
       console.warn('Failed to save current chat session:', e);
     }
     
+    // Reset animations
+    setShowMessagesAshAnimation(false);
+    messagesFadeAnim.setValue(1);
+    
     setCurrentChatId(newChatId);
+    setCurrentChatHasMemory(withMemory); // Update memory state
     setMessages([]);
     setShowNewChatModal(false);
     
@@ -1153,6 +1187,7 @@ const HealthAssistantScreen: React.FC = () => {
     // For now, we'll just switch to a new chat
     // In a real app, you'd load the actual chat messages from storage
     setCurrentChatId(chatId);
+    setCurrentChatHasMemory(true); // Loaded chats have memory (they're saved sessions)
     setMessages([]);
     setShowChatHistory(false);
     
@@ -1169,12 +1204,110 @@ const HealthAssistantScreen: React.FC = () => {
     setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
   };
 
-  // Swipeable Chat Item Component
+  // Ash Particle Animation Component
+  const AshParticles = ({ visible, onComplete }: { visible: boolean; onComplete: () => void }) => {
+    const particlesRef = useRef<Animated.Value[]>([]);
+    const [particles, setParticles] = useState<Array<{ id: number; startX: number; startY: number; randomX: number; randomY: number; delay: number }>>([]);
+
+    useEffect(() => {
+      if (visible) {
+        // Generate 30 particles with random positions and movements
+        const newParticles = Array.from({ length: 30 }, (_, i) => ({
+          id: i,
+          startX: Math.random() * 180 - 90, // Random X offset from center (-90 to 90)
+          startY: Math.random() * 30 - 15, // Random Y offset from center (-15 to 15)
+          randomX: (Math.random() - 0.5) * 180, // Random horizontal drift
+          randomY: -140 - Math.random() * 100, // Upward movement with variation
+          delay: Math.random() * 200, // Staggered start - increased for more spread
+        }));
+        setParticles(newParticles);
+        particlesRef.current = newParticles.map(() => new Animated.Value(0));
+
+        // Animate particles - longer duration for smoother effect
+        const animations = newParticles.map((particle, index) => {
+          return Animated.parallel([
+            Animated.timing(particlesRef.current[index], {
+              toValue: 1,
+              duration: 1400 + particle.delay, // Increased from 1000ms
+              delay: particle.delay,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }),
+          ]);
+        });
+
+        Animated.parallel(animations).start(() => {
+          onComplete();
+        });
+      } else {
+        particlesRef.current = [];
+        setParticles([]);
+      }
+    }, [visible]);
+
+    if (!visible || particles.length === 0) return null;
+
+    return (
+      <View style={styles.ashContainer} pointerEvents="none">
+        {particles.map((particle, index) => {
+          const opacity = particlesRef.current[index]?.interpolate({
+            inputRange: [0, 0.3, 1],
+            outputRange: [1, 0.8, 0],
+          });
+          const translateX = particlesRef.current[index]?.interpolate({
+            inputRange: [0, 1],
+            outputRange: [particle.startX, particle.startX + particle.randomX],
+          });
+          const translateY = particlesRef.current[index]?.interpolate({
+            inputRange: [0, 1],
+            outputRange: [particle.startY, particle.startY + particle.randomY],
+          });
+          const scale = particlesRef.current[index]?.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [1, 0.8, 0.3],
+          });
+
+          return (
+            <Animated.View
+              key={particle.id}
+              style={[
+                styles.ashParticle,
+                {
+                  opacity,
+                  transform: [{ translateX }, { translateY }, { scale }],
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
+    );
+  };
+
+  // Swipeable Chat Item Component with Ash Animation
   const SwipeableChatItem = ({ chat, onPress, onDelete }: { 
     chat: {id: string, title: string, timestamp: Date}, 
     onPress: () => void, 
     onDelete: () => void 
   }) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const itemRef = useRef<View>(null);
+    const [itemLayout, setItemLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+
+    const handleDelete = () => {
+      setIsDeleting(true);
+      // Fade out the item
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 600,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start(() => {
+        onDelete();
+      });
+    };
+
     const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
       const scale = dragX.interpolate({
         inputRange: [-100, 0],
@@ -1183,7 +1316,7 @@ const HealthAssistantScreen: React.FC = () => {
       });
 
       return (
-        <RectButton style={styles.swipeableDeleteButton} onPress={onDelete}>
+        <RectButton style={styles.swipeableDeleteButton} onPress={handleDelete}>
           <Animated.View style={[styles.swipeableDeleteContent, { transform: [{ scale }] }]}>
             <Ionicons name="trash" size={24} color="#fff" />
             <Text style={styles.swipeableDeleteText}>Delete</Text>
@@ -1193,23 +1326,50 @@ const HealthAssistantScreen: React.FC = () => {
     };
 
     return (
-      <Swipeable
-        renderRightActions={renderRightActions}
-        rightThreshold={40}
+      <View
+        ref={itemRef}
+        onLayout={(event) => {
+          const { x, y, width, height } = event.nativeEvent.layout;
+          setItemLayout({ x, y, width, height });
+        }}
+        style={{ position: 'relative' }}
       >
-        <TouchableOpacity 
-          style={styles.chatHistoryItem}
-          onPress={onPress}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.chatHistoryTitle}>{chat.title}</Text>
-            <Text style={styles.chatHistoryTimestamp}>
-              {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: settings?.general?.timeFormat === '12h'})}
-            </Text>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <Swipeable
+            renderRightActions={renderRightActions}
+            rightThreshold={40}
+          >
+            <TouchableOpacity 
+              style={styles.chatHistoryItem}
+              onPress={onPress}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.chatHistoryTitle}>{chat.title}</Text>
+                <Text style={styles.chatHistoryTimestamp}>
+                  {chat.timestamp.toLocaleDateString()} {chat.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: settings?.general?.timeFormat === '12h'})}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+            </TouchableOpacity>
+          </Swipeable>
+        </Animated.View>
+        {isDeleting && (
+          <View
+            style={[
+              styles.ashOverlay,
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: itemLayout.width || '100%',
+                height: itemLayout.height || 64,
+              },
+            ]}
+          >
+            <AshParticles visible={isDeleting} onComplete={() => {}} />
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-        </TouchableOpacity>
-      </Swipeable>
+        )}
+      </View>
     );
   };
 
@@ -1373,39 +1533,98 @@ const HealthAssistantScreen: React.FC = () => {
                     <ScrollView>
                       {chatSessions
                         .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
-                        .map(session => (
-                          <Swipeable
-                            key={session.id}
-                            renderRightActions={(progress, dragX) => (
-                              <RectButton style={styles.swipeableDeleteButton} onPress={async () => {
+                        .map(session => {
+                          const SessionItemWithAsh = () => {
+                            const [isDeleting, setIsDeleting] = useState(false);
+                            const fadeAnim = useRef(new Animated.Value(1)).current;
+                            const itemRef = useRef<View>(null);
+                            const [itemLayout, setItemLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+
+                            const handleDelete = async () => {
+                              setIsDeleting(true);
+                              // Fade out the item
+                              Animated.timing(fadeAnim, {
+                                toValue: 0,
+                                duration: 600,
+                                easing: Easing.out(Easing.ease),
+                                useNativeDriver: true,
+                              }).start(async () => {
                                 await HealthAssistantService.deleteChatSession(session.id);
                                 const sessions = await HealthAssistantService.loadAllChatSessions();
                                 setChatSessions(sessions);
-                              }}>
-                                <Animated.View style={styles.swipeableDeleteContent}>
-                                  <Ionicons name="trash" size={24} color="#fff" />
-                                  <Text style={styles.swipeableDeleteText}>Delete</Text>
+                              });
+                            };
+
+                            const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+                              const scale = dragX.interpolate({
+                                inputRange: [-100, 0],
+                                outputRange: [1, 0],
+                                extrapolate: 'clamp',
+                              });
+
+                              return (
+                                <RectButton style={styles.swipeableDeleteButton} onPress={handleDelete}>
+                                  <Animated.View style={[styles.swipeableDeleteContent, { transform: [{ scale }] }]}>
+                                    <Ionicons name="trash" size={24} color="#fff" />
+                                    <Text style={styles.swipeableDeleteText}>Delete</Text>
+                                  </Animated.View>
+                                </RectButton>
+                              );
+                            };
+
+                            return (
+                              <View
+                                ref={itemRef}
+                                onLayout={(event) => {
+                                  const { x, y, width, height } = event.nativeEvent.layout;
+                                  setItemLayout({ x, y, width, height });
+                                }}
+                                style={{ position: 'relative' }}
+                              >
+                                <Animated.View style={{ opacity: fadeAnim }}>
+                                  <Swipeable
+                                    renderRightActions={renderRightActions}
+                                    rightThreshold={40}
+                                  >
+                                    <TouchableOpacity 
+                                      style={styles.chatHistoryItem}
+                                      onPress={async () => {
+                                        setCurrentChatId(session.id);
+                                        setCurrentChatHasMemory(true); // Loaded sessions have memory
+                                        setMessages(session.messages || []);
+                                        await HealthAssistantService.saveConversationHistory(session.messages || []);
+                                        setShowChatHistory(false);
+                                      }}
+                                    >
+                                      <View style={{ flex: 1 }}>
+                                        <Text style={styles.chatHistoryTitle}>{session.title || 'Chat'}</Text>
+                                      </View>
+                                      <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+                                    </TouchableOpacity>
+                                  </Swipeable>
                                 </Animated.View>
-                              </RectButton>
-                            )}
-                            rightThreshold={40}
-                          >
-                            <TouchableOpacity 
-                              style={styles.chatHistoryItem}
-                              onPress={async () => {
-                                setCurrentChatId(session.id);
-                                setMessages(session.messages || []);
-                                await HealthAssistantService.saveConversationHistory(session.messages || []);
-                                setShowChatHistory(false);
-                              }}
-                            >
-                              <View style={{ flex: 1 }}>
-                                <Text style={styles.chatHistoryTitle}>{session.title || 'Chat'}</Text>
+                                {isDeleting && (
+                                  <View
+                                    style={[
+                                      styles.ashOverlay,
+                                      {
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: itemLayout.width || '100%',
+                                        height: itemLayout.height || 64,
+                                      },
+                                    ]}
+                                  >
+                                    <AshParticles visible={isDeleting} onComplete={() => {}} />
+                                  </View>
+                                )}
                               </View>
-                              <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
-                            </TouchableOpacity>
-                          </Swipeable>
-                  ))}
+                            );
+                          };
+
+                          return <SessionItemWithAsh key={session.id} />;
+                        })}
                 </ScrollView>
               ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -1616,39 +1835,66 @@ const HealthAssistantScreen: React.FC = () => {
           }} />
         )}
         
-        {/* Chat Messages (ScrollView) */}
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.messagesContainer}
-          contentContainerStyle={styles.messagesContent}
-          onContentSizeChange={() => {
-            if (autoScrollEnabledRef.current) {
-              scrollViewRef.current?.scrollToEnd({ animated: true });
-            }
+        {/* Chat Messages (ScrollView) with Ash Animation */}
+        <View
+          ref={messagesContainerRef}
+          onLayout={(event) => {
+            const { x, y, width, height } = event.nativeEvent.layout;
+            setMessagesContainerLayout({ x, y, width, height });
           }}
-          onScrollBeginDrag={() => { autoScrollEnabledRef.current = false; }}
-          onScrollEndDrag={() => { /* user can re-enable by tapping send/new msg */ }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          style={{ flex: 1, position: 'relative' }}
         >
-          <ChatList 
-            messages={messages
-              .filter(msg => msg && msg.id && msg.content && msg.role) // Filter out invalid messages
-              .map(msg => ({
-                id: msg.id,
-                clientId: msg.id,
-                text: msg.content,
-                role: msg.role,
-                status: (msg as any).status || 'sent',
-                timestamp: msg.timestamp,
-              }))}
-            onMessageLayout={(clientId, rect) => {
-              // Handle message layout for animation
-              sendAnim.setEndRect(clientId, rect);
-            }}
-            streamingId={streamingMessageId || undefined}
-          />
-        </ScrollView>
+          <Animated.View style={{ flex: 1, opacity: messagesFadeAnim }}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.messagesContainer}
+              contentContainerStyle={styles.messagesContent}
+              onContentSizeChange={() => {
+                if (autoScrollEnabledRef.current) {
+                  scrollViewRef.current?.scrollToEnd({ animated: true });
+                }
+              }}
+              onScrollBeginDrag={() => { autoScrollEnabledRef.current = false; }}
+              onScrollEndDrag={() => { /* user can re-enable by tapping send/new msg */ }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <ChatList 
+                messages={messages
+                  .filter(msg => msg && msg.id && msg.content && msg.role) // Filter out invalid messages
+                  .map(msg => ({
+                    id: msg.id,
+                    clientId: msg.id,
+                    text: msg.content,
+                    role: msg.role,
+                    status: (msg as any).status || 'sent',
+                    timestamp: msg.timestamp,
+                  }))}
+                onMessageLayout={(clientId, rect) => {
+                  // Handle message layout for animation
+                  sendAnim.setEndRect(clientId, rect);
+                }}
+                streamingId={streamingMessageId || undefined}
+              />
+            </ScrollView>
+          </Animated.View>
+          {showMessagesAshAnimation && (
+            <View
+              style={[
+                styles.ashOverlay,
+                {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: messagesContainerLayout.width || '100%',
+                  height: messagesContainerLayout.height || '100%',
+                },
+              ]}
+            >
+              <AshParticles visible={showMessagesAshAnimation} onComplete={() => {}} />
+            </View>
+          )}
+        </View>
           
           {/* Loading Indicator */}
           {isLoading && (
@@ -2424,6 +2670,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginTop: 4,
+  },
+  ashContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 0,
+    height: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ashOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'visible',
+    zIndex: 1000,
+  },
+  ashParticle: {
+    position: 'absolute',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#6E6E73',
+    shadowColor: '#6E6E73',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 3,
   },
   // New Chat Modal Bottom Sheet Styles
   newChatModalOverlay: {

@@ -124,27 +124,6 @@ const CommunityLeaderboardScreen: React.FC = () => {
         ],
       },
       {
-        id: 'rl2',
-        name: 'Women 30–45 · Hormone Reset',
-        type: 'public',
-        commissioner: 'Community',
-        inviteCode: 'W30-45',
-        teams: [
-          { id: 'w1', name: 'Ava', points: 510, wins: 5, losses: 0 },
-          { id: 'w2', name: 'Mia', points: 488, wins: 4, losses: 1 },
-          { id: 'w3', name: 'Isla', points: 462, wins: 3, losses: 2 },
-          { id: 'w4', name: 'Emma', points: 439, wins: 2, losses: 3 },
-        ],
-        rules: [
-          'Scoring: Balanced across sleep, activity, recovery',
-          'Supportive leaderboard (consistency + improvement)',
-        ],
-        schedule: [
-          { id: 'w11', week: 5, homeTeamId: 'w1', awayTeamId: 'w4', start: '2025-10-27T09:00:00Z' },
-          { id: 'w12', week: 5, homeTeamId: 'w2', awayTeamId: 'w3', start: '2025-10-27T09:00:00Z' },
-        ],
-      },
-      {
         id: 'rl3',
         name: 'Football · Recovery Circle',
         type: 'public',
@@ -190,7 +169,6 @@ const CommunityLeaderboardScreen: React.FC = () => {
 
   const recommendedLeagues: LeagueSummary[] = [
     { id: 'rl1', name: 'UK · Men 20–30', members: 128, type: 'public' },
-    { id: 'rl2', name: 'Women 30–45 · Hormone Reset', members: 214, type: 'public' },
     { id: 'rl3', name: 'Football · Recovery Circle', members: 96, type: 'public' },
     { id: 'rl4', name: 'Entrepreneurs Anti‑Stress', members: 173, type: 'public' },
   ];
@@ -255,10 +233,20 @@ const CommunityLeaderboardScreen: React.FC = () => {
     []
   );
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.headerTitle}>Community</Text>
+  // User's worldwide rank when outside top 5 (e.g. from backend)
+  const myWorldwideRank = 500;
+  const myWorldwideScore = 78;
 
+  return (
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => navigation?.goBack?.()} style={styles.headerBackBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Community</Text>
+        <View style={styles.headerBackSpacer} />
+      </View>
+      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
       {/* Your Circles - list */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeaderLabel}>YOUR CIRCLES</Text>
@@ -346,26 +334,22 @@ const CommunityLeaderboardScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Country Leaderboard */}
+      {/* Country Leaderboard - no country choice, fixed to user's country */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeaderLabel}>COUNTRY LEADERBOARD</Text>
-        <TouchableOpacity style={styles.rankFilterBtn} onPress={() => Alert.alert('Choose Country', 'Country selector coming soon')}>
-          <Text style={styles.rankFilterText}>My Country: {myCountry}</Text>
-          <Ionicons name="chevron-down" size={14} color="#9AA3AF" />
-        </TouchableOpacity>
       </View>
       <View style={styles.card}>
         {countryAverages.map((c, idx) => (
-          <TouchableOpacity key={c.name} style={styles.lbRow} onPress={() => setMyCountry(c.name)}>
+          <View key={c.name} style={styles.lbRow}>
             <Text style={styles.lbRank}>#{idx + 1}</Text>
             <Text style={styles.lbFlag}>{c.flag}</Text>
             <Text style={[styles.lbName, myCountry === c.name && styles.lbNameYou]}>{c.name}{myCountry === c.name ? ' · You' : ''}</Text>
             <Text style={styles.lbScore}>{c.score.toFixed(1)}</Text>
-          </TouchableOpacity>
+          </View>
         ))}
       </View>
 
-      {/* Worldwide Leaderboard */}
+      {/* Worldwide Leaderboard - top 5 + your rank (e.g. 500th in the world) */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeaderLabel}>WORLDWIDE LEADERBOARD</Text>
       </View>
@@ -378,8 +362,15 @@ const CommunityLeaderboardScreen: React.FC = () => {
             <Text style={styles.lbScore}>{p.score}</Text>
           </View>
         ))}
+        <View style={[styles.lbRow, styles.lbRowYou]}>
+          <Text style={styles.lbRank}>#{myWorldwideRank}</Text>
+          <Ionicons name="person" size={14} color={colors.cta} style={{ marginRight: 8 }} />
+          <Text style={styles.lbNameYou}>You</Text>
+          <Text style={styles.lbScore}>{myWorldwideScore}</Text>
+        </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -479,7 +470,11 @@ const AnimatedTeamRow: React.FC<{ circle: { name: string; members: number; rank:
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  headerTitle: { color: colors.textPrimary, fontSize: 24, fontWeight: '700', paddingHorizontal: 20, paddingTop: 56 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingHorizontal: 20, paddingBottom: 4, backgroundColor: colors.bg },
+  scrollContent: { flex: 1 },
+  headerBackBtn: { padding: 4 },
+  headerBackSpacer: { width: 32, height: 32 },
+  headerTitle: { flex: 1, color: colors.textPrimary, fontSize: 24, fontWeight: '700', textAlign: 'center' },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 14, marginBottom: 8 },
   sectionHeaderLabel: { color: colors.textSecondary, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   rankFilterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.card, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.divider },
@@ -575,11 +570,12 @@ const styles = StyleSheet.create({
   joinBtnText: { color: colors.ctaText, fontWeight: '700' },
   flagRow: { color: colors.textPrimary, fontSize: 16, marginVertical: 2 },
   lbRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  lbRank: { color: colors.textSecondary, width: 28 },
+  lbRowYou: { borderTopWidth: 1, borderTopColor: colors.divider, marginTop: 4 },
+  lbRank: { color: colors.textSecondary, width: 44, fontSize: 15 },
   lbFlag: { width: 24, textAlign: 'center' },
   lbName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', flex: 1 },
-  lbNameYou: { color: colors.cta },
-  lbScore: { color: '#FFD60A', fontWeight: '800', width: 60, textAlign: 'right' },
+  lbNameYou: { color: colors.cta, fontSize: 15, fontWeight: '600', flex: 1 },
+  lbScore: { color: '#FFD60A', fontWeight: '800', width: 60, textAlign: 'right', fontSize: 15 },
 });
 
 export default CommunityLeaderboardScreen;

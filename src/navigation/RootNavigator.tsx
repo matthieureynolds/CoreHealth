@@ -14,6 +14,7 @@ import MainNavigator from './MainNavigator';
 import LoadingScreen from '../components/common/LoadingScreen';
 import EnvironmentalMetricScreen from '../screens/EnvironmentalMetricScreen';
 import ScoreDetailScreen from '../screens/ScoreDetailScreen';
+import HealthScoreDetailScreen from '../screens/HealthScoreDetailScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -31,6 +32,7 @@ const RootNavigator: React.FC = () => {
           <Stack.Screen name="Main" component={MainNavigator} />
           <Stack.Screen name="EnvironmentalMetric" component={EnvironmentalMetricScreen} />
           <Stack.Screen name="ScoreDetail" component={ScoreDetailScreen} />
+          <Stack.Screen name="HealthScoreDetail" component={HealthScoreDetailScreen} />
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />

@@ -5,8 +5,6 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  Modal,
-  ScrollView,
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,7 +21,6 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
   score, 
   onPress 
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const animatedScore = useRef(new Animated.Value(0)).current;
   const animatedProgress = useRef(new Animated.Value(0)).current;
@@ -56,14 +53,18 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
     }
   };
 
+  // Never show 0: use a safe number so we never set animated value to 0 or NaN (which can show as 0)
+  const displayScore = Math.max(1, Math.min(100, Number(score) || 82));
+
   // Animation effect - only run once when component mounts, with delay for supporting rings
   useEffect(() => {
+    const safe = displayScore; // always 1–100, never NaN
     if (!hasAnimated) {
       // Wait for supporting rings to finish (1200ms) then start main score animation
       const timer = setTimeout(() => {
-        // Reset animations
-        animatedScore.setValue(0);
-        animatedProgress.setValue(0);
+        // Start from 1 so we never show 0 at the start
+        animatedScore.setValue(1);
+        animatedProgress.setValue(1 / 100);
 
         // Custom animation with dramatic slowing effect
         const duration = 3000;
@@ -76,21 +77,21 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
           // Apply custom easing that slows down dramatically near the end
           const easedProgress = easeOutTick(progress);
           
-          // Update score
-          const currentScore = Math.floor(easedProgress * score);
+          // Update score (never show 0: interpolate from 1 to safe)
+          const currentScore = Math.max(1, Math.floor(1 + easedProgress * (safe - 1)));
           animatedScore.setValue(currentScore);
           
           // Update progress ring
-          const currentProgress = easedProgress * (Math.max(0, Math.min(score, 100)) / 100);
-          animatedProgress.setValue(currentProgress);
+          const currentProgress = (1 + easedProgress * (safe - 1)) / 100;
+          animatedProgress.setValue(Math.max(0.01, Math.min(currentProgress, 1)));
           
           if (progress < 1) {
             // Continue animation
             requestAnimationFrame(animate);
           } else {
-            // Animation complete
-            animatedScore.setValue(score);
-            animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
+            // Animation complete – always set to safe value so we never show 0
+            animatedScore.setValue(safe);
+            animatedProgress.setValue(Math.max(0, Math.min(safe, 100)) / 100);
             setHasAnimated(true);
           }
         };
@@ -101,20 +102,12 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
 
       return () => clearTimeout(timer);
     } else {
-      // If already animated, ensure values are set correctly
-      animatedScore.setValue(score);
-      animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
+      // If already animated, only update if we have a valid score – never set to 0 or NaN
+      animatedScore.setValue(safe);
+      animatedProgress.setValue(Math.max(0, Math.min(safe, 100)) / 100);
     }
-  }, [score, hasAnimated]);
+  }, [displayScore, hasAnimated]);
 
-  // Restore final values when modal closes (if animation was already shown)
-  useEffect(() => {
-    if (!modalVisible && hasAnimated) {
-      // Set final values immediately when modal closes
-      animatedScore.setValue(score);
-      animatedProgress.setValue(Math.max(0, Math.min(score, 100)) / 100);
-    }
-  }, [modalVisible, score, hasAnimated]);
 
   const strokeDasharray = circumference;
 
@@ -278,21 +271,21 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
   const scoreLabel = getScoreLabel(score);
 
   const handlePress = () => {
-    setModalVisible(true);
     onPress?.();
   };
 
   // Create animated text component for the score with dynamic color
   const AnimatedScoreText = () => {
-    const [displayScore, setDisplayScore] = useState(0);
+    // Start at 1 so we never show 0; listener will update as animation runs
+    const [displayScore, setDisplayScore] = useState(1);
     const [currentColor, setCurrentColor] = useState('#FF3B30'); // Start with red
     
     useEffect(() => {
       const listener = animatedScore.addListener(({ value }) => {
         const roundedScore = Math.round(value);
-        setDisplayScore(roundedScore);
-        // Update color based on current animated score
-        setCurrentColor(getScoreColor(roundedScore));
+        // Never show 0 – if value is 0 or negative, keep previous value so score doesn't "reset" to 0
+        setDisplayScore((prev) => (roundedScore >= 1 ? Math.max(1, roundedScore) : prev));
+        setCurrentColor(getScoreColor(roundedScore >= 1 ? roundedScore : 1));
       });
       
       return () => {
@@ -411,119 +404,6 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
           </View>
         </View>
       </TouchableOpacity>
-
-      {/* Health Score Details Modal */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity 
-                onPress={() => setModalVisible(false)}
-                style={styles.closeButtonLeft}
-              >
-                <Ionicons name="close" size={24} color="#FF3B30" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Health Score Details</Text>
-            </View>
-            
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              {/* Score Display */}
-              <View style={styles.scoreDisplay}>
-                <View style={[styles.circleWrapper, { width: 150, height: 150 }]}>
-                  <Svg 
-                    width={150} 
-                    height={150} 
-                    style={styles.svg}
-                  >
-                    {/* Background circle */}
-                    <Circle
-                      stroke="#2C2C2E"
-                      fill="none"
-                      cx={75}
-                      cy={75}
-                      r={65}
-                      strokeWidth={6}
-            />
-            {/* Progress circle */}
-            <Circle
-              stroke={scoreColor}
-              fill="none"
-                      cx={75}
-                      cy={75}
-                      r={65}
-                      strokeWidth={6}
-                      strokeDasharray={408.2}
-                      strokeDashoffset={408.2 - (408.2 * (score / 100))}
-              strokeLinecap="round"
-                      transform="rotate(-90 75 75)"
-            />
-          </Svg>
-          
-          <View style={styles.scoreContent}>
-                    <Text style={[styles.modalScoreValue, { color: scoreColor }]}>{score}</Text>
-                    <Text style={[styles.modalScoreLabel, { color: scoreColor }]}>{scoreLabel}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Comparison Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>How You Compare:</Text>
-                {renderDistributionCurve()}
-                <View style={styles.comparisonCard}>
-                  <Ionicons name="trending-up" size={24} color={scoreColor} />
-                  <Text style={styles.comparisonText}>{getComparisonText(score)}</Text>
-                  <Text style={styles.comparisonSubtext}>of CoreHealth users</Text>
-                </View>
-              </View>
-
-              {/* Description Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>What This Means:</Text>
-                <Text style={styles.descriptionText}>{getScoreDescription(score)}</Text>
-              </View>
-
-              {/* How It's Measured Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>How It's Measured:</Text>
-                <View style={styles.measurementItem}>
-                  <Ionicons name="moon" size={20} color="#9013FE" />
-                  <View style={styles.measurementText}>
-                    <Text style={styles.measurementTitle}>Sleep Quality (25%)</Text>
-                    <Text style={styles.measurementDesc}>Based on sleep duration, consistency, and recovery metrics</Text>
-                  </View>
-                </View>
-                <View style={styles.measurementItem}>
-                  <Ionicons name="fitness" size={20} color="#FF6B35" />
-                  <View style={styles.measurementText}>
-                    <Text style={styles.measurementTitle}>Physical Activity (25%)</Text>
-                    <Text style={styles.measurementDesc}>Daily steps, exercise, and movement patterns</Text>
-                  </View>
-                </View>
-                <View style={styles.measurementItem}>
-                  <Ionicons name="heart" size={20} color="#FF3B30" />
-                  <View style={styles.measurementText}>
-                    <Text style={styles.measurementTitle}>Stress & Recovery (25%)</Text>
-                    <Text style={styles.measurementDesc}>Heart rate variability and stress indicators</Text>
-                  </View>
-                </View>
-                <View style={styles.measurementItem}>
-                  <Ionicons name="water" size={20} color="#007AFF" />
-                  <View style={styles.measurementText}>
-                    <Text style={styles.measurementTitle}>Biomarkers (25%)</Text>
-                    <Text style={styles.measurementDesc}>Lab results and health metrics</Text>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </>
   );
 };
@@ -586,140 +466,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#8E8E93',
     letterSpacing: 0.5,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
-    width: '90%',
-    maxWidth: 400,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonLeft: {
-    position: 'absolute',
-    left: 16,
-    top: 16,
-    padding: 4,
-  },
-  distributionContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-  },
-  distributionLegend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-    gap: 20,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    fontWeight: '500',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  scoreDisplay: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalScoreValue: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  modalScoreLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  comparisonCard: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  comparisonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  comparisonSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  descriptionText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    lineHeight: 24,
-    textAlign: 'justify',
-  },
-  measurementItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  measurementText: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  measurementTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  measurementDesc: {
-    fontSize: 14,
-    color: '#8E8E93',
-    lineHeight: 20,
   },
 });
 

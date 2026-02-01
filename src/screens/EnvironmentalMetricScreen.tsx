@@ -187,6 +187,159 @@ const getWaterQualityRecommendations = (status: string) => {
   }
 };
 
+// UV Index helpers
+const getUVExplanation = (status: string) => {
+  switch (status) {
+    case 'excellent':
+    case 'good':
+      return 'UV levels are low. Minimal protection needed.';
+    case 'moderate':
+      return 'UV levels are moderate. Protection is recommended during midday.';
+    case 'poor':
+      return 'UV levels are high. Extra protection is required, especially midday.';
+    case 'hazardous':
+      return 'UV levels are very high to extreme. Avoid direct sun and use maximum protection.';
+    default:
+      return 'UV levels are being monitored.';
+  }
+};
+const getUVHealthImpacts = (status: string) => {
+  switch (status) {
+    case 'good':
+      return ['Very low risk of skin damage'];
+    case 'moderate':
+      return ['Risk of sunburn for unprotected skin', 'Eye strain possible'];
+    case 'poor':
+      return ['Increased sunburn risk within 30–60 minutes', 'Potential eye damage without protection'];
+    case 'hazardous':
+      return ['Sunburn in minutes', 'High risk of skin and eye damage'];
+    default:
+      return [];
+  }
+};
+const getUVRecommendations = (status: string) => {
+  switch (status) {
+    case 'good':
+      return ['Sunscreen optional', 'Sunglasses for comfort'];
+    case 'moderate':
+      return ['Use SPF 30+ sunscreen', 'Wear sunglasses and a hat', 'Seek shade near midday'];
+    case 'poor':
+      return ['Use SPF 50+ sunscreen', 'Wear protective clothing and hat', 'Limit time in direct sun'];
+    case 'hazardous':
+      return ['Avoid direct sun 10am–4pm', 'SPF 50+, sunglasses (UV400)', 'Seek shade and cover up'];
+    default:
+      return ['Use appropriate sun protection'];
+  }
+};
+
+// Food safety helpers
+const getFoodSafetyExplanation = (status: string) => {
+  switch (status) {
+    case 'good':
+      return 'Food safety standards are generally good. Low risk of foodborne illness.';
+    case 'moderate':
+      return 'Food safety varies. Be selective with vendors and preparation.';
+    case 'poor':
+      return 'Higher risk of foodborne illness. Choose reputable venues and cooked food.';
+    default:
+      return 'Food safety conditions are being monitored.';
+  }
+};
+const getFoodSafetyHealthImpacts = (status: string) => {
+  switch (status) {
+    case 'moderate':
+      return ['Traveler’s diarrhea risk present', 'Mild GI upset possible'];
+    case 'poor':
+      return ['Higher risk of GI illness', 'Dehydration and electrolyte imbalance possible'];
+    default:
+      return [];
+  }
+};
+const getFoodSafetyRecommendations = (status: string) => {
+  switch (status) {
+    case 'good':
+      return ['Normal precautions', 'Wash hands before eating'];
+    case 'moderate':
+      return ['Eat freshly cooked food', 'Avoid raw/undercooked meats', 'Use bottled water for brushing teeth'];
+    case 'poor':
+      return ['Avoid street food/raw salads', 'Drink sealed bottled water', 'Carry oral rehydration salts'];
+    default:
+      return ['Follow safe food and water practices'];
+  }
+};
+
+// Altitude helpers
+const getAltitudeExplanation = (status: string) => {
+  switch (status) {
+    case 'good':
+      return 'Altitude is low; minimal physiological impact.';
+    case 'moderate':
+      return 'Moderate altitude may affect sleep and exercise tolerance.';
+    case 'poor':
+      return 'High altitude increases risk of acute mountain sickness without acclimatization.';
+    default:
+      return 'Altitude impact is being assessed.';
+  }
+};
+const getAltitudeHealthImpacts = (status: string) => {
+  switch (status) {
+    case 'moderate':
+      return ['Mild headache or fatigue', 'Reduced exercise tolerance'];
+    case 'poor':
+      return ['Headache, nausea, insomnia', 'Risk of AMS at >2500m (8200ft)'];
+    default:
+      return [];
+  }
+};
+const getAltitudeRecommendations = (status: string) => {
+  switch (status) {
+    case 'good':
+      return ['Stay hydrated', 'Normal activity acceptable'];
+    case 'moderate':
+      return ['Ascend gradually', 'Hydrate and avoid alcohol on arrival'];
+    case 'poor':
+      return ['Acclimatize 1–2 days', 'Avoid rapid ascent', 'Consider acetazolamide if advised'];
+    default:
+      return ['Follow acclimatization guidance'];
+  }
+};
+
+// Disease outbreaks helpers
+const getOutbreaksExplanation = (status: string) => {
+  switch (status) {
+    case 'good':
+      return 'No significant outbreaks reported.';
+    case 'moderate':
+      return 'Localized outbreaks present. Follow public health guidance.';
+    case 'poor':
+      return 'Widespread outbreaks. Heightened precautions recommended.';
+    default:
+      return 'Outbreak status is being monitored.';
+  }
+};
+const getOutbreaksHealthImpacts = (status: string) => {
+  switch (status) {
+    case 'moderate':
+      return ['Elevated infection risk in specific areas'];
+    case 'poor':
+      return ['High infection risk', 'Potential healthcare strain'];
+    default:
+      return [];
+  }
+};
+const getOutbreaksRecommendations = (status: string) => {
+  switch (status) {
+    case 'good':
+      return ['Keep routine vaccinations up to date'];
+    case 'moderate':
+      return ['Practice hand hygiene', 'Avoid crowded indoor spaces', 'Use masks where advised'];
+    case 'poor':
+      return ['Consider postponing non-essential travel', 'Strict hygiene and masking', 'Follow local advisories'];
+    default:
+      return ['Follow health authority guidance'];
+  }
+};
+
 const EnvironmentalMetricScreen: React.FC = () => {
   const route = useRoute<EnvironmentalMetricRoute>();
   const navigation = useNavigation<Nav>();
@@ -232,23 +385,75 @@ const EnvironmentalMetricScreen: React.FC = () => {
         ],
       };
     }
-    // water_quality
+    if (metricId === 'water_quality') {
+      return {
+        description:
+          'Water quality measures the safety and cleanliness of local water sources, including chemical contaminants, bacteria, and mineral content.',
+        normalRange:
+          'Poor • Marginal • Good • Very Good • Excellent (country standards vary)',
+        optimalRange: 'Excellent quality with beneficial minerals - Perfect for all uses',
+        whatItMeans: getWaterQualityExplanation(status),
+        healthImpacts: getWaterQualityHealthImpacts(status),
+        recommendations: getWaterQualityRecommendations(status),
+        riskFactors: [
+          'Drinking untreated water',
+          'Traveling to areas with poor sanitation',
+          'Compromised immune system',
+          'Pregnancy or young children',
+          'Local water treatment issues',
+        ],
+      };
+    }
+    if (metricId === 'uv_index') {
+      return {
+        description: 'UV Index reflects the strength of sunburn-producing ultraviolet radiation.',
+        normalRange: '0-2 (Low) • 3-5 (Moderate) • 6-7 (High) • 8-10 (Very High) • 11+ (Extreme)',
+        optimalRange: '0-2 (Low) - Minimal protection needed',
+        whatItMeans: getUVExplanation(status),
+        healthImpacts: getUVHealthImpacts(status),
+        recommendations: getUVRecommendations(status),
+        riskFactors: ['Fair skin or photosensitive conditions', 'Midday outdoor exposure', 'High altitude or equatorial regions', 'Reflective surfaces (snow/water)'],
+      };
+    }
+    if (metricId === 'food_safety') {
+      return {
+        description: 'Food safety risk reflects local hygiene, preparation practices, and contamination risk.',
+        normalRange: '70-100 (Good) • 40-69 (Moderate) • 0-39 (Poor)',
+        optimalRange: '≥80 (Good) - Low risk with basic precautions',
+        whatItMeans: getFoodSafetyExplanation(status),
+        healthImpacts: getFoodSafetyHealthImpacts(status),
+        recommendations: getFoodSafetyRecommendations(status),
+        riskFactors: ['Raw/undercooked foods', 'Unboiled/untreated water', 'Poor hand hygiene', 'Cross-contamination in street markets'],
+      };
+    }
+    if (metricId === 'altitude') {
+      return {
+        description: 'Altitude can reduce oxygen availability and affect sleep and exercise tolerance.',
+        normalRange: '<1500m (Low) • 1500–2500m (Moderate) • 2500–3500m (High) • 3500–5500m (Very High) • >5500m (Extreme)',
+        optimalRange: '<1500m - Minimal physiological impact',
+        whatItMeans: getAltitudeExplanation(status),
+        healthImpacts: getAltitudeHealthImpacts(status),
+        recommendations: getAltitudeRecommendations(status),
+        riskFactors: ['Rapid ascent', 'History of altitude illness', 'Strenuous exertion on arrival', 'Dehydration'],
+      };
+    }
+    if (metricId === 'outbreaks') {
+      return {
+        description: 'Summarizes notable infectious disease activity reported locally.',
+        normalRange: '0-19 (None) • 20-39 (Low) • 40-59 (Moderate) • 60-79 (High) • 80-100 (Severe)',
+        optimalRange: '0-19 (None) - Routine precautions only',
+        whatItMeans: getOutbreaksExplanation(status),
+        healthImpacts: getOutbreaksHealthImpacts(status),
+        recommendations: getOutbreaksRecommendations(status),
+        riskFactors: ['Crowded indoor settings', 'Limited healthcare capacity', 'Low vaccination coverage', 'Travel during peak transmission seasons'],
+      };
+    }
     return {
-      description:
-        'Water quality measures the safety and cleanliness of local water sources, including chemical contaminants, bacteria, and mineral content.',
-      normalRange:
-        'Poor • Marginal • Good • Very Good • Excellent (country standards vary)',
-      optimalRange: 'Excellent quality with beneficial minerals - Perfect for all uses',
-      whatItMeans: getWaterQualityExplanation(status),
-      healthImpacts: getWaterQualityHealthImpacts(status),
-      recommendations: getWaterQualityRecommendations(status),
-      riskFactors: [
-        'Drinking untreated water',
-        'Traveling to areas with poor sanitation',
-        'Compromised immune system',
-        'Pregnancy or young children',
-        'Local water treatment issues',
-      ],
+      description: 'This metric provides important travel health context.',
+      whatItMeans: 'Monitor this metric for potential health impacts.',
+      healthImpacts: [] as string[],
+      recommendations: ['Stay informed about local conditions', 'Take appropriate precautions'],
+      riskFactors: [],
     };
   })();
 
@@ -279,14 +484,73 @@ const EnvironmentalMetricScreen: React.FC = () => {
         currentLabel: value,
       };
     }
-    // water_quality
+    if (metricId === 'water_quality') {
+      return {
+        segments: [
+          { label: 'Poor', color: '#FF3B30', range: '0-44' },
+          { label: 'Marginal', color: '#FF6B35', range: '45-64' },
+          { label: 'Good', color: '#FF9F0A', range: '65-79', isBold: true },
+          { label: 'Very Good', color: '#32D74B', range: '80-94' },
+          { label: 'Excellent', color: '#30D158', range: '95-100' },
+        ],
+        currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
+        currentLabel: value,
+      };
+    }
+    if (metricId === 'uv_index') {
+      return {
+        segments: [
+          { label: 'Low', color: '#30D158', range: '0-2' },
+          { label: 'Moderate', color: '#FF9F0A', range: '3-5', isBold: true },
+          { label: 'High', color: '#FF6B35', range: '6-7' },
+          { label: 'Very High', color: '#FF3B30', range: '8-10' },
+          { label: 'Extreme', color: '#8B0000', range: '11+' },
+        ],
+        currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
+        currentLabel: value,
+      };
+    }
+    if (metricId === 'food_safety') {
+      return {
+        segments: [
+          { label: 'Poor', color: '#FF3B30', range: '0-39' },
+          { label: 'Moderate', color: '#FF9F0A', range: '40-69', isBold: true },
+          { label: 'Good', color: '#30D158', range: '70-100' },
+        ],
+        currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
+        currentLabel: value,
+      };
+    }
+    if (metricId === 'altitude') {
+      return {
+        segments: [
+          { label: 'Low', color: '#30D158', range: '<1500m' },
+          { label: 'Moderate', color: '#FF9F0A', range: '1500-2500m', isBold: true },
+          { label: 'High', color: '#FF6B35', range: '2500-5500m' },
+          { label: 'Extreme', color: '#FF3B30', range: '>5500m' },
+        ],
+        currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
+        currentLabel: value,
+      };
+    }
+    if (metricId === 'outbreaks') {
+      return {
+        segments: [
+          { label: 'None', color: '#30D158', range: '0-19' },
+          { label: 'Low', color: '#32D74B', range: '20-39' },
+          { label: 'Moderate', color: '#FF9F0A', range: '40-59', isBold: true },
+          { label: 'High', color: '#FF6B35', range: '60-79' },
+          { label: 'Severe', color: '#FF3B30', range: '80-100' },
+        ],
+        currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
+        currentLabel: value,
+      };
+    }
     return {
       segments: [
-        { label: 'Poor', color: '#FF3B30', range: '0-44' },
-        { label: 'Marginal', color: '#FF6B35', range: '45-64' },
-        { label: 'Good', color: '#FF9F0A', range: '65-79', isBold: true },
-        { label: 'Very Good', color: '#32D74B', range: '80-94' },
-        { label: 'Excellent', color: '#30D158', range: '95-100' },
+        { label: 'Poor', color: '#FF3B30', range: '0-39' },
+        { label: 'Moderate', color: '#FF9F0A', range: '40-69', isBold: true },
+        { label: 'Good', color: '#30D158', range: '70-100' },
       ],
       currentValue: typeof score === 'number' ? Math.max(0, Math.min(100, score)) : 0,
       currentLabel: value,
