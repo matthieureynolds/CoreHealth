@@ -1,0 +1,1051 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  TextInput,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Linking,
+} from 'react-native';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import * as Contacts from 'expo-contacts';
+import { useHealthData } from '../../context/HealthDataContext';
+import { ProfileTabParamList } from '../../types';
+
+type EmergencyContactsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
+
+interface EmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string;
+  isPrimary: boolean;
+  notes?: string;
+}
+
+interface ContactForm {
+  name: string;
+  relationship: string;
+  phone: string;
+  secondaryPhone: string;
+  email: string;
+  isPrimary: boolean;
+  notes: string;
+}
+
+interface DeviceContact {
+  id: string;
+  name: string;
+  phoneNumbers: Contacts.PhoneNumber[];
+  emails: Contacts.EmailAddress[];
+}
+
+const EmergencyContactsScreen: React.FC = () => {
+  const navigation = useNavigation<EmergencyContactsScreenNavigationProp>();
+  const { profile, updateProfile } = useHealthData();
+  const [contacts, setContacts] = useState<EmergencyContact[]>(profile?.emergencyContacts || []);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
+  const [deviceContacts, setDeviceContacts] = useState<DeviceContact[]>([]);
+  const [contactSelectionModalVisible, setContactSelectionModalVisible] = useState(false);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [contactForm, setContactForm] = useState<ContactForm>({
+    name: '',
+    relationship: '',
+    phone: '',
+    secondaryPhone: '',
+    email: '',
+    isPrimary: false,
+    notes: '',
+  });
+
+  const relationships = [
+    'Spouse',
+    'Partner',
+    'Parent',
+    'Child',
+    'Sibling',
+    'Friend',
+    'Doctor',
+    'Neighbor',
+    'Colleague',
+    'Other',
+  ];
+
+  const resetForm = () => {
+    setContactForm({
+      name: '',
+      relationship: '',
+      phone: '',
+      secondaryPhone: '',
+      email: '',
+      isPrimary: false,
+      notes: '',
+    });
+    setEditingContact(null);
+  };
+
+  const requestContactsPermission = async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      return status === 'granted';
+    } catch (error) {
+      console.error('Error requesting contacts permission:', error);
+      return false;
+    }
+  };
+
+  const loadDeviceContacts = async () => {
+    try {
+      setLoadingContacts(true);
+      const hasPermission = await requestContactsPermission();
+      if (!hasPermission) {
+        Alert.alert(
+          'Permission Required',
+          'Please grant contacts permission to import contacts from your device.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Open Settings',
+              onPress: () => Linking.openSettings(),
+            },
+          ]
+        );
+        return;
+      }
+
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+        sort: Contacts.SortTypes.FirstName,
+      });
+
+      if (data.length > 0) {
+        const filteredContacts: DeviceContact[] = data
+          .filter(contact => contact.phoneNumbers && contact.phoneNumbers.length > 0)
+          .map(contact => ({
+            id: contact.id,
+            name: contact.name || 'Unknown',
+            phoneNumbers: contact.phoneNumbers || [],
+            emails: contact.emails || [],
+          }));
+        setDeviceContacts(filteredContacts);
+        setContactSelectionModalVisible(true);
+      } else {
+        Alert.alert('No Contacts', 'No contacts found on your device.');
+      }
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      Alert.alert('Error', 'Failed to load contacts from your device.');
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const handleAddContact = () => {
+    setModalVisible(true);
+    resetForm();
+  };
+
+  const handleEditContact = (contact: EmergencyContact) => {
+    setEditingContact(contact);
+    setContactForm({
+      name: contact.name,
+      relationship: contact.relationship,
+      phone: contact.phone,
+      secondaryPhone: (contact as any).secondaryPhone || '',
+      email: contact.email || '',
+      isPrimary: contact.isPrimary,
+      notes: contact.notes || '',
+    });
+    setModalVisible(true);
+  };
+
+  const handleSaveContact = () => {
+    if (!contactForm.name.trim()) {
+      Alert.alert('Error', 'Please enter a contact name');
+      return;
+    }
+
+    if (!contactForm.phone.trim()) {
+      Alert.alert('Error', 'Please enter a phone number');
+      return;
+    }
+
+    if (!contactForm.relationship.trim()) {
+      Alert.alert('Error', 'Please select a relationship');
+      return;
+    }
+
+    const newContact: EmergencyContact = {
+      id: editingContact?.id || Date.now().toString(),
+      name: contactForm.name.trim(),
+      relationship: contactForm.relationship,
+      phone: contactForm.phone.trim(),
+      secondaryPhone: contactForm.secondaryPhone.trim() || undefined,
+      email: contactForm.email.trim() || undefined,
+      isPrimary: contactForm.isPrimary,
+      notes: contactForm.notes.trim() || undefined,
+    };
+
+    let updatedContacts: EmergencyContact[];
+
+    if (editingContact) {
+      // Update existing contact
+      updatedContacts = contacts.map(contact => 
+        contact.id === editingContact.id ? newContact : contact
+      );
+    } else {
+      // Add new contact
+      updatedContacts = [...contacts, newContact];
+    }
+
+    // If setting as primary, remove primary from others
+    if (newContact.isPrimary) {
+      updatedContacts = updatedContacts.map(contact => 
+        contact.id === newContact.id ? contact : { ...contact, isPrimary: false }
+      );
+    }
+
+    setContacts(updatedContacts);
+    updateProfile({
+      ...profile,
+      emergencyContacts: updatedContacts,
+    });
+    setModalVisible(false);
+    resetForm();
+  };
+
+  const handleImportContact = async () => {
+    await loadDeviceContacts();
+  };
+
+  const applyDeviceContact = (contact: DeviceContact) => {
+    const primaryPhone = contact.phoneNumbers[0]?.number || '';
+    const secondaryPhone = contact.phoneNumbers[1]?.number || '';
+    const primaryEmail = contact.emails[0]?.email || '';
+
+    setEditingContact(null);
+    setContactForm({
+      name: contact.name,
+      relationship: '',
+      phone: primaryPhone,
+      secondaryPhone,
+      email: primaryEmail,
+      isPrimary: false,
+      notes: '',
+    });
+    setContactSelectionModalVisible(false);
+    setModalVisible(true);
+  };
+
+  const handleDeleteContact = (contactId: string) => {
+    const contact = contacts.find(c => c.id === contactId);
+    Alert.alert(
+      'Delete Contact',
+      `Are you sure you want to delete ${contact?.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updatedContacts = contacts.filter(c => c.id !== contactId);
+            setContacts(updatedContacts);
+            updateProfile({
+              ...profile,
+              emergencyContacts: updatedContacts,
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCallContact = (phone: string) => {
+    Alert.alert(
+      'Call Contact',
+      `Call this emergency contact?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Call',
+          onPress: () => {
+            const phoneNumber = phone.replace(/\s/g, '');
+            Linking.openURL(`tel:${phoneNumber}`);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEmailContact = (email: string) => {
+    Alert.alert(
+      'Email Contact',
+      `Send email to this emergency contact?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Email',
+          onPress: () => {
+            Linking.openURL(`mailto:${email}`);
+          },
+        },
+      ]
+    );
+  };
+
+  const openContactOptions = (contact: EmergencyContact) => {
+    Alert.alert(
+      contact.name,
+      undefined,
+      [
+        { text: 'Edit', onPress: () => handleEditContact(contact) },
+        { text: 'Delete', style: 'destructive', onPress: () => handleDeleteContact(contact.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const ContactItem = ({ contact }: { contact: EmergencyContact }) => (
+    <View style={styles.contactCard}>
+      <View style={styles.contactHeader}>
+        <View style={styles.headerLeft}>
+          <View style={styles.contactIcon}>
+            <Ionicons name="person-outline" size={24} color="#FFFFFF" />
+          </View>
+          <View style={styles.contactInfo}>
+            <Text style={styles.contactName}>{contact.name}</Text>
+            <Text style={styles.contactRelationship}>{contact.relationship}</Text>
+            {contact.isPrimary && (
+              <View style={styles.primaryBadge}>
+                <Text style={styles.primaryBadgeText}>Primary</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <TouchableOpacity 
+          style={[styles.moreButton, { position: 'absolute', top: 6, right: 6 }]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => openContactOptions(contact)}
+          accessibilityLabel="Edit contact"
+        >
+          <Feather name="edit-2" size={18} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contactActions}>
+        <TouchableOpacity 
+          style={styles.actionChipPrimary}
+          onPress={() => handleCallContact(contact.phone)}
+        >
+          <Ionicons name="call-outline" size={18} color="#007AFF" />
+          <Text style={styles.actionChipPrimaryText}>Call {contact.phone}</Text>
+        </TouchableOpacity>
+        {contact.email && (
+          <TouchableOpacity 
+            style={styles.actionChip}
+            onPress={() => handleEmailContact(contact.email!)}
+          >
+            <Ionicons name="mail-outline" size={18} color="#007AFF" />
+            <Text style={styles.actionChipText}>Email</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.detailsContainer}>
+        {contact.email && (
+          <View style={styles.detailRow}>
+            <Ionicons name="mail-outline" size={16} color="#8E8E93" />
+            <Text style={styles.detailText}>{contact.email}</Text>
+          </View>
+        )}
+        {contact.notes && (
+          <View style={styles.detailRow}>
+            <Ionicons name="document-text-outline" size={16} color="#8E8E93" />
+            <Text style={styles.detailText}>{contact.notes}</Text>
+          </View>
+        )}
+      </View>
+      {/* Bottom edit/delete buttons removed */}
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Emergency Contacts</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Content */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {contacts.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons 
+              name="warning-outline" 
+              size={64} 
+              color="#FF3B30" 
+              style={{ opacity: 0.3 }}
+            />
+            <Text style={styles.emptyStateTitle}>No Emergency Contacts</Text>
+            <Text style={styles.emptyStateText}>
+              Add emergency contacts who can be reached in case of a medical emergency
+            </Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={handleAddContact}
+            >
+              <Ionicons name="add" size={20} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Add Emergency Contact</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.importButton}
+              onPress={handleImportContact}
+              disabled={loadingContacts}
+            >
+              <Ionicons name="download-outline" size={20} color="#007AFF" />
+              <Text style={styles.importButtonText}>
+                {loadingContacts ? 'Loading Contacts...' : 'Import from Contacts'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {contacts.map((contact) => (
+              <ContactItem key={contact.id} contact={contact} />
+            ))}
+            
+            <TouchableOpacity 
+              style={styles.addMoreButton}
+              onPress={handleAddContact}
+            >
+              <Ionicons name="add" size={20} color="#007AFF" />
+              <Text style={styles.addMoreButtonText}>Add Another Contact</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.importButtonSecondary}
+              onPress={handleImportContact}
+              disabled={loadingContacts}
+            >
+              <Ionicons name="download-outline" size={20} color="#007AFF" />
+              <Text style={styles.importButtonSecondaryText}>
+                {loadingContacts ? 'Loading Contacts...' : 'Import from Contacts'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </ScrollView>
+
+      {/* Add/Edit Contact Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => {
+                setModalVisible(false);
+                resetForm();
+              }}
+            >
+              <Text style={styles.modalCloseButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {editingContact ? 'Edit Contact' : 'Add Contact'}
+            </Text>
+            <TouchableOpacity
+              style={styles.modalSaveButton}
+              onPress={handleSaveContact}
+            >
+              <Text style={styles.modalSaveButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Name: *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={contactForm.name}
+                onChangeText={(text) => setContactForm({ ...contactForm, name: text })}
+                placeholder="Enter full name"
+                placeholderTextColor="#8E8E93"
+              />
+            </View>
+
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Relationship: *</Text>
+              <View style={styles.relationshipGrid}>
+                {relationships.map((relationship) => (
+                  <TouchableOpacity
+                    key={relationship}
+                    style={[
+                      styles.relationshipOption,
+                      contactForm.relationship === relationship && styles.relationshipOptionSelected,
+                    ]}
+                    onPress={() => setContactForm({ ...contactForm, relationship })}
+                  >
+                    <Text
+                      style={[
+                        styles.relationshipOptionText,
+                        contactForm.relationship === relationship && styles.relationshipOptionTextSelected,
+                      ]}
+                    >
+                      {relationship}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Phone Number: *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={contactForm.phone}
+                onChangeText={(text) => setContactForm({ ...contactForm, phone: text })}
+                placeholder="Enter phone number"
+                placeholderTextColor="#8E8E93"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Secondary Phone: (Optional)</Text>
+              <TextInput
+                style={styles.textInput}
+                value={contactForm.secondaryPhone}
+                onChangeText={(text) => setContactForm({ ...contactForm, secondaryPhone: text })}
+                placeholder="Enter secondary phone number"
+                placeholderTextColor="#8E8E93"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Email: (Optional)</Text>
+              <TextInput
+                style={styles.textInput}
+                value={contactForm.email}
+                onChangeText={(text) => setContactForm({ ...contactForm, email: text })}
+                placeholder="Enter email address"
+                placeholderTextColor="#8E8E93"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.formField}>
+              <TouchableOpacity
+                style={styles.primaryToggle}
+                onPress={() => setContactForm({ ...contactForm, isPrimary: !contactForm.isPrimary })}
+              >
+                <View style={styles.primaryToggleLeft}>
+                  <Ionicons name="star" size={20} color="#FF9500" />
+                  <Text style={styles.primaryToggleText}>Primary Contact</Text>
+                </View>
+                <View style={[styles.toggle, contactForm.isPrimary && styles.toggleActive]}>
+                  <View style={[styles.toggleThumb, contactForm.isPrimary && styles.toggleThumbActive]} />
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.primaryToggleDescription}>
+                Primary contact will be called first in emergencies
+              </Text>
+            </View>
+
+            <View style={styles.formField}>
+              <Text style={styles.fieldLabel}>Notes: (Optional)</Text>
+              <TextInput
+                style={[styles.textInput, styles.multilineInput]}
+                value={contactForm.notes}
+                onChangeText={(text) => setContactForm({ ...contactForm, notes: text })}
+                placeholder="Additional notes about this contact"
+                placeholderTextColor="#8E8E93"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Contact Selection Modal */}
+      <Modal
+        visible={contactSelectionModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.selectionContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setContactSelectionModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select Contact</Text>
+            <View style={styles.modalSaveButton} />
+          </View>
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            {deviceContacts.map(contact => (
+              <TouchableOpacity
+                key={contact.id}
+                style={styles.contactSelectRow}
+                onPress={() => applyDeviceContact(contact)}
+              >
+                <View style={styles.contactSelectInfo}>
+                  <Text style={styles.contactSelectName}>{contact.name}</Text>
+                  <Text style={styles.contactSelectMeta}>
+                    {contact.phoneNumbers[0]?.number || 'No phone'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  header: {
+    paddingTop: 72,
+    paddingBottom: 5,
+    backgroundColor: '#181818',
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+    justifyContent: 'space-between',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    padding: 8,
+    position: 'absolute',
+    left: 20,
+    top: -46.2,
+    zIndex: 1,
+  },
+  headerText: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingTop: 16.5,
+    paddingBottom: 8,
+    top: -55,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  importButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  importButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  contactCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  contactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  contactIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#2C2C2E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  contactRelationship: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  moreButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderWidth: 0,
+    borderColor: 'transparent',
+  },
+  primaryBadge: {
+    backgroundColor: '#FF9500',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  primaryBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  contactActions: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 12,
+  },
+  actionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  actionChipText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  actionChipPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    flex: 1,
+  },
+  actionChipPrimaryText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  detailsContainer: {
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginLeft: 8,
+  },
+  // Bottom edit/delete buttons removed; options moved to top-right moreButton
+  addMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  addMoreButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  importButtonSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  importButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#1C1C1E',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  modalCloseButton: {
+    width: 60,
+  },
+  modalCloseButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalSaveButton: {
+    width: 60,
+    alignItems: 'flex-end',
+  },
+  modalSaveButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  selectionContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  contactSelectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  contactSelectInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  contactSelectName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  contactSelectMeta: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  formField: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#FFFFFF',
+    backgroundColor: '#1C1C1E',
+  },
+  multilineInput: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  relationshipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  relationshipOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+    backgroundColor: '#1C1C1E',
+  },
+  relationshipOptionSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  relationshipOptionText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  relationshipOptionTextSelected: {
+    color: '#FFFFFF',
+  },
+  primaryToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+  },
+  primaryToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  primaryToggleText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  primaryToggleDescription: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 8,
+  },
+  toggle: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#2C2C2E',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleActive: {
+    backgroundColor: '#007AFF',
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-start',
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
+  },
+});
+
+export default EmergencyContactsScreen; 
