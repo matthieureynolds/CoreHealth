@@ -1,22 +1,20 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { AuthStackParamList } from '../types';
-import { useOnboarding } from '../hooks/useOnboarding';
-import { colors } from '../theme/colors';
+import { AuthStackParamList } from '../shared/types';
+import { useOnboarding } from '../shared/hooks/useOnboarding';
+import { colors } from '../shared/theme/colors';
 
-import {
-  LoginScreen,
-  RegisterScreen,
-  ForgotPasswordScreen,
-  EmailSentScreen,
-  EmailVerificationScreen,
-  PersonalInfoScreen,
-  MedicalDocumentsScreen,
-  DeviceConnectionScreen,
-  PermissionsScreen,
-  FinishOnboardingScreen,
-} from '../screens';
-import OnboardingScreen from '../screens/onboarding/OnboardingScreen';
+import LoginScreen from '../features/auth/screens/LoginScreen';
+import RegisterScreen from '../features/auth/screens/RegisterScreen';
+import ForgotPasswordScreen from '../features/auth/screens/ForgotPasswordScreen';
+import EmailSentScreen from '../features/auth/screens/EmailSentScreen';
+import EmailVerificationScreen from '../features/auth/screens/EmailVerificationScreen';
+import PersonalInfoScreen from '../features/onboarding/screens/PersonalInfoScreen';
+import MedicalDocumentsScreen from '../features/onboarding/screens/MedicalDocumentsScreen';
+import DeviceConnectionScreen from '../features/onboarding/screens/DeviceConnectionScreen';
+import PermissionsScreen from '../features/onboarding/screens/PermissionsScreen';
+import FinishOnboardingScreen from '../features/onboarding/screens/FinishOnboardingScreen';
+import OnboardingScreen from '../features/onboarding/screens/OnboardingScreen';
 
 const Stack = createStackNavigator<AuthStackParamList>();
 

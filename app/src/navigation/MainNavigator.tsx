@@ -1,16 +1,14 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { MainTabParamList } from '../types';
-import { colors } from '../theme/colors';
+import { MainTabParamList } from '../shared/types';
+import { colors } from '../shared/theme/colors';
 
-import {
-  DashboardScreen,
-  BodyMapScreen,
-} from '../screens';
+import DashboardScreen from '../features/home/screens/DashboardScreen';
+import BodyMapScreen from '../features/body-map/screens/BodyMapScreen';
 
 import ProfileTabNavigator from './ProfileTabNavigator';
-import HealthAssistantScreen from '../screens/HealthAssistantScreen';
+import HealthAssistantScreen from '../features/toto-chat/screens/HealthAssistantScreen';
 import TravelStackNavigator from './TravelStackNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();

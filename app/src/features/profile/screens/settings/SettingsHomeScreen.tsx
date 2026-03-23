@@ -14,11 +14,11 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import { calculateProfileCompletion } from '../../../../utils/profileCompletion';
-import { useHealthData } from '../../../../context/HealthDataContext';
+import { calculateProfileCompletion } from '../../../../shared/utils/profileCompletion';
+import { useHealthData } from '../../../../shared/context/HealthDataContext';
 
 import { PROFILE_ROUTES } from '../../navigation/routeNames';
-import { HeaderProfile } from '../../../../components/common/HeaderProfile';
+import { HeaderProfile } from '../../../../shared/components/HeaderProfile';
 
 const HEADER_COLLAPSED = 96;
 

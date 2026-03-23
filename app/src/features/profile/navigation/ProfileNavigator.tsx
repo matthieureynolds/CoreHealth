@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ProfileStackParamList } from './types';
 import { PROFILE_ROUTES } from './routeNames';
-import { colors } from '../../../theme/colors';
+import { colors } from '../../../shared/theme/colors';
 
 // Import screens
 import ProfileHomeScreen from '../screens/ProfileHomeScreen';

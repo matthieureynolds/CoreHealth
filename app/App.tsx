@@ -1,4 +1,4 @@
-import './src/utils/polyfills';
+import './src/shared/utils/polyfills';
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,11 +7,11 @@ import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import RootNavigator from './src/navigation/RootNavigator';
-import { AuthProvider } from './src/context/AuthContext';
-import { HealthDataProvider } from './src/context/HealthDataContext';
-import { SettingsProvider } from './src/context/SettingsContext';
-import BedtimeReminderModal from './src/components/BedtimeReminderModal';
-import { useBedtimeReminder } from './src/hooks/useBedtimeReminder';
+import { AuthProvider } from './src/shared/context/AuthContext';
+import { HealthDataProvider } from './src/shared/context/HealthDataContext';
+import { SettingsProvider } from './src/shared/context/SettingsContext';
+import BedtimeReminderModal from './src/shared/components/BedtimeReminderModal';
+import { useBedtimeReminder } from './src/shared/hooks/useBedtimeReminder';
 
 const AppContent: React.FC = () => {
   const { showModal, type, bedtime } = useBedtimeReminder();
