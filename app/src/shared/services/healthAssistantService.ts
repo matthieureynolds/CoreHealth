@@ -5,9 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { formatDateBySetting, formatTimeBySetting } from '../utils/dateFormat';
 import { loadUserSnapshot } from './userSnapshotService';
 import { getUserChart } from './chartApi';
-// Safely load app version from app.json without TS JSON module typing issues
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const appConfig = require('../../../app.json');
+import { buildSystemPrompt, formatHealthDataForPrompt } from './healthAssistantPrompt';
 
 // OpenAI API Configuration
 export const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-openai-api-key-here';
@@ -260,105 +258,6 @@ export class HealthAssistantService {
   }
 
   /**
-   * Enhanced memory functions
-   */
-  static async addPersonalInsight(key: string, insight: string, confidence: number = 0.8): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context) {
-        context.personalInsights[key] = {
-          insight,
-          date: new Date(),
-          confidence
-        };
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to add personal insight:', error);
-    }
-  }
-
-  static async addHealthGoal(key: string, goal: string, target: string): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context) {
-        context.healthGoals[key] = {
-          goal,
-          target,
-          progress: 0,
-          startDate: new Date(),
-          lastUpdate: new Date()
-        };
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to add health goal:', error);
-    }
-  }
-
-  static async updateHealthGoalProgress(key: string, progress: number): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context && context.healthGoals[key]) {
-        context.healthGoals[key].progress = progress;
-        context.healthGoals[key].lastUpdate = new Date();
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to update health goal progress:', error);
-    }
-  }
-
-  static async addRecommendation(recommendation: string, followed: boolean = false): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context) {
-        const key = `rec_${Date.now()}`;
-        context.recommendationsHistory[key] = {
-          recommendation,
-          date: new Date(),
-          followed
-        };
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to add recommendation:', error);
-    }
-  }
-
-  static async updateRecommendationOutcome(key: string, outcome: string): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context && context.recommendationsHistory[key]) {
-        context.recommendationsHistory[key].outcome = outcome;
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to update recommendation outcome:', error);
-    }
-  }
-
-  static async learnUserPreference(preference: keyof UserHealthContext['learnedPreferences'], value: string | string[]): Promise<void> {
-    try {
-      const context = await this.loadUserContext();
-      if (context) {
-        if (preference === 'focusAreas') {
-          context.learnedPreferences.focusAreas = Array.isArray(value) ? value as string[] : [String(value)];
-        } else if (preference === 'responseLength') {
-          context.learnedPreferences.responseLength = String(value) as UserHealthContext['learnedPreferences']['responseLength'];
-        } else if (preference === 'technicalLevel') {
-          context.learnedPreferences.technicalLevel = String(value) as UserHealthContext['learnedPreferences']['technicalLevel'];
-        } else if (preference === 'communicationStyle') {
-          context.learnedPreferences.communicationStyle = String(value) as UserHealthContext['learnedPreferences']['communicationStyle'];
-        }
-        await this.saveUserContext(context);
-      }
-    } catch (error) {
-      console.error('Failed to learn user preference:', error);
-    }
-  }
-
-  /**
    * Enhanced greeting with personalization
    */
   static async getPersonalizedGreeting(
@@ -376,86 +275,6 @@ export class HealthAssistantService {
   /**
    * Natural ChatGPT-style system prompt focused on health
    */
-  private static getAdvancedSystemPrompt(
-    userContext: UserHealthContext | null,
-    healthData: any,
-    intent?: string
-  ): string {
-    const healthContext = this.formatHealthDataForAI(healthData);
-    const memoryContext = this.formatMemoryContextForAI(userContext);
-    const isDirect = intent === 'direct_question' || intent === 'medication_info';
-    
-    return `You are Toto, a professional doctor with a kind, empathetic tone. Provide evidence-based, clinically accurate guidance.
-
-Safety and scope:
-- This chat is educational support only and not a substitute for medical care.
-- Do not provide a diagnosis or prescriptions. Offer a differential-style discussion (what could be going on), key red flags, and next steps. Encourage clinician follow-up for anything concerning.
-
-Use of profile data:
-- You may use the user's CoreHealth data below (Name, Demographics, BMI, Allergies, Medications, Medical & Family History, Devices, Settings, Body Systems, Travel Health, Biomarkers, Lab Results) to personalize responses.
-- When referencing personal details, preface with "Based on your CoreHealth profile". If information is missing, say you don’t have it and ask focused clarifying questions.
-
-Formatting rules:
-- Respect the user's display preferences when showing times and dates.
-- Times: use ${healthData?.settings?.general?.timeFormat === '12h' ? '12-hour with am/pm' : '24-hour'} format unless the user explicitly asks otherwise.
-- Dates: use ${healthData?.settings?.general?.dateFormat || 'DD/MM/YYYY'}.
-
-Clinical reasoning:
-- When asked "what might I have", provide 2–4 plausible possibilities with brief reasoning grounded in the user’s data, plus red flags and when to seek care. Keep concise and organized.
-
-User's Health Information:
-${healthContext}
-
-${memoryContext}
-
-Guidelines:
-- Always answer the user's current question directly in the first paragraph. Stay on-topic.
-- Use clear, plain language; be precise and factual; avoid unnecessary general advice.
-- If medical judgment is implied, include a brief safety note and suggest consulting a clinician for personal care.
-- Prefer concise structure: short paragraphs or 3–5 bullets when appropriate.
-- Only personalize using the user's health data if it is clearly relevant to the specific question.
-
-${isDirect ? `
-Direct Question Mode:
-- If the user asks for a definition or mechanism (e.g., "what is creatine"), provide: definition, mechanism of action, common uses/benefits, typical dosing ranges for adults where applicable, key side effects and contraindications, and important interactions. Keep it 4–8 sentences or 3–5 bullets.
-- Do NOT add generic lifestyle or nutrition tips unless explicitly requested.
-` : `
-Contextual Coaching Mode:
-- Provide practical, actionable guidance tailored to the user's goals when they ask for advice.
-`}
-
-Command Emission (when a concrete action is appropriate):
-- When the user requests an actionable task that maps to a known command, include a single JSON object in a fenced code block labeled json (use triple backticks) at the end of your reply with shape {"type":"<COMMAND>", "payload":{...}}.
-- Supported commands: SUPPLEMENT_VITC_RECOMMEND, APPT_RESCHEDULE_DENTIST, SYMPTOM_LOG_LEG_PAIN, ALLERGY_UPDATE_PNUT, TRAVEL_ADD_COUNTRY_CARD, LAB_SUBMIT_RESULTS, TRIP_CHANGE_DATES.
-- Keep natural language response first; place the JSON block last on a new line.`;
-  }
-
-  /**
-   * Format memory context for AI
-   */
-  private static formatMemoryContextForAI(userContext: UserHealthContext | null): string {
-    if (!userContext) return '';
-
-    let memoryContext = '';
-    
-    if (userContext.conversationSummary) {
-      memoryContext += `\nConversation Summary:\n${userContext.conversationSummary}\n`;
-    }
-
-    if (userContext.keyTopics && userContext.keyTopics.length > 0) {
-      memoryContext += `\nKey Topics Discussed: ${userContext.keyTopics.join(', ')}\n`;
-    }
-
-    // Health goals
-    if (Object.keys(userContext.healthGoals).length > 0) {
-      memoryContext += '\nHealth Goals:\n';
-      Object.entries(userContext.healthGoals).forEach(([key, goal]) => {
-        memoryContext += `• ${goal.goal}\n`;
-      });
-    }
-    
-    return memoryContext;
-  }
 
   /**
    * Enhanced chat method with deep health data integration
@@ -732,7 +551,7 @@ Command Emission (when a concrete action is appropriate):
         }
       } catch {}
 
-      const systemPrompt = this.getAdvancedSystemPrompt(updatedContext, mergedHealthData, intent);
+      const systemPrompt = buildSystemPrompt(updatedContext, mergedHealthData, intent);
       
       const isDirect = intent === 'direct_question' || intent === 'medication_info';
       const historyForModel = isDirect ? history.slice(-2) : history.slice(-maxMessages);
@@ -864,7 +683,7 @@ Command Emission (when a concrete action is appropriate):
         }
       } catch {}
 
-      const systemPrompt = this.getAdvancedSystemPrompt(updatedContext, mergedHealthData, intent);
+      const systemPrompt = buildSystemPrompt(updatedContext, mergedHealthData, intent);
       const isDirect = intent === 'direct_question' || intent === 'medication_info';
       const historyForModel = isDirect ? history.slice(-2) : history.slice(-this.MAX_CONTEXT_MESSAGES);
 
@@ -962,26 +781,6 @@ Command Emission (when a concrete action is appropriate):
     }
   }
 
-  /**
-   * Analyze biomarker trends for insights
-   */
-  private static analyzeBiomarkerTrends(biomarkers: Biomarker[]): string[] {
-    const trending: string[] = [];
-    
-    // This is a simplified version - in production you'd have historical data
-    biomarkers.forEach(biomarker => {
-      const name = biomarker.name.toLowerCase();
-      if (name.includes('glucose') || name.includes('sugar')) {
-        trending.push('glucose');
-      } else if (name.includes('cholesterol')) {
-        trending.push('cholesterol');
-      } else if (name.includes('pressure') || name.includes('heart')) {
-        trending.push('cardiovascular');
-      }
-    });
-
-    return [...new Set(trending)]; // Remove duplicates
-  }
 
   /**
    * Analyze user intent from message
@@ -1128,316 +927,7 @@ Command Emission (when a concrete action is appropriate):
     return 'normal';
   }
 
-  /**
-   * Get time of day for greetings
-   */
-  private static getTimeOfDay(): string {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'morning';
-    if (hour < 18) return 'afternoon';
-    return 'evening';
-  }
 
-  /**
-   * Enhanced health data formatting for AI
-   */
-  private static formatHealthDataForAI(healthData?: {
-    profile: UserProfile | null;
-    biomarkers: Biomarker[];
-    healthScore: HealthScore | null;
-    deviceData?: DeviceData[];
-    settings?: UserSettings | null;
-    labResults?: LabResult[];
-    bodySystems?: BodySystem[];
-    travelHealth?: TravelHealth | null;
-  }): string {
-    if (!healthData) return 'No current health data available.';
-
-    let formattedData = '';
-
-    // User Demographics
-    if (healthData.profile) {
-      const p: any = healthData.profile as any;
-      const displayName = p.preferredName || p.displayName || [p.firstName, p.surname].filter(Boolean).join(' ');
-      if (displayName) {
-        formattedData += `Name: ${displayName}\n`;
-      }
-      if (p.email) {
-        formattedData += `Email: ${p.email}\n`;
-      }
-      if (healthData.profile.age) {
-        formattedData += `Age: ${healthData.profile.age}\n`;
-      }
-      if (healthData.profile.gender) {
-        formattedData += `Gender: ${healthData.profile.gender}\n`;
-      }
-      if (healthData.profile.height && healthData.profile.weight) {
-        const bmi = (healthData.profile.weight / Math.pow(healthData.profile.height / 100, 2)).toFixed(1);
-        formattedData += `Height: ${healthData.profile.height} cm\n`;
-        formattedData += `Weight: ${healthData.profile.weight} kg\n`;
-        formattedData += `BMI: ${bmi}\n`;
-      }
-      if (p.bloodType) {
-        formattedData += `Blood Type: ${p.bloodType}\n`;
-      }
-
-      // Allergies
-      try {
-        const allergies = p.allergies || [];
-        if (Array.isArray(allergies) && allergies.length > 0) {
-          const list = allergies
-            .map((a: any) => a?.name || a?.allergen || '')
-            .filter(Boolean)
-            .slice(0, 10) // keep concise
-            .join(', ');
-          if (list) formattedData += `Allergies: ${list}\n`;
-        }
-      } catch {}
-
-      // Medications
-      try {
-        const medications = p.medications || [];
-        if (Array.isArray(medications) && medications.length > 0) {
-          const list = medications
-            .map((m: any) => m?.name ? `${m.name}${m?.dose ? ` ${m.dose}` : ''}` : '')
-            .filter(Boolean)
-            .slice(0, 10)
-            .join(', ');
-          if (list) formattedData += `Medications: ${list}\n`;
-        }
-      } catch {}
-
-      // Medical history
-      try {
-        const history = p.medicalHistory || [];
-        if (Array.isArray(history) && history.length > 0) {
-          const list = history
-            .map((h: any) => h?.name || h?.condition || '')
-            .filter(Boolean)
-            .slice(0, 10)
-            .join(', ');
-          if (list) formattedData += `Medical History: ${list}\n`;
-        }
-      } catch {}
-
-      // Family history
-      try {
-        const fam = p.familyHistory || [];
-        if (Array.isArray(fam) && fam.length > 0) {
-          const list = fam
-            .map((f: any) => {
-              const rel = f?.relation || f?.relative || f?.relationship || '';
-              const cond = f?.name || f?.condition || f?.diagnosis || '';
-              return [rel, cond].filter(Boolean).join(' - ');
-            })
-            .filter(Boolean)
-            .slice(0, 10)
-            .join('; ');
-          if (list) formattedData += `Family History: ${list}\n`;
-        }
-      } catch {}
-    }
-
-    // Health Score
-    if (healthData.healthScore?.overall) {
-      formattedData += `Health Score: ${healthData.healthScore.overall}/100\n`;
-    }
-
-    // Connected Devices and Last Sync
-    try {
-      const deviceEvents = Array.isArray(healthData.deviceData) ? healthData.deviceData : [];
-      const deviceTypes = Array.from(new Set(deviceEvents.map((d: any) => d?.deviceType))).filter(Boolean);
-      if (deviceTypes.length > 0) {
-        formattedData += `Connected Devices: ${deviceTypes.join(', ')}\n`;
-      }
-      const lastSync = (() => {
-        try {
-          const times = deviceEvents
-            .map((d: any) => (d?.timestamp ? new Date(d.timestamp).getTime() : NaN))
-            .filter((t: number) => Number.isFinite(t));
-          if (times.length > 0) return new Date(Math.max(...times));
-        } catch {}
-        return null;
-      })();
-      if (lastSync) {
-        formattedData += `Last Device Sync: ${lastSync.toISOString()}\n`;
-      }
-    } catch {}
-
-    // Settings: General, Privacy & Security, Data Sync, Notifications, Accessibility / Display, App Info, Support & Legal
-    try {
-      const s = healthData.settings as any;
-      if (s) {
-        const general = s.general || {};
-        const notifications = s.notifications || {};
-        const privacy = s.privacy || {};
-        const dataSync = s.dataSync || {};
-        const accessibility = s.accessibility || {};
-        const biomarkers = s.biomarkers || {};
-        const app = s.app || {};
-
-        // General / Display & Format
-        const generalParts: string[] = [];
-        if (general.units) generalParts.push(`Units: ${general.units}`);
-        if (general.timeFormat) generalParts.push(`Time: ${general.timeFormat}`);
-        if (general.dateFormat) generalParts.push(`Date: ${general.dateFormat}`);
-        if (general.language) generalParts.push(`Language: ${general.language}`);
-        if (general.theme) generalParts.push(`Theme: ${general.theme}`);
-        if (generalParts.length) formattedData += `Display & Format: ${generalParts.join(', ')}\n`;
-
-        // Accessibility
-        const accParts: string[] = [];
-        if (accessibility.fontSize) accParts.push(`Font: ${accessibility.fontSize}`);
-        if (accessibility.highContrast !== undefined) accParts.push(`HighContrast: ${accessibility.highContrast ? 'on' : 'off'}`);
-        if (accessibility.reducedMotion !== undefined) accParts.push(`ReducedMotion: ${accessibility.reducedMotion ? 'on' : 'off'}`);
-        if (accessibility.hapticFeedback !== undefined) accParts.push(`Haptics: ${accessibility.hapticFeedback ? 'on' : 'off'}`);
-        if (accParts.length) formattedData += `Accessibility: ${accParts.join(', ')}\n`;
-
-        // Privacy & Security
-        const privParts: string[] = [];
-        if (privacy.biometricAuth !== undefined) privParts.push(`Biometric: ${privacy.biometricAuth ? 'on' : 'off'}`);
-        if (privacy.twoFactorAuth !== undefined) privParts.push(`2FA: ${privacy.twoFactorAuth ? 'on' : 'off'}`);
-        if (privacy.sessionTimeout) privParts.push(`Timeout: ${privacy.sessionTimeout}`);
-        if (privacy.locationServices !== undefined) privParts.push(`Location: ${privacy.locationServices ? 'on' : 'off'}`);
-        if (privacy.dataSharing) {
-          const ds = privacy.dataSharing;
-          privParts.push(`Sharing: analytics=${ds.analytics ? 'on' : 'off'}, anonymized=${ds.anonymizedData ? 'on' : 'off'}, thirdParty=${ds.thirdPartyApps ? 'on' : 'off'}`);
-        }
-        if (privParts.length) formattedData += `Privacy & Security: ${privParts.join(', ')}\n`;
-
-        // Data & Sync
-        const syncParts: string[] = [];
-        if (dataSync.autoSync !== undefined) syncParts.push(`AutoSync: ${dataSync.autoSync ? 'on' : 'off'}`);
-        if (dataSync.backgroundSync !== undefined) syncParts.push(`Background: ${dataSync.backgroundSync ? 'on' : 'off'}`);
-        if (dataSync.syncFrequency) syncParts.push(`Frequency: ${dataSync.syncFrequency}`);
-        if (dataSync.wifiOnly !== undefined) syncParts.push(`WiFiOnly: ${dataSync.wifiOnly ? 'on' : 'off'}`);
-        if (dataSync.dataRetention) syncParts.push(`Retention: ${dataSync.dataRetention}`);
-        if (dataSync.backupEnabled !== undefined) syncParts.push(`Backup: ${dataSync.backupEnabled ? 'on' : 'off'}`);
-        if (dataSync.backupFrequency) syncParts.push(`BackupEvery: ${dataSync.backupFrequency}`);
-        if (syncParts.length) formattedData += `Data & Sync: ${syncParts.join(', ')}\n`;
-
-        // Notifications
-        const notifParts: string[] = [];
-        if (notifications.enabled !== undefined) notifParts.push(`Enabled: ${notifications.enabled ? 'on' : 'off'}`);
-        ['healthSummaries','biomarkerAlerts','vaccinationReminders','travelWarnings','syncIssues','emergencyAlerts','appUpdates'].forEach((k) => {
-          if (notifications[k] !== undefined) notifParts.push(`${k}:${notifications[k] ? 'on' : 'off'}`);
-        });
-        if (notifications.quietHours && notifications.quietHours.enabled) {
-          notifParts.push(`QuietHours: ${notifications.quietHours.startTime}-${notifications.quietHours.endTime}`);
-        }
-        if (notifParts.length) formattedData += `Notifications: ${notifParts.join(', ')}\n`;
-
-        // Biomarker display prefs (as part of display format)
-        if (biomarkers.displaySettings) {
-          const ds = biomarkers.displaySettings as any;
-          const bds: string[] = [];
-          if (ds.showTrends !== undefined) bds.push(`Trends:${ds.showTrends ? 'on' : 'off'}`);
-          if (ds.showPercentiles !== undefined) bds.push(`Percentiles:${ds.showPercentiles ? 'on' : 'off'}`);
-          if (ds.groupByCategory !== undefined) bds.push(`GroupBy:${ds.groupByCategory ? 'category' : 'none'}`);
-          if (ds.sortBy) bds.push(`Sort:${ds.sortBy}`);
-          if (bds.length) formattedData += `Biomarker Display: ${bds.join(', ')}\n`;
-        }
-
-        // App Info
-        const version = (appConfig?.expo?.version) || app?.lastVersion || 'unknown';
-        formattedData += `App Info: Version ${version}\n`;
-
-        // Support & Help (static summary for assistant context awareness)
-        formattedData += `Support & Help: support@corehealth.com, feedback@corehealth.com, FAQ available in Support & Help.\n`;
-
-        // Legal & Compliance (available documents)
-        formattedData += `Legal & Compliance: Terms of Service, Privacy Policy, Consent Forms, HIPAA, Data Processing Agreement, Data Retention Policy.\n`;
-      }
-    } catch {}
-
-    // Body Systems summary
-    try {
-      const systems = healthData.bodySystems || [];
-      if (systems.length) {
-        const rows = systems
-          .slice(0, 8)
-          .map((bs: any) => `${bs.name || bs.id}: ${typeof bs.riskScore === 'number' ? bs.riskScore : '-'}`)
-          .join('; ');
-        if (rows) formattedData += `Body Systems Risk: ${rows}\n`;
-      }
-    } catch {}
-
-    // Travel Health summary
-    try {
-      const th: any = healthData.travelHealth;
-      if (th) {
-        const parts: string[] = [];
-        if (th.overallRiskLevel) parts.push(`Overall:${th.overallRiskLevel}`);
-        if (th.airQuality?.value !== undefined) parts.push(`AQI:${th.airQuality.value}`);
-        if (th.pollenLevels?.value !== undefined) parts.push(`Pollen:${th.pollenLevels.value}`);
-        if (th.uvIndex?.value !== undefined) parts.push(`UV:${th.uvIndex.value}`);
-        if (parts.length) formattedData += `Travel Health: ${parts.join(', ')}\n`;
-      }
-    } catch {}
-
-    // Recent Lab Results summary
-    try {
-      const labs = Array.isArray(healthData.labResults) ? healthData.labResults : [];
-      if (labs.length) {
-        formattedData += `\nRecent Lab Results:\n`;
-        labs.slice(-5).forEach((lr: any) => {
-          const name = lr.testName || lr.name || 'Lab';
-          const value = lr.value !== undefined ? lr.value : '';
-          const unit = lr.unit || '';
-          const date = lr.date || lr.recorded_at || lr.created_at || '';
-          const status = lr.status || '';
-          formattedData += `• ${name}: ${value} ${unit} ${status ? `(${status})` : ''} ${date ? `on ${date}` : ''}\n`;
-        });
-      }
-    } catch {}
-
-    // Recent Biomarkers (simplified)
-    if (healthData.biomarkers?.length) {
-      formattedData += `\nRecent Biomarkers:\n`;
-      healthData.biomarkers.slice(0, 5).forEach(biomarker => {
-        const status = this.assessBiomarkerStatus(biomarker);
-        formattedData += `• ${biomarker.name}: ${biomarker.value} ${biomarker.unit} (${status})\n`;
-      });
-    }
-
-    return formattedData;
-  }
-
-  /**
-   * Assess biomarker status with enhanced logic
-   */
-  private static assessBiomarkerStatus(biomarker: Biomarker): string {
-    const name = biomarker.name.toLowerCase();
-    const value = biomarker.value;
-
-    // Enhanced reference ranges (simplified for demo)
-    const ranges: { [key: string]: { optimal: [number, number], normal: [number, number], unit?: string } } = {
-      'glucose': { optimal: [70, 85], normal: [70, 99] },
-      'total cholesterol': { optimal: [150, 200], normal: [150, 240] },
-      'hdl cholesterol': { optimal: [60, 100], normal: [40, 100] },
-      'ldl cholesterol': { optimal: [50, 100], normal: [50, 130] },
-      'triglycerides': { optimal: [50, 100], normal: [50, 150] },
-      'creatinine': { optimal: [0.6, 1.0], normal: [0.6, 1.2] },
-      'alt': { optimal: [10, 30], normal: [7, 56] },
-      'ast': { optimal: [10, 30], normal: [10, 40] }
-    };
-
-    for (const [biomarkerName, range] of Object.entries(ranges)) {
-      if (name.includes(biomarkerName)) {
-        if (value >= range.optimal[0] && value <= range.optimal[1]) {
-          return 'Optimal';
-        } else if (value >= range.normal[0] && value <= range.normal[1]) {
-          return 'Normal';
-        } else if (value < range.normal[0]) {
-          return 'Low';
-        } else {
-          return 'High';
-        }
-      }
-    }
-
-    return 'Within range';
-  }
 
   /**
    * Summarize older conversation to preserve context while limiting token usage
@@ -1525,7 +1015,7 @@ Command Emission (when a concrete action is appropriate):
     }
 
     try {
-      const healthData = this.formatHealthDataForAI({ profile, biomarkers, healthScore });
+      const healthData = formatHealthDataForPrompt({ profile, biomarkers, healthScore });
       
       const prompt = `Based on this health data, provide some friendly insights and recommendations:
 
@@ -1592,7 +1082,7 @@ Keep it conversational and helpful, not overly clinical.`;
     }
 
     try {
-      const healthData = this.formatHealthDataForAI({ profile, biomarkers, healthScore });
+      const healthData = formatHealthDataForPrompt({ profile, biomarkers, healthScore });
       
       const prompt = `Based on this health data, suggest 3 practical daily recommendations for today:
 

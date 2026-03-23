@@ -74,7 +74,6 @@ const TIMEZONE_DATABASE: Record<string, TimezoneInfo> = {
   'Asia/Kathmandu': { timezoneId: 'Asia/Kathmandu', offset: 345, offsetString: '+05:45', isDst: false, country: 'NP', region: 'NPT' },
   'Asia/Colombo': { timezoneId: 'Asia/Colombo', offset: 330, offsetString: '+05:30', isDst: false, country: 'LK', region: 'SLST' },
   'Asia/Yangon': { timezoneId: 'Asia/Yangon', offset: 390, offsetString: '+06:30', isDst: false, country: 'MM', region: 'MMT' },
-  'Asia/Bangkok': { timezoneId: 'Asia/Bangkok', offset: 420, offsetString: '+07:00', isDst: false, country: 'TH', region: 'ICT' },
   'Asia/Phnom_Penh': { timezoneId: 'Asia/Phnom_Penh', offset: 420, offsetString: '+07:00', isDst: false, country: 'KH', region: 'ICT' },
   'Asia/Vientiane': { timezoneId: 'Asia/Vientiane', offset: 420, offsetString: '+07:00', isDst: false, country: 'LA', region: 'ICT' },
   'Asia/Taipei': { timezoneId: 'Asia/Taipei', offset: 480, offsetString: '+08:00', isDst: false, country: 'TW', region: 'CST' },

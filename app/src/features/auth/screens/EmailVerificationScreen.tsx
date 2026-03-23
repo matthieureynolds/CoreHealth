@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -36,14 +37,11 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
+  const [completedInputs, setCompletedInputs] = useState<boolean[]>(Array(6).fill(false));
   const inputRefs = useRef<TextInput[]>([]);
+  const tickAnims = useRef<Animated.Value[]>(Array.from({ length: 6 }, () => new Animated.Value(0))).current;
 
   useEffect(() => {
-    // Initialize tick animations
-    for (let i = 0; i < 6; i++) {
-      tickAnims[i] = new Animated.Value(0);
-    }
-
     // Start countdown timer
     const timer = setInterval(() => {
       setTimeLeft((prev) => {

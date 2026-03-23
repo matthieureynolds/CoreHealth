@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
@@ -56,16 +57,6 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   const safeRecovery = (recovery && recovery > 0) ? recovery : 85;
   const safeBiomarkers = (biomarkers && biomarkers > 0) ? biomarkers : 75;
   const safeLifestyle = (lifestyle && lifestyle > 0) ? lifestyle : 75;
-
-  // Debug logging
-  console.log('🔄 SupportingRings render:', { 
-    recovery, 
-    safeRecovery, 
-    biomarkers, 
-    safeBiomarkers, 
-    lifestyle, 
-    safeLifestyle 
-  });
 
   // Set animation values directly - no complex state management
   useEffect(() => {

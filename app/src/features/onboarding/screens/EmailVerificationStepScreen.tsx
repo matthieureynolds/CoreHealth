@@ -55,7 +55,6 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
   const handleVerifyCode = async (verificationCode: string) => {
     setIsLoading(true);
     try {
-      console.log('🔐 Verifying email code:', verificationCode);
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: verificationCode,
@@ -68,7 +67,6 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
       } else {
-        console.log('✅ Email verification successful:', data);
         // Show tick animation
         setShowTick(true);
         tickAnim.setValue(0);
@@ -94,7 +92,6 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
 
   const handleResendCode = async () => {
     try {
-      console.log('📧 Resending verification email...');
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email
@@ -104,7 +101,6 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
         console.error('❌ Failed to resend code:', error);
         Alert.alert('Error', 'Failed to resend code. Please try again.');
       } else {
-        console.log('✅ Verification email resent successfully');
         Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
       }
     } catch (error) {

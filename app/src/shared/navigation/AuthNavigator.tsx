@@ -34,7 +34,7 @@ const AuthNavigator: React.FC = () => {
       }}
     >
       {!hasSeenOnboarding ? (
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingScreen as any} />
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -46,10 +46,10 @@ const AuthNavigator: React.FC = () => {
             component={EmailVerificationScreen}
           />
           <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
-          <Stack.Screen name="MedicalDocuments" component={MedicalDocumentsScreen} />
-          <Stack.Screen name="DeviceConnection" component={DeviceConnectionScreen} />
-          <Stack.Screen name="Permissions" component={PermissionsScreen} />
-          <Stack.Screen name="FinishOnboarding" component={FinishOnboardingScreen} />
+          <Stack.Screen name="MedicalDocuments" component={MedicalDocumentsScreen as any} />
+          <Stack.Screen name="DeviceConnection" component={DeviceConnectionScreen as any} />
+          <Stack.Screen name="Permissions" component={PermissionsScreen as any} />
+          <Stack.Screen name="FinishOnboarding" component={FinishOnboardingScreen as any} />
         </>
       )}
     </Stack.Navigator>

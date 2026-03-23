@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,13 @@ import {
   Animated,
   Dimensions,
   Alert,
-  ActivityIndicator,
   StatusBar,
-  Pressable,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import BodyMap from '../components/organs/BodyMap';
-import { organsList } from '../organs';
+import BodyMap from '../organs/components/BodyMap';
 import {
   DocumentProcessor,
   ProcessedDocument,
@@ -29,113 +26,37 @@ import BiomarkerModal, {
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
 import BodySystemSelector, {
   BodySystemType,
-} from '../components/organs/BodySystemSelector';
-import SkeletonBodyMap from '../components/skeleton/SkeletonBodyMap';
-import CirculationBodyMap from '../components/circulatory/CirculationBodyMap';
-import NutritionBodyMap from '../components/nutrition/NutritionBodyMap';
+} from '../organs/components/BodySystemSelector';
+import SkeletonBodyMap from '../skeleton/components/SkeletonBodyMap';
+import CirculationBodyMap from '../circulatory/components/CirculationBodyMap';
+import NutritionBodyMap from '../nutrition/components/NutritionBodyMap';
 import AddDataModal from '../../../shared/components/AddDataModal';
-import BiomarkerSummaryCard from '../../../shared/components/BiomarkerSummaryCard';
+import { getBiomarkerStatusColor, getBiomarkerStatusIcon } from '../utils/biomarkerStatus';
+import { PanelPayload } from '../types';
 
 const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
-  const [selectedOrganData, setSelectedOrganData] = useState<any>(null);
+  const [selectedOrganData, setSelectedOrganData] = useState<PanelPayload | null>(null);
   const [panelAnim] = useState(new Animated.Value(0));
-  const [uploadedDocuments, setUploadedDocuments] = useState<any[]>([]);
-  const [processedDocuments, setProcessedDocuments] = useState<
-    ProcessedDocument[]
-  >([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<ProcessedDocument[]>([]);
+  const [processedDocuments, setProcessedDocuments] = useState<ProcessedDocument[]>([]);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [processingStep, setProcessingStep] = useState<string>('');
-  const [extractedBiomarkers, setExtractedBiomarkers] = useState<
-    ExtractedBiomarker[]
-  >([]);
-  const [selectedBiomarker, setSelectedBiomarker] =
-    useState<BiomarkerInfo | null>(null);
+  const [extractedBiomarkers, setExtractedBiomarkers] = useState<ExtractedBiomarker[]>([]);
+  const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSystem, setSelectedSystem] =
-    useState<BodySystemType>('organs');
+  const [selectedSystem, setSelectedSystem] = useState<BodySystemType>('organs');
   const [slideAnim] = useState(new Animated.Value(0));
   const [showAddDataModal, setShowAddDataModal] = useState(false);
 
   const systems: BodySystemType[] = ['organs', 'skeleton', 'circulation', 'nutrition'];
-  const getWindowDimensions = () => {
-    try {
-      return Dimensions.get('window');
-    } catch (error) {
-      return { width: 375, height: 812 }; // fallback dimensions
-    }
+  const { height } = Dimensions.get('window');
+
+  const handleOrganPress = (_organId: string) => {
+    // Selection is handled in BodyMap via onOrganSelect
   };
 
-  const { height, width } = getWindowDimensions();
-
-  // Compute biomarker totals for Organs system (normal -> optimal, borderline -> sufficient, abnormal -> out)
-  const organBiomarkerTotals = useMemo(() => {
-    let total = 0;
-    let optimal = 0;
-    let sufficient = 0;
-    let out = 0;
-    try {
-      organsList.forEach(org => {
-        org.data?.biomarkers?.forEach(b => {
-          total += 1;
-          if (b.status === 'normal') optimal += 1;
-          else if (b.status === 'borderline') sufficient += 1;
-          else if (b.status === 'abnormal') out += 1;
-        });
-      });
-    } catch {}
-    return { total, optimal, sufficient, out };
-  }, []);
-
-  // Skeleton totals derived from SkeletonBodyMap zones
-  const skeletonTotals = useMemo(() => {
-    // hardcode counts to match SkeletonBodyMap zones defined locally
-    // General/Systemic (15), Spine (4), Left Hip (4), Right Hip (4)
-    const total = 27;
-    // classify: assume most are normal (optimal) except the ones explicitly low/high
-    // From the data: General/Systemic (15 normal), Spine (low, high, normal, normal) -> 2 normal, 1 low, 1 high
-    // Left Hip (normal, low, normal, normal) -> 3 normal, 1 low
-    // Right Hip (normal, normal, normal, normal) -> 4 normal
-    const optimal = 15 + 2 + 3 + 4; // 24
-    const sufficient = 1 + 1; // lows -> 2 treated as sufficient
-    const out = 1; // high -> 1 treated as out
-    return { total, optimal, sufficient, out };
-  }, []);
-
-  // Circulation totals derived from CirculationBodyMap zones
-  const circulationTotals = useMemo(() => {
-    // From CirculationBodyMap.tsx zones:
-    // Heart (8), Arteries/Vessels & Blood (8), Oxygenation (7) => 23
-    const total = 23;
-    // All mocked as 'normal' currently
-    const optimal = 23;
-    const sufficient = 0;
-    const out = 0;
-    return { total, optimal, sufficient, out };
-  }, []);
-
-  // Nutrition totals (vitamins + minerals) from NutritionBodyMap data
-  const nutritionTotals = useMemo(() => {
-    // Count items in nutritionData exported inside NutritionBodyMap. We can't import directly here,
-    // so approximate by mirroring categories: 13 vitamins + 7 major + 9 trace = 29 (from the file contents).
-    const total = 13 + 7 + 9; // 29
-    // Treat 'normal' as optimal; others as sufficient/out based on status keywords if needed
-    const optimal = total; // current dataset uses 'normal' defaults
-    const sufficient = 0;
-    const out = 0;
-    return { total, optimal, sufficient, out };
-  }, []);
-
-  const handleOrganPress = (organId: string) => {
-    // Disabled old popup - new popup is handled in BodyMap component
-    // setSelectedOrgan(organId);
-    // Animated.spring(panelAnim, {
-    //   toValue: 1,
-    //   useNativeDriver: true,
-    // }).start();
-  };
-
-  const handleOrganSelect = (organ: any) => {
+  const handleOrganSelect = (organ: PanelPayload) => {
     setSelectedOrganData(organ);
     setSelectedOrgan(organ.id);
     
@@ -307,36 +228,6 @@ const BodyMapScreen: React.FC = () => {
     }
   };
 
-  const getBiomarkerStatusColor = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case 'normal':
-        return '#30D158';
-      case 'low':
-        return '#FF9F0A';
-      case 'high':
-        return '#FF6B35';
-      case 'critical':
-        return '#FF3B30';
-      default:
-        return '#8E8E93';
-    }
-  };
-
-  const getBiomarkerStatusIcon = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case 'normal':
-        return 'checkmark-circle';
-      case 'low':
-        return 'arrow-down-circle';
-      case 'high':
-        return 'arrow-up-circle';
-      case 'critical':
-        return 'warning';
-      default:
-        return 'help-circle';
-    }
-  };
-
   const groupBiomarkersByOrgan = (biomarkers: ExtractedBiomarker[]) => {
     return biomarkers.reduce((groups, biomarker) => {
       const organ = biomarker.organSystem || 'Other';
@@ -383,7 +274,7 @@ const BodyMapScreen: React.FC = () => {
     });
   };
 
-  const handleSwipeGesture = (event: any) => {
+  const handleSwipeGesture = (event: { nativeEvent: { state: number; translationX: number } }) => {
     if (event.nativeEvent.state === State.END) {
       const { translationX } = event.nativeEvent;
       const currentIndex = systems.indexOf(selectedSystem);
@@ -402,45 +293,27 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const handleSkeletonPartPress = (partId: string) => {
-    console.log('Skeleton part pressed:', partId);
   };
 
   const handleCirculationPointPress = (pointId: string) => {
-    console.log('Circulation point pressed:', pointId);
   };
 
-  const handleNutritionItemPress = (item: any) => {
-    // Handle nutrition item press - could show detailed modal
-    console.log('Nutrition item pressed:', item.name);
+  const handleNutritionItemPress = (item: { name: string }) => {
   };
 
-  const handleAddData = (data: any) => {
-    console.log('Data added:', data);
-    // Here you would typically save the data to your health data context
-    // For now, we'll just show an alert
+  const handleAddData = (data: { biomarkers?: unknown[] }) => {
     Alert.alert(
       'Data Added Successfully',
-      `Successfully added ${data.biomarkers?.length || 0} biomarkers from your scan.`,
+      `Successfully added ${data.biomarkers?.length ?? 0} biomarkers from your scan.`,
       [{ text: 'OK' }]
     );
   };
 
-  const renderBodyMap = () => {
-    const currentIndex = systems.indexOf(selectedSystem);
-    
-    return (
+  const renderBodyMap = () => (
       <Animated.View
         style={[
           styles.bodyMapWrapper,
           {
-            transform: [
-              {
-                translateX: slideAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0],
-                }),
-              },
-            ],
             opacity: slideAnim.interpolate({
               inputRange: [0, 0.5, 1],
               outputRange: [1, 0.3, 1],
@@ -452,7 +325,6 @@ const BodyMapScreen: React.FC = () => {
           <BodyMap
             onOrganPress={handleOrganPress}
             onOrganSelect={handleOrganSelect}
-            onHeadPress={() => console.log('Head zoom — coming soon')}
           />
         )}
         {selectedSystem === 'skeleton' && (
@@ -465,8 +337,7 @@ const BodyMapScreen: React.FC = () => {
           <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />
         )}
       </Animated.View>
-    );
-  };
+  );
 
   const renderBiomarkerResults = () => {
     if (extractedBiomarkers.length === 0) return null;
@@ -582,7 +453,7 @@ const BodyMapScreen: React.FC = () => {
           bounces={true}
         >
           <View style={styles.biomarkerList}>
-            {organ.data.biomarkers.map((biomarker: any, index: number) => (
+            {organ.data.biomarkers.map((biomarker, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.biomarkerItem}
@@ -692,27 +563,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
-    paddingBottom: 2, // Match Health Assistant height
+    paddingTop: 60,
+    paddingBottom: 2,
     backgroundColor: '#000000',
   },
   headerContent: {
     flex: 1,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#007AFF30',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   headerTitle: {
     fontSize: 28,
@@ -821,133 +677,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 4,
   },
-  uploadSection: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  uploadHeader: {
-    marginBottom: 20,
-  },
-  uploadTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  uploadDescription: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  uploadFormats: {
-    fontSize: 12,
-    color: '#8E8E93',
-    fontStyle: 'italic',
-  },
-  uploadButtonsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  uploadButton: {
-    flex: 1,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-  },
-  uploadButtonContent: {
-    alignItems: 'center',
-  },
-  uploadButtonIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#007AFF10',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  uploadButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  uploadButtonSubtext: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-  documentsList: {
-    marginTop: 16,
-  },
-  documentsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  documentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  documentInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  documentDetails: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  documentName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  documentMeta: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  documentActions: {
-    alignItems: 'flex-end',
-  },
-  processingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  processingText: {
-    fontSize: 12,
-    color: '#007AFF',
-    marginLeft: 8,
-  },
-  processButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  processButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
   infoPanel: {
     position: 'absolute',
     bottom: 0,
@@ -996,19 +725,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#3A3A3C',
   },
-  panelContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  biomarkersSection: {
-    paddingVertical: 16,
-  },
-  biomarkersTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1024,7 +740,6 @@ const styles = StyleSheet.create({
   biomarkerColumn2: {
     flex: 1,
     alignItems: 'center',
-    paddingLeft: -10,
   },
   biomarkerColumn3: {
     flex: 1,
@@ -1046,36 +761,6 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'right',
   },
-  biomarkerStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  biomarkerStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  recommendationsSection: {
-    paddingVertical: 16,
-  },
-  recommendationsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 16,
-  },
-  recommendationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  recommendationText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 20,
-  },
   bottomSpacing: {
     height: 40,
   },
@@ -1084,9 +769,6 @@ const styles = StyleSheet.create({
   },
   biomarkerList: {
     paddingHorizontal: 20,
-  },
-  floatingAddButton: {
-    // deprecated: kept for reference; button moved to header
   },
 });
 

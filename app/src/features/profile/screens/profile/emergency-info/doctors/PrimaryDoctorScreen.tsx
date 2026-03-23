@@ -335,7 +335,6 @@ const PrimaryDoctorScreen: React.FC = () => {
               </Text>
               <TouchableOpacity 
                 onPress={() => {
-                  console.log('Close button pressed - Primary Doctor Modal');
                   setModalVisible(false);
                 }}
                 style={styles.closeButton}

@@ -206,7 +206,6 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
             onValueChange={setSeverity}
             minimumTrackTintColor="#007AFF"
             maximumTrackTintColor="#3A3A3C"
-            thumbStyle={styles.sliderThumb}
           />
         ) : (
           <Text style={styles.severityLabel}>Slider not available</Text>

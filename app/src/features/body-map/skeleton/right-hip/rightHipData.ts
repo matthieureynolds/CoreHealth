@@ -1,0 +1,57 @@
+import { BoneHealthZone } from '../types';
+
+export const rightHipZone: BoneHealthZone = {
+  id: 'right_hip',
+  name: 'Right Hip',
+  anatomicalFocus: 'Right Femoral Neck & Total Hip',
+  position: { x: 65, y: 55 },
+  overallRisk: 'low',
+  riskFactors: ['Family history of hip fracture'],
+  lastAssessment: '2024-01-10',
+  recommendations: [
+    'Continue weight-bearing exercises focusing on hip strength',
+    'Balance training to prevent falls and hip fractures',
+    'Monitor hip bone density every 2 years',
+    'Maintain adequate protein intake for muscle mass',
+  ],
+  biomarkers: [
+    {
+      name: 'Right Hip T-score (Total)',
+      value: -0.6,
+      unit: 'SD',
+      referenceRange: '>-1.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      trend: 'stable',
+      description: 'Total right hip bone density vs young adult peak',
+    },
+    {
+      name: 'Right Femoral Neck T-score',
+      value: -1.0,
+      unit: 'SD',
+      referenceRange: '>-1.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      trend: 'stable',
+      description: 'Right femoral neck bone density vs young adult peak',
+    },
+    {
+      name: 'FRAX Right Hip Risk (10-yr)',
+      value: 1.8,
+      unit: '%',
+      referenceRange: '<3%',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'FRAX-calculated 10-year probability of right hip fracture',
+    },
+    {
+      name: 'Right Hip Z-score',
+      value: -0.3,
+      unit: 'SD',
+      referenceRange: '>-2.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'Right hip bone density compared to age-matched peers',
+    },
+  ],
+};

@@ -60,7 +60,6 @@ export const getWaterQualityData = async (
   country: string = 'DEFAULT'
 ): Promise<WaterQualityData | null> => {
   try {
-    console.log('💧 Getting water quality data for:', locationName);
     
     // Get nearby water stations
     const nearbyStations = await findWaterStations(latitude, longitude, 2000, 'moderate');
@@ -161,7 +160,7 @@ const generateWaterQualityAssessment = (
  * Generate parameter assessments based on overall score
  */
 const generateParameterAssessments = (score: number) => {
-  const getParameterLevel = (baseScore: number, variation: number = 0) => {
+  const getParameterLevel = (baseScore: number, variation: number = 0): 'low' | 'moderate' | 'high' => {
     const adjustedScore = Math.max(0, Math.min(100, baseScore + variation));
     return adjustedScore >= 80 ? 'low' : adjustedScore >= 60 ? 'moderate' : 'high';
   };

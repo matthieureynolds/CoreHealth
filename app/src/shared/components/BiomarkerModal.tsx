@@ -33,6 +33,7 @@ export interface BiomarkerInfo {
     low?: string;
     normal?: string;
     high?: string;
+    critical?: string;
   };
   historyData?: number[];
   comparisonData?: {

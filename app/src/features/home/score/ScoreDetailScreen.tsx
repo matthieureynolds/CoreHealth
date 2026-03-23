@@ -9,41 +9,6 @@ import { colors } from '../../../shared/theme/colors';
 type Route = RouteProp<RootStackParamList, 'ScoreDetail'>;
 type Nav = StackNavigationProp<RootStackParamList, 'ScoreDetail'>;
 
-const getMetricDescription = (id: 'recovery' | 'biomarkers' | 'lifestyle'): string => {
-  switch (id) {
-    case 'recovery':
-      return "Recovery score measures your body's ability to recover from stress and physical activity. It's based on sleep quality, heart rate variability, and rest periods.";
-    case 'biomarkers':
-      return 'Biomarker score reflects the health of your internal systems based on lab results, including blood work, hormone levels, and other health indicators.';
-    case 'lifestyle':
-      return 'Lifestyle score evaluates your daily habits including physical activity, nutrition, stress management, and overall health behaviors.';
-  }
-};
-
-const getMetricDetails = (id: 'recovery' | 'biomarkers' | 'lifestyle') => {
-  switch (id) {
-    case 'recovery':
-      return [
-        { title: 'Sleep Quality (40%)', desc: 'Sleep duration, consistency, and deep sleep cycles', icon: 'moon', color: '#9013FE' },
-        { title: 'Heart Rate Variability (35%)', desc: 'Autonomic nervous system balance and recovery', icon: 'heart', color: '#FF3B30' },
-        { title: 'Rest Periods (25%)', desc: 'Active recovery and stress management', icon: 'leaf', color: '#30D158' },
-      ];
-    case 'biomarkers':
-      return [
-        { title: 'Blood Work (40%)', desc: 'Complete blood count, metabolic panel, and lipids', icon: 'water', color: '#007AFF' },
-        { title: 'Hormone Levels (35%)', desc: 'Thyroid, cortisol, testosterone, and other hormones', icon: 'flask', color: '#FF9F0A' },
-        { title: 'Inflammation Markers (25%)', desc: 'CRP, ESR, and other inflammatory indicators', icon: 'thermometer', color: '#FF3B30' },
-      ];
-    case 'lifestyle':
-      return [
-        { title: 'Physical Activity (35%)', desc: 'Daily steps, exercise frequency, and intensity', icon: 'fitness', color: '#FF6B35' },
-        { title: 'Nutrition (30%)', desc: 'Diet quality, hydration, and meal timing', icon: 'nutrition', color: '#30D158' },
-        { title: 'Stress Management (20%)', desc: 'Mindfulness, relaxation, and work-life balance', icon: 'leaf', color: '#9013FE' },
-        { title: 'Sleep Hygiene (15%)', desc: 'Bedtime routine and sleep environment', icon: 'moon', color: '#007AFF' },
-      ];
-  }
-};
-
 const SF_FONT = Platform.select({ ios: 'SF Pro Text', android: 'System' }) ?? 'System';
 
 const ScoreDetailScreen: React.FC = () => {
@@ -61,14 +26,16 @@ const ScoreDetailScreen: React.FC = () => {
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
         duration: 6000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
-    ).start();
+    );
+    animation.start();
+    return () => animation.stop();
   }, [spinAnim]);
 
   const recoveryRows = useMemo(

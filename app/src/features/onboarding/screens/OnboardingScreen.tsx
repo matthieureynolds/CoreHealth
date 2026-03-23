@@ -8,7 +8,6 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-// import Svg, { Circle, Polyline, Line, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../shared/context/AuthContext';
 import RegistrationStepScreen from './RegistrationStepScreen';
@@ -23,67 +22,14 @@ const { width, height } = Dimensions.get('window');
 
 const HealthTrackingIcon = () => (
   <Ionicons name="pulse" size={80} color="#2D9CDB" />
-  // <Svg width="80" height="80" viewBox="0 0 100 100" fill="none">
-  //   <Circle cx="50" cy="50" r="45" stroke="#2D9CDB" strokeWidth="4"/>
-  //   <Polyline 
-  //     points="20,70 35,55 50,60 65,40 80,45" 
-  //     fill="none" 
-  //     stroke="#27AE60" 
-  //     strokeWidth="4" 
-  //     strokeLinecap="round" 
-  //     strokeLinejoin="round"
-  //   />
-  //   <Circle cx="20" cy="70" r="4" fill="#27AE60"/>
-  //   <Circle cx="35" cy="55" r="4" fill="#27AE60"/>
-  //   <Circle cx="50" cy="60" r="4" fill="#27AE60"/>
-  //   <Circle cx="65" cy="40" r="4" fill="#27AE60"/>
-  //   <Circle cx="80" cy="45" r="4" fill="#27AE60"/>
-  //   <Polyline 
-  //     points="20,70 35,50 50,45 65,25 80,30" 
-  //     fill="none" 
-  //     stroke="#E74C3C" 
-  //     strokeWidth="3" 
-  //     strokeLinecap="round" 
-  //     strokeLinejoin="round"
-  //   />
-  //   <Circle cx="20" cy="70" r="3" fill="#E74C3C"/>
-  //   <Circle cx="35" cy="50" r="3" fill="#E74C3C"/>
-  //   <Circle cx="50" cy="45" r="3" fill="#E74C3C"/>
-  //   <Circle cx="65" cy="25" r="3" fill="#E74C3C"/>
-  //   <Circle cx="80" cy="30" r="3" fill="#E74C3C"/>
-  // </Svg>
 );
 
 const TravelHealthIcon = () => (
   <Ionicons name="airplane" size={80} color="#FF9500" />
-  // <Svg width="80" height="80" viewBox="0 0 100 100" fill="none">
-  //   <Circle cx="50" cy="50" r="45" stroke="#FF9500" strokeWidth="4"/>
-  //   <Polyline
-  //     points="20,50 30,45 50,50 70,45 80,50 70,55 50,50 30,55 20,50"
-  //     fill="none"
-  //     stroke="#FF9500"
-  //     strokeWidth="3"
-  //     strokeLinecap="round"
-  //     strokeLinejoin="round"
-  //   />
-  // </Svg>
 );
 
 const RobotIcon = () => (
   <Ionicons name="chatbubbles" size={80} color="#AF52DE" />
-  // <Svg width="80" height="80" viewBox="0 0 100 100" fill="none">
-  //   <Circle cx="50" cy="50" r="45" stroke="#AF52DE" strokeWidth="4"/>
-  //   <Rect x="35" y="30" width="30" height="25" rx="5" stroke="#AF52DE" strokeWidth="3" fill="none"/>
-  //   <Circle cx="42" cy="40" r="3" fill="#AF52DE"/>
-  //   <Circle cx="58" cy="40" r="3" fill="#AF52DE"/>
-  //   <Line x1="50" y1="30" x2="50" y2="20" stroke="#AF52DE" strokeWidth="2" strokeLinecap="round"/>
-  //   <Circle cx="50" cy="18" r="2" fill="#AF52DE"/>
-  //   <Rect x="30" y="55" width="40" height="20" rx="8" stroke="#AF52DE" strokeWidth="3" fill="none"/>
-  //   <Line x1="30" y1="60" x2="20" y2="65" stroke="#AF52DE" strokeWidth="3" strokeLinecap="round"/>
-  //   <Line x1="70" y1="60" x2="80" y2="65" stroke="#AF52DE" strokeWidth="3" strokeLinecap="round"/>
-  //   <Line x1="40" y1="75" x2="40" y2="85" stroke="#AF52DE" strokeWidth="3" strokeLinecap="round"/>
-  //   <Line x1="60" y1="75" x2="60" y2="85" stroke="#AF52DE" strokeWidth="3" strokeLinecap="round"/>
-  // </Svg>
 );
 
 const TypewriterText: React.FC<{
@@ -205,11 +151,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   const handleRegistrationComplete = async (registrationData: any) => {
     try {
-      console.log('🚀 Starting registration in onboarding...');
       const displayName = `${registrationData.firstName} ${registrationData.surname}`;
       const result = await signUp(registrationData.email, registrationData.password, displayName);
-      console.log('✅ Registration successful in onboarding:', result);
-      setUserData(prev => ({ ...prev, ...registrationData }));
+      setUserData((prev: any) => ({ ...prev, ...registrationData }));
       setCurrentPage(5); // Move to email verification
     } catch (error: any) {
       console.error('❌ Registration failed in onboarding:', error);
@@ -218,7 +162,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   };
 
   const handleAgeGenderComplete = (ageGenderData: any) => {
-    setUserData(prev => ({ ...prev, ...ageGenderData }));
+    setUserData((prev: any) => ({ ...prev, ...ageGenderData }));
     setCurrentPage(6); // Move to medical documents
   };
 

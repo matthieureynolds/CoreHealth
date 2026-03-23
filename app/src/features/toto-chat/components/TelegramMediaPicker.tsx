@@ -8,8 +8,6 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  StatusBar,
-  SafeAreaView,
   Animated,
   PanResponder,
 } from 'react-native';
@@ -146,15 +144,9 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
     }
   };
 
-  const handleLocation = () => {
-    // TODO: Implement location sharing
-    console.log('Location sharing not implemented yet');
-  };
+  const handleLocation = () => {};
 
-  const handleReply = () => {
-    // TODO: Implement reply functionality
-    console.log('Reply functionality not implemented yet');
-  };
+  const handleReply = () => {};
 
   const renderTabContent = () => {
     switch (activeTab) {

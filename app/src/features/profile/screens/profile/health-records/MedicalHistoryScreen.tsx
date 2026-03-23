@@ -431,7 +431,6 @@ const MedicalHistoryScreen: React.FC = () => {
                     </Text>
               <TouchableOpacity 
                 onPress={() => {
-                  console.log('Close button pressed - Medical History Modal');
                   setModalVisible(false);
                 }}
                 style={styles.closeButton}

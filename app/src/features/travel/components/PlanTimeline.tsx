@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Pressable,
   Modal,
 } from 'react-native';
@@ -18,18 +17,14 @@ interface PlanTimelineProps {
   mode?: 'vertical' | 'horizontal'; // horizontal shows an x-axis of dates
 }
 
-const { width } = Dimensions.get('window');
-
 export const PlanTimeline: React.FC<PlanTimelineProps> = ({
   planDays,
   currentDay,
   mode = 'horizontal',
 }) => {
-  const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const initialSelectedDayId = (currentDay && planDays.find(d => d.date_local === currentDay)?.id) || planDays[0]?.id || null;
   const [selectedDayId, setSelectedDayId] = useState<string | null>(initialSelectedDayId);
   const [activeInfo, setActiveInfo] = useState<{ title: string; body: string } | null>(null);
-  const alwaysExpanded = mode === 'horizontal';
   const infoByType: Record<Action['type'], { title: string; body: string } | null> = {
     sleep: {
       title: 'Go to sleep',
@@ -387,7 +382,6 @@ export const PlanTimeline: React.FC<PlanTimelineProps> = ({
         if (startMinutes !== null && endMinutes !== null) {
           const height = minutesToHeight(startMinutes, endMinutes);
           const top = minutesToTop(startMinutes);
-          console.log(`[PlanTimeline] Rendering sleep bar: ${action.start_local} to ${action.end_local}, top: ${top}, height: ${height}, left: ${sleepLeft}`);
           bars.push({
             action,
             top,

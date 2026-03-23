@@ -13,7 +13,7 @@
       "@/*": ["src/*"],
       "@features/*": ["src/features/*"],
       "@shared/*": ["src/shared/*"],
-      "@navigation/*": ["src/navigation/*"]
+      "@navigation/*": ["src/shared/navigation/*"]
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -32,7 +32,8 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "supabase/functions"
   ],
   "extends": "expo/tsconfig.base"
 }

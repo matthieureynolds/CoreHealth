@@ -103,7 +103,7 @@ const BiomarkerVisibilityScreen: React.FC = () => {
   const handleShowAllCore = () => {
     const newVisibility = { ...settings.biomarkers.visibility };
     
-    Object.values(biomarkerCategories).flat().forEach(biomarker => {
+    Object.values(biomarkerCategories).flat().forEach((biomarker: any) => {
       if (biomarker.isCore) {
         newVisibility[biomarker.id] = true;
       }
@@ -210,8 +210,8 @@ const BiomarkerVisibilityScreen: React.FC = () => {
           />
         </TouchableOpacity>
         
-        {biomarkers.map(biomarker => (
-          <BiomarkerItem key={biomarker.id} biomarker={biomarker} />
+        {biomarkers.map((biomarker: any) => (
+          <BiomarkerItem key={biomarker.id} biomarker={biomarker as BiomarkerInfo} />
         ))}
       </View>
     );

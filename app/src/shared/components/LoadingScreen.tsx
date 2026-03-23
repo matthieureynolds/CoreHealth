@@ -111,7 +111,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
           ]}
         >
           <Image
-            source={require('../../../assets/logocorehealth.png')}
+            source={require('../../../assets/images/brand/logo-loading.png')}
             style={styles.logo}
             resizeMode="contain"
           />

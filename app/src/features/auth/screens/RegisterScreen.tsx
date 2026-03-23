@@ -91,20 +91,11 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
     const displayName = `${firstName} ${surname}`;
 
-    console.log('🚀 Starting registration process...');
-    console.log('📧 Email:', email);
-    console.log('👤 Display Name:', displayName);
-
     setIsLoading(true);
     try {
-      const result = await signUp(email, password, displayName);
-      console.log('✅ Registration successful, result:', result);
-      
-      // Navigate to email sent screen
-      console.log('📧 Navigating to EmailSent screen...');
+      await signUp(email, password, displayName);
       navigation.navigate('EmailSent', { email });
     } catch (error: any) {
-      console.error('❌ Registration failed:', error);
       Alert.alert('Registration Failed', error.message || 'Please try again');
     } finally {
       setIsLoading(false);

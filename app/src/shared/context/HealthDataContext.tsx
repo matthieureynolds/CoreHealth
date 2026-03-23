@@ -8,6 +8,11 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import {
+  clearCorruptedHealthScore,
+  loadStoredHealthData,
+} from './healthDataLoader';
+import { bootstrapHealthData } from './healthDataBootstrap';
+import {
   UserProfile,
   Biomarker,
   LabResult,
@@ -162,13 +167,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
   const [healthScoreCalculated, setHealthScoreCalculated] = useState(false);
   
-  // Debug health score changes
-  useEffect(() => {
-    console.log('🏥 Health score state changed:', healthScore);
-    if (healthScore === null) {
-      console.log('🚨 Health score is NULL - this might cause the 0 issue!');
-    }
-  }, [healthScore]);
   const [travelHealth, setTravelHealth] = useState<TravelHealth | null>(null);
   const [bodySystems, setBodySystems] = useState<BodySystem[]>([]);
   const [jetLagPlanningEvents, setJetLagPlanningEvents] = useState<JetLagPlanningEvent[]>([]);
@@ -178,155 +176,78 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const [derivedRiskFeatures, setDerivedRiskFeatures] = useState<DerivedRiskFeature[]>([]);
 
   useEffect(() => {
-    // Clear any corrupted health score data on app start
-    const clearCorruptedData = async () => {
-      try {
-        const storedHealthScore = await AsyncStorage.getItem('healthScore');
-        if (storedHealthScore) {
-          const parsed = JSON.parse(storedHealthScore);
-          if (parsed.overall === 0) {
-            console.log('🏥 Clearing corrupted health score data (overall = 0)');
-            await AsyncStorage.removeItem('healthScore');
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to check for corrupted health score:', error);
-      }
-    };
-    
-    clearCorruptedData().then(() => {
-      loadHealthData();
+    const init = async () => {
+      await clearCorruptedHealthScore();
+      await loadHealthData();
       validateApiKeys();
-    });
+    };
+    init();
   }, []);
 
   const loadHealthData = async () => {
     try {
-      const [
-        storedProfile,
-        storedBiomarkers,
-        storedLabResults,
-        storedDeviceData,
-        storedInsights,
-        storedHealthScore,
-        storedOriginTimezone,
-        storedOriginLocation,
-        storedJetLagPlanningEvents,
-        storedConnectedDevices,
-      ] = await Promise.all([
-        AsyncStorage.getItem('profile'),
-        AsyncStorage.getItem('biomarkers'),
-        AsyncStorage.getItem('labResults'),
-        AsyncStorage.getItem('deviceData'),
-        AsyncStorage.getItem('dailyInsights'),
-        AsyncStorage.getItem('healthScore'),
-        AsyncStorage.getItem('originTimezone'),
-        AsyncStorage.getItem('originLocation'),
-        AsyncStorage.getItem('jetLagPlanningEvents'),
-        AsyncStorage.getItem('connectedDevices'),
-      ]);
+      const data = await loadStoredHealthData();
 
-      if (storedProfile) {
-        setProfile(JSON.parse(storedProfile));
-      } else {
-        // Create default profile if none exists
-        const newProfile: UserProfile = {
-          userId: 'default',
-          age: 30,
-          gender: 'other',
-          height: 170,
-          weight: 70,
-          ethnicity: '',
-          bloodType: 'unknown',
-          medicalHistory: [],
-          familyHistory: [],
-          surgeries: [],
-          vaccinations: [],
-          allergies: [],
-          medications: [],
-          screenings: [],
-          pastAppointments: [],
-          lifestyle: {
-            smoking: { status: 'never' },
-            alcohol: { frequency: 'never' },
-            diet: { type: 'omnivore', restrictions: [], supplements: [] },
-            exercise: { frequency: 'never', type: [], intensity: 'low' },
-            sleep: { averageHoursPerNight: 8, sleepQuality: 'good', sleepDisorders: [] },
-            stress: { level: 'low', managementTechniques: [] },
-          },
-          organSpecificConditions: [],
-        };
-        setProfile(newProfile);
-      }
-      
-      const parsedBiomarkers = storedBiomarkers ? JSON.parse(storedBiomarkers) : null;
-      const parsedLabResults = storedLabResults ? JSON.parse(storedLabResults) : null;
-      const parsedDeviceData = storedDeviceData ? JSON.parse(storedDeviceData) : null;
-      const parsedInsights = storedInsights ? JSON.parse(storedInsights) : null;
-      const parsedHealthScore = storedHealthScore ? JSON.parse(storedHealthScore) : null;
+      setProfile(data.profile);
+      if (data.biomarkers) setBiomarkers(data.biomarkers);
+      if (data.labResults) setLabResults(data.labResults);
+      if (data.deviceData) setDeviceData(data.deviceData);
 
-      if (parsedBiomarkers) setBiomarkers(parsedBiomarkers);
-      if (parsedLabResults) setLabResults(parsedLabResults);
-      if (parsedDeviceData) setDeviceData(parsedDeviceData);
-      // Merge connected devices list (from settings screen) into deviceData for assistant
-      try {
-        if (storedConnectedDevices) {
-          const connected = JSON.parse(storedConnectedDevices) as Array<{ name: string; status: string }>;
-          const mapped: DeviceData[] = (connected || [])
-            .filter(d => d && /connected/i.test(d.status || ''))
-            .map((d, idx) => ({
-              id: `conn-${idx}`,
-              deviceType: mapDeviceNameToType(d.name),
-              timestamp: new Date(),
-              metrics: {},
-            }));
-          if (mapped.length) {
-            setDeviceData(prev => {
-              const prevOrEmpty = Array.isArray(prev) ? prev : [];
-              return [...prevOrEmpty, ...mapped];
-            });
-          }
+      // Merge connected devices into deviceData for assistant context
+      if (data.connectedDevices) {
+        const mapped: DeviceData[] = data.connectedDevices
+          .filter(d => /connected/i.test(d.status || ''))
+          .map((d, idx) => ({
+            id: `conn-${idx}`,
+            deviceType: mapDeviceNameToType(d.name),
+            timestamp: new Date(),
+            metrics: {},
+          }));
+        if (mapped.length) {
+          setDeviceData(prev => [...(Array.isArray(prev) ? prev : []), ...mapped]);
         }
-      } catch {}
-      // Persist a definitive last sync timestamp for assistant queries
+      }
+
+      // Persist latest device sync timestamp for assistant queries
       try {
-        const allEvents: DeviceData[] = [
-          ...(Array.isArray(parsedDeviceData) ? parsedDeviceData : []),
-        ];
+        const allEvents = Array.isArray(data.deviceData) ? data.deviceData : [];
         let lastTs: number | null = null;
         allEvents.forEach((ev: any) => {
           const t = ev?.timestamp ? new Date(ev.timestamp).getTime() : NaN;
-          if (Number.isFinite(t)) {
-            if (lastTs === null || t > lastTs) lastTs = t;
-          }
+          if (Number.isFinite(t) && (lastTs === null || t > lastTs)) lastTs = t;
         });
         if (lastTs) {
           await AsyncStorage.setItem('@corehealth_last_sync_at', new Date(lastTs).toISOString());
         }
       } catch {}
-      if (parsedInsights) setDailyInsights(parsedInsights);
-      if (parsedHealthScore && parsedHealthScore.overall > 0) {
-        console.log('🏥 Loaded health score from storage:', parsedHealthScore);
-        setHealthScore(parsedHealthScore);
-        setHealthScoreCalculated(true); // Mark as already calculated
+
+      if (data.insights) setDailyInsights(data.insights);
+      if (data.healthScore) {
+        setHealthScore(data.healthScore);
+        setHealthScoreCalculated(true);
       } else {
-        console.log('🏥 No valid health score found in storage, will generate new one');
-        setHealthScoreCalculated(false); // Allow recalculation
+        setHealthScoreCalculated(false);
       }
-      if (storedOriginTimezone) setOriginTimezoneState(storedOriginTimezone);
-      if (storedOriginLocation) setOriginLocationState(storedOriginLocation);
-      if (storedJetLagPlanningEvents) setJetLagPlanningEvents(JSON.parse(storedJetLagPlanningEvents));
-      
-      // If any of the core datasets are missing or invalid, bootstrap them once
-      if (!parsedHealthScore || parsedHealthScore.overall <= 0 || !parsedBiomarkers || !parsedInsights) {
-        console.log('🏥 Bootstrapping missing or invalid data...');
-        await generateMockData();
-        setHealthScoreCalculated(true); // Mark as calculated after generating mock data
+      if (data.originTimezone) setOriginTimezoneState(data.originTimezone);
+      if (data.originLocation) setOriginLocationState(data.originLocation);
+      setJetLagPlanningEvents(data.jetLagPlanningEvents);
+
+      if (data.needsBootstrap) {
+        const bootstrapped = await bootstrapHealthData();
+        setBiomarkers(bootstrapped.biomarkers);
+        setHealthScore(bootstrapped.healthScore);
+        setDailyInsights(bootstrapped.insights);
+        setBodySystems(bootstrapped.bodySystems);
+        setHealthScoreCalculated(true);
       }
     } catch (error) {
       console.error('Failed to load health data:', error);
-      // Bootstrap mock data on error
-      await generateMockData();
+      const bootstrapped = await bootstrapHealthData();
+      setBiomarkers(bootstrapped.biomarkers);
+      setHealthScore(bootstrapped.healthScore);
+      setDailyInsights(bootstrapped.insights);
+      setBodySystems(bootstrapped.bodySystems);
+      setHealthScoreCalculated(true);
     } finally {
       setIsLoading(false);
     }
@@ -343,213 +264,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     }
   };
 
-  const generateMockData = async () => {
-    // Generate mock biomarkers
-    const mockBiomarkers: Biomarker[] = [
-      {
-        id: '1',
-        name: 'Creatinine',
-        value: 0.93,
-        unit: 'mg/dL',
-        category: 'metabolic',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '2',
-        name: 'ALT',
-        value: 28,
-        unit: 'U/L',
-        category: 'metabolic',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '3',
-        name: 'Fasting Glucose',
-        value: 95,
-        unit: 'mg/dL',
-        category: 'metabolic',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '4',
-        name: 'Total Cholesterol',
-        value: 185,
-        unit: 'mg/dL',
-        category: 'cardiovascular',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '5',
-        name: 'TSH',
-        value: 2.1,
-        unit: 'mIU/L',
-        category: 'hormonal',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '6',
-        name: 'Vitamin D',
-        value: 35,
-        unit: 'ng/mL',
-        category: 'nutritional',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '7',
-        name: 'Free T3',
-        value: 3.2,
-        unit: 'pg/mL',
-        category: 'hormonal',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '8',
-        name: 'LDL-C',
-        value: 95,
-        unit: 'mg/dL',
-        category: 'cardiovascular',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '9',
-        name: 'HDL-C',
-        value: 58,
-        unit: 'mg/dL',
-        category: 'cardiovascular',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '10',
-        name: 'hs-CRP',
-        value: 0.8,
-        unit: 'mg/L',
-        category: 'inflammatory',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '11',
-        name: 'HOMA-IR',
-        value: 1.2,
-        unit: '',
-        category: 'metabolic',
-        trend: 'stable',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-      {
-        id: '12',
-        name: 'Resting HR',
-        value: 58,
-        unit: 'bpm',
-        category: 'cardiovascular',
-        trend: 'improving',
-        riskLevel: 'low',
-        lastUpdated: new Date(),
-      },
-    ];
-
-    // Generate mock health score
-    const mockHealthScore: HealthScore = {
-      overall: 82,
-      sleep: 78,
-      activity: 85,
-      stress: 70,
-      recovery: 88,
-      nutrition: 75,
-    };
-
-    // Generate mock daily insights
-    const mockInsights: DailyInsight[] = [
-      {
-        id: '1',
-        title: 'Great Recovery Day',
-        description:
-          'Your HRV is 15% above baseline, indicating excellent recovery.',
-        category: 'recovery',
-        priority: 'medium',
-        actionable: true,
-        action: 'Consider a moderate workout today.',
-      },
-      {
-        id: '2',
-        title: 'Hydration Reminder',
-        description: "You've consumed 40% less water than usual yesterday.",
-        category: 'nutrition',
-        priority: 'high',
-        actionable: true,
-        action: 'Aim for 8 glasses of water today.',
-      },
-    ];
-
-    // Generate mock body systems
-    const mockBodySystems: BodySystem[] = [
-      {
-        id: 'heart',
-        name: 'Cardiovascular',
-        coordinates: { x: 50, y: 30 },
-        biomarkers: mockBiomarkers.filter(b => b.category === 'cardiovascular'),
-        riskScore: 25,
-        lastAssessment: new Date(),
-      },
-      {
-        id: 'brain',
-        name: 'Neurological',
-        coordinates: { x: 50, y: 10 },
-        biomarkers: [],
-        riskScore: 15,
-        lastAssessment: new Date(),
-      },
-    ];
-
-    setBiomarkers(mockBiomarkers);
-    setHealthScore(mockHealthScore);
-    setDailyInsights(mockInsights);
-    setBodySystems(mockBodySystems);
-    setHealthScoreCalculated(true); // Mark as calculated
-    
-    console.log('🏥 Generated mock health score:', mockHealthScore);
-
-    // Persist the bootstrapped data so it remains stable across sessions
-    try {
-      await AsyncStorage.multiSet([
-        ['biomarkers', JSON.stringify(mockBiomarkers)],
-        ['healthScore', JSON.stringify(mockHealthScore)],
-        ['dailyInsights', JSON.stringify(mockInsights)],
-      ]);
-    } catch (persistErr) {
-      console.warn('Failed to persist initial mock data:', persistErr);
-    }
-  };
-
   // Recalculate health score only when clinical data changes
   const recalculateHealthScore = async (currentBiomarkers: Biomarker[]) => {
-    // Only recalculate if health score hasn't been calculated yet
-    if (healthScoreCalculated) {
-      console.log('🏥 Health score already calculated, skipping recalculation');
-      return;
-    }
-
-    console.log('🏥 Recalculating health score...');
+    if (healthScoreCalculated) return;
     
     // Simple, deterministic scoring based on available biomarkers.
     // Nutrition: based on Vitamin D (ng/mL)
@@ -584,9 +301,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
 
     const newScore: HealthScore = { overall, sleep, activity, stress, recovery, nutrition };
     
-    // Ensure we never save a health score of 0
     if (newScore.overall <= 0) {
-      console.warn('🏥 Calculated health score is 0 or negative, using fallback values');
       newScore.overall = 82;
       newScore.sleep = 78;
       newScore.activity = 85;
@@ -596,10 +311,8 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     }
     
     setHealthScore(newScore);
-    setHealthScoreCalculated(true); // Mark as calculated
+    setHealthScoreCalculated(true);
     await AsyncStorage.setItem('healthScore', JSON.stringify(newScore));
-    
-    console.log('🏥 Health score calculated and saved:', newScore);
   };
 
   const updateProfile = async (profileUpdates: Partial<UserProfile>) => {
@@ -690,9 +403,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           biomarkers,
           healthScore
         );
-        console.log('✨ Generated AI-powered daily insights');
-      } catch (aiError) {
-        console.warn('AI insights unavailable, using fallback:', aiError);
+      } catch {
         // Fallback to enhanced insights based on current data
         insights = [
       {
@@ -738,8 +449,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       const locationData = await geocodeAddress(location);
       
       if (!locationData) {
-        // Fallback to mock data if geocoding fails
-        console.warn('Geocoding failed, using mock data for:', location);
         const mockLocationData: LocationData = {
           name: location,
           country: 'Unknown',
@@ -765,10 +474,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     try {
       // Request permission to access location
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.warn('Location permission not granted');
-        return null;
-      }
+      if (status !== 'granted') return null;
 
       // Get current location
       const location = await Location.getCurrentPositionAsync({});
@@ -780,45 +486,28 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       );
 
       if (!locationData) {
-        // Fallback to expo-location's reverse geocoding
-        console.warn('Google reverse geocoding failed, using expo-location fallback');
         const geocode = await Location.reverseGeocodeAsync({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
 
-        // Try to get a better location name from the geocode result (most specific first)
-        let locationName = geocode[0]?.city || geocode[0]?.district || geocode[0]?.subregion || geocode[0]?.region || 'Unknown Location';
-        
-        // Force location detection based on coordinates first
-        const lat = location.coords.latitude;
-        const lng = location.coords.longitude;
-        
-        console.log(`📍 Coordinates: ${lat}, ${lng}`);
-        
-        // Force Haslemere detection for your coordinates (expanded range)
-        if (lat >= 51.08 && lat <= 51.10 && lng >= -0.73 && lng <= -0.70) {
-          locationName = 'Haslemere';
-          console.log('📍 Location forced to Haslemere based on coordinates');
-        } else if (lat >= 51.4 && lat <= 51.6 && lng >= -0.2 && lng <= 0.1) {
-          locationName = 'London';
-          console.log('📍 Location detected as London');
-        } else if (locationName === 'Unknown Location' || locationName === geocode[0]?.country) {
-          // Use the first non-country component we can find
-          const firstComponent = geocode[0]?.district || geocode[0]?.subregion || geocode[0]?.region || 'Unknown Location';
-          if (firstComponent !== geocode[0]?.country) {
-            locationName = firstComponent;
-          }
+        const geo = geocode[0];
+        let locationName =
+          geo?.city || geo?.district || geo?.subregion || geo?.region || 'Unknown Location';
+
+        // If we only got a country-level result, try sub-region components
+        if (!locationName || locationName === geo?.country) {
+          locationName = geo?.district || geo?.subregion || geo?.region || 'Unknown Location';
         }
 
         return {
           name: locationName,
-          country: geocode[0]?.country || 'Unknown',
+          country: geo?.country || 'Unknown',
           coordinates: {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
           },
-          timezone: geocode[0]?.timezone || 'UTC',
+          timezone: geo?.timezone || 'UTC',
           elevation: location.coords.altitude || 0,
         };
       }
@@ -855,11 +544,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           locationData.coordinates.latitude,
           locationData.coordinates.longitude
         );
-        console.log('✅ Google Air Quality API: Success');
       } catch (error) {
-        console.log('❌ Google Air Quality API failed - API not enabled in Google Cloud Console');
-        console.log('🔧 To fix: Enable "Air Quality API" in Google Cloud Console');
-        console.log('📍 Go to: https://console.cloud.google.com/ → APIs & Services → Library → Search "Air Quality API" → Enable');
         apiErrors.airQuality = 'Google Air Quality API not enabled';
       }
 
@@ -870,11 +555,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           locationData.coordinates.latitude,
           locationData.coordinates.longitude
         );
-        console.log('✅ Google Pollen API: Success');
       } catch (error) {
-        console.log('❌ Google Pollen API failed - API not enabled in Google Cloud Console');
-        console.log('🔧 To fix: Enable "Pollen API" in Google Cloud Console');
-        console.log('📍 Go to: https://console.cloud.google.com/ → APIs & Services → Library → Search "Pollen API" → Enable');
         apiErrors.pollen = 'Google Pollen API not enabled';
       }
 
@@ -887,7 +568,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           locationData.name,
           locationData.country
         );
-        console.log('✅ Water Quality Service: Success');
       } catch (error) {
         console.error('❌ Water Quality Service failed:', error);
         apiErrors.waterQuality = 'Failed to fetch water quality data';
@@ -897,7 +577,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       let healthcareFacilities = null;
       let closestMedicalFacilities = null;
       try {
-        console.log('🏥 Fetching healthcare facilities for:', locationData.name);
         
         // Try enhanced service first (with fallbacks)
         closestMedicalFacilities = await getClosestMedicalFacilities(
@@ -912,19 +591,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           locationData.coordinates.longitude,
           5000 // 5km radius
         );
-        
-        console.log('🏥 Healthcare facilities found:', {
-          source: closestMedicalFacilities.source,
-          nearestHospital: closestMedicalFacilities.nearestHospital?.name || 'None found',
-          nearestPharmacy: closestMedicalFacilities.nearestPharmacy?.name || 'None found',
-          totalFound: closestMedicalFacilities.totalFound,
-          comprehensive: {
-            hospitals: healthcareFacilities?.hospitals.length || 0,
-            pharmacies: healthcareFacilities?.pharmacies.length || 0,
-            clinics: healthcareFacilities?.clinics.length || 0,
-            dentists: healthcareFacilities?.dentists.length || 0
-          }
-        });
       } catch (error) {
         console.error('Healthcare facilities API error:', error);
         apiErrors.healthcare = 'Failed to fetch healthcare facilities';
@@ -1019,12 +685,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       // Generate jet lag data if origin timezone is set
       let jetLagData: JetLagData | undefined;
       if (originTimezone) {
-        console.log('=== Jet Lag Context Debug ===');
-        console.log('Origin timezone from state:', originTimezone);
-        console.log('Destination timezone from geocoding:', locationData.timezone);
-        console.log('Origin location:', originLocation);
-        console.log('Destination location:', locationData.name);
-        console.log('=============================');
         
         jetLagData = generateJetLagData(
           originTimezone,
@@ -1035,7 +695,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           settings.lifestyle.sleepSchedule.wakeUpTime
         );
       } else {
-        console.log('No origin timezone set, skipping jet lag calculation');
       }
 
       const mockTravelHealth: TravelHealth = {
@@ -1296,7 +955,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   };
 
   const resetHealthScoreCalculation = () => {
-    console.log('🏥 Resetting health score calculation flag');
     setHealthScoreCalculated(false);
   };
 

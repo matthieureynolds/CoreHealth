@@ -81,7 +81,7 @@ export const TortoAvatar: React.FC<Props> = ({ state, size = 28 }) => {
       }}
     >
       <Animated.Image
-        source={require('../../../../assets/Turtle2.png') as ImageSourcePropType}
+        source={require('../../../../assets/images/brand/turtle.png') as ImageSourcePropType}
         style={{ width: '100%', height: '100%' }}
         resizeMode="contain"
       />

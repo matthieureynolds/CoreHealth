@@ -1,10 +1,8 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, findNodeHandle, UIManager, Image, Animated, Easing } from 'react-native';
+import React, { useCallback, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, findNodeHandle, UIManager, Animated } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { TortoAvatar } from './TortoAvatar';
 import { useSendAnimation } from '../../../shared/hooks/useSendAnimation';
-import { AnimatedOutgoing } from './AnimatedOutgoing';
-import { shouldReduceMotion } from '../../../shared/lib/reduceMotion';
 
 export interface ChatMessage {
   id: string;
@@ -23,12 +21,6 @@ interface ChatListProps {
 
 export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, streamingId }) => {
   const sendAnim = useSendAnimation();
-  const [flying, setFlying] = useState<null | { 
-    clientId: string; 
-    text: string; 
-    startRect: { x: number; y: number; w: number; h: number };
-    endRect: { x: number; y: number; w: number; h: number };
-  }>(null);
 
   const renderMessage = useCallback((item: ChatMessage) => {
     // Add safety checks
@@ -54,12 +46,6 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, s
       />
     );
   }, [sendAnim, onMessageLayout]);
-
-  // Simplified - no animation for now
-
-  const handleAnimationFinished = useCallback(() => {
-    setFlying(null);
-  }, []);
 
   return (
     <View style={styles.container}>

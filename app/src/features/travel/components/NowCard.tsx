@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NowCard as NowCardType } from '../../../shared/types';
@@ -16,8 +15,6 @@ interface NowCardProps {
   onSnooze: () => void;
   isLoading?: boolean;
 }
-
-const { width } = Dimensions.get('window');
 
 export const NowCard: React.FC<NowCardProps> = ({
   nowCard,

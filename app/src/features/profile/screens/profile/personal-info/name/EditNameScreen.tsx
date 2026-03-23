@@ -93,7 +93,7 @@ const EditNameScreen: React.FC = () => {
       // Also update profile display name so it reflects immediately in Profile screens
       const displayName = `${nameData.firstName.trim()} ${nameData.surname.trim()}`.trim();
       try {
-        await updateProfile({ displayName });
+        await updateProfile({ displayName } as any);
       } catch {}
       // Optionally update username if provided and valid
       const cleaned = sanitize(nameData.username || '');

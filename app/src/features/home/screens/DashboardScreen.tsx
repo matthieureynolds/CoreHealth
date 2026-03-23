@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -13,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { RootStackParamList } from '../../../shared/types';
+import { deriveDashboardScores } from '../score/utils';
+import { LabResult } from '../recent-lab-results/results/types';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 import BiomarkerModal, {
@@ -24,7 +28,6 @@ import LabResultDetailModal from '../recent-lab-results/LabResultDetailModal';
 import TwitterLoadingIndicator from '../../../shared/components/TwitterLoadingIndicator';
 import QuickSymptomLogModal from '../../../shared/components/QuickSymptomLogModal';
 
-// New redesigned components
 import HeroHealthScore from '../score/HeroHealthScore';
 import SupportingRings from '../health-metrics/SupportingRings';
 import LabInsightsCard from '../recent-lab-results/LabInsightsCard';
@@ -34,14 +37,13 @@ import MedicalTimeline from '../medical-timeline/MedicalTimeline';
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
-  const { 
-    healthScore, 
-    dailyInsights, 
+  const {
+    healthScore,
+    dailyInsights,
     biomarkers,
     travelHealth,
     generateDailyInsights,
     getUpcomingJetLagEvents,
-    addJetLagPlanningEvent,
     getCurrentLocation,
     updateTravelHealthData
   } = useHealthData();
@@ -49,81 +51,32 @@ const DashboardScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
+  const [selectedLabResult, setSelectedLabResult] = useState<LabResult | null>(null);
   const [labResultModalVisible, setLabResultModalVisible] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
 
-  // Get current location on component mount and refresh periodically
   useEffect(() => {
     const initializeLocation = async () => {
       try {
         const now = Date.now();
         const timeSinceLastUpdate = now - lastLocationUpdate;
-        const shouldRefreshLocation = !travelHealth?.location || timeSinceLastUpdate > 300000; // 5 minutes
+        const shouldRefreshLocation = !travelHealth?.location || timeSinceLastUpdate > 300000;
 
         if (shouldRefreshLocation) {
-          console.log('📍 Getting current location...');
           const locationData = await getCurrentLocation();
           if (locationData) {
-            console.log('📍 Current location:', locationData.name);
-            // Update travel health data with the current location
             await updateTravelHealthData(locationData);
-            console.log('📍 Travel health data updated with location:', locationData.name);
             setLastLocationUpdate(now);
-          } else {
-            console.log('📍 Could not get current location');
           }
-        } else {
-          console.log('📍 Using cached location:', travelHealth?.location);
         }
       } catch (error) {
-        console.error('📍 Error getting current location:', error);
+        console.error('Error getting current location:', error);
       }
     };
 
     initializeLocation();
   }, [travelHealth?.location, getCurrentLocation, updateTravelHealthData, lastLocationUpdate]);
-
-  useEffect(() => {
-    if (getUpcomingJetLagEvents().length === 0) {
-      const thailandEvent = {
-        destination: 'Bangkok, Thailand',
-        destinationTimezone: 'Asia/Bangkok',
-        departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        timeZoneDifference: 5, // 5 hours ahead
-        preparationStartDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-        daysToAdjust: 4, // 4 days to adjust
-        sleepAdjustment: {
-          totalTimeZoneDifference: 5,
-          direction: 'eastward' as const,
-          daysToAdjust: 4,
-          maxDailyAdjustment: 1.5,
-          dailySchedule: [
-            { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
-            { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
-            { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
-            { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
-          ],
-          strategy: 'Advance bedtime gradually each day before travel',
-          recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
-        },
-        lightExposureSchedule: {
-          direction: 'eastward' as const,
-          strategy: 'Advance circadian rhythm with early bright light',
-          schedule: [
-            { day: 1, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 2, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 3, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 4, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-          ],
-          generalTips: ['Use bright light therapy lamp if natural sunlight unavailable', 'Wear sunglasses during light avoidance periods'],
-        },
-        status: 'upcoming' as const,
-      };
-      addJetLagPlanningEvent(thailandEvent);
-    }
-  }, []);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
@@ -135,27 +88,21 @@ const DashboardScreen: React.FC = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Force refresh location data
-      console.log('📍 Force refreshing location...');
       const locationData = await getCurrentLocation();
       if (locationData) {
-        console.log('📍 Refreshed location:', locationData.name);
         await updateTravelHealthData(locationData);
         setLastLocationUpdate(Date.now());
       }
-      
       await generateDailyInsights();
     } catch (error) {
-      console.error('Failed to refresh insights:', error);
+      console.error('Failed to refresh:', error);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  // Add pull-to-refresh functionality
-  const handleScroll = (event: any) => {
-    const { contentOffset } = event.nativeEvent;
-    if (contentOffset.y < -100 && !isRefreshing) {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (event.nativeEvent.contentOffset.y < -100 && !isRefreshing) {
       handleRefresh();
     }
   };
@@ -176,7 +123,6 @@ const DashboardScreen: React.FC = () => {
 
       const range = normalRanges[name];
       if (!range) return 'normal';
-
       if (val < range.min) return 'low';
       if (val > range.max) return 'high';
       return 'normal';
@@ -191,127 +137,42 @@ const DashboardScreen: React.FC = () => {
     }
   };
 
-  const handleRingPress = (ringId: string) => {
-    console.log('Ring pressed:', ringId);
-    // TODO: Navigate to detailed view for this metric
-  };
+  const handleRingPress = (_ringId: string) => {};
 
-  const handleLabResultPress = (labResult: any) => {
+  const handleLabResultPress = (labResult: LabResult) => {
     setSelectedLabResult(labResult);
     setLabResultModalVisible(true);
   };
 
-  const handleTravelPress = () => {
-    console.log('Travel pressed');
-    // TODO: Navigate to travel health screen
-  };
+  const handleTravelPress = () => {};
 
-  const handleMedicalEventPress = (event: any) => {
-    console.log('Medical event pressed:', event);
-    // TODO: Navigate to calendar or event details
-  };
+  const handleMedicalEventPress = (_event: unknown) => {};
 
-  const handleJetLagEventPress = (event: any) => {
-    console.log('Jet lag event pressed:', event);
-    // TODO: Navigate to detailed jet lag planning view
-  };
+  const handleJetLagEventPress = (_event: unknown) => {};
 
-  // Temporary test function to add a Thailand trip
-  const addTestThailandTrip = async () => {
-    try {
-      const thailandEvent = {
-        destination: 'Bangkok, Thailand',
-        destinationTimezone: 'Asia/Bangkok',
-        departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        timeZoneDifference: 5, // 5 hours ahead
-        preparationStartDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-        daysToAdjust: 4, // 4 days to adjust (5 hours / 1.5 hours per day = 4 days)
-        sleepAdjustment: {
-          totalTimeZoneDifference: 5,
-          direction: 'eastward' as const,
-          daysToAdjust: 4,
-          maxDailyAdjustment: 1.5,
-          dailySchedule: [
-            { day: 1, bedtime: '21:30', wakeTime: '06:30', adjustment: 1.5 },
-            { day: 2, bedtime: '21:00', wakeTime: '06:00', adjustment: 1.5 },
-            { day: 3, bedtime: '20:30', wakeTime: '05:30', adjustment: 1.5 },
-            { day: 4, bedtime: '20:00', wakeTime: '05:00', adjustment: 0.5 },
-          ],
-          strategy: 'Advance bedtime gradually each day before travel',
-          recommendations: ['Start adjusting 4 days before departure', 'Use bright light in early morning'],
-        },
-        lightExposureSchedule: {
-          direction: 'eastward' as const,
-          strategy: 'Advance circadian rhythm with early bright light',
-          schedule: [
-            { day: 1, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 2, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 3, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-            { day: 4, morningLight: '06:00-08:00', eveningAvoidance: '20:00-22:00', duration: 30, notes: 'Bright light exposure in early morning, avoid evening light' },
-          ],
-          generalTips: ['Use bright light therapy lamp if natural sunlight unavailable', 'Wear sunglasses during light avoidance periods'],
-        },
-        status: 'upcoming' as const,
-      };
-      
-      await addJetLagPlanningEvent(thailandEvent);
-      console.log('Thailand trip added successfully!');
-    } catch (error) {
-      console.error('Failed to add Thailand trip:', error);
-    }
-  };
-
-  // Calculate mock values for demo
-  console.log('🏥 Dashboard health score:', healthScore);
-  
-  // More robust fallback values - never show 0; use defaults until real score is loaded
-  const overallHealthScore = Math.max(1, (healthScore?.overall && healthScore.overall > 0) ? healthScore.overall : 82);
-  const recoveryScore = (healthScore?.recovery && healthScore.recovery > 0) ? healthScore.recovery : 85;
-  const biomarkersScore = (healthScore?.overall && healthScore.overall > 0) ? Math.round(healthScore.overall * 0.9) : 75;
-  const lifestyleScore = (healthScore?.activity && healthScore.activity > 0) ? healthScore.activity : 75;
-  
-  // Emergency fallback so rings never show 0 at start
-  const finalRecoveryScore = recoveryScore === 0 ? 85 : recoveryScore;
-  const finalBiomarkersScore = biomarkersScore === 0 ? 75 : biomarkersScore;
-  const finalLifestyleScore = lifestyleScore === 0 ? 75 : lifestyleScore;
-  
-  // Debug recovery score specifically
-  console.log('🏥 Recovery score calculation:', { 
-    healthScoreRecovery: healthScore?.recovery, 
-    recoveryScore,
+  const {
+    overallHealthScore,
     finalRecoveryScore,
-    healthScoreIsNull: healthScore === null,
-    healthScoreObject: healthScore
-  });
-  
-  console.log('🏥 Calculated scores:', { 
-    overallHealthScore, 
-    recoveryScore, 
-    finalRecoveryScore,
-    biomarkersScore, 
     finalBiomarkersScore,
-    lifestyleScore,
-    finalLifestyleScore
-  });
+    finalLifestyleScore,
+  } = deriveDashboardScores(healthScore);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      
-      {/* Twitter Loading Indicator */}
-      <TwitterLoadingIndicator 
-        visible={isRefreshing} 
+
+      <TwitterLoadingIndicator
+        visible={isRefreshing}
         text="Refreshing your health data..."
       />
-      
-      {/* Header */}
+
       <View style={styles.header}>
         <View style={styles.headerContent}>
-        <Text style={styles.greeting}>
+          <Text style={styles.greeting}>
             {`Good ${getTimeOfDay()}, ${user?.firstName || user?.preferredName || ''}`}
-        </Text>
-      </View>
-        <TouchableOpacity 
+          </Text>
+        </View>
+        <TouchableOpacity
           style={styles.plusButton}
           onPress={() => setShowSymptomModal(true)}
         >
@@ -319,8 +180,8 @@ const DashboardScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.scrollContainer} 
+      <ScrollView
+        style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -328,30 +189,26 @@ const DashboardScreen: React.FC = () => {
         scrollEnabled={true}
         nestedScrollEnabled={true}
       >
-        {/* Hero Health Score */}
         <View style={styles.firstComponent}>
-          <HeroHealthScore 
+          <HeroHealthScore
             score={overallHealthScore}
             onPress={() => navigation.navigate('HealthScoreDetail')}
           />
         </View>
 
-        {/* Supporting Rings */}
-        <SupportingRings 
+        <SupportingRings
           recovery={finalRecoveryScore}
           biomarkers={finalBiomarkersScore}
           lifestyle={finalLifestyleScore}
           onRingPress={handleRingPress}
         />
 
-        {/* Lab Insights */}
-        <LabInsightsCard 
-          onViewAllPress={() => console.log('View all labs pressed')}
+        <LabInsightsCard
+          onViewAllPress={() => {}}
           onLabResultPress={handleLabResultPress}
         />
 
-        {/* Travel Health Summary */}
-        <TravelHealthSummary 
+        <TravelHealthSummary
           currentLocation={travelHealth?.location || 'Getting location...'}
           jetLagHours={0}
           onTravelPress={handleTravelPress}
@@ -364,16 +221,13 @@ const DashboardScreen: React.FC = () => {
           travelHealth={travelHealth}
         />
 
-        {/* Medical Timeline */}
-        <MedicalTimeline 
+        <MedicalTimeline
           onEventPress={handleMedicalEventPress}
         />
 
-        {/* Bottom spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      {/* Modals */}
       <BiomarkerModal
         visible={modalVisible}
         biomarker={selectedBiomarker}
@@ -400,10 +254,7 @@ const DashboardScreen: React.FC = () => {
       <QuickSymptomLogModal
         visible={showSymptomModal}
         onClose={() => setShowSymptomModal(false)}
-        onSuccess={() => {
-          // Optionally refresh data or show success message
-          console.log('Symptom logged successfully');
-        }}
+        onSuccess={() => {}}
       />
     </View>
   );
@@ -417,45 +268,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', // Keep greeting at the top
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 60, // Increased for iPhone 16 Dynamic Island
-    paddingBottom: 2, // Tighter fit
+    paddingTop: 60,
+    paddingBottom: 2,
     backgroundColor: '#000000',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  testButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#FF950030',
   },
   headerContent: {
     flex: 1,
   },
   greeting: {
-    fontSize: 26, // Slightly smaller for balance
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 16, // Even more space below greeting
-  },
-  aiButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#007AFF30',
+    marginBottom: 16,
   },
   plusButton: {
     width: 44,
@@ -478,7 +304,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   firstComponent: {
-    marginTop: 20, // Added top spacing
+    marginTop: 20,
   },
 });
 

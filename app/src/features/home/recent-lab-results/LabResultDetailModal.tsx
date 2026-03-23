@@ -10,21 +10,28 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 
-interface LabResult {
-  id: string;
-  name: string;
-  value: number;
-  unit: string;
-  trend: 'up' | 'down' | 'stable';
-  trendPercent: number;
-  status: 'optimal' | 'normal' | 'borderline' | 'high' | 'low';
-  lastUpdated: string;
-}
+import { LabResult } from './results/types';
+import {
+  getStatusColor,
+  getTrendIcon,
+  getTrendColor,
+  getTrendLabel,
+  isGoodTrend,
+} from './utils';
 
 interface LabResultDetailModalProps {
   visible: boolean;
   labResult: LabResult | null;
   onClose: () => void;
+}
+
+interface BiomarkerDetail {
+  description: string;
+  normalRange: string;
+  optimalRange: string;
+  whatItMeans: string;
+  recommendations: string[];
+  riskFactors: string[];
 }
 
 const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
@@ -34,33 +41,8 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
 }) => {
   if (!visible || !labResult) return null;
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'optimal': return '#30D158';
-      case 'normal': return '#32D74B';
-      case 'borderline': return '#FF9F0A';
-      case 'high': return '#FF6B35';
-      case 'low': return '#FF3B30';
-      default: return '#8E8E93';
-    }
-  };
-
-  const getTrendIcon = (trend: string): keyof typeof Ionicons.glyphMap => {
-    switch (trend) {
-      case 'up': return 'trending-up';
-      case 'down': return 'trending-down';
-      case 'stable': return 'remove';
-      default: return 'remove';
-    }
-  };
-
-  const getTrendColor = (trend: string, isGoodTrend: boolean): string => {
-    if (trend === 'stable') return '#8E8E93';
-    return isGoodTrend ? '#30D158' : '#FF3B30';
-  };
-
-  const getBiomarkerDetails = (id: string) => {
-    const details: { [key: string]: any } = {
+  const getBiomarkerDetails = (id: string): BiomarkerDetail => {
+    const details: Record<string, BiomarkerDetail> = {
       'total_cholesterol': {
         description: 'Total cholesterol measures the total amount of cholesterol in your blood, including both HDL and LDL cholesterol.',
         normalRange: 'Less than 200 mg/dL',
@@ -194,17 +176,10 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
   };
 
   const biomarkerDetails = getBiomarkerDetails(labResult.id);
-  const isGoodTrend = () => {
-    const lowerIsBetter = ['total_cholesterol', 'ldl_cholesterol', 'glucose', 'creatinine'];
-    if (lowerIsBetter.includes(labResult.id)) {
-      return labResult.trend === 'down';
-    }
-    return labResult.trend === 'up';
-  };
-
-  const trendColor = getTrendColor(labResult.trend, isGoodTrend());
+  const good = isGoodTrend(labResult.id, labResult.trend);
+  const trendColor = getTrendColor(labResult.trend, good);
   const statusColor = getStatusColor(labResult.status);
-  const trendLabel = labResult.trend === 'stable' ? 'Stable' : isGoodTrend() ? 'Improving' : 'Worsening';
+  const trendLabel = getTrendLabel(labResult.trend, good);
 
   // Range indicator for lab results
   const renderRangeIndicator = () => {

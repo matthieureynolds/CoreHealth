@@ -66,7 +66,6 @@ export const validateApiKeys = () => {
     console.warn('3. Create API key with these APIs enabled');
     console.warn('4. Add to .env: EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here');
   } else {
-    console.log('✅ All required API keys are configured');
   }
   
   return missing.length === 0;

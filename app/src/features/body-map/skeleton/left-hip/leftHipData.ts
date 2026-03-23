@@ -1,0 +1,57 @@
+import { BoneHealthZone } from '../types';
+
+export const leftHipZone: BoneHealthZone = {
+  id: 'left_hip',
+  name: 'Left Hip',
+  anatomicalFocus: 'Left Femoral Neck & Total Hip',
+  position: { x: 35, y: 55 },
+  overallRisk: 'low',
+  riskFactors: ['Family history of hip fracture'],
+  lastAssessment: '2024-01-10',
+  recommendations: [
+    'Continue weight-bearing exercises focusing on hip strength',
+    'Balance training to prevent falls and hip fractures',
+    'Monitor hip bone density every 2 years',
+    'Maintain adequate protein intake for muscle mass',
+  ],
+  biomarkers: [
+    {
+      name: 'Left Hip T-score (Total)',
+      value: -0.8,
+      unit: 'SD',
+      referenceRange: '>-1.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      trend: 'stable',
+      description: 'Total left hip bone density vs young adult peak',
+    },
+    {
+      name: 'Left Femoral Neck T-score',
+      value: -1.2,
+      unit: 'SD',
+      referenceRange: '>-1.0',
+      status: 'low',
+      lastUpdated: '2024-01-10',
+      trend: 'stable',
+      description: 'Left femoral neck bone density vs young adult peak',
+    },
+    {
+      name: 'FRAX Left Hip Risk (10-yr)',
+      value: 2.1,
+      unit: '%',
+      referenceRange: '<3%',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'FRAX-calculated 10-year probability of left hip fracture',
+    },
+    {
+      name: 'Left Hip Z-score',
+      value: -0.5,
+      unit: 'SD',
+      referenceRange: '>-2.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'Left hip bone density compared to age-matched peers',
+    },
+  ],
+};

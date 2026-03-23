@@ -1,33 +1,58 @@
-import { liverOrgan } from './liver/liverData';
-import { kidneysOrgan } from './kidneys/kidneysData';
-import { pancreasOrgan } from './pancreas/pancreasData';
-import { thyroidOrgan } from './thyroid/thyroidData';
-import { brainOrgan } from './brain/brainData';
-import { earsOrgan } from './ears/earsData';
-import { mouthOrgan } from './mouth/mouthData';
-import { eyesOrgan } from './eyes/eyesData';
-import { stomachOrgan } from './stomach/stomachData';
-import { smallIntestineOrgan } from './smallIntestine/smallIntestineData';
-import { largeIntestineOrgan } from './largeIntestine/largeIntestineData';
+// Head
+import { brainOrgan } from './head/brain/brainData';
+import { eyesOrgan } from './head/eyes/eyesData';
+import { earsOrgan } from './head/ears/earsData';
+import { mouthOrgan } from './head/mouth/mouthData';
+import { thyroidOrgan } from './head/thyroid/thyroidData';
+
+// Lungs
+import { lungsOrgan } from './lungs/lungsData';
+
+// Heart
 import { heartOrgan } from './heart/heartData';
+
+// Liver
+import { liverOrgan } from './liver/liverData';
+
+// Stomach & Pancreas
+import { stomachOrgan } from './stomach/stomachData';
+import { pancreasOrgan } from './stomach/pancreas/pancreasData';
+
+// Kidney
+import { kidneysOrgan } from './kidneys/kidneysData';
+
+// Intestines
+import { smallIntestineOrgan } from './small-intestine/smallIntestineData';
+import { largeIntestineOrgan } from './large-intestine/largeIntestineData';
+
 import { Organ } from './types';
 
 export const organs: Record<string, Organ> = {
-  [liverOrgan.id]: liverOrgan,
-  [kidneysOrgan.id]: kidneysOrgan,
-  [pancreasOrgan.id]: pancreasOrgan,
-  [thyroidOrgan.id]: thyroidOrgan,
   [brainOrgan.id]: brainOrgan,
+  [eyesOrgan.id]: eyesOrgan,
   [earsOrgan.id]: earsOrgan,
   [mouthOrgan.id]: mouthOrgan,
-  [eyesOrgan.id]: eyesOrgan,
+  [thyroidOrgan.id]: thyroidOrgan,
+  [lungsOrgan.id]: lungsOrgan,
+  [heartOrgan.id]: heartOrgan,
+  [liverOrgan.id]: liverOrgan,
   [stomachOrgan.id]: stomachOrgan,
+  [pancreasOrgan.id]: pancreasOrgan,
+  [kidneysOrgan.id]: kidneysOrgan,
   [smallIntestineOrgan.id]: smallIntestineOrgan,
   [largeIntestineOrgan.id]: largeIntestineOrgan,
-  [heartOrgan.id]: heartOrgan,
 };
 
 export const organsList: Organ[] = Object.values(organs);
 
 export * from './types';
-export { liverOrgan, kidneysOrgan, pancreasOrgan, thyroidOrgan, brainOrgan, earsOrgan, mouthOrgan, eyesOrgan, stomachOrgan, smallIntestineOrgan, largeIntestineOrgan, heartOrgan };
+export {
+  brainOrgan, eyesOrgan, earsOrgan, mouthOrgan, thyroidOrgan,
+  lungsOrgan,
+  heartOrgan,
+  liverOrgan,
+  stomachOrgan, pancreasOrgan,
+  kidneysOrgan,
+  smallIntestineOrgan,
+  largeIntestineOrgan,
+};

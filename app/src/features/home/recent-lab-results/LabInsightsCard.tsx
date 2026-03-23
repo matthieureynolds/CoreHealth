@@ -7,17 +7,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface LabResult {
-  id: string;
-  name: string;
-  value: number;
-  unit: string;
-  trend: 'up' | 'down' | 'stable';
-  trendPercent: number;
-  status: 'optimal' | 'normal' | 'borderline' | 'high' | 'low';
-  lastUpdated: string;
-}
+import { recentLabResults, LabResult } from './results';
+import {
+  getStatusColor,
+  getTrendIcon,
+  getTrendColor,
+  getTrendLabel,
+  isGoodTrend,
+} from './utils';
 
 interface LabInsightsCardProps {
   onViewAllPress?: () => void;
@@ -28,135 +25,6 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
   onViewAllPress, 
   onLabResultPress 
 }) => {
-  // Mock data - in real app this would come from props or context
-  const recentLabResults: LabResult[] = [
-    {
-      id: 'total_cholesterol',
-      name: 'Total Cholesterol',
-      value: 180,
-      unit: 'mg/dL',
-      trend: 'down',
-      trendPercent: 12,
-      status: 'optimal',
-      lastUpdated: '3 days ago'
-    },
-    {
-      id: 'ldl_cholesterol',
-      name: 'LDL Cholesterol',
-      value: 95,
-      unit: 'mg/dL',
-      trend: 'down',
-      trendPercent: 8,
-      status: 'normal',
-      lastUpdated: '3 days ago'
-    },
-    {
-      id: 'glucose',
-      name: 'Fasting Glucose',
-      value: 88,
-      unit: 'mg/dL',
-      trend: 'stable',
-      trendPercent: 2,
-      status: 'optimal',
-      lastUpdated: '1 week ago'
-    },
-    {
-      id: 'creatinine',
-      name: 'Creatinine',
-      value: 0.9,
-      unit: 'mg/dL',
-      trend: 'up',
-      trendPercent: 5,
-      status: 'normal',
-      lastUpdated: '3 days ago'
-    },
-    {
-      id: 'hemoglobin',
-      name: 'Hemoglobin',
-      value: 14.2,
-      unit: 'g/dL',
-      trend: 'stable',
-      trendPercent: 0,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'platelets',
-      name: 'Platelets',
-      value: 220,
-      unit: '10^3/uL',
-      trend: 'down',
-      trendPercent: 3,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'wbc',
-      name: 'White Blood Cells',
-      value: 6.1,
-      unit: '10^3/uL',
-      trend: 'up',
-      trendPercent: 2,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'bun',
-      name: 'BUN',
-      value: 13,
-      unit: 'mg/dL',
-      trend: 'stable',
-      trendPercent: 0,
-      status: 'normal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'alt',
-      name: 'ALT',
-      value: 22,
-      unit: 'U/L',
-      trend: 'down',
-      trendPercent: 1,
-      status: 'optimal',
-      lastUpdated: '2 weeks ago'
-    },
-    {
-      id: 'ast',
-      name: 'AST',
-      value: 19,
-      unit: 'U/L',
-      trend: 'down',
-      trendPercent: 2,
-      status: 'optimal',
-      lastUpdated: '2 weeks ago'
-    }
-  ];
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'optimal': return '#30D158';
-      case 'normal': return '#32D74B';
-      case 'borderline': return '#FF9F0A';
-      case 'high': return '#FF6B35';
-      case 'low': return '#FF3B30';
-      default: return '#8E8E93';
-    }
-  };
-
-  const getTrendIcon = (trend: string): keyof typeof Ionicons.glyphMap => {
-    switch (trend) {
-      case 'up': return 'trending-up';
-      case 'down': return 'trending-down';
-      case 'stable': return 'remove';
-      default: return 'remove';
-    }
-  };
-
-  const getTrendColor = (trend: string, isGoodTrend: boolean): string => {
-    if (trend === 'stable') return '#8E8E93';
-    return isGoodTrend ? '#30D158' : '#FF3B30';
-  };
-
   const [showCount, setShowCount] = useState(3);
   const [viewAll, setViewAll] = useState(false);
 
@@ -169,18 +37,10 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
   const canShowLessFromAll = viewAll && recentLabResults.length > 3;
 
   const renderLabResult = (result: LabResult) => {
-    // Determine if trend is good based on biomarker
-    const isGoodTrend = () => {
-      const lowerIsBetter = ['total_cholesterol', 'ldl_cholesterol', 'glucose', 'creatinine'];
-      if (lowerIsBetter.includes(result.id)) {
-        return result.trend === 'down';
-      }
-      return result.trend === 'up';
-    };
-
-    const trendColor = getTrendColor(result.trend, isGoodTrend());
+    const good = isGoodTrend(result.id, result.trend);
+    const trendColor = getTrendColor(result.trend, good);
     const statusColor = getStatusColor(result.status);
-    const trendLabel = result.trend === 'stable' ? 'Stable' : isGoodTrend() ? 'Improving' : 'Worsening';
+    const trendLabel = getTrendLabel(result.trend, good);
 
     return (
         <TouchableOpacity

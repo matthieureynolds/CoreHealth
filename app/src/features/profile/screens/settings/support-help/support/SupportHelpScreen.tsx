@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Linking } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const SupportHelpScreen: React.FC = () => {
-  const [showFaq, setShowFaq] = useState(false);
   const navigation = useNavigation();
 
   const handleContactSupport = async () => {
@@ -173,38 +172,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 'auto',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContainer: {
-    backgroundColor: '#000000',
-    borderRadius: 12,
-    padding: 20,
-    width: '85%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  faqQ: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  faqA: {
-    color: '#8E8E93',
-    fontSize: 14,
   },
 });
 

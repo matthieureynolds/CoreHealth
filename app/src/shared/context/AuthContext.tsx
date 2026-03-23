@@ -23,7 +23,7 @@ interface AuthContextType {
     email: string,
     password: string,
     displayName: string,
-  ) => Promise<void>;
+  ) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
@@ -53,18 +53,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Load mock user data from AsyncStorage
   const loadMockUserData = async () => {
     try {
-      console.log('🔍 Attempting to load mock user data from AsyncStorage...');
       const storedUserData = await AsyncStorage.getItem('mockUserData');
-      console.log('📱 Stored user data:', storedUserData);
       if (storedUserData) {
         const parsedUser = JSON.parse(storedUserData);
-        console.log('✅ Parsed user data:', parsedUser);
         // Convert date strings back to Date objects
         parsedUser.createdAt = new Date(parsedUser.createdAt);
         parsedUser.updatedAt = new Date(parsedUser.updatedAt);
         return parsedUser;
       } else {
-        console.log('❌ No stored mock user data found');
       }
     } catch (error) {
       console.error('❌ Error loading mock user data:', error);
@@ -75,9 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Save mock user data to AsyncStorage
   const saveMockUserData = async (userData: User) => {
     try {
-      console.log('💾 Saving mock user data to AsyncStorage:', userData);
       await AsyncStorage.setItem('mockUserData', JSON.stringify(userData));
-      console.log('✅ Mock user data saved to AsyncStorage');
     } catch (error) {
       console.error('❌ Error saving mock user data:', error);
     }
@@ -105,7 +99,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
-        console.log('🔧 Supabase connection failed, using mock auth');
         // Load mock user data if Supabase fails
         const mockUser = await loadMockUserData();
         if (mockUser) {
@@ -126,7 +119,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(session);
       if (session?.user) {
         try {
-            console.log('⚡ Skipping database profile creation - using mock data');
           setUser(transformSupabaseUser(session.user));
         } catch (error) {
           console.error('Error initializing user data:', error);
@@ -139,7 +131,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
       subscription = authSubscription.data.subscription;
     } catch (error) {
-      console.log('🔧 Auth state listener failed, using mock auth only');
       subscription = { unsubscribe: () => {} };
     }
 
@@ -171,7 +162,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) => {
     setIsLoading(true);
     try {
-      console.log('🔧 Using mock authentication (Supabase unavailable)');
       
       // Create mock user
       const mockUser: User = {
@@ -184,16 +174,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '.')
           .replace(/(^\.|\.$)/g, ''),
-        photoURL: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        photoURL: undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       
       // Store mock user data
       await AsyncStorage.setItem('mockUserData', JSON.stringify(mockUser));
       setUser(mockUser);
       
-      console.log('✅ Mock user created successfully:', mockUser);
       return;
       
       const { data, error } = await supabase.auth.signUp({
@@ -221,7 +210,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Don't throw error here, user can still proceed to verification screen
       }
 
-      console.log('✅ User signup successful, verification email sent:', email);
       return { success: true, user: data.user };
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -234,7 +222,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('🔧 Using mock authentication (Supabase unavailable)');
       
       // Try to load existing mock user data first
       let mockUser = await loadMockUserData();
@@ -263,7 +250,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       setUser(mockUser);
-      console.log('✅ Mock sign in successful:', email);
       
     } catch (error: any) {
       console.error('❌ Sign in error details:', {
@@ -288,13 +274,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      console.log('🔧 Using mock sign out (Supabase unavailable)');
       
       setUser(null);
       setSession(null);
       // Clear stored mock user data
       await AsyncStorage.removeItem('mockUserData');
-      console.log('✅ Mock sign out successful');
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw new Error(error.message);
@@ -333,7 +317,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data: { session },
       } = await supabase.auth.getSession();
       if (session?.user?.email_confirmed_at) {
-        console.log('✅ Email verification successful');
         return true;
       }
       return false;
@@ -369,7 +352,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Best-effort unlink (placeholder). Supabase v2 supports identity unlinking for OAuth providers
   // when multiple identities are linked to one user. For now we simulate success to keep UI flowing.
   const unlinkAccount = async (provider: 'google') => {
-    console.log(`Requested unlink for provider: ${provider}. No-op placeholder.`);
     return Promise.resolve();
   };
 
@@ -381,11 +363,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!session) {
       setIsLoading(true);
       try {
-        console.log('⚠️ Using mock authentication for email update');
         const updatedUser = { ...user, email: newEmail };
         setUser(updatedUser);
         await saveMockUserData(updatedUser);
-        console.log('✅ Email updated successfully (mock auth)');
         return;
       } finally {
         setIsLoading(false);
@@ -447,10 +427,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!session) {
       setIsLoading(true);
       try {
-        console.log('⚠️ Using mock authentication for password update');
         // Simulate async success; no real password persisted in mock mode
         await new Promise(resolve => setTimeout(resolve, 300));
-        console.log('✅ Password updated successfully (mock auth)');
         return;
       } finally {
         setIsLoading(false);
@@ -479,14 +457,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Check if we're using mock authentication
       if (!session) {
-        console.log('⚠️ Using mock authentication for display name update');
         // Update local state only for mock auth
         const updatedUser = user ? { ...user, displayName } : null;
         setUser(updatedUser);
         if (updatedUser) {
           await saveMockUserData(updatedUser);
         }
-        console.log('✅ User display name updated successfully (mock auth)');
         return;
       }
 
@@ -498,7 +474,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       if (error) throw error;
       setUser(prevUser => prevUser ? { ...prevUser, displayName } : null);
-      console.log('✅ User display name updated successfully');
     } catch (error: any) {
       console.error('Update display name error:', error);
       throw new Error(error.message);
@@ -509,7 +484,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Check if we're using mock authentication
       if (!session) {
-        console.log('⚠️ Using mock authentication for name update');
         // Update local state only for mock auth
         const displayName = preferredName || [firstName, surname].filter(Boolean).join(' ');
         const updatedUser = user ? { ...user, firstName, surname, preferredName, displayName } : null;
@@ -517,7 +491,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (updatedUser) {
           await saveMockUserData(updatedUser);
         }
-        console.log('✅ User full name updated successfully (mock auth)');
         return;
       }
 
@@ -532,7 +505,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       if (error) throw error;
       setUser(prevUser => prevUser ? { ...prevUser, firstName, surname, preferredName, displayName: preferredName || `${firstName} ${surname}` } : null);
-      console.log('✅ User full name updated successfully');
     } catch (error: any) {
       console.error('Update full name error:', error);
       throw new Error(error.message);
@@ -580,14 +552,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Check if we're using mock authentication
       if (!session) {
-        console.log('⚠️ Using mock authentication for photo update');
         // Update local state only for mock auth
         const updatedUser = user ? { ...user, photoURL } : null;
         setUser(updatedUser);
         if (updatedUser) {
           await saveMockUserData(updatedUser);
         }
-        console.log('✅ User photo updated successfully (mock auth)');
         return;
       }
 
@@ -599,7 +569,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       if (error) throw error;
       setUser(prevUser => prevUser ? { ...prevUser, photoURL } : null);
-      console.log('✅ User photo updated successfully');
     } catch (error: any) {
       console.error('Update photo error:', error);
       throw new Error(error.message);
@@ -610,6 +579,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     isLoading,
+    isInitializing,
     signIn,
     signUp,
     signOut,

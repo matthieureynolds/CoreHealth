@@ -7,6 +7,7 @@ import { RootStackParamList } from '../../../shared/types';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
 import HeroHealthScore from './HeroHealthScore';
 import SupportingRings from '../health-metrics/SupportingRings';
+import { deriveDashboardScores } from './utils';
 
 type Route = RouteProp<RootStackParamList, 'HealthScoreDetail'>;
 type Nav = StackNavigationProp<RootStackParamList, 'HealthScoreDetail'>;
@@ -16,15 +17,12 @@ const HealthScoreDetailScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const { healthScore } = useHealthData();
 
-  // Calculate scores with fallbacks
-  const overallHealthScore = (healthScore?.overall && healthScore.overall > 0) ? healthScore.overall : 82;
-  const recoveryScore = (healthScore?.recovery && healthScore.recovery > 0) ? healthScore.recovery : 85;
-  const biomarkersScore = (healthScore?.overall && healthScore.overall > 0) ? Math.round(healthScore.overall * 0.9) : 75;
-  const lifestyleScore = (healthScore?.activity && healthScore.activity > 0) ? healthScore.activity : 75;
-
-  const finalRecoveryScore = recoveryScore === 0 ? 85 : recoveryScore;
-  const finalBiomarkersScore = biomarkersScore === 0 ? 75 : biomarkersScore;
-  const finalLifestyleScore = lifestyleScore === 0 ? 75 : lifestyleScore;
+  const {
+    overallHealthScore,
+    finalRecoveryScore,
+    finalBiomarkersScore,
+    finalLifestyleScore,
+  } = deriveDashboardScores(healthScore);
 
   const getScoreLabel = (score: number): string => {
     if (score >= 80) return 'Excellent';
@@ -76,7 +74,6 @@ const HealthScoreDetailScreen: React.FC = () => {
             lifestyle={finalLifestyleScore}
             onRingPress={(ringId) => {
               // Navigate to individual score details if needed
-              console.log('Ring pressed:', ringId);
             }}
           />
         </View>

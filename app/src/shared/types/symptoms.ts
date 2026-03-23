@@ -16,6 +16,7 @@ export interface SymptomEntry {
   activity?: string;
   medications?: string[];
   tags?: string[];
+  factors?: string[];
 }
 
 export interface StateOfMindEntry {

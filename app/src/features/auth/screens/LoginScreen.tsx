@@ -62,7 +62,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Image source={require('../../../../assets/corehealthlogo2.png')} style={styles.logo} />
+          <Image source={require('../../../../assets/images/brand/logo.png')} style={styles.logo} />
           <Text style={styles.subtitle}>Your Personal Health Intelligence</Text>
         </View>
 

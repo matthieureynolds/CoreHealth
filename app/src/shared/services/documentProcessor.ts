@@ -93,7 +93,6 @@ export class DocumentProcessor {
 
       if (visionData.responses?.[0]?.fullTextAnnotation?.text) {
         const extractedText = visionData.responses[0].fullTextAnnotation.text;
-        console.log(`OCR completed in ${Date.now() - startTime}ms`);
         return extractedText;
       } else {
         throw new Error('No text detected in document');
@@ -210,7 +209,6 @@ ${rawText}
         }),
       );
 
-      console.log(`GPT structuring completed in ${Date.now() - startTime}ms`);
       return extractedBiomarkers;
     } catch (error) {
       console.error('GPT Error:', error);
@@ -324,16 +322,13 @@ ${rawText}
     const startTime = Date.now();
 
     try {
-      console.log('Processing document:', fileName);
 
       // Step 1: Extract text using Google Cloud Vision OCR
       const extractedText = await this.extractTextFromDocument(uri);
-      console.log('OCR Text extracted, length:', extractedText.length);
 
       // Step 2: Structure biomarkers using OpenAI GPT
       const extractedBiomarkers =
         await this.structureBiomarkersWithGPT(extractedText);
-      console.log('Biomarkers extracted:', extractedBiomarkers.length);
 
       // Step 3: Determine document type
       const documentType = this.determineDocumentType(extractedBiomarkers);

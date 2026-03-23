@@ -18,7 +18,7 @@ import { MedicalRecord } from '../../../../../../shared/types';
 import * as Sharing from 'expo-sharing';
 
 const ViewMedicalRecordsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);

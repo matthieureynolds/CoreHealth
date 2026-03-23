@@ -144,36 +144,28 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
 
   const loadSettings = async () => {
     try {
-      console.log('⚙️ Loading user settings...');
       const storedSettings = await AsyncStorage.getItem(SETTINGS_STORAGE_KEY);
-      
+
       if (storedSettings) {
         const parsedSettings = JSON.parse(storedSettings);
-        
-        // Merge with default settings to handle new settings added in updates
         const mergedSettings = mergeWithDefaults(parsedSettings, defaultSettings);
-        
         dispatch({ type: 'LOAD_SETTINGS', payload: mergedSettings });
-        console.log('✅ Settings loaded successfully');
-        // Immediately sync to assistant so offline answers are up-to-date
         try {
           await HealthAssistantService.syncSettingsSnapshot(mergedSettings);
           await refreshUserSnapshot();
-        } catch (syncErr) {
-          console.warn('Assistant settings sync (load) failed:', syncErr);
+        } catch {
+          // non-fatal: assistant sync failure does not block settings load
         }
       } else {
-        console.log('📱 Using default settings (first launch)');
-        // Ensure assistant has a baseline snapshot on first launch
         try {
           await HealthAssistantService.syncSettingsSnapshot(defaultSettings);
           await refreshUserSnapshot();
-        } catch (syncErr) {
-          console.warn('Assistant settings sync (defaults) failed:', syncErr);
+        } catch {
+          // non-fatal
         }
       }
     } catch (error) {
-      console.error('❌ Error loading settings:', error);
+      console.error('Error loading settings:', error);
     } finally {
       setIsLoading(false);
     }
@@ -182,16 +174,14 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
   const saveSettings = async (newSettings: UserSettings) => {
     try {
       await AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings));
-      console.log('💾 Settings saved to storage');
-      // Keep Toto in sync immediately across the app
       try {
         await HealthAssistantService.syncSettingsSnapshot(newSettings);
         await refreshUserSnapshot();
-      } catch (syncErr) {
-        console.warn('Assistant settings sync failed:', syncErr);
+      } catch {
+        // non-fatal
       }
     } catch (error) {
-      console.error('❌ Error saving settings:', error);
+      console.error('Error saving settings:', error);
     }
   };
 
@@ -217,6 +207,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
           shouldShowAlert: notifSettings.enabled,
           shouldPlaySound: notifSettings.enabled,
           shouldSetBadge: notifSettings.enabled,
+          shouldShowBanner: notifSettings.enabled,
+          shouldShowList: notifSettings.enabled,
         }),
       });
     } catch (error) {
@@ -227,7 +219,6 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
   const applyAccessibilitySettings = (accessibilitySettings: AccessibilitySettings) => {
     // Apply font scaling, contrast, etc.
     // This would require additional implementation based on React Native accessibility APIs
-    console.log('🎯 Applying accessibility settings:', accessibilitySettings);
   };
 
   // Settings update functions
@@ -316,7 +307,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     const newSettings = { ...settings };
     newSettings[category] = { ...newSettings[category], ...updates };
     
-    const actionType = `UPDATE_${category.toUpperCase()}` as keyof typeof SettingsAction;
+    const actionType = `UPDATE_${category.toUpperCase()}`;
     dispatch({ type: actionType as any, payload: updates });
     await saveSettings(newSettings);
   };
@@ -398,7 +389,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
           body: 'Notifications are working correctly!',
           data: { type: 'test' },
         },
-        trigger: { seconds: 1 },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 1 },
       });
     } catch (error) {
       console.error('Error sending test notification:', error);

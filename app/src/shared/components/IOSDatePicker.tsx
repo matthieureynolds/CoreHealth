@@ -10,6 +10,7 @@ interface IOSDatePickerProps {
   onCancel: () => void;
   title?: string;
   mode?: 'date' | 'time';
+  minimumDate?: Date;
   maximumDate?: Date;
   overlayOpacity?: number;
   containerColor?: string;
@@ -22,6 +23,7 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
   onCancel,
   title = 'Select Date',
   mode = 'date',
+  minimumDate,
   maximumDate,
   overlayOpacity,
   containerColor
@@ -94,6 +96,7 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
                   setTempDate(date);
                 }
               }}
+              minimumDate={minimumDate}
               maximumDate={maximumDate}
               style={styles.datePicker}
             />

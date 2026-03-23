@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, findNodeHandle, Animated, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSendAnimation } from '../../../shared/hooks/useSendAnimation';
-// import { useHaptics } from '../../../shared/lib/haptics';
-import { useReduceMotion } from '../../../shared/lib/reduceMotion';
+import { useReduceMotion } from '../../../shared/utils/reduceMotion';
 
 interface MessageComposerProps {
   onSend: (text: string, clientId: string) => void;
@@ -27,8 +25,6 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   const [placeholder, setPlaceholder] = useState('');
   const [hasChattedLocal, setHasChattedLocal] = useState(false);
   const inputRef = useRef<TextInput>(null);
-  const sendAnim = useSendAnimation();
-  // const haptics = useHaptics();
   const reduceMotion = useReduceMotion();
 
   const handleSend = async () => {
@@ -324,5 +320,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
+  },
+  actionButtonDisabled: {
+    opacity: 0.4,
   },
 });

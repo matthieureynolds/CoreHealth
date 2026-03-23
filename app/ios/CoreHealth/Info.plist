@@ -20,15 +20,13 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>corehealth</string>
-				<string>com.anonymous.CoreHealth</string>
+				<string>com.corehealth.app</string>
 			</array>
 		</dict>
 		<dict>
@@ -40,8 +38,6 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>LSMinimumSystemVersion</key>
-	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -53,6 +49,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>CoreHealth needs access to your camera to take profile pictures and document health records.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>CoreHealth uses Face ID to protect your sensitive health data from unauthorised access.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

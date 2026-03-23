@@ -1,0 +1,57 @@
+import { BoneHealthZone } from '../types';
+
+export const spineZone: BoneHealthZone = {
+  id: 'spine',
+  name: 'Spine',
+  anatomicalFocus: 'Lumbar & Thoracic Vertebrae',
+  position: { x: 50, y: 25 },
+  overallRisk: 'moderate',
+  riskFactors: ['Age >50', 'Previous compression fracture', 'Kyphosis'],
+  lastAssessment: '2024-01-10',
+  recommendations: [
+    'Spine-specific strengthening exercises for vertebral support',
+    'Maintain proper posture and ergonomics',
+    'Annual DEXA scan monitoring for vertebral bone density',
+    'Consider vertebral fracture assessment (VFA) with next DEXA',
+    'Calcium and Vitamin D optimization for vertebral health',
+  ],
+  biomarkers: [
+    {
+      name: 'Spine T-score (L1-L4)',
+      value: -1.8,
+      unit: 'SD',
+      referenceRange: '>-1.0',
+      status: 'low',
+      lastUpdated: '2024-01-10',
+      trend: 'declining',
+      description: 'Lumbar spine bone density compared to young adult peak',
+    },
+    {
+      name: 'Vertebral Fracture Risk (10-yr)',
+      value: 12,
+      unit: '%',
+      referenceRange: '<10%',
+      status: 'high',
+      lastUpdated: '2024-01-10',
+      description: 'FRAX-calculated 10-year probability of vertebral fracture',
+    },
+    {
+      name: 'Spine Z-score (Age-matched)',
+      value: -1.2,
+      unit: 'SD',
+      referenceRange: '>-2.0',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'Lumbar spine bone density compared to age-matched peers',
+    },
+    {
+      name: 'Vertebral Height Loss',
+      value: 'None detected',
+      unit: '',
+      referenceRange: 'None',
+      status: 'normal',
+      lastUpdated: '2024-01-10',
+      description: 'Assessment for vertebral compression fractures',
+    },
+  ],
+};

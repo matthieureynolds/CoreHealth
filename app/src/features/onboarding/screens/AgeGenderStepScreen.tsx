@@ -134,7 +134,7 @@ const AgeGenderStepScreen: React.FC<Props> = ({ onNext, onBack }) => {
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.skipButton} onPress={onNext}>
+          <TouchableOpacity style={styles.skipButton} onPress={() => onNext({ age: '', gender: '', height: '', weight: '' })}>
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
           <TouchableOpacity 

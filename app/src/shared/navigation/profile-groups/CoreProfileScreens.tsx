@@ -11,6 +11,7 @@ import LifestyleInfoScreen from '../../../features/profile/screens/profile/perso
 import SymptomRegisteredScreen from '../../../features/profile/screens/profile/health-records/symptoms/SymptomRegisteredScreen';
 import HealthIDsScreen from '../../../features/profile/screens/profile/personal-info/linked-health-id/HealthIDsScreen';
 import SettingsScreen from '../../../features/profile/screens/settings/SettingsScreen';
+import ProfilePictureScreen from '../../../features/profile/screens/profile/personal-info/profile-picture/ProfilePictureScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
@@ -25,5 +26,6 @@ export const CoreProfileScreens = (Stack: StackType) => (
     <Stack.Screen name="LifestyleInfo" component={LifestyleInfoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SymptomRegistered" component={SymptomRegisteredScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HealthIDs" component={HealthIDsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ProfilePicture" component={ProfilePictureScreen} options={{ headerShown: false }} />
   </>
 );

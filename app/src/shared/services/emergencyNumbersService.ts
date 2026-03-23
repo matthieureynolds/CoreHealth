@@ -29,7 +29,6 @@ export interface EmergencyNumbersResponse {
  */
 export const getEmergencyContacts = async (countryCode: string): Promise<EmergencyContacts> => {
   try {
-    console.log('🚨 Fetching emergency numbers for:', countryCode);
     
     const response = await fetch(`https://emergencynumberapi.com/api/country/${countryCode}`);
     

@@ -22,26 +22,26 @@ import { HealthID } from '../../../../../../shared/types';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const FLAG_IMAGES: Record<string, any> = {
-  gb: require('../../../../assets/assets/flags/UK.png'),
-  fr: require('../../../../assets/assets/flags/France.png'),
-  de: require('../../../../assets/assets/flags/Germany.png'),
-  au: require('../../../../assets/assets/flags/Australia.png'),
-  ca: require('../../../../assets/assets/flags/Canada.png'),
-  us: require('../../../../assets/assets/flags/USA.png'),
-  es: require('../../../../assets/assets/flags/Spain.png'),
-  it: require('../../../../assets/assets/flags/Italy.png'),
-  nl: require('../../../../assets/assets/flags/Netherland.png'),
-  se: require('../../../../assets/assets/flags/Sweden.png'),
-  no: require('../../../../assets/assets/flags/Norway.png'),
-  dk: require('../../../../assets/assets/flags/Denmark.png'),
-  ch: require('../../../../assets/assets/flags/Switzerland.png'),
-  be: require('../../../../assets/assets/flags/Belgium.png'),
-  at: require('../../../../assets/assets/flags/Austria.png'),
-  ie: require('../../../../assets/assets/flags/Ireland.png'),
-  nz: require('../../../../assets/assets/flags/New Zealand.png'),
-  jp: require('../../../../assets/assets/flags/Japan.png'),
-  kr: require('../../../../assets/assets/flags/South Korea.png'),
-  sg: require('../../../../assets/assets/flags/Singapore.png'),
+  gb: require('../../../../../../../assets/flags/UK.png'),
+  fr: require('../../../../../../../assets/flags/France.png'),
+  de: require('../../../../../../../assets/flags/Germany.png'),
+  au: require('../../../../../../../assets/flags/Australia.png'),
+  ca: require('../../../../../../../assets/flags/Canada.png'),
+  us: require('../../../../../../../assets/flags/USA.png'),
+  es: require('../../../../../../../assets/flags/Spain.png'),
+  it: require('../../../../../../../assets/flags/Italy.png'),
+  nl: require('../../../../../../../assets/flags/Netherland.png'),
+  se: require('../../../../../../../assets/flags/Sweden.png'),
+  no: require('../../../../../../../assets/flags/Norway.png'),
+  dk: require('../../../../../../../assets/flags/Denmark.png'),
+  ch: require('../../../../../../../assets/flags/Switzerland.png'),
+  be: require('../../../../../../../assets/flags/Belgium.png'),
+  at: require('../../../../../../../assets/flags/Austria.png'),
+  ie: require('../../../../../../../assets/flags/Ireland.png'),
+  nz: require('../../../../../../../assets/flags/New Zealand.png'),
+  jp: require('../../../../../../../assets/flags/Japan.png'),
+  kr: require('../../../../../../../assets/flags/South Korea.png'),
+  sg: require('../../../../../../../assets/flags/Singapore.png'),
 };
 
 const HealthIDsScreen: React.FC = () => {
@@ -360,7 +360,6 @@ const HealthIDsScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.inputContainer}
               onPress={() => {
-                console.log('Country picker tapped, showing alert');
                 // Create country options for Alert
                 const countryOptions = countries.map(country => country.name);
                 Alert.alert(
@@ -373,7 +372,6 @@ const HealthIDsScreen: React.FC = () => {
                         // Find the country by matching the display text
                         const selectedCountryData = countries.find(c => countryDisplay === c.name);
                         if (selectedCountryData) {
-                          console.log('Country selected via alert:', selectedCountryData.name);
                           setSelectedCountry(selectedCountryData.name);
                           setSelectedCountryCode(selectedCountryData.code);
                         }
@@ -769,9 +767,6 @@ const styles = StyleSheet.create({
   countryFlag: {
     fontSize: 32,
     marginRight: 12,
-  },
-  countryDetails: {
-    flex: 1,
   },
   countryOption: {
     flexDirection: 'row',

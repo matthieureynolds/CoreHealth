@@ -56,53 +56,50 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
   // Never show 0: use a safe number so we never set animated value to 0 or NaN (which can show as 0)
   const displayScore = Math.max(1, Math.min(100, Number(score) || 82));
 
-  // Animation effect - only run once when component mounts, with delay for supporting rings
   useEffect(() => {
-    const safe = displayScore; // always 1–100, never NaN
+    const safe = displayScore;
     if (!hasAnimated) {
-      // Wait for supporting rings to finish (1200ms) then start main score animation
+      let frameId: number;
+      let mounted = true;
+
       const timer = setTimeout(() => {
-        // Start from 1 so we never show 0 at the start
         animatedScore.setValue(1);
         animatedProgress.setValue(1 / 100);
 
-        // Custom animation with dramatic slowing effect
         const duration = 3000;
         const startTime = Date.now();
-        
+
         const animate = () => {
+          if (!mounted) return;
+
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          
-          // Apply custom easing that slows down dramatically near the end
           const easedProgress = easeOutTick(progress);
-          
-          // Update score (never show 0: interpolate from 1 to safe)
+
           const currentScore = Math.max(1, Math.floor(1 + easedProgress * (safe - 1)));
           animatedScore.setValue(currentScore);
-          
-          // Update progress ring
+
           const currentProgress = (1 + easedProgress * (safe - 1)) / 100;
           animatedProgress.setValue(Math.max(0.01, Math.min(currentProgress, 1)));
-          
+
           if (progress < 1) {
-            // Continue animation
-            requestAnimationFrame(animate);
+            frameId = requestAnimationFrame(animate);
           } else {
-            // Animation complete – always set to safe value so we never show 0
             animatedScore.setValue(safe);
             animatedProgress.setValue(Math.max(0, Math.min(safe, 100)) / 100);
             setHasAnimated(true);
           }
         };
-        
-        // Start the custom animation
-        requestAnimationFrame(animate);
-      }, 1300); // Start 100ms after supporting rings finish
 
-      return () => clearTimeout(timer);
+        frameId = requestAnimationFrame(animate);
+      }, 1300);
+
+      return () => {
+        mounted = false;
+        clearTimeout(timer);
+        cancelAnimationFrame(frameId);
+      };
     } else {
-      // If already animated, only update if we have a valid score – never set to 0 or NaN
       animatedScore.setValue(safe);
       animatedProgress.setValue(Math.max(0, Math.min(safe, 100)) / 100);
     }
@@ -466,6 +463,30 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#8E8E93',
     letterSpacing: 0.5,
+  },
+  distributionContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  distributionLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#8E8E93',
   },
 });
 

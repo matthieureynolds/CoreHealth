@@ -17,7 +17,6 @@ const DataSyncScreen: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    // Load last sync time from storage or set default
     loadLastSyncTime();
   }, []);
 
@@ -52,19 +51,15 @@ const DataSyncScreen: React.FC = () => {
   const handleSyncNow = async () => {
     try {
       setIsSyncing(true);
-      console.log('🔄 DataSyncScreen: Starting sync...');
       
-      // Simulate sync process
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Update last sync time
       const now = new Date();
       setLastSyncTime(formatDateTime(now));
       try {
         await AsyncStorage.setItem('@corehealth_last_sync_at', now.toISOString());
       } catch {}
       
-      console.log('✅ DataSyncScreen: Sync completed successfully');
       Alert.alert(
         'Sync Complete',
         'Your health data has been successfully synchronized.',
@@ -115,7 +110,7 @@ const DataSyncScreen: React.FC = () => {
           >
             <View style={styles.syncButtonContent}>
               {isSyncing ? (
-                <Ionicons name="sync" size={20} color="#007AFF" style={styles.syncSpinner} />
+                <Ionicons name="sync" size={20} color="#007AFF" style={styles.syncIcon} />
               ) : (
                 <Ionicons name="sync-outline" size={20} color="#007AFF" style={styles.syncIcon} />
               )}
@@ -234,9 +229,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#007AFF',
     marginLeft: 8,
-  },
-  syncSpinner: {
-    // Add rotation animation for the spinner
   },
 });
 

@@ -289,12 +289,12 @@ const GenerateHealthReportScreen: React.FC = () => {
     }
 
     // Vaccinations Section
-    if (selectedSections.includes('vaccinations') && profile?.vaccinations?.length > 0) {
+    if (selectedSections.includes('vaccinations') && profile && (profile.vaccinations?.length ?? 0) > 0) {
       html += `
         <div class="section">
           <div class="section-title">Vaccinations</div>
       `;
-      profile.vaccinations.forEach((vaccination, index) => {
+      profile.vaccinations!.forEach((vaccination, index) => {
         html += `
           <div class="item">
             <div class="item-title">${vaccination.name}</div>
@@ -317,12 +317,12 @@ const GenerateHealthReportScreen: React.FC = () => {
     }
 
     // Screenings Section
-    if (selectedSections.includes('screenings') && profile?.screenings?.length > 0) {
+    if (selectedSections.includes('screenings') && profile && (profile.screenings?.length ?? 0) > 0) {
       html += `
         <div class="section">
           <div class="section-title">Health Screenings</div>
       `;
-      profile.screenings.forEach((screening, index) => {
+      profile.screenings!.forEach((screening, index) => {
         html += `
           <div class="item">
             <div class="item-title">${screening.name}</div>
@@ -345,12 +345,12 @@ const GenerateHealthReportScreen: React.FC = () => {
     }
 
     // Medical Records Section
-    if (selectedSections.includes('medical_records') && profile?.medicalRecords?.length > 0) {
+    if (selectedSections.includes('medical_records') && profile && (profile.medicalRecords?.length ?? 0) > 0) {
       html += `
         <div class="section">
           <div class="section-title">Medical Records</div>
       `;
-      profile.medicalRecords.forEach((record, index) => {
+      profile.medicalRecords!.forEach((record, index) => {
         html += `
           <div class="item">
             <div class="item-title">${record.name}</div>
@@ -435,7 +435,7 @@ const GenerateHealthReportScreen: React.FC = () => {
                   }
                 } else {
                   // For Android, try to save to Downloads
-                  const downloadsDir = FileSystem.documentDirectory + 'Downloads/';
+                  const downloadsDir = (FileSystem as any).documentDirectory + 'Downloads/';
                   await FileSystem.makeDirectoryAsync(downloadsDir, { intermediates: true });
                   const newUri = downloadsDir + filename;
                   await FileSystem.copyAsync({ from: uri, to: newUri });

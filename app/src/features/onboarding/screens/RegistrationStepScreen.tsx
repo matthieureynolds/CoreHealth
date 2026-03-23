@@ -32,23 +32,16 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
   const [currentStep, setCurrentStep] = useState(1);
 
   const handleStepComplete = () => {
-    console.log('🔄 Step complete clicked, current step:', currentStep);
-    console.log('📝 First name:', firstName, 'Surname:', surname, 'Email:', email, 'Password:', password);
     
     if (currentStep === 1 && firstName.trim().length > 0) {
-      console.log('✅ Moving to step 2');
       setCurrentStep(2);
     } else if (currentStep === 2 && surname.trim().length > 0) {
-      console.log('✅ Moving to step 3');
       setCurrentStep(3);
     } else if (currentStep === 3 && email.trim().length > 0) {
-      console.log('✅ Moving to step 4');
       setCurrentStep(4);
     } else if (currentStep === 4 && password.trim().length > 0) {
-      console.log('✅ Moving to step 5');
       setCurrentStep(5);
     } else {
-      console.log('❌ Cannot advance - missing required field');
     }
   };
 

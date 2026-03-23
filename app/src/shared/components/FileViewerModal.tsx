@@ -61,8 +61,6 @@ const FileViewerModal: React.FC<FileViewerModalProps> = ({
 
   const renderPDFWithWebView = () => {
     // Debug logging
-    console.log('PDF URI:', fileUri);
-    console.log('File Name:', fileName);
     
     if (webViewError) {
       return (
@@ -122,15 +120,11 @@ const FileViewerModal: React.FC<FileViewerModalProps> = ({
         source={{ uri: fileUri }}
         style={styles.webView}
         onError={(error) => {
-          console.log('WebView Error:', error);
           handleWebViewError();
         }}
         onHttpError={(error) => {
-          console.log('WebView HTTP Error:', error);
           handleWebViewError();
         }}
-        onLoadStart={() => console.log('WebView Load Start')}
-        onLoadEnd={() => console.log('WebView Load End')}
         startInLoadingState={true}
         scalesPageToFit={true}
         allowsInlineMediaPlayback={true}

@@ -61,19 +61,15 @@ export class LocationService {
    */
   public async requestPermission(): Promise<Location.PermissionStatus> {
     try {
-      console.log('📍 LocationService: Requesting location permission...');
       
       const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log('📍 LocationService: Permission request result:', status);
       
       this.permissionStatus = status;
       
       if (status === Location.PermissionStatus.GRANTED) {
-        console.log('✅ LocationService: Permission granted, enabling location');
         this.isEnabled = true;
         await AsyncStorage.setItem('locationAccess', 'true');
       } else {
-        console.log('❌ LocationService: Permission denied, disabling location');
         this.isEnabled = false;
         await AsyncStorage.setItem('locationAccess', 'false');
       }
@@ -117,7 +113,7 @@ export class LocationService {
       const locationData: LocationData = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        accuracy: location.coords.accuracy,
+        accuracy: location.coords.accuracy ?? undefined,
         timestamp: location.timestamp,
       };
 
@@ -153,7 +149,7 @@ export class LocationService {
           const locationData: LocationData = {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
-            accuracy: location.coords.accuracy,
+            accuracy: location.coords.accuracy ?? undefined,
             timestamp: location.timestamp,
           };
           this.currentLocation = locationData;

@@ -510,10 +510,8 @@ export class EnhancedJetLagService {
  * In production, this would integrate with a flight data API
  */
 export class FlightLookupService {
-  static async lookupFlight(carrier: string, number: string, date: string): Promise<FlightLookupResult | null> {
-    // Mock implementation - in production, integrate with flight API
-    // For now, return null to trigger manual entry
-    console.log(`Flight lookup: ${carrier}${number} on ${date}`);
+  static async lookupFlight(_carrier: string, _number: string, _date: string): Promise<FlightLookupResult | null> {
+    // Returns null to trigger manual entry; replace with a real flight API when available
     return null;
   }
 }

@@ -1,338 +1,198 @@
-# CoreHealth - Personal Health Intelligence
+# CoreHealth — Personal Health Intelligence
 
-> **100% Supabase-Powered Health Tracking App**
+A comprehensive React Native health companion app that aggregates personal health data, provides AI-powered insights, and supports travel health monitoring.
 
-CoreHealth is a comprehensive React Native application that aggregates and analyzes personal health data to provide personalized insights and recommendations. Built entirely on **Supabase** for authentication, database, and real-time features.
+---
 
-## 🏗️ Architecture
+## Tech Stack
 
-**Frontend**: React Native with TypeScript + Expo
-**Backend**: Supabase (PostgreSQL + Auth + Real-time)
-**Navigation**: React Navigation 6
-**State Management**: React Context API
-**UI Components**: React Native + Expo Vector Icons
+| Area | Tech |
+|------|------|
+| Runtime | Expo ~54, React Native 0.81, React 19 |
+| Language | TypeScript (strict mode) |
+| Navigation | React Navigation v7 (stack + bottom tabs) |
+| Backend / Auth | Supabase (PostgreSQL + Auth + Row Level Security) |
+| State | React Context API + useReducer |
+| AI Assistant | OpenAI SDK (GPT-4) |
+| Storage | AsyncStorage |
+| Maps | react-native-maps + Expo Location |
+| Auth extras | Google Sign-In, Expo Auth Session |
+| UI | Reanimated, Gesture Handler, Expo Linear Gradient, Expo Blur |
 
-## ✨ Features
+---
 
-### 🔐 Authentication (Supabase Auth)
+## Features
 
-- **Email/Password Registration** with separate first name & surname fields
-- **Email Verification Required** - users must verify before login
-- **Password Reset** functionality
-- **Account Confirmation Screen** with professional UI
-- **Resend Verification** option from login screen
-- Persistent sessions with automatic token refresh
+### Authentication
+- Email/password registration with email verification required
+- Google Sign-In
+- Password reset flow
+- Persistent sessions via Supabase Auth
 
-### 📊 Health Dashboard
+### Health Dashboard
+- Personalised health score with supporting metric rings
+- Lab results with AI-generated insights
+- Biomarker tracking and history
+- Medical timeline
+- Travel health summary block
 
-- Personalized health score (82/100)
-- Key biomarker tracking (HRV, heart rate, blood glucose)
-- Daily health insights with actionable recommendations
-- Metric cards for sleep, activity, stress, recovery
-- Quick action buttons for common tasks
+### Interactive Body Map
+- Organs, circulatory system, skeleton, and nutrition tabs
+- Per-system health data and risk indicators
+- Detailed data modules for vitamins, minerals, and body systems
 
-### 🫀 Interactive Body Map
+### AI Health Assistant (Toto)
+- OpenAI-backed conversational health assistant
+- Command bus architecture for structured health queries
+- Media and document support
 
-- Body systems overview with risk assessment
-- Color-coded health status indicators
-- Biomarker integration per body system
-- Real-time health status updates
+### Travel Health
+- Per-trip health metrics: air quality, water, UV, pollen, altitude, disease outbreaks
+- Hospital and pharmacy finder
+- Vaccination tracker
+- Jet lag planner
+- Travel medication availability
 
-### 📱 Device Integration
+### Profile & Medical History
+- Personal info, health IDs, emergency contacts, primary doctor
+- Conditions, medications, allergies, family history, surgeries, vaccinations
+- Medical records and appointments
+- Biometric lock (Face ID / Touch ID)
 
-- WHOOP, Apple Watch, Eight Sleep support
-- Smart toothbrush and smart toilet integration
-- Device connection status and sync management
-- Auto-sync settings with manual sync options
+### Settings
+- Notifications (sleep reminders, supplement reminders, health summaries, medical appointments)
+- Display format (units, date/time format, language)
+- Connected devices (Apple Health, WHOOP, Oura, Garmin, Withings, Fitbit, Dexcom, and more)
+- Data sync and privacy controls
+- Legal compliance (HIPAA, GDPR, consent forms, privacy policy, terms)
 
-### ✈️ Travel Health
+---
 
-- Location-based health insights
-- Air quality monitoring
-- Vaccination recommendations
-- Travel health tips and alerts
+## Project Structure
 
-### 👤 User Profile
+```
+app/
+├── assets/
+│   ├── icon.png
+│   ├── images/
+│   │   ├── body-map/       # Body map, circulation, skeleton images
+│   │   ├── brand/          # Logo, loading logo, Toto avatar
+│   │   └── travel/         # Travel-related images
+│   ├── device-logos/       # Connected device brand logos
+│   └── flags/              # Country flag images
+├── src/
+│   ├── features/
+│   │   ├── auth/           # Login, register, onboarding, email verification
+│   │   ├── body-map/       # Interactive body map + data modules
+│   │   ├── home/           # Dashboard, health score, lab results, travel block
+│   │   ├── onboarding/     # Onboarding flow screens
+│   │   ├── profile/        # Full profile, medical history, settings, privacy
+│   │   ├── toto-chat/      # AI health assistant
+│   │   └── travel/         # Travel health, trips, jet lag, hospitals
+│   └── shared/
+│       ├── components/     # Reusable UI components
+│       ├── config/         # Supabase client, API config
+│       ├── context/        # AuthContext, HealthDataContext, SettingsContext
+│       ├── hooks/          # Shared hooks (biometric, location, bedtime reminder, etc.)
+│       ├── navigation/     # RootNavigator, MainNavigator, AuthNavigator, profile groups
+│       ├── services/       # Data, air quality, pollen, jet lag, family risk, etc.
+│       ├── theme/          # Colours, typography, spacing
+│       └── types/          # All TypeScript types and navigation param lists
+├── supabase/
+│   └── functions/          # Supabase Edge Functions
+├── DOCS/
+│   ├── README.md           # This file
+│   └── SECURITY_FEATURES.md
+└── app.json
+```
 
-- Comprehensive profile management
-- Medical history and vaccination tracking
-- Privacy settings and data export options
+---
 
-## 🗄️ Database Schema (Supabase)
-
-### Core Tables
-
-- **profiles** - User information linked to Supabase Auth UID
-- **medical_conditions** - User medical history
-- **vaccinations** - Vaccination records
-- **biomarkers** - Health metrics and trends
-- **device_data** - Device metrics in JSON format
-- **lab_results** - Laboratory test results
-
-### Security
-
-- **Row Level Security (RLS)** enabled on all tables
-- **User isolation** using `auth.uid()` policies
-- **Automatic data filtering** per authenticated user
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
+- Node.js 18+
 - Expo CLI: `npm install -g @expo/cli`
 - Supabase account: [supabase.com](https://supabase.com)
 
 ### Installation
 
-1. **Clone the repository**
-
 ```bash
 git clone <repository-url>
-cd CoreHealth
-```
-
-2. **Install dependencies**
-
-```bash
+cd CoreHealth/app
 npm install
 ```
 
-3. **Set up Supabase**
-   - Create a new project at [supabase.com](https://supabase.com)
-   - Update `src/config/supabase.ts` with your project URL and anon key
-   - Run the SQL schema from `supabase_schema.sql` in your Supabase SQL editor
+### Configure Supabase
 
-4. **Configure email verification**
-   - Follow the guide in `SUPABASE_EMAIL_SETUP.md`
-   - Configure email templates and SMTP settings
+Update `src/shared/config/supabase.ts` with your project URL and anon key:
 
-5. **Start the development server**
+```ts
+const supabaseUrl = 'https://your-project.supabase.co';
+const supabaseAnonKey = 'your-anon-key';
+```
+
+### Configure API Keys (optional)
+
+For AI document processing and travel health features, add to a `.env` file:
+
+```
+EXPO_PUBLIC_OPENAI_API_KEY=your-openai-key
+EXPO_PUBLIC_GOOGLE_VISION_API_KEY=your-vision-key
+```
+
+Without these, the app falls back to mock data for development.
+
+### Run
 
 ```bash
 npx expo start
 ```
-
-## 📁 Project Structure
-
-```
-CoreHealth/
-├── src/
-│   ├── components/          # Reusable UI components
-│   ├── config/
-│   │   └── supabase.ts     # Supabase configuration
-│   ├── context/
-│   │   └── AuthContext.tsx # Authentication state management
-│   ├── navigation/         # React Navigation setup
-│   ├── screens/            # App screens
-│   │   ├── auth/           # Authentication screens
-│   │   ├── dashboard/      # Health dashboard
-│   │   ├── body-map/       # Interactive body map
-│   │   ├── devices/        # Device management
-│   │   ├── travel/         # Travel health
-│   │   └── profile/        # User profile
-│   ├── services/
-│   │   └── dataService.ts  # Supabase data operations
-│   └── types/              # TypeScript type definitions
-├── supabase_schema.sql     # Database schema
-├── SUPABASE_EMAIL_SETUP.md # Email configuration guide
-└── package.json
-```
-
-## 🔧 Key Technologies
-
-- **Supabase**: Authentication, database, real-time subscriptions
-- **React Native**: Cross-platform mobile development
-- **TypeScript**: Type safety and developer experience
-- **Expo**: Development platform and build tools
-- **React Navigation**: Navigation and routing
-- **React Context**: State management
-
-## 🛡️ Security Features
-
-- **Email verification required** for all new accounts
-- **Row Level Security** ensures users only see their data
-- **Encrypted sessions** managed by Supabase
-- **Secure password reset** with email verification
-- **PKCE flow** for enhanced authentication security
-
-## 📧 Email Verification Flow
-
-1. User registers with first name, surname, email, password
-2. Supabase sends verification email automatically
-3. User clicks verification link in email
-4. App shows "Account Confirmed!" screen
-5. User can now login with verified credentials
-
-## 🚀 Production Deployment
-
-### Supabase Configuration
-
-- Configure production SMTP provider (SendGrid, Gmail, etc.)
-- Set production Site URL for proper email redirects
-- Enable and configure custom domain if needed
-- Set up monitoring and logging
-
-### App Deployment
-
-- Build with `expo build`
-- Deploy to App Store / Google Play
-- Configure deep linking for email verification
-- Set up crash reporting and analytics
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For issues and questions:
-
-- Check the `SUPABASE_EMAIL_SETUP.md` for email configuration
-- Review Supabase documentation for backend issues
-- Open an issue in this repository
-
-## 🆕 New Features: AI-Powered Document Processing
-
-### File Upload + Health Data Extraction
-
-CoreHealth now includes advanced document processing capabilities:
-
-1. **📷 Smart Document Scanning**
-   - Camera integration for scanning lab reports
-   - File upload support (PDF, JPG, PNG)
-   - 10MB file size limit for optimal processing
-
-2. **🤖 AI-Powered OCR**
-   - Google Cloud Vision API for text extraction
-   - High accuracy document text recognition
-   - Support for various lab report formats
-
-3. **🧠 GPT-4 Biomarker Structuring**
-   - OpenAI GPT-4 analyzes extracted text
-   - Automatically identifies biomarkers, values, units
-   - Determines reference ranges and health status
-   - Groups results by organ system
-
-4. **📊 Interactive Results Display**
-   - Biomarkers grouped by organ (Heart, Liver, Kidneys, etc.)
-   - Color-coded status indicators (Normal, High, Low, Critical)
-   - Real-time body map updates with new data
-
-## 🏥 Supported Lab Reports
-
-- Blood test panels (CBC, CMP, Lipid Panel)
-- Liver function tests (ALT, AST, Bilirubin)
-- Kidney function (Creatinine, eGFR, BUN)
-- Metabolic panels (Glucose, HbA1c)
-- Thyroid function (TSH, T3, T4)
-- Lipid profiles (Cholesterol, HDL, LDL, Triglycerides)
-
-## ⚙️ Setup Instructions
-
-### 1. Install Dependencies
-
-```bash
-cd CoreHealth
-npm install
-```
-
-### 2. Configure API Keys (Optional)
-
-For real document processing, set up API keys:
-
-1. Create `.env` file in CoreHealth directory
-2. Add your API keys:
-
-```
-EXPO_PUBLIC_GOOGLE_VISION_API_KEY=your-google-vision-api-key
-EXPO_PUBLIC_OPENAI_API_KEY=your-openai-api-key
-```
-
-See `API_SETUP.md` for detailed instructions.
-
-**Note:** Without API keys, the app uses mock data for development.
-
-### 3. Run the App
-
-```bash
-npx expo start
-```
-
-## 📱 Usage
-
-1. Open the **Body Map** tab
-2. Scroll to the "Upload Your Lab Results" section
-3. Choose to scan with camera or upload a file
-4. Tap "Scan My Results" to process with AI
-5. View extracted biomarkers grouped by organ
-6. Tap organ groups to see detailed biomarker information
-
-## 🔒 Privacy & Security
-
-- Documents are processed securely via API calls
-- No personal health data is stored permanently
-- All processing happens with user consent
-- API keys should be kept secure and private
-
-## 💰 API Costs
-
-- Google Vision: ~$1.50 per 1000 documents
-- OpenAI GPT-4: ~$0.10 per document
-- **Total: ~$0.15 per lab report processed**
-
-## 🛠️ Technical Implementation
-
-### Document Processing Flow
-
-1. **File Upload** → User selects document via camera or file picker
-2. **OCR Processing** → Google Cloud Vision extracts raw text
-3. **AI Structuring** → OpenAI GPT-4 identifies and structures biomarkers
-4. **Data Integration** → Results are integrated into the body map
-5. **Display** → Biomarkers shown grouped by organ system
-
-### Fallback Mechanisms
-
-- Mock OCR text if Vision API unavailable
-- Regex-based parsing if GPT API unavailable
-- Graceful error handling with user feedback
-- Development-friendly with or without API keys
-
-## 🏗️ Architecture
-
-```
-CoreHealth/
-├── src/
-│   ├── screens/body-map/
-│   │   ├── BodyMapScreen.tsx      # Main screen with upload UI
-│   │   └── components/BodyMap.tsx # Interactive body visualization
-│   ├── services/
-│   │   └── documentProcessor.ts   # AI processing logic
-│   └── ...
-├── API_SETUP.md                   # API configuration guide
-└── README.md                      # This file
-```
-
-## 🚀 Features
-
-- **Authentication**: Firebase Auth with email verification
-- **Health Dashboard**: Personalized health scores and insights
-- **Interactive Body Map**: Visual organ system navigation
-- **AI Document Processing**: Lab report scanning and analysis
-- **Device Integration**: Connect health devices and wearables
-- **Travel Health**: Location-based health recommendations
-- **User Profile**: Manage personal health information
-
-Built with React Native, TypeScript, Expo, Firebase, and Supabase.
 
 ---
 
-**Built with ❤️ using Supabase and React Native**
+## Database (Supabase)
+
+### Core Tables
+
+| Table | Purpose |
+|-------|---------|
+| `profiles` | User info linked to Supabase Auth UID |
+| `medical_conditions` | User medical history |
+| `vaccinations` | Vaccination records |
+| `biomarkers` | Health metrics and trends |
+| `device_data` | Device metrics (JSON) |
+| `lab_results` | Laboratory test results |
+
+Row Level Security (RLS) is enabled on all tables — users can only access their own data via `auth.uid()` policies.
+
+---
+
+## Navigation Structure
+
+```
+RootNavigator
+├── AuthNavigator (unauthenticated)
+│   ├── OnboardingScreen
+│   ├── LoginScreen
+│   ├── RegisterScreen
+│   ├── ForgotPasswordScreen
+│   └── EmailVerificationScreen
+└── MainNavigator (authenticated)
+    ├── Tab: Dashboard
+    ├── Tab: Body Map
+    ├── Tab: Health Assistant
+    ├── Tab: Travel
+    └── Tab: Profile (large nested stack)
+```
+
+---
+
+## Security
+
+See `SECURITY_FEATURES.md` for full details on:
+- Biometric authentication (Face ID / Touch ID)
+- Location access controls
+- HIPAA / GDPR compliance notes
+- Row Level Security via Supabase

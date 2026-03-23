@@ -227,15 +227,9 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
     };
   });
 
-  const handleSetPhoto = () => {
-    // TODO: Implement photo picker
-    console.log('Set Profile Photo');
-  };
+  const handleSetPhoto = () => {};
 
-  const handleSetUsername = () => {
-    // TODO: Implement username editor
-    console.log('Set Username');
-  };
+  const handleSetUsername = () => {};
 
   return (
     <GestureDetector gesture={panGesture}>

@@ -63,7 +63,6 @@ const searchOSMHealthcare = async (
       `addressdetails=1&` +
       `extratags=1`;
     
-    console.log(`🗺️ Searching OSM for ${type} near ${latitude},${longitude}`);
     
     const response = await fetch(url, {
       headers: {
@@ -91,7 +90,7 @@ const searchOSMHealthcare = async (
           name = place.name;
         } else if (nameParts.length > 1) {
           // Try to get a more descriptive name from the address
-          const potentialName = nameParts.find(part => 
+          const potentialName = nameParts.find((part: string) => 
             part.toLowerCase().includes('hospital') || 
             part.toLowerCase().includes('pharmacy') ||
             part.toLowerCase().includes('medical') ||
@@ -125,7 +124,6 @@ const searchOSMHealthcare = async (
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 5); // Top 5 closest
     
-    console.log(`🗺️ OSM found ${facilities.length} ${type} facilities`);
     return facilities;
     
   } catch (error) {
@@ -257,7 +255,6 @@ export const getClosestMedicalFacilities = async (
   longitude: number,
   cityName: string = 'Unknown'
 ): Promise<ClosestMedicalFacilities> => {
-  console.log(`🏥 Finding closest medical facilities for ${cityName} at ${latitude},${longitude}`);
   
   try {
     let hospitals: HealthcareFacility[] = [];
@@ -267,7 +264,6 @@ export const getClosestMedicalFacilities = async (
     // Check if we have static data for this city first (most reliable)
     const staticFacilities = getStaticHealthcareData(cityName, latitude, longitude);
     if (staticFacilities.length > 0) {
-      console.log(`📋 Using static healthcare data for ${cityName} (most reliable)...`);
       hospitals = staticFacilities.filter(f => f.type === 'hospital');
       pharmacies = staticFacilities.filter(f => f.type === 'pharmacy');
       source = 'static';
@@ -285,7 +281,6 @@ export const getClosestMedicalFacilities = async (
             hospitals = googleHospitals;
             pharmacies = googlePharmacies;
             source = 'google';
-            console.log(`✅ Google Places found ${hospitals.length} hospitals, ${pharmacies.length} pharmacies`);
           }
         } catch (error) {
           console.warn('Google Places API failed, trying alternatives:', error);
@@ -294,7 +289,6 @@ export const getClosestMedicalFacilities = async (
       
       // Fallback to OpenStreetMap if Google failed or no API key
       if (hospitals.length === 0 || pharmacies.length === 0) {
-        console.log('🗺️ Trying OpenStreetMap as fallback...');
         
         const osmHospitals = await searchOSMHealthcare(latitude, longitude, 'hospital');
         const osmPharmacies = await searchOSMHealthcare(latitude, longitude, 'pharmacy');
@@ -309,7 +303,6 @@ export const getClosestMedicalFacilities = async (
     const nearestHospital = hospitals.length > 0 ? hospitals[0] : null;
     const nearestPharmacy = pharmacies.length > 0 ? pharmacies[0] : null;
     
-    console.log(`🏥 Final result: Hospital=${nearestHospital?.name || 'None'}, Pharmacy=${nearestPharmacy?.name || 'None'}, Source=${source}`);
     
     return {
       nearestHospital,
