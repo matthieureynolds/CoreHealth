@@ -12,7 +12,7 @@ import CountryDetailScreen from '../../../features/profile/screens/CountryDetail
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
-export const CommunityScreens: React.FC<{ Stack: StackType }> = ({ Stack }) => (
+export const CommunityScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="CommunityLeaderboard" component={CommunityLeaderboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CountryLeaderboard" component={CountryLeaderboardScreen} options={{ headerShown: false }} />

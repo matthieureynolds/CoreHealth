@@ -16,7 +16,7 @@ import BiomarkerVisibilityScreen from '../../../features/profile/screens/Biomark
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
-export const SettingsScreens: React.FC<{ Stack: StackType }> = ({ Stack }) => (
+export const SettingsScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="EmailPassword" component={EmailPasswordScreen} options={{ headerShown: false }} />

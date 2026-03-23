@@ -16,7 +16,7 @@ import DataRetentionPolicyScreen from '../../../features/profile/screens/DataRet
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
-export const LegalSupportScreens: React.FC<{ Stack: StackType }> = ({ Stack }) => (
+export const LegalSupportScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="HelpSupport" component={HelpSupportScreen} options={{ title: 'Help & Support' }} />
     <Stack.Screen name="SupportHelp" component={SupportHelpScreen} options={{ headerShown: false }} />

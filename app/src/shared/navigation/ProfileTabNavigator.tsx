@@ -28,11 +28,11 @@ const ProfileTabNavigator: React.FC = () => {
         headerTitleAlign: 'center',
       }}
     >
-      <CoreProfileScreens Stack={Stack} />
-      <MedicalScreens Stack={Stack} />
-      <SettingsScreens Stack={Stack} />
-      <CommunityScreens Stack={Stack} />
-      <LegalSupportScreens Stack={Stack} />
+      {CoreProfileScreens(Stack)}
+      {MedicalScreens(Stack)}
+      {SettingsScreens(Stack)}
+      {CommunityScreens(Stack)}
+      {LegalSupportScreens(Stack)}
     </Stack.Navigator>
   );
 };

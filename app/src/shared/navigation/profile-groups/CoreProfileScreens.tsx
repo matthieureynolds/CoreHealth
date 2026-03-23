@@ -14,7 +14,7 @@ import SettingsScreen from '../../../features/profile/screens/SettingsScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
-export const CoreProfileScreens: React.FC<{ Stack: StackType }> = ({ Stack }) => (
+export const CoreProfileScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="ProfileDetails" component={ProfileDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />

@@ -19,7 +19,7 @@ import PrimaryDoctorScreen from '../../../features/profile/screens/PrimaryDoctor
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
-export const MedicalScreens: React.FC<{ Stack: StackType }> = ({ Stack }) => (
+export const MedicalScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="Conditions" component={ConditionsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Medications" component={MedicationsScreen} options={{ headerShown: false }} />
