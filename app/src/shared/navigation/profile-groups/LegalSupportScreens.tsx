@@ -2,9 +2,9 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 
-import HelpSupportScreen from '../../../features/profile/screens/settings/support-help/support/HelpSupportScreen';
+import HelpSupportScreen from '../../../features/profile/screens/settings/support-help/support/contact-support/HelpSupportScreen';
 import SupportHelpScreen from '../../../features/profile/screens/settings/support-help/support/SupportHelpScreen';
-import FAQScreen from '../../../features/profile/screens/settings/support-help/support/FAQScreen';
+import FAQScreen from '../../../features/profile/screens/settings/support-help/support/faqs/FAQScreen';
 import AppInfoScreen from '../../../features/profile/screens/settings/support-help/app-info/app-information/AppInfoScreen';
 import AboutScreen from '../../../features/profile/screens/settings/support-help/app-info/about/AboutScreen';
 import LegalComplianceScreen from '../../../features/profile/screens/settings/data-privacy/legal-compliance/LegalComplianceScreen';
