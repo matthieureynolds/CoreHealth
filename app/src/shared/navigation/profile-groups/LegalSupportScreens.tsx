@@ -5,7 +5,8 @@ import { ProfileTabParamList } from '../../types';
 import HelpSupportScreen from '../../../features/profile/screens/settings/support-help/support/HelpSupportScreen';
 import SupportHelpScreen from '../../../features/profile/screens/settings/support-help/support/SupportHelpScreen';
 import FAQScreen from '../../../features/profile/screens/settings/support-help/support/FAQScreen';
-import AppInfoScreen from '../../../features/profile/screens/settings/support-help/app-info/AppInfoScreen';
+import AppInfoScreen from '../../../features/profile/screens/settings/support-help/app-info/app-information/AppInfoScreen';
+import AboutScreen from '../../../features/profile/screens/settings/support-help/app-info/about/AboutScreen';
 import LegalComplianceScreen from '../../../features/profile/screens/settings/data-privacy/legal-compliance/LegalComplianceScreen';
 import TermsOfServiceScreen from '../../../features/profile/screens/settings/data-privacy/legal-compliance/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '../../../features/profile/screens/settings/data-privacy/legal-compliance/PrivacyPolicyScreen';
@@ -22,7 +23,7 @@ export const LegalSupportScreens = (Stack: StackType) => (
     <Stack.Screen name="SupportHelp" component={SupportHelpScreen} options={{ headerShown: false }} />
     <Stack.Screen name="FAQ" component={FAQScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AppInfo" component={AppInfoScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="About" component={AppInfoScreen} options={{ title: 'About CoreHealth' }} />
+    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About CoreHealth' }} />
     <Stack.Screen name="LegalCompliance" component={LegalComplianceScreen} options={{ headerShown: false }} />
     <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} options={{ headerShown: false }} />
     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: false }} />
