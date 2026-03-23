@@ -2,15 +2,15 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 
-import ProfileDetailsScreen from '../../../features/profile/screens/ProfileDetailsScreen';
-import EditProfileScreen from '../../../features/profile/screens/EditProfileScreen';
-import EditNameScreen from '../../../features/profile/screens/EditNameScreen';
-import EditUsernameScreen from '../../../features/profile/screens/EditUsernameScreen';
-import EditPhysicalStatsScreen from '../../../features/profile/screens/EditPhysicalStatsScreen';
-import LifestyleInfoScreen from '../../../features/profile/screens/LifestyleInfoScreen';
-import SymptomRegisteredScreen from '../../../features/profile/screens/SymptomRegisteredScreen';
-import HealthIDsScreen from '../../../features/profile/screens/HealthIDsScreen';
-import SettingsScreen from '../../../features/profile/screens/SettingsScreen';
+import ProfileDetailsScreen from '../../../features/profile/screens/profile/personal-info/ProfileDetailsScreen';
+import EditProfileScreen from '../../../features/profile/screens/profile/personal-info/EditProfileScreen';
+import EditNameScreen from '../../../features/profile/screens/profile/personal-info/EditNameScreen';
+import EditUsernameScreen from '../../../features/profile/screens/profile/personal-info/EditUsernameScreen';
+import EditPhysicalStatsScreen from '../../../features/profile/screens/profile/personal-info/EditPhysicalStatsScreen';
+import LifestyleInfoScreen from '../../../features/profile/screens/profile/personal-info/LifestyleInfoScreen';
+import SymptomRegisteredScreen from '../../../features/profile/screens/profile/personal-info/SymptomRegisteredScreen';
+import HealthIDsScreen from '../../../features/profile/screens/profile/health-records/HealthIDsScreen';
+import SettingsScreen from '../../../features/profile/screens/settings/SettingsScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 

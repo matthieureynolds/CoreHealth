@@ -2,17 +2,17 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 
-import AccountSettingsScreen from '../../../features/profile/screens/AccountSettingsScreen';
-import EmailPasswordScreen from '../../../features/profile/screens/EmailPasswordScreen';
-import ConnectedDevicesScreen from '../../../features/profile/screens/ConnectedDevicesScreen';
-import DisplayFormatScreen from '../../../features/profile/screens/DisplayFormatScreen';
-import LifestyleSettingsScreen from '../../../features/profile/screens/LifestyleSettingsScreen';
-import NotificationsScreen from '../../../features/profile/screens/NotificationsScreen';
-import DataSyncScreen from '../../../features/profile/screens/DataSyncScreen';
-import PrivacySecurityScreen from '../../../features/profile/screens/PrivacySecurityScreen';
-import FamilyLinkScreen from '../../../features/profile/screens/FamilyLinkScreen';
-import FamilyLinkConsentScreen from '../../../features/profile/screens/FamilyLinkConsentScreen';
-import BiomarkerVisibilityScreen from '../../../features/profile/screens/BiomarkerVisibilityScreen';
+import AccountSettingsScreen from '../../../features/profile/screens/settings/account-preferences/AccountSettingsScreen';
+import EmailPasswordScreen from '../../../features/profile/screens/settings/account-preferences/EmailPasswordScreen';
+import ConnectedDevicesScreen from '../../../features/profile/screens/settings/account-preferences/ConnectedDevicesScreen';
+import DisplayFormatScreen from '../../../features/profile/screens/settings/account-preferences/DisplayFormatScreen';
+import LifestyleSettingsScreen from '../../../features/profile/screens/profile/personal-info/LifestyleSettingsScreen';
+import NotificationsScreen from '../../../features/profile/screens/settings/account-preferences/NotificationsScreen';
+import DataSyncScreen from '../../../features/profile/screens/settings/data-privacy/DataSyncScreen';
+import PrivacySecurityScreen from '../../../features/profile/screens/settings/data-privacy/PrivacySecurityScreen';
+import FamilyLinkScreen from '../../../features/profile/screens/settings/data-privacy/FamilyLinkScreen';
+import FamilyLinkConsentScreen from '../../../features/profile/screens/settings/data-privacy/FamilyLinkConsentScreen';
+import BiomarkerVisibilityScreen from '../../../features/profile/screens/settings/account-preferences/BiomarkerVisibilityScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 

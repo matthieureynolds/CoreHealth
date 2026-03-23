@@ -2,13 +2,13 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 
-import CommunityLeaderboardScreen from '../../../features/profile/screens/CommunityLeaderboardScreen';
-import CountryLeaderboardScreen from '../../../features/profile/screens/CountryLeaderboardScreen';
-import PrivateCirclesScreen from '../../../features/profile/screens/PrivateCirclesScreen';
-import PublicLeaguesScreen from '../../../features/profile/screens/PublicLeaguesScreen';
-import PublicLeagueDetailScreen from '../../../features/profile/screens/PublicLeagueDetailScreen';
-import CircleDetailScreen from '../../../features/profile/screens/CircleDetailScreen';
-import CountryDetailScreen from '../../../features/profile/screens/CountryDetailScreen';
+import CommunityLeaderboardScreen from '../../../features/profile/screens/community/leagues/CommunityLeaderboardScreen';
+import CountryLeaderboardScreen from '../../../features/profile/screens/community/world/CountryLeaderboardScreen';
+import PrivateCirclesScreen from '../../../features/profile/screens/community/circles/PrivateCirclesScreen';
+import PublicLeaguesScreen from '../../../features/profile/screens/community/leagues/PublicLeaguesScreen';
+import PublicLeagueDetailScreen from '../../../features/profile/screens/community/leagues/PublicLeagueDetailScreen';
+import CircleDetailScreen from '../../../features/profile/screens/community/circles/CircleDetailScreen';
+import CountryDetailScreen from '../../../features/profile/screens/community/world/CountryDetailScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 
