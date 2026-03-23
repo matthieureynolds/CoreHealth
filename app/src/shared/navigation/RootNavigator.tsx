@@ -6,15 +6,15 @@ import { createStackNavigator } from '@react-navigation/stack';
 // Use platform-specific logic elsewhere in the code
 // Example:
 // const Stack = Platform.OS !== 'web' ? createStackNavigator() : createWebNavigator();
-import { useAuth } from '../shared/context/AuthContext';
-import { RootStackParamList } from '../shared/types';
+import { useAuth } from '../context/AuthContext';
+import { RootStackParamList } from '../types';
 
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-import LoadingScreen from '../shared/components/LoadingScreen';
-import EnvironmentalMetricScreen from '../features/home/screens/EnvironmentalMetricScreen';
-import ScoreDetailScreen from '../features/home/screens/ScoreDetailScreen';
-import HealthScoreDetailScreen from '../features/home/screens/HealthScoreDetailScreen';
+import LoadingScreen from '../components/LoadingScreen';
+import EnvironmentalMetricScreen from '../../features/home/screens/EnvironmentalMetricScreen';
+import ScoreDetailScreen from '../../features/home/screens/ScoreDetailScreen';
+import HealthScoreDetailScreen from '../../features/home/screens/HealthScoreDetailScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 

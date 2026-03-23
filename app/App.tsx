@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import RootNavigator from './src/navigation/RootNavigator';
+import RootNavigator from './src/shared/navigation/RootNavigator';
 import { AuthProvider } from './src/shared/context/AuthContext';
 import { HealthDataProvider } from './src/shared/context/HealthDataContext';
 import { SettingsProvider } from './src/shared/context/SettingsContext';
