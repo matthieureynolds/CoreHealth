@@ -5,8 +5,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../shared/types';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
-import HeroHealthScore from '../components/HeroHealthScore';
-import SupportingRings from '../components/SupportingRings';
+import HeroHealthScore from './HeroHealthScore';
+import SupportingRings from '../health-metrics/SupportingRings';
 
 type Route = RouteProp<RootStackParamList, 'HealthScoreDetail'>;
 type Nav = StackNavigationProp<RootStackParamList, 'HealthScoreDetail'>;

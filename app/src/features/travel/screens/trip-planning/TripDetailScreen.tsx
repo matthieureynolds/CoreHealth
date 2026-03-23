@@ -11,18 +11,18 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { TravelStackParamList, SerializedTrip } from '../../../shared/types';
-import JetLagPlanningCard from '../../home/components/JetLagPlanningCard';
-import { PlanTimeline } from '../components/PlanTimeline';
-import { EnhancedJetLagService } from '../../../shared/services/enhancedJetLagService';
-import { PlanDay } from '../../../shared/types';
+import { useSettings } from '../../../../shared/context/SettingsContext';
+import { TravelStackParamList, SerializedTrip } from '../../../../shared/types';
+import JetLagPlanningCard from '../../../home/travel-health/jet-lag-planning/JetLagPlanningCard';
+import { PlanTimeline } from '../../components/PlanTimeline';
+import { EnhancedJetLagService } from '../../../../shared/services/enhancedJetLagService';
+import { PlanDay } from '../../../../shared/types';
 import {
   buildJetLagEvent,
   buildEnhancedTrip,
   TripForPlan,
-} from './travelJetLagUtils';
-import { colors } from '../../../shared/theme/colors';
+} from '../travel-search/travelJetLagUtils';
+import { colors } from '../../../../shared/theme/colors';
 
 type TripDetailRoute = RouteProp<TravelStackParamList, 'TripDetail'>;
 type TripDetailNav = StackNavigationProp<TravelStackParamList, 'TripDetail'>;

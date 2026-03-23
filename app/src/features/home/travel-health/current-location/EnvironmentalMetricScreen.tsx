@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
-import { RootStackParamList } from '../../../shared/types';
+import { RootStackParamList } from '../../../../shared/types';
 
 type EnvironmentalMetricRoute = RouteProp<RootStackParamList, 'EnvironmentalMetric'>;
 type Nav = StackNavigationProp<RootStackParamList, 'EnvironmentalMetric'>;

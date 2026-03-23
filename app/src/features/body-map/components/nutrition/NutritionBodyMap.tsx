@@ -8,8 +8,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import BiomarkerModal from '../../../shared/components/BiomarkerModal';
-import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
+import BiomarkerModal from '../../../../shared/components/BiomarkerModal';
+import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 
 interface NutritionItem {
   name: string;

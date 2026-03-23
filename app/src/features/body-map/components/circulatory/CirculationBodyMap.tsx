@@ -10,8 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import BiomarkerModal, { BiomarkerInfo } from '../../../shared/components/BiomarkerModal';
-import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
+import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/BiomarkerModal';
+import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 
 const getWindowDimensions = () => {
   try {

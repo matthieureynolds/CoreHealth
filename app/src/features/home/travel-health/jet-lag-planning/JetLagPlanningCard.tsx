@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { formatShortDateBySetting } from '../../../shared/utils/dateFormat';
-import { JetLagPlanningEvent } from '../../../shared/types';
+import { useSettings } from '../../../../shared/context/SettingsContext';
+import { formatShortDateBySetting } from '../../../../shared/utils/dateFormat';
+import { JetLagPlanningEvent } from '../../../../shared/types';
 
 interface JetLagPlanningCardProps {
   event: JetLagPlanningEvent;

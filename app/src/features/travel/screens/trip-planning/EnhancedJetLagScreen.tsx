@@ -10,12 +10,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../shared/context/AuthContext';
-import { Trip, PlanDay, NowCard } from '../../../shared/types';
-import { EnhancedJetLagService } from '../../../shared/services/enhancedJetLagService';
-import { NowCard as NowCardComponent } from '../components/NowCard';
-import { PlanTimeline } from '../components/PlanTimeline';
-import { TripCreationModal } from '../components/TripCreationModal';
+import { useAuth } from '../../../../shared/context/AuthContext';
+import { Trip, PlanDay, NowCard } from '../../../../shared/types';
+import { EnhancedJetLagService } from '../../../../shared/services/enhancedJetLagService';
+import { NowCard as NowCardComponent } from '../../components/NowCard';
+import { PlanTimeline } from '../../components/PlanTimeline';
+import { TripCreationModal } from '../../components/TripCreationModal';
 
 export const EnhancedJetLagScreen: React.FC = () => {
   const { user } = useAuth();

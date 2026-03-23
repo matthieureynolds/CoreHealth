@@ -4,17 +4,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList, TravelStackParamList, SerializedTrip } from '../../../shared/types';
+import { RootStackParamList, TravelStackParamList, SerializedTrip } from '../../../../shared/types';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import PagerView from 'react-native-pager-view';
-import { useHealthData } from '../../../shared/context/HealthDataContext';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { useAuth } from '../../../shared/context/AuthContext';
-import { FlightLookupService } from '../../../shared/services/enhancedJetLagService';
-import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../../shared/services/citySearchService';
-import { useReduceMotion } from '../../../shared/lib/reduceMotion';
+import { useHealthData } from '../../../../shared/context/HealthDataContext';
+import { useSettings } from '../../../../shared/context/SettingsContext';
+import { useAuth } from '../../../../shared/context/AuthContext';
+import { FlightLookupService } from '../../../../shared/services/enhancedJetLagService';
+import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../../../shared/services/citySearchService';
+import { useReduceMotion } from '../../../../shared/lib/reduceMotion';
 
 interface Trip {
   id: string;
@@ -2295,7 +2295,7 @@ const TravelScreen: React.FC = () => {
                         ],
                       }}>
                         <Image 
-                          source={require('../../../../assets/airplane.png')}
+                          source={require('../../../../../assets/airplane.png')}
                           style={{ width: 48, height: 48 }}
                           resizeMode="contain"
                         />

@@ -1,4 +1,4 @@
-import { JetLagPlanningEvent, PlanDay, Trip as EnhancedTrip } from '../../../shared/types';
+import { JetLagPlanningEvent, PlanDay, Trip as EnhancedTrip } from '../../../../shared/types';
 
 export interface TripForPlan {
   id: string;

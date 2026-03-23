@@ -19,17 +19,17 @@ import BiomarkerModal, {
   BiomarkerInfo,
 } from '../../../shared/components/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
-import HealthChatModal from '../components/HealthChatModal';
-import LabResultDetailModal from '../components/LabResultDetailModal';
+import HealthChatModal from '../travel-health/nearby-medical/HealthChatModal';
+import LabResultDetailModal from '../recent-lab-results/LabResultDetailModal';
 import TwitterLoadingIndicator from '../../../shared/components/TwitterLoadingIndicator';
 import QuickSymptomLogModal from '../../../shared/components/QuickSymptomLogModal';
 
 // New redesigned components
-import HeroHealthScore from '../components/HeroHealthScore';
-import SupportingRings from '../components/SupportingRings';
-import LabInsightsCard from '../components/LabInsightsCard';
-import TravelHealthSummary from '../components/TravelHealthSummary';
-import MedicalTimeline from '../components/MedicalTimeline';
+import HeroHealthScore from '../score/HeroHealthScore';
+import SupportingRings from '../health-metrics/SupportingRings';
+import LabInsightsCard from '../recent-lab-results/LabInsightsCard';
+import TravelHealthSummary from '../travel-health/TravelHealthSummary';
+import MedicalTimeline from '../medical-timeline/MedicalTimeline';
 
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();

@@ -16,7 +16,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import BodyMap from '../components/BodyMap';
+import BodyMap from '../components/organs/BodyMap';
 import { organsList } from '../organs';
 import {
   DocumentProcessor,
@@ -29,10 +29,10 @@ import BiomarkerModal, {
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
 import BodySystemSelector, {
   BodySystemType,
-} from '../components/BodySystemSelector';
-import SkeletonBodyMap from '../components/SkeletonBodyMap';
-import CirculationBodyMap from '../components/CirculationBodyMap';
-import NutritionBodyMap from '../components/NutritionBodyMap';
+} from '../components/organs/BodySystemSelector';
+import SkeletonBodyMap from '../components/skeleton/SkeletonBodyMap';
+import CirculationBodyMap from '../components/circulatory/CirculationBodyMap';
+import NutritionBodyMap from '../components/nutrition/NutritionBodyMap';
 import AddDataModal from '../../../shared/components/AddDataModal';
 import BiomarkerSummaryCard from '../../../shared/components/BiomarkerSummaryCard';
 

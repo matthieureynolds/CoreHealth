@@ -16,12 +16,12 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { useAuth } from '../../../shared/context/AuthContext';
+import { useSettings } from '../../../../shared/context/SettingsContext';
+import { useAuth } from '../../../../shared/context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useHealthData } from '../../../shared/context/HealthDataContext';
-import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../../shared/services/healthAssistantService';
-import { formatTimeBySetting, formatShortDateBySetting } from '../../../shared/utils/dateFormat';
+import { useHealthData } from '../../../../shared/context/HealthDataContext';
+import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../../../shared/services/healthAssistantService';
+import { formatTimeBySetting, formatShortDateBySetting } from '../../../../shared/utils/dateFormat';
 
 interface HealthChatModalProps {
   visible: boolean;

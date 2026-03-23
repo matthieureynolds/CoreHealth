@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
-import { organsList } from '../organs';
-import { Organ } from '../organs/types';
+import { organsList } from '../../organs';
+import { Organ } from '../../organs/types';
 
 interface BodyMapProps {
   onOrganPress: (organId: string) => void;
