@@ -1,5 +1,5 @@
 import React from 'react';
-import LegalDocTemplate from '../support-help/LegalDocTemplate';
+import LegalDocTemplate from '../legal-compliance/LegalDocTemplate';
 
 const DataRetentionPolicyScreen: React.FC = () => (
   <LegalDocTemplate

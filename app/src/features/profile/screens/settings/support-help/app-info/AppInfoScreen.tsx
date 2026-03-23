@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../../../shared/context/AuthContext';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
 const AppInfoScreen: React.FC = () => {

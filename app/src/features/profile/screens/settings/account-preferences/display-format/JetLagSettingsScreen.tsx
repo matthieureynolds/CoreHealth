@@ -10,8 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettings } from '../../../../../shared/context/SettingsContext';
-import { UserSettings } from '../../../../../shared/types/settings';
+import { useSettings } from '../../../../../../shared/context/SettingsContext';
+import { UserSettings } from '../../../../../../shared/types/settings';
 
 export const JetLagSettingsScreen: React.FC = () => {
   const { settings, updateSettings } = useSettings();

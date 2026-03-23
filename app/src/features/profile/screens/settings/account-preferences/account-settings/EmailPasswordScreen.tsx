@@ -13,8 +13,8 @@ import {
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ProfileTabParamList } from '../../../../../shared/types';
-import { useAuth } from '../../../../../shared/context/AuthContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 
 type EmailFormProps = {
   emailCurrentPassword: string;

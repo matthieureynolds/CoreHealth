@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import familyService from '../../../../../shared/services/familyService';
+import familyService from '../../../../../../shared/services/familyService';
 
 type Toggle = {
   key: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import LegalDocTemplate from '../LegalDocTemplate';
+import LegalDocTemplate from './LegalDocTemplate';
 
 const ConsentFormsScreen: React.FC = () => (
   <LegalDocTemplate

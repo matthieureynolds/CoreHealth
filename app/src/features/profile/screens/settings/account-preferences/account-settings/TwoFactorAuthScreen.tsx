@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ProfileTabParamList } from '../../../../../shared/types';
-import { useSettings } from '../../../../../shared/context/SettingsContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
+import { useSettings } from '../../../../../../shared/context/SettingsContext';
 
 type TwoFactorAuthScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 

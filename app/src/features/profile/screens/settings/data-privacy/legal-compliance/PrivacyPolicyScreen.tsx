@@ -1,5 +1,5 @@
 import React from 'react';
-import LegalDocTemplate from '../LegalDocTemplate';
+import LegalDocTemplate from './LegalDocTemplate';
 
 const PrivacyPolicyScreen: React.FC = () => (
   <LegalDocTemplate

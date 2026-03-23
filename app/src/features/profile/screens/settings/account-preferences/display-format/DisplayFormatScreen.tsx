@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useSettings } from '../../../../../shared/context/SettingsContext';
+import { useSettings } from '../../../../../../shared/context/SettingsContext';
 
 const DisplayFormatScreen: React.FC = () => {
   const navigation = useNavigation();
