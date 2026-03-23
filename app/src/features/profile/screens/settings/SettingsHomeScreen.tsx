@@ -17,7 +17,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { calculateProfileCompletion } from '../../../../shared/utils/profileCompletion';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
 
-import { PROFILE_ROUTES } from '../../navigation/routeNames';
+import { PROFILE_ROUTES } from '../routeNames';
 import { HeaderProfile } from '../../../../shared/components/HeaderProfile';
 
 const HEADER_COLLAPSED = 96;

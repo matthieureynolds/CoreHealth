@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { PROFILE_ROUTES } from '../../../navigation/routeNames';
+import { PROFILE_ROUTES } from '../../routeNames';
 
 const AccountPreferencesScreen: React.FC = () => {
   const navigation = useNavigation();
