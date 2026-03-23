@@ -15,8 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { ProfileTabParamList } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
 
 type EditPhysicalStatsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 

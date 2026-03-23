@@ -11,109 +11,114 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { Vaccination, AttachedFile } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { Screening, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
 
-const VaccinationsScreen: React.FC = () => {
+const ScreeningsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [vaccineName, setVaccineName] = useState('');
+  const [screeningName, setScreeningName] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [dateReceived, setDateReceived] = useState<Date | null>(null);
-  const [showDateReceivedPicker, setShowDateReceivedPicker] = useState(false);
+  const [screeningDate, setScreeningDate] = useState<Date | null>(null);
+  const [showScreeningDatePicker, setShowScreeningDatePicker] = useState(false);
+  const [result, setResult] = useState<'normal' | 'abnormal' | 'inconclusive'>('normal');
   const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
   const [showNextDuePicker, setShowNextDuePicker] = useState(false);
-  const [dateModeReceived, setDateModeReceived] = useState<'year' | 'yearMonth' | 'full'>('full');
+  const [dateModeScreening, setDateModeScreening] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [dateModeNextDue, setDateModeNextDue] = useState<'year' | 'yearMonth' | 'full'>('full');
   const [location, setLocation] = useState('');
-  const [batchNumber, setBatchNumber] = useState('');
   const [notes, setNotes] = useState('');
-  const [editingVaccination, setEditingVaccination] = useState<Vaccination | null>(null);
+  const [editingScreening, setEditingScreening] = useState<Screening | null>(null);
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [fileViewerVisible, setFileViewerVisible] = useState(false);
   const [currentFileUri, setCurrentFileUri] = useState('');
   const [currentFileName, setCurrentFileName] = useState('');
   const [currentFileType, setCurrentFileType] = useState('');
 
-  const commonVaccines = [
-    'COVID-19', 'Influenza (Flu)', 'Tetanus', 'Diphtheria', 'Pertussis (Whooping Cough)',
-    'Measles', 'Mumps', 'Rubella', 'Varicella (Chickenpox)', 'Hepatitis A',
-    'Hepatitis B', 'HPV (Human Papillomavirus)', 'Meningococcal', 'Pneumococcal',
-    'Rotavirus', 'Haemophilus influenzae type b (Hib)', 'Polio', 'Yellow Fever',
-    'Typhoid', 'Rabies', 'Japanese Encephalitis', 'Cholera', 'Tuberculosis (BCG)',
-    'Shingles (Zoster)', 'Pneumonia', 'Meningitis B', 'Meningitis ACWY'
+  const commonScreenings = [
+    'Blood Pressure', 'Cholesterol', 'Blood Sugar', 'Hemoglobin A1C',
+    'Complete Blood Count (CBC)', 'Comprehensive Metabolic Panel (CMP)',
+    'Thyroid Function Test', 'PSA Test', 'Mammogram', 'Pap Smear',
+    'Colonoscopy', 'Sigmoidoscopy', 'Fecal Occult Blood Test',
+    'Bone Density Test (DEXA)', 'Eye Exam', 'Dental Exam',
+    'Skin Cancer Screening', 'Lung Cancer Screening', 'Prostate Exam',
+    'Breast Exam', 'Pelvic Exam', 'Testicular Exam', 'STI Testing',
+    'HIV Test', 'Hepatitis C Test', 'Tuberculosis Test', 'Allergy Testing',
+    'Sleep Study', 'Stress Test', 'Echocardiogram', 'ECG/EKG',
+    'Chest X-Ray', 'CT Scan', 'MRI', 'Ultrasound', 'Endoscopy',
+    'Colonoscopy', 'Sigmoidoscopy', 'Cystoscopy', 'Cystoscopy'
   ];
 
-  const addVaccination = () => {
-    if (!vaccineName.trim()) {
-      Alert.alert('Error', 'Please enter a vaccine name');
+  const addScreening = () => {
+    if (!screeningName.trim()) {
+      Alert.alert('Error', 'Please enter a screening name');
       return;
     }
 
-    if (editingVaccination) {
-      const updated: Vaccination = {
-        id: editingVaccination.id,
-        name: vaccineName.trim(),
-        date: dateReceived || new Date(),
+    if (editingScreening) {
+      const updated: Screening = {
+        id: editingScreening.id,
+        name: screeningName.trim(),
+        date: screeningDate || new Date(),
+        result,
         nextDue: nextDueDate || undefined,
         location: location.trim() || undefined,
-        batchNumber: batchNumber.trim() || undefined,
         notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
       };
-      const updatedVaccinations = (profile?.vaccinations || []).map(v => v.id === editingVaccination.id ? updated : v);
+      const updatedScreenings = (profile?.screenings || []).map(s => s.id === editingScreening.id ? updated : s);
       updateProfile({
         ...profile,
-        vaccinations: updatedVaccinations,
+        screenings: updatedScreenings,
       });
     } else {
-    const newVaccination: Vaccination = {
+    const newScreening: Screening = {
       id: Date.now().toString(),
-      name: vaccineName.trim(),
-      date: dateReceived || new Date(),
+      name: screeningName.trim(),
+      date: screeningDate || new Date(),
+      result,
       nextDue: nextDueDate || undefined,
       location: location.trim() || undefined,
-      batchNumber: batchNumber.trim() || undefined,
       notes: notes.trim() || undefined,
         attachments: attachments.length ? attachments : undefined,
     };
-    const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
+    const updatedScreenings = [...(profile?.screenings || []), newScreening];
     updateProfile({
       ...profile,
-      vaccinations: updatedVaccinations,
+      screenings: updatedScreenings,
     });
     }
 
     setShowAddModal(false);
-    setVaccineName('');
-    setDateReceived(null);
+    setScreeningName('');
+    setScreeningDate(null);
+    setResult('normal');
     setNextDueDate(null);
     setLocation('');
-    setBatchNumber('');
     setNotes('');
-    setEditingVaccination(null);
+    setEditingScreening(null);
     setAttachments([]);
   };
 
-  const deleteVaccination = (id: string) => {
+  const deleteScreening = (id: string) => {
     Alert.alert(
-      'Delete Vaccination',
-      'Are you sure you want to delete this vaccination?',
+      'Delete Screening',
+      'Are you sure you want to delete this screening?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            const updatedVaccinations = profile?.vaccinations?.filter(v => v.id !== id) || [];
+            const updatedScreenings = profile?.screenings?.filter(s => s.id !== id) || [];
             updateProfile({
               ...profile,
-              vaccinations: updatedVaccinations,
+              screenings: updatedScreenings,
             });
           },
         },
@@ -121,25 +126,25 @@ const VaccinationsScreen: React.FC = () => {
     );
   };
 
-  const handleEditVaccination = (v: Vaccination) => {
-    setVaccineName(v.name);
-    setDateReceived(v.date ? new Date(v.date) : new Date());
-    setNextDueDate(v.nextDue ? new Date(v.nextDue) : null);
-    setLocation(v.location || '');
-    setBatchNumber(v.batchNumber || '');
-    setNotes(v.notes || '');
-    setAttachments(v.attachments || []);
-    setEditingVaccination(v);
+  const handleEditScreening = (s: Screening) => {
+    setScreeningName(s.name);
+    setScreeningDate(s.date ? new Date(s.date) : new Date());
+    setResult(s.result);
+    setNextDueDate(s.nextDue ? new Date(s.nextDue) : null);
+    setLocation(s.location || '');
+    setNotes(s.notes || '');
+    setAttachments(s.attachments || []);
+    setEditingScreening(s);
     setShowAddModal(true);
   };
 
-  const openVaccinationOptions = (v: Vaccination) => {
+  const openScreeningOptions = (s: Screening) => {
     Alert.alert(
-      v.name,
+      s.name,
       undefined,
       [
-        { text: 'Edit', onPress: () => handleEditVaccination(v) },
-        { text: 'Delete', style: 'destructive', onPress: () => deleteVaccination(v.id) },
+        { text: 'Edit', onPress: () => handleEditScreening(s) },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteScreening(s.id) },
         { text: 'Cancel', style: 'cancel' },
       ]
     );
@@ -197,6 +202,15 @@ const VaccinationsScreen: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const getResultColor = (result: string) => {
+    switch (result) {
+      case 'normal': return '#4CD964';
+      case 'abnormal': return '#FF3B30';
+      case 'inconclusive': return '#FF9500';
+      default: return '#888';
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header (fixed) */}
@@ -204,48 +218,51 @@ const VaccinationsScreen: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Vaccinations</Text>
+          <Text style={styles.headerTitle}>Health Screenings</Text>
           <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
             <Ionicons name="add" size={24} color="#007AFF" />
           </TouchableOpacity>
         </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-
-        {/* Vaccinations List */}
+        {/* Screenings List */}
         <View style={styles.content}>
-          {profile?.vaccinations?.length ? (
-            profile.vaccinations.map((vaccination) => (
-              <View key={vaccination.id} style={styles.vaccinationCard}>
-                <View style={styles.vaccinationHeader}>
-                  <View style={styles.vaccinationInfo}>
-                    <Text style={styles.vaccineName}>{vaccination.name}</Text>
-                    <Text style={styles.vaccinationDate}>Received: {formatDate(vaccination.date)}</Text>
-                    {vaccination.nextDue && (
+          {profile?.screenings?.length ? (
+            profile.screenings.map((screening) => (
+              <View key={screening.id} style={styles.screeningCard}>
+                <View style={styles.screeningHeader}>
+                  <View style={styles.screeningInfo}>
+                    <Text style={styles.screeningName}>{screening.name}</Text>
+                    <Text style={styles.screeningDate}>Date: {formatDate(screening.date as any)}</Text>
+                    <View style={styles.resultContainer}>
+                      <View style={[styles.resultBadge, { backgroundColor: getResultColor(screening.result) + '20' }]}>
+                        <Text style={[styles.resultText, { color: getResultColor(screening.result) }]}>
+                          {screening.result.charAt(0).toUpperCase() + screening.result.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+                    {screening.nextDue && (
                       <View style={styles.nextDueContainer}>
                         <Text style={[
                           styles.nextDueText,
-                          isOverdue(vaccination.nextDue as any) && styles.overdueText
+                          isOverdue(screening.nextDue as any) && styles.overdueText
                         ]}>
-                          Next due: {formatDate(vaccination.nextDue as any)}
+                          Next due: {formatDate(screening.nextDue as any)}
                         </Text>
-                        {isOverdue(vaccination.nextDue as any) && (
+                        {isOverdue(screening.nextDue as any) && (
                           <View style={styles.overdueBadge}>
                             <Text style={styles.overdueBadgeText}>OVERDUE</Text>
                           </View>
                         )}
                       </View>
                     )}
-                    {vaccination.location && (
-                      <Text style={styles.location}>Location: {vaccination.location}</Text>
+                    {screening.location && (
+                      <Text style={styles.location}>Location: {screening.location}</Text>
                     )}
-                    {vaccination.batchNumber && (
-                      <Text style={styles.batchNumber}>Batch: {vaccination.batchNumber}</Text>
-                    )}
-                    {vaccination.notes && <Text style={styles.notes}>{vaccination.notes}</Text>}
-                    {!!vaccination.attachments?.length && (
+                    {screening.notes && <Text style={styles.notes}>{screening.notes}</Text>}
+                    {!!screening.attachments?.length && (
                       <View style={{ marginTop: 10 }}>
                         <View style={styles.attachmentsRow}>
-                          {vaccination.attachments.map(file => (
+                          {screening.attachments.map(file => (
                             <TouchableOpacity
                               key={file.uri}
                               style={styles.attachmentChip}
@@ -260,9 +277,9 @@ const VaccinationsScreen: React.FC = () => {
                     )}
                   </View>
                   <TouchableOpacity
-                    onPress={() => openVaccinationOptions(vaccination)}
+                    onPress={() => openScreeningOptions(screening)}
                     style={styles.editPenButton}
-                    accessibilityLabel="Edit vaccination"
+                    accessibilityLabel="Edit screening"
                   >
                     <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
@@ -271,18 +288,18 @@ const VaccinationsScreen: React.FC = () => {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="shield-checkmark-outline" size={64} color="#666" />
-              <Text style={styles.emptyTitle}>No Vaccinations</Text>
-              <Text style={styles.emptySubtitle}>Add your vaccinations to keep track of your immunization history</Text>
+              <Ionicons name="clipboard-outline" size={64} color="#666" />
+              <Text style={styles.emptyTitle}>No Screenings</Text>
+              <Text style={styles.emptySubtitle}>Add your health screenings to keep track of your preventive care</Text>
               <TouchableOpacity style={styles.addFirstButton} onPress={() => setShowAddModal(true)}>
-                <Text style={styles.addFirstButtonText}>Add Vaccination</Text>
+                <Text style={styles.addFirstButtonText}>Add Screening</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
       </ScrollView>
 
-      {/* Add Vaccination Modal */}
+      {/* Add Screening Modal */}
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -295,37 +312,37 @@ const VaccinationsScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
               <Text style={styles.cancelButton}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>{editingVaccination ? 'Edit Vaccination' : 'Add Vaccination'}</Text>
-            <TouchableOpacity onPress={addVaccination}>
+            <Text style={styles.modalTitle}>{editingScreening ? 'Edit Screening' : 'Add Screening'}</Text>
+            <TouchableOpacity onPress={addScreening}>
               <Text style={styles.saveButton}>Save</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalContent}>
-            {/* Vaccine Name */}
+            {/* Screening Name */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Vaccine Name *:</Text>
+              <Text style={styles.inputLabel}>Screening Name *:</Text>
               <TextInput
                 style={styles.textInput}
-                value={vaccineName}
+                value={screeningName}
                 onChangeText={(text) => {
-                  setVaccineName(text);
+                  setScreeningName(text);
                   setShowSuggestions(text.length > 0);
                 }}
-                placeholder="e.g., COVID-19, Influenza"
+                placeholder="e.g., Blood Pressure, Mammogram"
                 placeholderTextColor="#666"
               />
-              {showSuggestions && vaccineName.length > 0 && (
+              {showSuggestions && screeningName.length > 0 && (
                 <View style={styles.suggestionsContainer}>
-                  {commonVaccines
-                    .filter(v => v.toLowerCase().includes(vaccineName.toLowerCase()))
+                  {commonScreenings
+                    .filter(s => s.toLowerCase().includes(screeningName.toLowerCase()))
                     .slice(0, 5)
                     .map((suggestion, index) => (
                       <TouchableOpacity
                         key={index}
                         style={styles.suggestionItem}
                         onPress={() => {
-                          setVaccineName(suggestion);
+                          setScreeningName(suggestion);
                           setShowSuggestions(false);
                         }}
                       >
@@ -336,27 +353,76 @@ const VaccinationsScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Date Received */}
+            {/* Screening Date */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Date Received *:</Text>
+              <Text style={styles.inputLabel}>Screening Date *:</Text>
               <View style={styles.dateModeRow}>
-                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('year')}>
-                  <Text style={[styles.dateModeText, dateModeReceived === 'year' && styles.dateModeTextActive]}>Year</Text>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'year' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('year')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'year' && styles.dateModeTextActive]}>Year</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('yearMonth')}>
-                  <Text style={[styles.dateModeText, dateModeReceived === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'yearMonth' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('yearMonth')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'yearMonth' && styles.dateModeTextActive]}>Year-Month</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.dateModeChip, dateModeReceived === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeReceived('full')}>
-                  <Text style={[styles.dateModeText, dateModeReceived === 'full' && styles.dateModeTextActive]}>Full</Text>
+                <TouchableOpacity style={[styles.dateModeChip, dateModeScreening === 'full' && styles.dateModeChipActive]} onPress={() => setDateModeScreening('full')}>
+                  <Text style={[styles.dateModeText, dateModeScreening === 'full' && styles.dateModeTextActive]}>Full</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.dateInput}
-                onPress={() => setShowDateReceivedPicker(true)}
+                onPress={() => setShowScreeningDatePicker(true)}
               >
-                <Text style={[styles.dateInputText, !dateReceived && styles.placeholderText]}>{formatDateForMode(dateReceived, dateModeReceived)}</Text>
+                <Text style={[styles.dateInputText, !screeningDate && styles.placeholderText]}>{formatDateForMode(screeningDate, dateModeScreening)}</Text>
                 <Ionicons name="calendar-outline" size={20} color="#888" />
               </TouchableOpacity>
+            </View>
+
+            {/* Result */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Result:</Text>
+              <View style={styles.optionsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'normal' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('normal')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'normal' && styles.selectedOptionText
+                  ]}>
+                    Normal
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'abnormal' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('abnormal')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'abnormal' && styles.selectedOptionText
+                  ]}>
+                    Abnormal
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    result === 'inconclusive' && styles.selectedOption
+                  ]}
+                  onPress={() => setResult('inconclusive')}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    result === 'inconclusive' && styles.selectedOptionText
+                  ]}>
+                    Inconclusive
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Next Due Date */}
@@ -389,19 +455,7 @@ const VaccinationsScreen: React.FC = () => {
                 style={styles.textInput}
                 value={location}
                 onChangeText={setLocation}
-                placeholder="e.g., Doctor's office, Pharmacy"
-                placeholderTextColor="#666"
-              />
-            </View>
-
-            {/* Batch Number */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Batch Number (Optional):</Text>
-              <TextInput
-                style={styles.textInput}
-                value={batchNumber}
-                onChangeText={setBatchNumber}
-                placeholder="e.g., ABC123456"
+                placeholder="e.g., Doctor's office, Lab"
                 placeholderTextColor="#666"
               />
             </View>
@@ -413,7 +467,7 @@ const VaccinationsScreen: React.FC = () => {
                 style={[styles.textInput, styles.textArea]}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Add any additional notes about this vaccination"
+                placeholder="Add any additional notes about this screening"
                 placeholderTextColor="#666"
                 multiline
                 numberOfLines={3}
@@ -422,7 +476,7 @@ const VaccinationsScreen: React.FC = () => {
 
             {/* Attachments */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Attachments:</Text>
+              <Text style={styles.inputLabel}>Attachments</Text>
               <View style={styles.attachmentsRow}>
                 {attachments.map(file => (
                   <View key={file.uri} style={styles.attachmentChip}>
@@ -443,17 +497,17 @@ const VaccinationsScreen: React.FC = () => {
           </ScrollView>
 
           {/* Date Pickers - Now inside the modal */}
-          {showDateReceivedPicker && (
+          {showScreeningDatePicker && (
             <IOSDatePicker
               visible={true}
-              title="Date Received"
-              value={dateReceived ?? new Date()}
+              title="Screening Date"
+              value={screeningDate ?? new Date()}
               maximumDate={new Date()}
               onConfirm={(d) => {
-                setDateReceived(d);
-                setShowDateReceivedPicker(false);
+                setScreeningDate(d);
+                setShowScreeningDatePicker(false);
               }}
-              onCancel={() => setShowDateReceivedPicker(false)}
+              onCancel={() => setShowScreeningDatePicker(false)}
             />
           )}
 
@@ -530,7 +584,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  vaccinationCard: {
+  screeningCard: {
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
     padding: 20,
@@ -543,24 +597,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 5,
   },
-  vaccinationHeader: {
+  screeningHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  vaccinationInfo: {
+  screeningInfo: {
     flex: 1,
   },
-  vaccineName: {
+  screeningName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
     marginBottom: 4,
   },
-  vaccinationDate: {
+  screeningDate: {
     fontSize: 14,
     color: '#888',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  resultContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  resultBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  resultText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   nextDueContainer: {
     flexDirection: 'row',
@@ -587,11 +655,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   location: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  batchNumber: {
     fontSize: 14,
     color: '#888',
     marginBottom: 4,
@@ -760,6 +823,31 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionButton: {
+    backgroundColor: '#181818',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  selectedOption: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#fff',
+  },
+  selectedOptionText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
   dateInput: {
     backgroundColor: '#181818',
     borderRadius: 8,
@@ -828,12 +916,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-  },
   dateModeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -866,4 +948,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VaccinationsScreen; 
+export default ScreeningsScreen; 

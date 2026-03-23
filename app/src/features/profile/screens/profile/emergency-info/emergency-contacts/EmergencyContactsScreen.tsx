@@ -16,8 +16,8 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import * as Contacts from 'expo-contacts';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { ProfileTabParamList } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
 
 type EmergencyContactsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 

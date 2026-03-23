@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { Medication, AttachedFile } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { Medication, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../shared/components/FileViewerModal';
-import { getAdherence, getLastNDays, type AdherenceData } from '../../../../../shared/utils/medicationAdherence';
+import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import { getAdherence, getLastNDays, type AdherenceData } from '../../../../../../shared/utils/medicationAdherence';
 
 const MedicationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();

@@ -13,8 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { MedicalRecord } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { MedicalRecord } from '../../../../../../shared/types';
 import * as Sharing from 'expo-sharing';
 
 const ViewMedicalRecordsScreen: React.FC = () => {

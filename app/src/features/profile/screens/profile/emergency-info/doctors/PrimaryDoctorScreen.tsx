@@ -14,8 +14,8 @@ import {
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { ProfileTabParamList, Doctor } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { ProfileTabParamList, Doctor } from '../../../../../../shared/types';
 
 type PrimaryDoctorScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 

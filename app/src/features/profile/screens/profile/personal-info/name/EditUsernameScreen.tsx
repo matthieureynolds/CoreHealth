@@ -13,8 +13,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { ProfileTabParamList } from '../../../../../shared/types';
-import { useAuth } from '../../../../../shared/context/AuthContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 
 type EditUsernameScreenNavigationProp = StackNavigationProp<ProfileTabParamList, 'EditUsername'>;
 

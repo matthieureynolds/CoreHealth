@@ -2,20 +2,20 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
 
-import ConditionsScreen from '../../../features/profile/screens/profile/health-records/ConditionsScreen';
-import MedicationsScreen from '../../../features/profile/screens/profile/health-records/MedicationsScreen';
-import AllergiesScreen from '../../../features/profile/screens/profile/health-records/AllergiesScreen';
-import FamilyHistoryScreen from '../../../features/profile/screens/profile/health-records/FamilyHistoryScreen';
-import VaccinationsScreen from '../../../features/profile/screens/profile/health-records/VaccinationsScreen';
-import ScreeningsScreen from '../../../features/profile/screens/profile/health-records/ScreeningsScreen';
-import UploadMedicalRecordScreen from '../../../features/profile/screens/profile/record-management/UploadMedicalRecordScreen';
-import ViewMedicalRecordsScreen from '../../../features/profile/screens/profile/record-management/ViewMedicalRecordsScreen';
-import PastAppointmentsScreen from '../../../features/profile/screens/profile/health-records/PastAppointmentsScreen';
-import GenerateHealthReportScreen from '../../../features/profile/screens/profile/record-management/GenerateHealthReportScreen';
-import ShareWithDoctorScreen from '../../../features/profile/screens/profile/record-management/ShareWithDoctorScreen';
+import ConditionsScreen from '../../../features/profile/screens/profile/health-records/conditions/ConditionsScreen';
+import MedicationsScreen from '../../../features/profile/screens/profile/health-records/medications/MedicationsScreen';
+import AllergiesScreen from '../../../features/profile/screens/profile/health-records/allergies/AllergiesScreen';
+import FamilyHistoryScreen from '../../../features/profile/screens/profile/health-records/family-history/FamilyHistoryScreen';
+import VaccinationsScreen from '../../../features/profile/screens/profile/health-records/vaccinations/VaccinationsScreen';
+import ScreeningsScreen from '../../../features/profile/screens/profile/health-records/screenings/ScreeningsScreen';
+import UploadMedicalRecordScreen from '../../../features/profile/screens/profile/record-management/view-medical-records/UploadMedicalRecordScreen';
+import ViewMedicalRecordsScreen from '../../../features/profile/screens/profile/record-management/view-medical-records/ViewMedicalRecordsScreen';
+import PastAppointmentsScreen from '../../../features/profile/screens/profile/health-records/past-appointments/PastAppointmentsScreen';
+import GenerateHealthReportScreen from '../../../features/profile/screens/profile/record-management/generate-health-report/GenerateHealthReportScreen';
+import ShareWithDoctorScreen from '../../../features/profile/screens/profile/record-management/share-with-doctor/ShareWithDoctorScreen';
 import MedicalHistoryScreen from '../../../features/profile/screens/profile/health-records/MedicalHistoryScreen';
-import EmergencyContactsScreen from '../../../features/profile/screens/profile/emergency-info/EmergencyContactsScreen';
-import PrimaryDoctorScreen from '../../../features/profile/screens/profile/emergency-info/PrimaryDoctorScreen';
+import EmergencyContactsScreen from '../../../features/profile/screens/profile/emergency-info/emergency-contacts/EmergencyContactsScreen';
+import PrimaryDoctorScreen from '../../../features/profile/screens/profile/emergency-info/doctors/PrimaryDoctorScreen';
 
 type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 

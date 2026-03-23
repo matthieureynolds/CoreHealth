@@ -14,9 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useAuth } from '../../../../../shared/context/AuthContext';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { ProfileTabParamList } from '../../../../../shared/types';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { ProfileTabParamList } from '../../../../../../shared/types';
 
 type EditNameScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 

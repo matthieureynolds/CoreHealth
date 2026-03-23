@@ -6,7 +6,7 @@ import AccountSettingsScreen from '../../../features/profile/screens/settings/ac
 import EmailPasswordScreen from '../../../features/profile/screens/settings/account-preferences/account-settings/EmailPasswordScreen';
 import ConnectedDevicesScreen from '../../../features/profile/screens/settings/account-preferences/connected-devices/ConnectedDevicesScreen';
 import DisplayFormatScreen from '../../../features/profile/screens/settings/account-preferences/display-format/DisplayFormatScreen';
-import LifestyleSettingsScreen from '../../../features/profile/screens/profile/personal-info/LifestyleSettingsScreen';
+import LifestyleSettingsScreen from '../../../features/profile/screens/profile/personal-info/lifestyle-info/LifestyleSettingsScreen';
 import NotificationsScreen from '../../../features/profile/screens/settings/account-preferences/notifications/NotificationsScreen';
 import DataSyncScreen from '../../../features/profile/screens/settings/data-privacy/data-sync/DataSyncScreen';
 import PrivacySecurityScreen from '../../../features/profile/screens/settings/data-privacy/privacy-security/PrivacySecurityScreen';

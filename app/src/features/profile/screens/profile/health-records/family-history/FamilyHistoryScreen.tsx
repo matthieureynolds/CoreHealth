@@ -12,13 +12,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import familyService from '../../../../../shared/services/familyService';
-import { FamilyCondition, AttachedFile } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import familyService from '../../../../../../shared/services/familyService';
+import { FamilyCondition, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
 
 const FamilyHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();

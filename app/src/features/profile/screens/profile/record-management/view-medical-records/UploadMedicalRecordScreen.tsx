@@ -11,10 +11,10 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { MedicalRecord } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { MedicalRecord } from '../../../../../../shared/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 

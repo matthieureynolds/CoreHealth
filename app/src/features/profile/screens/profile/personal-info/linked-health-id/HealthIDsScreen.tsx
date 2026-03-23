@@ -15,10 +15,10 @@ import {
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import MedicalRecordScanner from '../../../../../shared/components/MedicalRecordScanner';
+import MedicalRecordScanner from '../../../../../../shared/components/MedicalRecordScanner';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../shared/context/HealthDataContext';
-import { HealthID } from '../../../../../shared/types';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { HealthID } from '../../../../../../shared/types';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const FLAG_IMAGES: Record<string, any> = {
