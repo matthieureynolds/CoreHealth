@@ -1,0 +1,245 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Platform,
+  Keyboard,
+  Alert,
+  StyleSheet,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { styles } from '../TravelScreen.styles';
+
+interface EditTripModalProps {
+  visible: boolean;
+  editingTripId: string | null;
+
+  editTripDepartureLocation: string;
+  editTripDestination: string;
+  editTripDepartureDate: Date;
+  editTripReturnDate: Date | undefined;
+  editTripNotes: string;
+  showEditDatePicker: 'departure' | 'return' | null;
+  tempEditDatePickerValue: Date | undefined;
+  editTripSuggestions: string[];
+  editTripDepartureSuggestions: string[];
+  isGettingLocation: boolean;
+
+  onClose: () => void;
+  onDelete: () => void;
+  onSave: () => void;
+  onDepartureLocationChange: (v: string) => void;
+  onDestinationChange: (v: string) => void;
+  onNotesChange: (v: string) => void;
+  onSetDepartureLocation: (v: string) => void;
+  onSetDestination: (v: string) => void;
+  onShowEditDatePicker: (v: 'departure' | 'return') => void;
+  onEditDateChange: (event: any, date?: Date) => void;
+  onEditDateConfirm: () => void;
+  onEditDateCancel: () => void;
+  onGetCurrentLocation: () => Promise<void>;
+}
+
+const EditTripModal: React.FC<EditTripModalProps> = ({
+  visible,
+  editingTripId,
+  editTripDepartureLocation,
+  editTripDestination,
+  editTripDepartureDate,
+  editTripReturnDate,
+  editTripNotes,
+  showEditDatePicker,
+  tempEditDatePickerValue,
+  editTripSuggestions,
+  editTripDepartureSuggestions,
+  isGettingLocation,
+  onClose,
+  onDelete,
+  onSave,
+  onDepartureLocationChange,
+  onDestinationChange,
+  onNotesChange,
+  onSetDepartureLocation,
+  onSetDestination,
+  onShowEditDatePicker,
+  onEditDateChange,
+  onEditDateConfirm,
+  onEditDateCancel,
+  onGetCurrentLocation,
+}) => {
+  if (!visible || !editingTripId) return null;
+
+  return (
+    <>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={[styles.modalHeader, { justifyContent: 'space-between' }]}>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { textAlign: 'center', flex: 1 }]}>Edit Trip</Text>
+            <TouchableOpacity onPress={onDelete}>
+              <Ionicons name="trash" size={22} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+            <Text style={styles.inputLabel}>Departure Location:</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={editTripDepartureLocation}
+                onChangeText={onDepartureLocationChange}
+                placeholder="Enter departure location (e.g., New York, USA)"
+                placeholderTextColor="#8E8E93"
+              />
+              {(editTripDepartureLocation.trim() === '' || editTripDepartureSuggestions.length > 0) && (
+                <View style={styles.suggestionsContainer}>
+                  {editTripDepartureLocation.trim() === '' && (
+                    <TouchableOpacity
+                      style={[styles.suggestionItem, styles.suggestionItemDivider]}
+                      onPress={async () => {
+                        try {
+                          await onGetCurrentLocation();
+                        } catch {
+                          Alert.alert('Location Permission Required', 'Please enable location access in Settings.', [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Settings', onPress: () => {} },
+                          ]);
+                        }
+                      }}
+                      disabled={isGettingLocation}
+                    >
+                      <Ionicons name="navigate" size={16} color={isGettingLocation ? '#8E8E93' : '#007AFF'} />
+                      <Text style={styles.suggestionText}>{isGettingLocation ? 'Getting location…' : 'Use current location'}</Text>
+                      {isGettingLocation && <ActivityIndicator size="small" color="#8E8E93" style={{ marginLeft: 8 }} />}
+                    </TouchableOpacity>
+                  )}
+                  {editTripDepartureSuggestions.slice(0, 5).map((city, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.suggestionItem}
+                      onPress={() => { onSetDepartureLocation(city); Keyboard.dismiss(); }}
+                    >
+                      <Ionicons name="location" size={16} color="#007AFF" />
+                      <Text style={styles.suggestionText}>{city}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.inputLabel}>Destination:</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={editTripDestination}
+                onChangeText={onDestinationChange}
+                placeholder="Enter destination (e.g., Tokyo, Japan)"
+                placeholderTextColor="#8E8E93"
+              />
+              {editTripSuggestions.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  {editTripSuggestions.slice(0, 5).map((city, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.suggestionItem}
+                      onPress={() => { onSetDestination(city); Keyboard.dismiss(); }}
+                    >
+                      <Ionicons name="location" size={16} color="#007AFF" />
+                      <Text style={styles.suggestionText}>{city}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.inputLabel}>Departure Date:</Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => onShowEditDatePicker('departure')}>
+              <Text style={styles.dateButtonText}>{editTripDepartureDate.toLocaleDateString()}</Text>
+              <Ionicons name="calendar" size={16} color="#8E8E93" />
+            </TouchableOpacity>
+
+            <Text style={styles.inputLabel}>Return Date: (Optional)</Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => onShowEditDatePicker('return')}>
+              <Text style={styles.dateButtonText}>
+                {editTripReturnDate ? editTripReturnDate.toLocaleDateString() : 'Select date'}
+              </Text>
+              <Ionicons name="calendar" size={16} color="#8E8E93" />
+            </TouchableOpacity>
+
+            <Text style={styles.inputLabel}>Notes (Optional)</Text>
+            <TextInput
+              style={[styles.textInput, { height: 80, textAlignVertical: 'top' }]}
+              value={editTripNotes}
+              onChangeText={onNotesChange}
+              placeholder="Add any additional notes..."
+              placeholderTextColor="#8E8E93"
+              multiline
+            />
+          </ScrollView>
+
+          <View style={styles.modalButtonsSingleCentered}>
+            <TouchableOpacity style={styles.primaryCenteredButton} onPress={onSave}>
+              <Text style={styles.modalButtonPrimaryText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Edit Date Picker */}
+      {showEditDatePicker && (
+        Platform.OS === 'ios' ? (
+          <View style={styles.datePickerModalOverlay}>
+            <View style={styles.datePickerModalContent}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={onEditDateCancel}>
+                  <Ionicons name="close" size={22} color="#FF3B30" />
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>
+                  {showEditDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
+                </Text>
+                <TouchableOpacity onPress={onEditDateConfirm}>
+                  <Ionicons name="checkmark" size={22} color="#34C759" />
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={tempEditDatePickerValue ?? (showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date()))}
+                mode="date"
+                display="inline"
+                themeVariant="dark"
+                textColor="#FFFFFF"
+                onChange={onEditDateChange}
+                minimumDate={showEditDatePicker === 'return' ? editTripDepartureDate : new Date()}
+                style={styles.datePicker}
+                key={showEditDatePicker}
+              />
+            </View>
+          </View>
+        ) : (
+          <DateTimePicker
+            value={showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date())}
+            mode="date"
+            display="default"
+            themeVariant="dark"
+            textColor="#FFFFFF"
+            onChange={(event, selectedDate) => {
+              if (selectedDate) {
+                onEditDateChange(event, selectedDate);
+              }
+              onEditDateCancel();
+            }}
+            minimumDate={showEditDatePicker === 'return' ? editTripDepartureDate : new Date()}
+          />
+        )
+      )}
+    </>
+  );
+};
+
+export default EditTripModal;

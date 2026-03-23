@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Animated,
-  Dimensions,
   Alert,
   StatusBar,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
 import BodyMap from '../organs/components/BodyMap';
 import {
-  DocumentProcessor,
   ProcessedDocument,
   ExtractedBiomarker,
 } from '../../../shared/services/data/documentProcessor';
@@ -31,8 +24,11 @@ import SkeletonBodyMap from '../skeleton/components/SkeletonBodyMap';
 import CirculationBodyMap from '../circulatory/components/CirculationBodyMap';
 import NutritionBodyMap from '../nutrition/components/NutritionBodyMap';
 import AddDataModal from '../../../shared/components/modals/AddDataModal';
-import { getBiomarkerStatusColor, getBiomarkerStatusIcon } from '../utils/biomarkerStatus';
 import { PanelPayload } from '../types';
+import BiomarkerResults from './components/BiomarkerResults';
+import BiomarkerDetailPanel from './components/BiomarkerDetailPanel';
+import { useDocumentHandlers } from './components/useDocumentHandlers';
+import styles from './components/BodyMapStyles';
 
 const BodyMapScreen: React.FC = () => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
@@ -50,207 +46,37 @@ const BodyMapScreen: React.FC = () => {
   const [showAddDataModal, setShowAddDataModal] = useState(false);
 
   const systems: BodySystemType[] = ['organs', 'skeleton', 'circulation', 'nutrition'];
-  const { height } = Dimensions.get('window');
 
   const handleOrganPress = (_organId: string) => {
     // Selection is handled in BodyMap via onOrganSelect
   };
 
+  const { handleCameraPress, handleDocumentPicker } = useDocumentHandlers({
+    uploadedDocuments,
+    setUploadedDocuments,
+    setProcessedDocuments,
+    setIsProcessing,
+    setProcessingStep,
+    setExtractedBiomarkers,
+    onOrganPress: handleOrganPress,
+  });
+
   const handleOrganSelect = (organ: PanelPayload) => {
     setSelectedOrganData(organ);
     setSelectedOrgan(organ.id);
-    
-    // Show the panel
-    Animated.spring(panelAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(panelAnim, { toValue: 1, useNativeDriver: true }).start();
   };
 
   const handleClosePanel = () => {
-    Animated.spring(panelAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start(() => {
+    Animated.spring(panelAnim, { toValue: 0, useNativeDriver: true }).start(() => {
       setSelectedOrgan(null);
       setSelectedOrganData(null);
     });
   };
 
-  const handleCameraPress = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert(
-        'Permission Required',
-        'Camera permission is required to scan documents.',
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8, // Reduce quality for faster processing
-    });
-
-    if (!result.canceled) {
-      const docId = Date.now().toString();
-      const newDoc = {
-        id: docId,
-        type: 'camera',
-        uri: result.assets[0].uri,
-        name: `Scanned Document ${uploadedDocuments.length + 1}`,
-        timestamp: new Date(),
-        size: result.assets[0].fileSize || 0,
-      };
-
-      setUploadedDocuments(prev => [...prev, newDoc]);
-      Alert.alert(
-        'Document Scanned Successfully! 📱',
-        'Your document is ready for processing. Tap "Scan My Results" to extract biomarkers using AI.',
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) },
-        ],
-      );
-    }
-  };
-
-  const handleDocumentPicker = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['image/*', 'application/pdf'],
-        copyToCacheDirectory: true,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-
-        // Check file size (10MB limit)
-        if (asset.size && asset.size > 10 * 1024 * 1024) {
-          Alert.alert(
-            'File Too Large',
-            'Please select a file smaller than 10MB for optimal processing.',
-          );
-          return;
-        }
-
-        const docId = Date.now().toString();
-        const newDoc = {
-          id: docId,
-          type: 'upload',
-          uri: asset.uri,
-          name: asset.name || `Document ${uploadedDocuments.length + 1}`,
-          timestamp: new Date(),
-          size: asset.size || 0,
-        };
-
-        setUploadedDocuments(prev => [...prev, newDoc]);
-        Alert.alert(
-          'Document Uploaded Successfully! 📄',
-          'Your document is ready for processing. Tap "Scan My Results" to extract biomarkers using AI.',
-          [
-            { text: 'Later', style: 'cancel' },
-            { text: 'Scan Now', onPress: () => handleProcessDocument(newDoc) },
-          ],
-        );
-      }
-    } catch (error) {
-      Alert.alert(
-        'Upload Error',
-        'Failed to upload document. Please try again.',
-      );
-    }
-  };
-
-  const handleProcessDocument = async (document: any) => {
-    setIsProcessing(document.id);
-    setProcessingStep('Preparing document...');
-
-    try {
-      // Step-by-step processing with user feedback
-      setProcessingStep('📷 Scanning document with AI...');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Show progress
-
-      setProcessingStep('🧠 Extracting biomarkers with GPT...');
-      const processedDoc = await DocumentProcessor.processDocument(
-        document.uri,
-        document.name,
-      );
-
-      setProcessingStep('✅ Processing complete!');
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      setProcessedDocuments(prev => [...prev, processedDoc]);
-      setExtractedBiomarkers(prev => [
-        ...prev,
-        ...processedDoc.extractedBiomarkers,
-      ]);
-
-      // Update organ biomarkers with extracted data
-      const updatedBiomarkers = DocumentProcessor.updateOrganBiomarkers(
-        processedDoc.extractedBiomarkers,
-      );
-
-      const biomarkerCount = processedDoc.extractedBiomarkers.length;
-      const processingTime = processedDoc.processingTimeMs
-        ? Math.round(processedDoc.processingTimeMs / 1000)
-        : 0;
-
-      Alert.alert(
-        '🎉 Success!',
-        `Found ${biomarkerCount} biomarkers in ${processingTime}s!\n\nYour body map has been updated with the latest lab results.`,
-        [
-          {
-            text: 'View Results',
-            onPress: () => {
-              // Show the first organ that was updated
-              const firstOrgan = Object.keys(updatedBiomarkers)[0];
-              if (firstOrgan) {
-                handleOrganPress(firstOrgan);
-              }
-            },
-          },
-          { text: 'Continue', style: 'cancel' },
-        ],
-      );
-    } catch (error) {
-      console.error('Document processing error:', error);
-      Alert.alert(
-        'Processing Error',
-        'Failed to process document. Please try again with a clearer image or different document.',
-      );
-    } finally {
-      setIsProcessing(null);
-      setProcessingStep('');
-    }
-  };
-
-  const groupBiomarkersByOrgan = (biomarkers: ExtractedBiomarker[]) => {
-    return biomarkers.reduce((groups, biomarker) => {
-      const organ = biomarker.organSystem || 'Other';
-      if (!groups[organ]) {
-        groups[organ] = [];
-      }
-      groups[organ].push(biomarker);
-      return groups;
-    }, {} as { [key: string]: ExtractedBiomarker[] });
-  };
-
-  const handleBiomarkerPress = (
-    biomarkerName: string,
-    value: number,
-    status?: string,
-  ) => {
+  const handleBiomarkerPress = (name: string, value: number, status?: string) => {
     const biomarkerStatus = status as 'normal' | 'low' | 'high' | 'critical';
-    const biomarkerInfo = getBiomarkerInfo(
-      biomarkerName,
-      value,
-      biomarkerStatus || 'normal',
-    );
-
+    const biomarkerInfo = getBiomarkerInfo(name, value, biomarkerStatus || 'normal');
     if (biomarkerInfo) {
       setSelectedBiomarker(biomarkerInfo);
       setModalVisible(true);
@@ -258,16 +84,8 @@ const BodyMapScreen: React.FC = () => {
   };
 
   const handleSystemChange = (system: BodySystemType) => {
-    const currentIndex = systems.indexOf(selectedSystem);
-    const newIndex = systems.indexOf(system);
-    
-    // Animate slide transition
     slideAnim.setValue(0);
-    Animated.timing(slideAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
+    Animated.timing(slideAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
       setSelectedSystem(system);
       setSelectedOrgan(null);
       panelAnim.setValue(0);
@@ -278,260 +96,93 @@ const BodyMapScreen: React.FC = () => {
     if (event.nativeEvent.state === State.END) {
       const { translationX } = event.nativeEvent;
       const currentIndex = systems.indexOf(selectedSystem);
-      
-      // Swipe right (positive translationX) - go to previous system
       if (translationX > 50 && currentIndex > 0) {
-        const newSystem = systems[currentIndex - 1];
-        handleSystemChange(newSystem);
-      }
-      // Swipe left (negative translationX) - go to next system
-      else if (translationX < -50 && currentIndex < systems.length - 1) {
-        const newSystem = systems[currentIndex + 1];
-        handleSystemChange(newSystem);
+        handleSystemChange(systems[currentIndex - 1]);
+      } else if (translationX < -50 && currentIndex < systems.length - 1) {
+        handleSystemChange(systems[currentIndex + 1]);
       }
     }
-  };
-
-  const handleSkeletonPartPress = (partId: string) => {
-  };
-
-  const handleCirculationPointPress = (pointId: string) => {
-  };
-
-  const handleNutritionItemPress = (item: { name: string }) => {
   };
 
   const handleAddData = (data: { biomarkers?: unknown[] }) => {
     Alert.alert(
       'Data Added Successfully',
       `Successfully added ${data.biomarkers?.length ?? 0} biomarkers from your scan.`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const renderBodyMap = () => (
-      <Animated.View
-        style={[
-          styles.bodyMapWrapper,
-          {
-            opacity: slideAnim.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [1, 0.3, 1],
-            }),
-          },
-        ]}
-      >
-        {selectedSystem === 'organs' && (
-          <BodyMap
-            onOrganPress={handleOrganPress}
-            onOrganSelect={handleOrganSelect}
-          />
-        )}
-        {selectedSystem === 'skeleton' && (
-          <SkeletonBodyMap onPartPress={handleSkeletonPartPress} onZoneSelect={handleOrganSelect} />
-        )}
-        {selectedSystem === 'circulation' && (
-          <CirculationBodyMap onPointPress={handleCirculationPointPress} onZoneSelect={handleOrganSelect} />
-        )}
-        {selectedSystem === 'nutrition' && (
-          <NutritionBodyMap onNutritionItemPress={handleNutritionItemPress} />
-        )}
-      </Animated.View>
-  );
-
-  const renderBiomarkerResults = () => {
-    if (extractedBiomarkers.length === 0) return null;
-
-    const groupedBiomarkers = groupBiomarkersByOrgan(extractedBiomarkers);
-
-    return (
-      <View style={styles.resultsContainer}>
-        <View style={styles.resultsHeader}>
-          <Text style={styles.resultsTitle}>Extracted Biomarkers</Text>
-          <Text style={styles.resultsSubtitle}>
-            {extractedBiomarkers.length} biomarkers found
-        </Text>
-        </View>
-        
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.resultsScrollContainer}
-        >
-        {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
-            <View key={organ} style={styles.organResultsCard}>
-              <View style={styles.organResultsHeader}>
-                <Ionicons 
-                  name="medical" 
-                  size={16} 
-                  color="#007AFF" 
-                />
-                <Text style={styles.organResultsTitle}>{organ}</Text>
-              </View>
-              
-              {biomarkers.map((biomarker, index) => (
-                <TouchableOpacity
-                  key={`${biomarker.name}-${index}`}
-                  style={styles.biomarkerResultItem}
-                  onPress={() =>
-                    handleBiomarkerPress(
-                      biomarker.name,
-                      biomarker.value,
-                      biomarker.status,
-                    )
-                  }
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.biomarkerResultContent}>
-                    <Text style={styles.biomarkerResultName} numberOfLines={1}>
-                      {biomarker.name}
-                    </Text>
-                    <Text style={styles.biomarkerResultValue}>
-                      {biomarker.value} {biomarker.unit}
-                    </Text>
-                  </View>
-                  
-                  <View style={styles.biomarkerResultStatus}>
-                    <Ionicons
-                      name={getBiomarkerStatusIcon(biomarker.status)}
-                      size={16}
-                      color={getBiomarkerStatusColor(biomarker.status)}
-                    />
-                    <Text 
-                      style={[
-                        styles.biomarkerResultStatusText,
-                        { color: getBiomarkerStatusColor(biomarker.status) }
-                      ]}
-                    >
-                      {biomarker.status?.toUpperCase() || 'NORMAL'}
-                  </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-          </View>
-        ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
-
-  const renderInfoPanel = () => {
-    if (!selectedOrganData) return null;
-
-    const organ = selectedOrganData;
-    
-    return (
-      <Animated.View
-        style={[
-          styles.infoPanel,
-          {
-            transform: [
-              {
-                translateY: panelAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [height, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View style={styles.panelHeader}>
-          <View style={styles.panelHeaderContent}>
-            <Text style={styles.panelTitle}>{organ.data.name}</Text>
-            <Text style={styles.panelSubtitle}>{organ.data.description}</Text>
-          </View>
-          <TouchableOpacity onPress={handleClosePanel} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.biomarkerScrollView}
-          showsVerticalScrollIndicator={true}
-          bounces={true}
-        >
-          <View style={styles.biomarkerList}>
-            {organ.data.biomarkers.map((biomarker, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.biomarkerItem}
-                onPress={() => {
-                  const biomarkerInfo = getBiomarkerInfo(
-                    biomarker.name,
-                    biomarker.value,
-                    biomarker.status
-                  );
-                  if (biomarkerInfo) {
-                    setSelectedBiomarker(biomarkerInfo);
-                    setModalVisible(true);
-                  }
-                }}
-              >
-                <View style={styles.biomarkerColumn1}>
-                  <Text style={styles.biomarkerName}>{biomarker.name}</Text>
-                </View>
-                <View style={styles.biomarkerColumn2}>
-                  <Text style={[styles.biomarkerValue, { color: getBiomarkerStatusColor(biomarker.status), fontWeight: 'bold' }]}>
-                    {biomarker.value} {biomarker.unit}
-                  </Text>
-                </View>
-                <View style={styles.biomarkerColumn3}>
-                  <Text style={styles.biomarkerRange}>({biomarker.range})</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </Animated.View>
+      [{ text: 'OK' }],
     );
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      
-      {/* Header */}
-        <View style={styles.header}>
+
+      <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>My Body</Text>
           <Text style={styles.headerSubtitle}>Explore your organs and track your biomarkers</Text>
         </View>
-        </View>
+      </View>
 
-      {/* Body System Selector */}
-        <BodySystemSelector
-          selectedSystem={selectedSystem}
-          onSystemChange={handleSystemChange}
-        />
+      <BodySystemSelector selectedSystem={selectedSystem} onSystemChange={handleSystemChange} />
 
-      <PanGestureHandler
-        onHandlerStateChange={handleSwipeGesture}
-        minDist={10}
-      >
+      <PanGestureHandler onHandlerStateChange={handleSwipeGesture} minDist={10}>
         <ScrollView
           style={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Body Map */}
-            <View style={styles.bodyMapContainer}>
-              {renderBodyMap()}
-            </View>
+          <View style={styles.bodyMapContainer}>
+            <Animated.View
+              style={[
+                styles.bodyMapWrapper,
+                {
+                  opacity: slideAnim.interpolate({
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [1, 0.3, 1],
+                  }),
+                },
+              ]}
+            >
+              {selectedSystem === 'organs' && (
+                <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
+              )}
+              {selectedSystem === 'skeleton' && (
+                <SkeletonBodyMap
+                  onPartPress={() => {}}
+                  onZoneSelect={handleOrganSelect}
+                />
+              )}
+              {selectedSystem === 'circulation' && (
+                <CirculationBodyMap
+                  onPointPress={() => {}}
+                  onZoneSelect={handleOrganSelect}
+                />
+              )}
+              {selectedSystem === 'nutrition' && (
+                <NutritionBodyMap onNutritionItemPress={() => {}} />
+              )}
+            </Animated.View>
+          </View>
 
-          {/* Biomarker Results */}
-          {renderBiomarkerResults()}
+          <BiomarkerResults
+            extractedBiomarkers={extractedBiomarkers}
+            onBiomarkerPress={handleBiomarkerPress}
+          />
 
-          {/* Bottom spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
       </PanGestureHandler>
 
-      {/* Info Panel */}
-      {renderInfoPanel()}
+      <BiomarkerDetailPanel
+        selectedOrganData={selectedOrganData}
+        panelAnim={panelAnim}
+        onClose={handleClosePanel}
+        onBiomarkerPress={(info) => {
+          setSelectedBiomarker(info);
+          setModalVisible(true);
+        }}
+      />
 
-      {/* Biomarker Modal */}
       <BiomarkerModal
         visible={modalVisible}
         biomarker={selectedBiomarker}
@@ -541,235 +192,13 @@ const BodyMapScreen: React.FC = () => {
         }}
       />
 
-      {/* Add Data Modal */}
       <AddDataModal
         visible={showAddDataModal}
         onClose={() => setShowAddDataModal(false)}
         onDataAdded={handleAddData}
       />
-
-      {/* Floating Add Button moved into header */}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 2,
-    backgroundColor: '#000000',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '400',
-    lineHeight: 20,
-    flexWrap: 'wrap',
-  },
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  bodyMapContainer: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
-    marginHorizontal: 8,
-    marginVertical: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  bodyMapWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resultsContainer: {
-    marginTop: 16,
-    marginHorizontal: 16,
-  },
-  resultsHeader: {
-    marginBottom: 12,
-  },
-  resultsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  resultsSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  resultsScrollContainer: {
-    paddingRight: 16,
-  },
-  organResultsCard: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 12,
-    minWidth: 200,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  organResultsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  organResultsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginLeft: 8,
-  },
-  biomarkerResultItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  biomarkerResultContent: {
-    flex: 1,
-  },
-  biomarkerResultName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  biomarkerResultValue: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  biomarkerResultStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  biomarkerResultStatusText: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  infoPanel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1C1C1E',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%',
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  panelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  panelHeaderContent: {
-    flex: 1,
-  },
-  panelTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  panelSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-  },
-  biomarkerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-    minHeight: 48,
-  },
-  biomarkerColumn1: {
-    flex: 1.5,
-    alignItems: 'flex-start',
-  },
-  biomarkerColumn2: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  biomarkerColumn3: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  biomarkerName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    textAlign: 'left',
-  },
-  biomarkerValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  biomarkerRange: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'right',
-  },
-  bottomSpacing: {
-    height: 40,
-  },
-  biomarkerScrollView: {
-    flex: 1,
-  },
-  biomarkerList: {
-    paddingHorizontal: 20,
-  },
-});
 
 export default BodyMapScreen;
