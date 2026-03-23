@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, findNodeHandle } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, findNodeHandle, Animated, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSendAnimation } from '../../hooks/useSendAnimation';
@@ -52,9 +52,34 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
   const handleTextChange = (newText: string) => {
     setText(newText);
+    if (newText.trim().length > 0 && chipsVisible && !hasChatted) {
+      Animated.timing(chipsOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        setChipsVisible(false);
+      });
+    }
   };
 
   const hasText = text.trim().length > 0;
+
+  // Chip fade animation
+  const chipsOpacity = useRef(new Animated.Value(1)).current;
+  const [chipsVisible, setChipsVisible] = useState(true);
+
+  const CHIPS = [
+    'How are my biomarkers?',
+    'Summarize my sleep',
+    'What should I eat today?',
+    "How's my recovery?",
+  ];
+
+  const handleChipPress = (chip: string) => {
+    Animated.timing(chipsOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start(() => {
+      setChipsVisible(false);
+    });
+    const clientId = `c_${Date.now()}_chip`;
+    onSend(chip, clientId);
+    if (!hasChattedLocal) setHasChattedLocal(true);
+  };
 
   // Rotating typewriter placeholder when no text is entered
   const hasChatted = hasChattedProp || hasChattedLocal;
@@ -113,6 +138,29 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Suggestion chips — shown before first message */}
+      {chipsVisible && !hasChatted && (
+        <Animated.View style={{ opacity: chipsOpacity, marginBottom: 10 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipsRow}
+            keyboardShouldPersistTaps="handled"
+          >
+            {CHIPS.map((chip) => (
+              <TouchableOpacity
+                key={chip}
+                style={styles.chip}
+                onPress={() => handleChipPress(chip)}
+                disabled={disabled}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.chipText}>{chip}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Animated.View>
+      )}
       <View style={styles.row}>
         {(onAttachPress || onCameraPress) && (
           <TouchableOpacity 
@@ -180,10 +228,29 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
     backgroundColor: '#000000',
     borderTopWidth: 1,
     borderTopColor: '#1C1C1E',
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 2,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+  },
+  chipText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
   row: {
     flexDirection: 'row',

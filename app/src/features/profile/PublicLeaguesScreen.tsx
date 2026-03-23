@@ -1,207 +1,160 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
-import { colors } from '../../theme/colors';
 
 type Nav = StackNavigationProp<ProfileTabParamList, 'PublicLeagues'>;
 
-const SF_FONT = Platform.select({ ios: 'SF Pro Text', android: 'System' }) ?? 'System';
-
-type LeagueSummary = {
-  id: string;
-  name: string;
-  members: number;
-};
+type LeagueSummary = { id: string; name: string; members: number; icon: string; color: string; category: string };
 
 const PublicLeaguesScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const [joined, setJoined] = useState<Record<string, boolean>>({});
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageWidth, setPageWidth] = useState(0);
-  const scrollRef = useRef<ScrollView | null>(null);
-  const { width: windowWidth } = useWindowDimensions();
+  const [activeCategory, setActiveCategory] = useState('All');
 
-  const publicLeagues = useMemo<LeagueSummary[]>(
-    () => [
-      { id: 'rl1', name: 'UK · Men 20–30', members: 128 },
-      { id: 'rl3', name: 'Football · Recovery Circle', members: 96 },
-      { id: 'rl4', name: 'Entrepreneurs Anti‑Stress', members: 173 },
-      { id: 'rl5', name: 'Paris · Women 30–40', members: 88 },
-      { id: 'rl6', name: 'NYC · High Performers', members: 142 },
-      { id: 'rl7', name: 'Mindful Mornings', members: 121 },
-      { id: 'rl8', name: 'Longevity Pros', members: 110 },
-      { id: 'rl9', name: 'Sleep Optimizers', members: 97 },
-      { id: 'rl10', name: 'Mediterranean Health', members: 104 },
-    ],
-    []
-  );
+  const leagues = useMemo<LeagueSummary[]>(() => [
+    { id: 'rl1', name: 'UK · Men 20–30', members: 128, icon: 'flag', color: '#007AFF', category: 'Regional' },
+    { id: 'rl3', name: 'Football · Recovery Circle', members: 96, icon: 'football', color: '#FF9F0A', category: 'Sport' },
+    { id: 'rl4', name: 'Entrepreneurs Anti‑Stress', members: 173, icon: 'briefcase', color: '#BF5AF2', category: 'Lifestyle' },
+    { id: 'rl5', name: 'Paris · Women 30–40', members: 88, icon: 'flag', color: '#FF375F', category: 'Regional' },
+    { id: 'rl6', name: 'NYC · High Performers', members: 142, icon: 'trending-up', color: '#FF9F0A', category: 'Regional' },
+    { id: 'rl7', name: 'Mindful Mornings', members: 121, icon: 'sunny', color: '#FFD60A', category: 'Lifestyle' },
+    { id: 'rl8', name: 'Longevity Pros', members: 110, icon: 'hourglass', color: '#30D158', category: 'Health' },
+    { id: 'rl9', name: 'Sleep Optimizers', members: 97, icon: 'moon', color: '#5856D6', category: 'Health' },
+    { id: 'rl10', name: 'Mediterranean Health', members: 104, icon: 'nutrition', color: '#FF6B35', category: 'Regional' },
+  ], []);
 
-  const publicPages = useMemo(() => {
-    const pageSize = 3;
-    const pages: LeagueSummary[][] = [];
-    for (let i = 0; i < publicLeagues.length; i += pageSize) {
-      pages.push(publicLeagues.slice(i, i + pageSize));
-    }
-    return pages;
-  }, [publicLeagues]);
-
-  const resolvedPageWidth = pageWidth || windowWidth - 40;
-  const joinedLeagues = publicLeagues.filter((league) => joined[league.id]);
-
-  const worldwideLeaders = [
-    { name: 'Alex M.', score: 96 },
-    { name: 'Sofia L.', score: 95 },
-    { name: 'Kenji T.', score: 94 },
-    { name: 'Priya R.', score: 93 },
-    { name: 'Jonas K.', score: 92 },
-  ];
+  const categories = ['All', 'Regional', 'Sport', 'Health', 'Lifestyle'];
+  const myLeagues = leagues.filter((l) => joined[l.id]);
+  const filtered = activeCategory === 'All' ? leagues : leagues.filter((l) => l.category === activeCategory);
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Public Leagues</Text>
-        <View style={styles.headerBackSpacer} />
+        <View style={styles.backButton} />
       </View>
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Your public leagues</Text>
-        <View style={styles.listCard}>
-          {joinedLeagues.length === 0 ? (
-            <Text style={styles.emptyText}>No public leagues joined yet.</Text>
-          ) : (
-            joinedLeagues.map((league) => (
-              <TouchableOpacity
-                key={league.id}
-                style={styles.leagueRow}
-                onPress={() => navigation.navigate('PublicLeagueDetail', { id: league.id, name: league.name })}
-              >
-                <View style={styles.leagueInfo}>
-                  <Text style={styles.leagueName}>{league.name}</Text>
-                  <Text style={styles.leagueMeta}>{league.members} members · Public</Text>
-                </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+        {myLeagues.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>MY LEAGUES</Text>
+            <View style={styles.card}>
+              {myLeagues.map((league, index) => (
                 <TouchableOpacity
-                  style={[styles.joinBtn, styles.joinedBtn]}
-                  onPress={() => setJoined((prev) => ({ ...prev, [league.id]: false }))}
+                  key={league.id}
+                  style={[styles.row, index === myLeagues.length - 1 && styles.lastRow]}
+                  onPress={() => navigation.navigate('PublicLeagueDetail', { id: league.id, name: league.name })}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[styles.joinBtnText, styles.joinedBtnText]}>Joined</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
-            <Text style={styles.actionBtnText}>Join league</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
-            <Text style={styles.actionBtnText}>Create league</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Public leagues</Text>
-          <View style={styles.dotRow}>
-            {publicPages.map((_, idx) => (
-              <View key={`dot-${idx}`} style={[styles.dot, idx === pageIndex && styles.dotActive]} />
-            ))}
-          </View>
-        </View>
-        <View
-          style={styles.carouselWrap}
-          onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
-        >
-          <ScrollView
-            ref={(ref) => {
-              scrollRef.current = ref;
-            }}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(event) => {
-              const nextIndex = Math.round(event.nativeEvent.contentOffset.x / resolvedPageWidth);
-              setPageIndex(nextIndex);
-            }}
-          >
-            {publicPages.map((page, idx) => (
-              <View key={`page-${idx}`} style={[styles.carouselPage, { width: resolvedPageWidth }]}>
-                {page.map((league) => (
-                  <TouchableOpacity
-                    key={league.id}
-                    style={styles.leagueRow}
-                    onPress={() => navigation.navigate('PublicLeagueDetail', { id: league.id, name: league.name })}
-                  >
-                    <View style={styles.leagueInfo}>
-                      <Text style={styles.leagueName}>{league.name}</Text>
-                      <Text style={styles.leagueMeta}>{league.members} members · Public</Text>
-                    </View>
-                    <TouchableOpacity
-                      style={[styles.joinBtn, joined[league.id] && styles.joinedBtn]}
-                      onPress={() => setJoined((prev) => ({ ...prev, [league.id]: !prev[league.id] }))}
-                    >
-                      <Text style={[styles.joinBtnText, joined[league.id] && styles.joinedBtnText]}>
-                        {joined[league.id] ? 'Joined' : 'Join'}
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={[styles.iconContainer, { backgroundColor: league.color + '20' }]}>
+                    <Ionicons name={league.icon as any} size={20} color={league.color} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <Text style={styles.rowTitle}>{league.name}</Text>
+                    <Text style={styles.rowSubtitle}>{league.members} members · {league.category}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.joinedBtn} onPress={() => setJoined((prev) => ({ ...prev, [league.id]: false }))}>
+                    <Text style={styles.joinedBtnText}>Joined</Text>
                   </TouchableOpacity>
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <Text style={styles.sectionTitle}>Worldwide leaderboard</Text>
-        <View style={styles.listCard}>
-          {worldwideLeaders.map((leader, idx) => (
-            <View key={leader.name} style={styles.leaderRow}>
-              <Text style={styles.rankText}>#{idx + 1}</Text>
-              <Ionicons name="person" size={14} color={colors.textSecondary} style={{ marginRight: 8 }} />
-              <Text style={styles.leaderName}>{leader.name}</Text>
-              <Text style={styles.scoreText}>{leader.score}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
+          </>
+        )}
+
+        <Text style={styles.sectionLabel}>DISCOVER LEAGUES</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.filterChip, activeCategory === cat && styles.filterChipActive]}
+              onPress={() => setActiveCategory(cat)}
+            >
+              <Text style={[styles.filterText, activeCategory === cat && styles.filterTextActive]}>{cat}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.card}>
+          {filtered.map((league, index) => (
+            <TouchableOpacity
+              key={league.id}
+              style={[styles.row, index === filtered.length - 1 && styles.lastRow]}
+              onPress={() => navigation.navigate('PublicLeagueDetail', { id: league.id, name: league.name })}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: league.color + '20' }]}>
+                <Ionicons name={league.icon as any} size={20} color={league.color} />
+              </View>
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>{league.name}</Text>
+                <Text style={styles.rowSubtitle}>{league.members} members · {league.category}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.joinBtn, joined[league.id] && styles.joinedBtn]}
+                onPress={() => setJoined((prev) => ({ ...prev, [league.id]: !prev[league.id] }))}
+              >
+                <Text style={[styles.joinBtnText, joined[league.id] && styles.joinedBtnText]}>
+                  {joined[league.id] ? 'Joined' : 'Join'}
+                </Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
           ))}
         </View>
-        <View style={{ height: 24 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  headerRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 48, paddingHorizontal: 20, paddingBottom: 4, backgroundColor: colors.bg },
-  scrollContent: { flex: 1 },
-  headerBackBtn: { padding: 4 },
-  headerBackSpacer: { width: 32, height: 32 },
-  headerTitle: { flex: 1, color: colors.textPrimary, fontSize: 20, fontWeight: '600', textAlign: 'center', fontFamily: SF_FONT },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 8, paddingHorizontal: 20 },
-  sectionTitle: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', fontFamily: SF_FONT, letterSpacing: 0.4, marginTop: 16, paddingHorizontal: 20 },
-  dotRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)' },
-  dotActive: { backgroundColor: colors.textPrimary },
-  listCard: { marginHorizontal: 20, marginTop: 12, backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: colors.divider },
-  leagueRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  leagueInfo: { flex: 1, marginRight: 10 },
-  leagueName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', fontFamily: SF_FONT },
-  leagueMeta: { color: colors.textSecondary, fontSize: 12, marginTop: 2, fontFamily: SF_FONT },
-  emptyText: { color: colors.textSecondary, fontSize: 12, paddingVertical: 12, fontFamily: SF_FONT },
-  actionRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 8 },
-  actionBtn: { flex: 1, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: colors.divider },
-  actionBtnText: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', fontFamily: SF_FONT },
-  carouselWrap: { marginHorizontal: 20 },
-  carouselPage: { backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: colors.divider },
-  joinBtn: { backgroundColor: colors.cta, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  joinBtnText: { color: colors.ctaText, fontSize: 12, fontWeight: '700', fontFamily: SF_FONT },
-  joinedBtn: { backgroundColor: colors.surfaceMuted },
-  joinedBtnText: { color: colors.textSecondary },
-  leaderRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  leaderName: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', flex: 1, fontFamily: SF_FONT },
-  rankText: { width: 36, color: colors.textSecondary, fontSize: 12, fontFamily: SF_FONT },
-  scoreText: { color: '#FFD60A', fontSize: 14, fontWeight: '700', fontFamily: SF_FONT },
+  container: { flex: 1, backgroundColor: '#000000' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: '#1C1C1E',
+  },
+  backButton: { padding: 8, width: 40 },
+  headerTitle: { fontSize: 20, fontWeight: '600', color: '#FFFFFF', textAlign: 'center' },
+  scroll: { flex: 1 },
+  sectionLabel: {
+    fontSize: 12, fontWeight: '600', color: '#8E8E93', letterSpacing: 0.5,
+    marginTop: 28, marginBottom: 8, paddingHorizontal: 20,
+  },
+  filterRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12 },
+  filterChip: {
+    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
+    backgroundColor: '#1C1C1E', borderWidth: 1, borderColor: '#2C2C2E',
+  },
+  filterChipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  filterText: { color: '#8E8E93', fontSize: 14, fontWeight: '500' },
+  filterTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  card: {
+    marginHorizontal: 20, backgroundColor: '#1C1C1E',
+    borderRadius: 12, borderWidth: 1, borderColor: '#2C2C2E', overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row', alignItems: 'center', padding: 16,
+    borderBottomWidth: 1, borderBottomColor: '#2C2C2E',
+  },
+  lastRow: { borderBottomWidth: 0 },
+  iconContainer: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center', marginRight: 14,
+  },
+  rowText: { flex: 1 },
+  rowTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
+  rowSubtitle: { fontSize: 13, color: '#8E8E93' },
+  joinBtn: { backgroundColor: '#007AFF', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
+  joinBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  joinedBtn: { backgroundColor: '#2C2C2E' },
+  joinedBtnText: { color: '#8E8E93', fontSize: 13, fontWeight: '600' },
 });
 
 export default PublicLeaguesScreen;

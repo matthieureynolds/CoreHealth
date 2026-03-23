@@ -1,141 +1,161 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../types';
-import { colors } from '../../theme/colors';
 
 type Nav = StackNavigationProp<ProfileTabParamList, 'PrivateCircles'>;
 
-const SF_FONT = Platform.select({ ios: 'SF Pro Text', android: 'System' }) ?? 'System';
-
-type CircleSummary = {
-  id: string;
-  name: string;
-  members: number;
-};
+type CircleSummary = { id: string; name: string; members: number; icon: string; color: string };
 
 const PrivateCirclesScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
-  const [joined, setJoined] = useState<Record<string, boolean>>({
-    c1: true,
-    c2: true,
-  });
+  const [joined, setJoined] = useState<Record<string, boolean>>({ c1: true, c2: true });
 
-  const privateCircles = useMemo<CircleSummary[]>(
-    () => [
-      { id: 'c1', name: 'Family', members: 5 },
-      { id: 'c2', name: 'Friends', members: 8 },
-      { id: 'c3', name: 'Hikes and Parties', members: 42 },
-      { id: 'c4', name: 'Football Paris', members: 18 },
-      { id: 'c5', name: 'Wellness Warriors', members: 12 },
-      { id: 'c6', name: 'Weekend Runners', members: 9 },
-      { id: 'c7', name: 'Strength Club', members: 15 },
-      { id: 'c8', name: 'Yoga Crew', members: 11 },
-      { id: 'c9', name: 'Recovery Lab', members: 7 },
-    ],
-    []
-  );
+  const circles = useMemo<CircleSummary[]>(() => [
+    { id: 'c1', name: 'Family', members: 5, icon: 'home', color: '#5856D6' },
+    { id: 'c2', name: 'Friends', members: 8, icon: 'people', color: '#007AFF' },
+    { id: 'c3', name: 'Hikes and Parties', members: 42, icon: 'trail-sign', color: '#30D158' },
+    { id: 'c4', name: 'Football Paris', members: 18, icon: 'football', color: '#FF9F0A' },
+    { id: 'c5', name: 'Wellness Warriors', members: 12, icon: 'fitness', color: '#FF375F' },
+    { id: 'c6', name: 'Weekend Runners', members: 9, icon: 'walk', color: '#64D2FF' },
+    { id: 'c7', name: 'Strength Club', members: 15, icon: 'barbell', color: '#FF6B35' },
+    { id: 'c8', name: 'Yoga Crew', members: 11, icon: 'leaf', color: '#30D158' },
+    { id: 'c9', name: 'Recovery Lab', members: 7, icon: 'pulse', color: '#BF5AF2' },
+  ], []);
 
-  const joinedCircles = privateCircles.filter((circle) => joined[circle.id]);
-
-  const worldwideLeaders = [
-    { name: 'Alex M.', score: 96 },
-    { name: 'Sofia L.', score: 95 },
-    { name: 'Kenji T.', score: 94 },
-    { name: 'Priya R.', score: 93 },
-    { name: 'Jonas K.', score: 92 },
-  ];
+  const myCircles = circles.filter((c) => joined[c.id]);
+  const discoverCircles = circles.filter((c) => !joined[c.id]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Private Circles</Text>
-        <View style={styles.headerBackSpacer} />
+        <View style={styles.backButton} />
       </View>
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Your private circles</Text>
-        <View style={styles.listCard}>
-          {joinedCircles.length === 0 ? (
-            <Text style={styles.emptyText}>No private circles yet.</Text>
+
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnPrimary]} activeOpacity={0.8}>
+            <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+            <Text style={styles.actionBtnPrimaryText}>Create Circle</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
+            <Ionicons name="enter-outline" size={18} color="#007AFF" />
+            <Text style={styles.actionBtnText}>Join with Code</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionLabel}>MY CIRCLES</Text>
+        <View style={styles.card}>
+          {myCircles.length === 0 ? (
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyText}>No circles yet. Create or join one below.</Text>
+            </View>
           ) : (
-            joinedCircles.map((circle) => (
+            myCircles.map((circle, index) => (
               <TouchableOpacity
                 key={circle.id}
-                style={styles.leagueRow}
+                style={[styles.row, index === myCircles.length - 1 && styles.lastRow]}
                 onPress={() => navigation.navigate('CircleDetail', { name: circle.name, members: circle.members })}
+                activeOpacity={0.7}
               >
-                <View style={styles.leagueInfo}>
-                  <Text style={styles.leagueName}>{circle.name}</Text>
-                  <Text style={styles.leagueMeta}>{circle.members} members · Private</Text>
+                <View style={[styles.iconContainer, { backgroundColor: circle.color + '20' }]}>
+                  <Ionicons name={circle.icon as any} size={20} color={circle.color} />
                 </View>
-                <TouchableOpacity
-                  style={[styles.joinBtn, styles.joinedBtn]}
-                  onPress={() => setJoined((prev) => ({ ...prev, [circle.id]: false }))}
-                >
-                  <Text style={[styles.joinBtnText, styles.joinedBtnText]}>Joined</Text>
+                <View style={styles.rowText}>
+                  <Text style={styles.rowTitle}>{circle.name}</Text>
+                  <Text style={styles.rowSubtitle}>{circle.members} members · Private</Text>
+                </View>
+                <TouchableOpacity style={styles.joinedBtn} onPress={() => setJoined((prev) => ({ ...prev, [circle.id]: false }))}>
+                  <Text style={styles.joinedBtnText}>Joined</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             ))
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Private circles</Text>
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
-            <Text style={styles.actionBtnText}>Join league</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
-            <Text style={styles.actionBtnText}>Create league</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.sectionTitle}>Worldwide leaderboard</Text>
-        <View style={styles.listCard}>
-          {worldwideLeaders.map((leader, idx) => (
-            <View key={leader.name} style={styles.leaderRow}>
-              <Text style={styles.rankText}>#{idx + 1}</Text>
-              <Ionicons name="person" size={14} color={colors.textSecondary} style={{ marginRight: 8 }} />
-              <Text style={styles.leaderName}>{leader.name}</Text>
-              <Text style={styles.scoreText}>{leader.score}</Text>
+        {discoverCircles.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>DISCOVER</Text>
+            <View style={styles.card}>
+              {discoverCircles.map((circle, index) => (
+                <View key={circle.id} style={[styles.row, index === discoverCircles.length - 1 && styles.lastRow]}>
+                  <View style={[styles.iconContainer, { backgroundColor: circle.color + '20' }]}>
+                    <Ionicons name={circle.icon as any} size={20} color={circle.color} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <Text style={styles.rowTitle}>{circle.name}</Text>
+                    <Text style={styles.rowSubtitle}>{circle.members} members · Private</Text>
+                  </View>
+                  <TouchableOpacity style={styles.joinBtn} onPress={() => setJoined((prev) => ({ ...prev, [circle.id]: true }))}>
+                    <Text style={styles.joinBtnText}>Join</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-        <View style={{ height: 24 }} />
+          </>
+        )}
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  headerRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 48, paddingHorizontal: 20, paddingBottom: 4, backgroundColor: colors.bg },
-  scrollContent: { flex: 1 },
-  headerBackBtn: { padding: 4 },
-  headerBackSpacer: { width: 32, height: 32 },
-  headerTitle: { flex: 1, color: colors.textPrimary, fontSize: 20, fontWeight: '600', textAlign: 'center', fontFamily: SF_FONT },
-  sectionTitle: { color: colors.textSecondary, fontSize: 12, fontWeight: '600', fontFamily: SF_FONT, letterSpacing: 0.4, marginTop: 16, paddingHorizontal: 20 },
-  listCard: { marginHorizontal: 20, marginTop: 12, backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: colors.divider },
-  leagueRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  leagueInfo: { flex: 1, marginRight: 10 },
-  leagueName: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', fontFamily: SF_FONT },
-  leagueMeta: { color: colors.textSecondary, fontSize: 12, marginTop: 2, fontFamily: SF_FONT },
-  emptyText: { color: colors.textSecondary, fontSize: 12, paddingVertical: 12, fontFamily: SF_FONT },
-  actionRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 12 },
-  actionBtn: { flex: 1, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: colors.divider },
-  actionBtnText: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', fontFamily: SF_FONT },
-  joinBtn: { backgroundColor: colors.cta, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  joinBtnText: { color: colors.ctaText, fontSize: 12, fontWeight: '700', fontFamily: SF_FONT },
-  joinedBtn: { backgroundColor: colors.surfaceMuted },
-  joinedBtnText: { color: colors.textSecondary },
-  leaderRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  leaderName: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', flex: 1, fontFamily: SF_FONT },
-  rankText: { width: 36, color: colors.textSecondary, fontSize: 12, fontFamily: SF_FONT },
-  scoreText: { color: '#FFD60A', fontSize: 14, fontWeight: '700', fontFamily: SF_FONT },
+  container: { flex: 1, backgroundColor: '#000000' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 56,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#1C1C1E',
+  },
+  backButton: { padding: 8, width: 40 },
+  headerTitle: { fontSize: 20, fontWeight: '600', color: '#FFFFFF', textAlign: 'center' },
+  scroll: { flex: 1 },
+  actionRow: { flexDirection: 'row', gap: 12, marginHorizontal: 20, marginTop: 24 },
+  actionBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, paddingVertical: 13, borderRadius: 12,
+    backgroundColor: '#1C1C1E', borderWidth: 1, borderColor: '#2C2C2E',
+  },
+  actionBtnPrimary: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  actionBtnText: { color: '#007AFF', fontSize: 14, fontWeight: '600' },
+  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  sectionLabel: {
+    fontSize: 12, fontWeight: '600', color: '#8E8E93', letterSpacing: 0.5,
+    marginTop: 28, marginBottom: 8, paddingHorizontal: 20,
+  },
+  card: {
+    marginHorizontal: 20, backgroundColor: '#1C1C1E',
+    borderRadius: 12, borderWidth: 1, borderColor: '#2C2C2E', overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row', alignItems: 'center', padding: 16,
+    borderBottomWidth: 1, borderBottomColor: '#2C2C2E',
+  },
+  lastRow: { borderBottomWidth: 0 },
+  iconContainer: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center', marginRight: 14,
+  },
+  rowText: { flex: 1 },
+  rowTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
+  rowSubtitle: { fontSize: 13, color: '#8E8E93' },
+  joinBtn: { backgroundColor: '#007AFF', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
+  joinBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  joinedBtn: { backgroundColor: '#2C2C2E', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
+  joinedBtnText: { color: '#8E8E93', fontSize: 13, fontWeight: '600' },
+  emptyRow: { padding: 20, alignItems: 'center' },
+  emptyText: { color: '#8E8E93', fontSize: 14, textAlign: 'center' },
 });
 
 export default PrivateCirclesScreen;

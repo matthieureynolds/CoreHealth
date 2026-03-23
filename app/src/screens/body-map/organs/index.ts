@@ -9,6 +9,7 @@ import { eyesOrgan } from './eyes/eyesData';
 import { stomachOrgan } from './stomach/stomachData';
 import { smallIntestineOrgan } from './smallIntestine/smallIntestineData';
 import { largeIntestineOrgan } from './largeIntestine/largeIntestineData';
+import { heartOrgan } from './heart/heartData';
 import { Organ } from './types';
 
 export const organs: Record<string, Organ> = {
@@ -23,9 +24,10 @@ export const organs: Record<string, Organ> = {
   [stomachOrgan.id]: stomachOrgan,
   [smallIntestineOrgan.id]: smallIntestineOrgan,
   [largeIntestineOrgan.id]: largeIntestineOrgan,
+  [heartOrgan.id]: heartOrgan,
 };
 
 export const organsList: Organ[] = Object.values(organs);
 
 export * from './types';
-export { liverOrgan, kidneysOrgan, pancreasOrgan, thyroidOrgan, brainOrgan, earsOrgan, mouthOrgan, eyesOrgan, stomachOrgan, smallIntestineOrgan, largeIntestineOrgan };
+export { liverOrgan, kidneysOrgan, pancreasOrgan, thyroidOrgan, brainOrgan, earsOrgan, mouthOrgan, eyesOrgan, stomachOrgan, smallIntestineOrgan, largeIntestineOrgan, heartOrgan };

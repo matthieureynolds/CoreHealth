@@ -40,6 +40,8 @@ import { dispatch as dispatchCommand, postTimeline, togglesMark } from '../assis
 import type { Command } from '../assistant/commandBus';
 import { DateTimeCollector, SeverityCollector, MgCollector } from '../components/chat/InlineSlots';
 import { SymptomPlan } from '../components/chat/SymptomPlan';
+import { TotoOrb } from '../components/chat/TotoOrb';
+import type { OrbState } from '../components/chat/TotoOrb';
 import { supabase } from '../config/supabase';
 
 interface ChatMessage {
@@ -1478,14 +1480,22 @@ const HealthAssistantScreen: React.FC = () => {
           <Ionicons name="menu" size={28} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Health Assistant</Text>
-          <Text style={styles.headerSubtitle}>Your AI health companion</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TotoOrb
+              state={isLoading ? 'thinking' : streamingMessageId ? 'streaming' : 'idle'}
+              size={32}
+            />
+            <View style={{ marginLeft: 4 }}>
+              <Text style={styles.headerTitle}>Toto</Text>
+              <Text style={styles.headerSubtitle}>Your AI health companion</Text>
+            </View>
+          </View>
         </View>
         {/* New chat button (top right) */}
         <TouchableOpacity onPress={() => setShowNewChatModal(true)} style={{ marginLeft: 12 }}>
           <Ionicons name="create-outline" size={26} color="#fff" />
         </TouchableOpacity>
-        </View>
+      </View>
       {/* Chat History Modal */}
       <Modal visible={showChatHistory} animationType="slide" transparent onRequestClose={() => setShowChatHistory(false)}>
         <KeyboardAvoidingView 
@@ -2149,10 +2159,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerSubtitle: {
     fontSize: 16,

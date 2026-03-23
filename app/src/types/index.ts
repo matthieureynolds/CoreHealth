@@ -465,6 +465,7 @@ export type ProfileTabParamList = {
   CountryLeaderboard: undefined;
   PublicLeagueDetail: { id: string; name: string };
   CircleDetail: { name?: string; members?: number } | undefined;
+  CountryDetail: { name: string; code: string; score: number; delta: number; rank: number };
   SymptomRegistered: undefined;
   HealthIDs: undefined;
   Conditions: undefined;

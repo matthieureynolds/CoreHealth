@@ -449,7 +449,11 @@ const BodyMapScreen: React.FC = () => {
         ]}
       >
         {selectedSystem === 'organs' && (
-          <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
+          <BodyMap
+            onOrganPress={handleOrganPress}
+            onOrganSelect={handleOrganSelect}
+            onHeadPress={() => console.log('Head zoom — coming soon')}
+          />
         )}
         {selectedSystem === 'skeleton' && (
           <SkeletonBodyMap onPartPress={handleSkeletonPartPress} onZoneSelect={handleOrganSelect} />
@@ -733,14 +737,11 @@ const styles = StyleSheet.create({
   bodyMapContainer: {
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
+    marginHorizontal: 8,
     marginVertical: 8,
-    padding: 20,
+    paddingVertical: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    overflow: 'hidden',
   },
   bodyMapWrapper: {
     width: '100%',

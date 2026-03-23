@@ -57,6 +57,7 @@ import PrivateCirclesScreen from '../features/profile/PrivateCirclesScreen';
 import PublicLeaguesScreen from '../features/profile/PublicLeaguesScreen';
 import PublicLeagueDetailScreen from '../features/profile/PublicLeagueDetailScreen';
 import CircleDetailScreen from '../features/profile/CircleDetailScreen';
+import CountryDetailScreen from '../features/profile/CountryDetailScreen';
 // Removed unused imports for non-existent screens/modals
 // import ProfilePicturePicker from '../components/ProfilePicturePicker';
 
@@ -180,6 +181,11 @@ const ProfileTabNavigator: React.FC = () => {
           title: 'Circle',
           headerShown: false,
         }}
+      />
+      <Stack.Screen
+        name="CountryDetail"
+        component={CountryDetailScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="SymptomRegistered"
