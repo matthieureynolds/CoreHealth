@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../../shared/types';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
 import HeroHealthScore from './HeroHealthScore';
-import SupportingRings from '../health-metrics/SupportingRings';
+import SupportingRings from '../health-metrics/rings/SupportingRings';
 import { deriveDashboardScores } from './utils';
 
 type Route = RouteProp<RootStackParamList, 'HealthScoreDetail'>;

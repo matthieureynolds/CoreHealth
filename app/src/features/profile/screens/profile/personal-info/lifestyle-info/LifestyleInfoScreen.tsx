@@ -15,7 +15,7 @@ import { ProfileTabParamList } from '../../../../../../shared/types';
 import { useSettings } from '../../../../../../shared/context/SettingsContext';
 import { LifestyleSettings } from '../../../../../../shared/types/settings';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
 
 type LifestyleInfoScreenNavigationProp = StackNavigationProp<ProfileTabParamList, 'LifestyleInfo'>;
 

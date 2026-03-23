@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { supabase } from '../config/supabase';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { DataService } from '../services/dataService';
+import { DataService } from '../services/data/dataService';
 import { User } from '../types';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';

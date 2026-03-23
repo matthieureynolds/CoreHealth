@@ -1,4 +1,4 @@
-import type { BiomarkerInfo } from '../components/BiomarkerModal';
+import type { BiomarkerInfo } from '../components/modals/BiomarkerModal';
 
 export const vitaminDatabase: {
   [key: string]: Omit<BiomarkerInfo, 'value' | 'status'>;

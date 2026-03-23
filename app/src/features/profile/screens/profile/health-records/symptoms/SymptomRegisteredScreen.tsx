@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SymptomEntry, StateOfMindChartData, SymptomStats } from '../../../../../../shared/types/symptoms';
-import { symptomService } from '../../../../../../shared/services/symptomService';
-import StateOfMindChart from '../../../../../home/health-metrics/StateOfMindChart';
+import { symptomService } from '../../../../../../shared/services/user/symptomService';
+import StateOfMindChart from '../../../../../home/health-metrics/lifestyle/StateOfMindChart';
 
 const SymptomRegisteredScreen: React.FC = () => {
   const [symptoms, setSymptoms] = useState<SymptomEntry[]>([]);

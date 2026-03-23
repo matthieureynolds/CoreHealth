@@ -4,9 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
-import familyService from '../../../../../../shared/services/familyService';
+import familyService from '../../../../../../shared/services/user/familyService';
 import { FamilyCondition } from '../../../../../../shared/types';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import FamilyHistoryFormModal from './FamilyHistoryFormModal';
 
 const FamilyHistoryScreen: React.FC = () => {

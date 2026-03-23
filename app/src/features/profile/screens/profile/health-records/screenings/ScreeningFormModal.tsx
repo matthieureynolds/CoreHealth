@@ -4,7 +4,7 @@ import {
   TextInput, Alert, Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
 import { Screening, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
 

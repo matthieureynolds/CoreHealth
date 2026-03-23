@@ -13,7 +13,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { Medication } from '../../../../../../shared/types';
 import { getAdherence, getLastNDays, type AdherenceData } from '../../../../../../shared/utils/medicationAdherence';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import MedicationFormModal from './MedicationFormModal';
 
 const TIMELINE_MEDICATION_NAMES = ['Vitamin D Supplement'];

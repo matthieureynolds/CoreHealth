@@ -15,7 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { PastAppointment } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 
 const PastAppointmentsScreen: React.FC = () => {
   const navigation = useNavigation<any>();

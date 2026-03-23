@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { MedicalRecord } from '../../../../../../shared/types';

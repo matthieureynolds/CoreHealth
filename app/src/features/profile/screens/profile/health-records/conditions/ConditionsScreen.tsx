@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { MedicalCondition } from '../../../../../../shared/types';

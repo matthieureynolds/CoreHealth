@@ -21,15 +21,15 @@ import { LabResult } from '../recent-lab-results/results/types';
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 import BiomarkerModal, {
   BiomarkerInfo,
-} from '../../../shared/components/BiomarkerModal';
+} from '../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
 import HealthChatModal from '../travel-health/nearby-medical/HealthChatModal';
 import LabResultDetailModal from '../recent-lab-results/LabResultDetailModal';
-import TwitterLoadingIndicator from '../../../shared/components/TwitterLoadingIndicator';
-import QuickSymptomLogModal from '../../../shared/components/QuickSymptomLogModal';
+import TwitterLoadingIndicator from '../../../shared/components/feedback/TwitterLoadingIndicator';
+import QuickSymptomLogModal from '../../../shared/components/modals/QuickSymptomLogModal';
 
 import HeroHealthScore from '../score/HeroHealthScore';
-import SupportingRings from '../health-metrics/SupportingRings';
+import SupportingRings from '../health-metrics/rings/SupportingRings';
 import LabInsightsCard from '../recent-lab-results/LabInsightsCard';
 import TravelHealthSummary from '../travel-health/TravelHealthSummary';
 import MedicalTimeline from '../medical-timeline/MedicalTimeline';

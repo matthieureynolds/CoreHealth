@@ -6,7 +6,7 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
-import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/BiomarkerModal';
+import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 import { circulationZones } from '../../circulatory';
 import { CirculationZone } from '../../circulatory/types';

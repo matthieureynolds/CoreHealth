@@ -20,7 +20,7 @@ import { useSettings } from '../../../../shared/context/SettingsContext';
 import { useAuth } from '../../../../shared/context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
-import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../../../shared/services/healthAssistantService';
+import { HealthAssistantService, HealthChatMessage, OPENAI_API_KEY } from '../../../../shared/services/ai/healthAssistantService';
 import { formatTimeBySetting, formatShortDateBySetting } from '../../../../shared/utils/dateFormat';
 
 interface HealthChatModalProps {

@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import BiomarkerModal from '../../../../shared/components/BiomarkerModal';
-import { BiomarkerInfo } from '../../../../shared/components/BiomarkerModal';
+import BiomarkerModal from '../../../../shared/components/modals/BiomarkerModal';
+import { BiomarkerInfo } from '../../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 import { vitamins, majorMinerals, traceMinerals } from '../../nutrition';
 import { NutritionItem } from '../../nutrition/types';

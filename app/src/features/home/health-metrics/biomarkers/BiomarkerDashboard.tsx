@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import BiomarkerSummaryCard from '../../../../shared/components/BiomarkerSummaryCard';
+import BiomarkerSummaryCard from '../../../../shared/components/cards/BiomarkerSummaryCard';
 import { colors } from '../../../../shared/theme/colors';
 
 export default function BiomarkerDashboard() {

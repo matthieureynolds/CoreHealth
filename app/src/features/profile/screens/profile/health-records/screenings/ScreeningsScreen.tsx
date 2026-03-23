@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { Screening } from '../../../../../../shared/types';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import ScreeningFormModal from './ScreeningFormModal';
 
 const ScreeningsScreen: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'react-native';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
-import { HealthAssistantService, type ChatSession } from '../../../shared/services/healthAssistantService';
+import { HealthAssistantService, type ChatSession } from '../../../shared/services/ai/healthAssistantService';
 import { AshParticles } from './AshParticles';
 
 interface SessionItemProps {

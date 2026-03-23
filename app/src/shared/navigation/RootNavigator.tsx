@@ -11,7 +11,7 @@ import { RootStackParamList } from '../types';
 
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-import LoadingScreen from '../components/LoadingScreen';
+import LoadingScreen from '../components/feedback/LoadingScreen';
 import EnvironmentalMetricScreen from '../../features/home/travel-health/current-location/EnvironmentalMetricScreen';
 import ScoreDetailScreen from '../../features/home/score/ScoreDetailScreen';
 import HealthScoreDetailScreen from '../../features/home/score/HealthScoreDetailScreen';

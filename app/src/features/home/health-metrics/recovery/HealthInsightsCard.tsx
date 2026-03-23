@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
-import { HealthAssistantService, HealthAssistantResponse } from '../../../../shared/services/healthAssistantService';
+import { HealthAssistantService, HealthAssistantResponse } from '../../../../shared/services/ai/healthAssistantService';
 
 interface HealthInsightsCardProps {
   onChatPress?: () => void;

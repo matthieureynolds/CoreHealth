@@ -11,12 +11,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import IOSDatePicker from '../../../../../../shared/components/IOSDatePicker';
+import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { Vaccination, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../../shared/components/FileViewerModal';
+import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 
 const VaccinationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import locationService from '../../../../../../../../shared/services/locationService';
+import locationService from '../../../../../../../../shared/services/travel/locationService';
 
 const LocationAccessScreen: React.FC = () => {
   const navigation = useNavigation();

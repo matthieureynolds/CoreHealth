@@ -24,8 +24,8 @@ import {
   BiomarkerSettings,
   AppSettings,
 } from '../types/settings';
-import { HealthAssistantService } from '../services/healthAssistantService';
-import { refreshUserSnapshot } from '../services/userSnapshotService';
+import { HealthAssistantService } from '../services/ai/healthAssistantService';
+import { refreshUserSnapshot } from '../services/user/userSnapshotService';
 
 interface SettingsContextType {
   settings: UserSettings;

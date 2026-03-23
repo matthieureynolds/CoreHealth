@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import biometricService from '../services/biometricService';
+import biometricService from '../services/user/biometricService';
 
 export interface UseBiometricAuthReturn {
   isBiometricAvailable: boolean;

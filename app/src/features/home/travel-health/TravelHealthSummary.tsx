@@ -17,7 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../shared/types';
 import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
 import JetLagPlanningCard from './jet-lag-planning/JetLagPlanningCard';
-import EmptyState from '../../../shared/components/EmptyState';
+import EmptyState from '../../../shared/components/feedback/EmptyState';
 import { useSettings } from '../../../shared/context/SettingsContext';
 import { convertDistanceLabel, metersToDisplay } from '../../../shared/utils/units';
 

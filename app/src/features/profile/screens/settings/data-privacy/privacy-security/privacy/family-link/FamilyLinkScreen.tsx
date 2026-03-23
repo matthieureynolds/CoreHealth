@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import familyService from '../../../../../../../../shared/services/familyService';
+import familyService from '../../../../../../../../shared/services/user/familyService';
 import { RelationshipLink } from '../../../../../../../../shared/types';
 
 const FamilyLinkScreen: React.FC = () => {

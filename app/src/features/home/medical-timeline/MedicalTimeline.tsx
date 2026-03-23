@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
-import FileViewerModal from '../../../shared/components/FileViewerModal';
-import EmptyState from '../../../shared/components/EmptyState';
+import FileViewerModal from '../../../shared/components/modals/FileViewerModal';
+import EmptyState from '../../../shared/components/feedback/EmptyState';
 import { useSettings } from '../../../shared/context/SettingsContext';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
 import { recordAdherence, getDateKey } from '../../../shared/utils/medicationAdherence';

@@ -15,13 +15,13 @@ import { useSettings } from '../../../../../shared/context/SettingsContext';
 import { TravelStackParamList, SerializedTrip } from '../../../../../shared/types';
 import JetLagPlanningCard from '../../../../home/travel-health/jet-lag-planning/JetLagPlanningCard';
 import { PlanTimeline } from '../../../components/PlanTimeline';
-import { EnhancedJetLagService } from '../../../../../shared/services/enhancedJetLagService';
+import { EnhancedJetLagService } from '../../../../../shared/services/travel/enhancedJetLagService';
 import { PlanDay } from '../../../../../shared/types';
 import {
   buildJetLagEvent,
   buildEnhancedTrip,
   TripForPlan,
-} from '../../../../../shared/services/jetLagService';
+} from '../../../../../shared/services/travel/jetLagService';
 import { colors } from '../../../../../shared/theme/colors';
 
 type TripDetailRoute = RouteProp<TravelStackParamList, 'TripDetail'>;

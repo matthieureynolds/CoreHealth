@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Trip } from '../../../shared/types';
-import { FlightLookupService } from '../../../shared/services/enhancedJetLagService';
+import { FlightLookupService } from '../../../shared/services/travel/enhancedJetLagService';
 
 interface TripCreationModalProps {
   visible: boolean;

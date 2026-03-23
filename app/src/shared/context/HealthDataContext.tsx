@@ -35,56 +35,56 @@ import {
   ActivitySafetyData,
   DerivedRiskFeature,
 } from '../types';
-import familyService from '../services/familyService';
-import { deriveFeaturesFromSignals } from '../services/familyRiskService';
+import familyService from '../services/user/familyService';
+import { deriveFeaturesFromSignals } from '../services/user/familyRiskService';
 import { 
   getGoogleAirQualityData,
   getGoogleAirQualityStatus,
   getGoogleAirQualityRecommendation,
   mapGoogleAqiToRiskLevel,
   getPollutantDetails,
-} from '../services/googleAirQualityService';
+} from '../services/travel/googleAirQualityService';
 import { 
   getGooglePollenData,
   getOverallPollenRiskLevel,
   getPollenStatus,
   getPollenRecommendations,
   getPollenBreakdown,
-} from '../services/googlePollenService';
+} from '../services/travel/googlePollenService';
 import { 
   getAllHealthcareFacilities,
   getEmergencyContacts,
-} from '../services/healthcarePlacesService';
-import { getClosestMedicalFacilities } from '../services/healthcarePlacesServiceEnhanced';
-import { geocodeAddress, reverseGeocode } from '../services/geocodingService';
+} from '../services/travel/healthcarePlacesService';
+import { getClosestMedicalFacilities } from '../services/travel/healthcarePlacesServiceEnhanced';
+import { geocodeAddress, reverseGeocode } from '../services/travel/geocodingService';
 import { 
   generateJetLagData, 
   getCurrentDestinationTime 
-} from '../services/jetLagService';
+} from '../services/travel/jetLagService';
 import { useSettings } from './SettingsContext';
 import { validateApiKeys } from '../config/api';
 import { 
   generateWeatherHealthAssessment
-} from '../services/weatherService';
+} from '../services/travel/weatherService';
 import { 
   calculateHydrationRecommendation
-} from '../services/hydrationService';
+} from '../services/user/hydrationService';
 import {
   generateActivitySafetyData
-} from '../services/activitySafetyService';
-import { refreshUserSnapshot } from '../services/userSnapshotService';
+} from '../services/travel/activitySafetyService';
+import { refreshUserSnapshot } from '../services/user/userSnapshotService';
 import {
   getMedicationAvailability,
   getMultipleMedicationsAvailability,
   generateTravelMedicationKit
-} from '../services/medicationAvailabilityService';
+} from '../services/travel/medicationAvailabilityService';
 import {
   getWaterQualityData,
   getWaterQualityStatus,
   getWaterQualityRecommendation,
   mapWaterQualityToRiskLevel,
   getWaterQualityIcon
-} from '../services/waterQualityService';
+} from '../services/travel/waterQualityService';
 
 // Map device display names from UI to internal device types used for assistant context
 function mapDeviceNameToType(name: string): DeviceData['deviceType'] {
@@ -397,7 +397,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       let insights: DailyInsight[] = [];
       
       try {
-        const { HealthAssistantService } = require('../services/healthAssistantService');
+        const { HealthAssistantService } = require('../services/ai/healthAssistantService');
         insights = await HealthAssistantService.generateDailyRecommendations(
           profile,
           biomarkers,

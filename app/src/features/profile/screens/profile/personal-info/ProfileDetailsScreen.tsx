@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../../../../shared/context/AuthContext';
 import { calculateProfileCompletion } from '../../../../../shared/utils/profileCompletion';
-import ProfilePicturePicker from '../../../../../shared/components/ProfilePicturePicker';
+import ProfilePicturePicker from '../../../../../shared/components/profile/ProfilePicturePicker';
 import { useHealthData } from '../../../../../shared/context/HealthDataContext';
 import { ProfileTabParamList } from '../../../../../shared/types';
 import DateOfBirthPickerModal from './DateOfBirthPickerModal';

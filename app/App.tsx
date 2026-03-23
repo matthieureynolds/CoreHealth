@@ -10,7 +10,7 @@ import RootNavigator from './src/shared/navigation/RootNavigator';
 import { AuthProvider } from './src/shared/context/AuthContext';
 import { HealthDataProvider } from './src/shared/context/HealthDataContext';
 import { SettingsProvider } from './src/shared/context/SettingsContext';
-import BedtimeReminderModal from './src/shared/components/BedtimeReminderModal';
+import BedtimeReminderModal from './src/shared/components/modals/BedtimeReminderModal';
 import { useBedtimeReminder } from './src/shared/hooks/useBedtimeReminder';
 
 const AppContent: React.FC = () => {

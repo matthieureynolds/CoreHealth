@@ -19,10 +19,10 @@ import {
   DocumentProcessor,
   ProcessedDocument,
   ExtractedBiomarker,
-} from '../../../shared/services/documentProcessor';
+} from '../../../shared/services/data/documentProcessor';
 import BiomarkerModal, {
   BiomarkerInfo,
-} from '../../../shared/components/BiomarkerModal';
+} from '../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
 import BodySystemSelector, {
   BodySystemType,
@@ -30,7 +30,7 @@ import BodySystemSelector, {
 import SkeletonBodyMap from '../skeleton/components/SkeletonBodyMap';
 import CirculationBodyMap from '../circulatory/components/CirculationBodyMap';
 import NutritionBodyMap from '../nutrition/components/NutritionBodyMap';
-import AddDataModal from '../../../shared/components/AddDataModal';
+import AddDataModal from '../../../shared/components/modals/AddDataModal';
 import { getBiomarkerStatusColor, getBiomarkerStatusIcon } from '../utils/biomarkerStatus';
 import { PanelPayload } from '../types';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import biometricService from '../../../../../../../../shared/services/biometricService';
+import biometricService from '../../../../../../../../shared/services/user/biometricService';
 
 const BiometricLockScreen: React.FC = () => {
   const navigation = useNavigation();

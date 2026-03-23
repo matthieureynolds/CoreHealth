@@ -18,8 +18,8 @@ import PagerView from 'react-native-pager-view';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
 import { useSettings } from '../../../../shared/context/SettingsContext';
 import { useAuth } from '../../../../shared/context/AuthContext';
-import { FlightLookupService } from '../../../../shared/services/enhancedJetLagService';
-import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../../../shared/services/citySearchService';
+import { FlightLookupService } from '../../../../shared/services/travel/enhancedJetLagService';
+import { searchCities, searchAllLocations, getPopularCities, CitySearchResult } from '../../../../shared/services/travel/citySearchService';
 import { useReduceMotion } from '../../../../shared/utils/reduceMotion';
 
 interface Trip {

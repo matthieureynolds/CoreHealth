@@ -1,4 +1,4 @@
-import type { BiomarkerInfo } from '../components/BiomarkerModal';
+import type { BiomarkerInfo } from '../components/modals/BiomarkerModal';
 import { vitaminDatabase } from './vitaminDatabase';
 import { mineralDatabase } from './mineralDatabase';
 import { boneDensityDatabase } from './boneDensityDatabase';
