@@ -22,7 +22,7 @@ interface ChatHistoryDrawerProps {
   onLoadSession: (session: ChatSession) => void;
   onSessionDeleted: (id: string) => void;
   onRetry: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({

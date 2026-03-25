@@ -135,7 +135,7 @@ const TravelScreen: React.FC = () => {
         activeTab={s.activeTab}
         onTabPress={(tab, pageIndex) => {
           s.setActiveTab(tab);
-          try { s.pagerRef.current?.setPage?.(pageIndex); } catch {}
+          try { s.pagerRef.current?.setPage?.(pageIndex); } catch { /* pager navigation failure is non-fatal */ }
         }}
       />
 

@@ -10,7 +10,7 @@ import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/mod
 import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 import { boneHealthZones } from '../../skeleton';
 import { BoneHealthZone } from '../../skeleton/types';
-import { PanelPayload } from '../types';
+import { PanelPayload } from '../../types';
 import { useState } from 'react';
 
 const { width } = Dimensions.get('window');

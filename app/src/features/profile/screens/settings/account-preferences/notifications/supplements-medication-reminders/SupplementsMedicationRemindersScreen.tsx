@@ -20,7 +20,7 @@ const SupplementsMedicationRemindersScreen: React.FC = () => {
         ]);
         if (en !== null) setEnabled(en === '1');
         if (al) { const p = JSON.parse(al); if (Array.isArray(p) && p.length) setAlerts(p); }
-      } catch {}
+      } catch (e) { console.error(e); }
     })();
   }, []);
 

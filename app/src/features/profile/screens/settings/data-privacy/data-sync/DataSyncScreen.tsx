@@ -58,7 +58,7 @@ const DataSyncScreen: React.FC = () => {
       setLastSyncTime(formatDateTime(now));
       try {
         await AsyncStorage.setItem('@corehealth_last_sync_at', now.toISOString());
-      } catch {}
+      } catch (e) { console.error(e); }
       
       Alert.alert(
         'Sync Complete',

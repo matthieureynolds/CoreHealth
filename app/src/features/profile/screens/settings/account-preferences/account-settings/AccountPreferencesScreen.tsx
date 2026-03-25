@@ -42,7 +42,7 @@ const AccountPreferencesScreen: React.FC = () => {
     },
   ];
 
-  const renderSettingsItem = (item: any, index: number) => (
+  const renderSettingsItem = (item: { title: string; icon: string; onPress: () => void; description: string }, index: number) => (
     <TouchableOpacity
       key={index}
       style={styles.settingsItem}

@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../../config/api';
+export { getClosestMedicalFacilities, ClosestMedicalFacilities } from './healthcarePlacesServiceEnhanced';
 
 // Healthcare facility types for Google Places API
 export const HEALTHCARE_TYPES = {

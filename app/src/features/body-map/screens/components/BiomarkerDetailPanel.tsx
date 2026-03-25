@@ -73,7 +73,7 @@ const BiomarkerDetailPanel: React.FC<BiomarkerDetailPanelProps> = ({
                 const biomarkerInfo = getBiomarkerInfo(
                   biomarker.name,
                   biomarker.value,
-                  biomarker.status,
+                  biomarker.status as 'low' | 'high' | 'normal' | 'critical',
                 );
                 if (biomarkerInfo) {
                   onBiomarkerPress(biomarkerInfo);

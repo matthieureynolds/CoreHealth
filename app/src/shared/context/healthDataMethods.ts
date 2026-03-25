@@ -73,7 +73,7 @@ export const loadHealthData = async (setters: LoadHealthDataSetters): Promise<vo
       if (lastTs) {
         await AsyncStorage.setItem('@corehealth_last_sync_at', new Date(lastTs).toISOString());
       }
-    } catch {}
+    } catch (e) { console.error(e); }
 
     if (data.insights) setters.setDailyInsights(data.insights);
     if (data.healthScore) {

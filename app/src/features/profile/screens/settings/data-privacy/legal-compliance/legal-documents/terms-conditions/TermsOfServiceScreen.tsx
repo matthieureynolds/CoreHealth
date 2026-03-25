@@ -11,7 +11,7 @@ const TermsOfServiceScreen: React.FC = () => {
     (async () => {
       try {
         await AsyncStorage.setItem('@legal_tos_last_updated', 'December 2024');
-      } catch {}
+      } catch (e) { console.error(e); }
     })();
   }, []);
 

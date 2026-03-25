@@ -11,5 +11,5 @@ export interface MedicalEvent {
   doctor?: string;
   notes?: string;
   location?: string;
-  attachedFile?: any;
+  attachedFile?: { uri: string; name: string; type?: string };
 }

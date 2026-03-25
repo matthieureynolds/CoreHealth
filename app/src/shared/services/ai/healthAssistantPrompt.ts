@@ -2,7 +2,7 @@ import type { UserProfile, Biomarker, HealthScore, DeviceData, LabResult, BodySy
 import type { UserSettings } from '../../types/settings';
 import type { UserHealthContext } from './healthAssistantService';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const appConfig = require('../../../app.json');
+const appConfig = require('../../../../app.json');
 
 interface HealthData {
   profile: UserProfile | null;
@@ -59,7 +59,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
         const list = allergies.map((a: any) => a?.name || a?.allergen || '').filter(Boolean).slice(0, 10).join(', ');
         if (list) out += `Allergies: ${list}\n`;
       }
-    } catch {}
+    } catch { /* graceful degradation */ }
 
     try {
       const medications = p.medications || [];
@@ -67,7 +67,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
         const list = medications.map((m: any) => m?.name ? `${m.name}${m?.dose ? ` ${m.dose}` : ''}` : '').filter(Boolean).slice(0, 10).join(', ');
         if (list) out += `Medications: ${list}\n`;
       }
-    } catch {}
+    } catch { /* graceful degradation */ }
 
     try {
       const history = p.medicalHistory || [];
@@ -75,7 +75,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
         const list = history.map((h: any) => h?.name || h?.condition || '').filter(Boolean).slice(0, 10).join(', ');
         if (list) out += `Medical History: ${list}\n`;
       }
-    } catch {}
+    } catch { /* graceful degradation */ }
 
     try {
       const fam = p.familyHistory || [];
@@ -87,7 +87,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
         }).filter(Boolean).slice(0, 10).join('; ');
         if (list) out += `Family History: ${list}\n`;
       }
-    } catch {}
+    } catch { /* graceful degradation */ }
   }
 
   if (healthData.healthScore?.overall) {
@@ -101,7 +101,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
     if (types.length > 0) out += `Connected Devices: ${types.join(', ')}\n`;
     const times = events.map((d: any) => (d?.timestamp ? new Date(d.timestamp).getTime() : NaN)).filter(Number.isFinite);
     if (times.length > 0) out += `Last Device Sync: ${new Date(Math.max(...times)).toISOString()}\n`;
-  } catch {}
+  } catch { /* graceful degradation */ }
 
   // Settings
   try {
@@ -176,7 +176,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
       out += `Support & Help: support@corehealth.com, feedback@corehealth.com, FAQ available in Support & Help.\n`;
       out += `Legal & Compliance: Terms of Service, Privacy Policy, Consent Forms, HIPAA, Data Processing Agreement, Data Retention Policy.\n`;
     }
-  } catch {}
+  } catch { /* graceful degradation */ }
 
   // Body Systems
   try {
@@ -185,7 +185,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
       const rows = systems.slice(0, 8).map((bs: any) => `${bs.name || bs.id}: ${typeof bs.riskScore === 'number' ? bs.riskScore : '-'}`).join('; ');
       if (rows) out += `Body Systems Risk: ${rows}\n`;
     }
-  } catch {}
+  } catch { /* graceful degradation */ }
 
   // Travel Health
   try {
@@ -198,7 +198,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
       if (th.uvIndex?.value !== undefined) parts.push(`UV:${th.uvIndex.value}`);
       if (parts.length) out += `Travel Health: ${parts.join(', ')}\n`;
     }
-  } catch {}
+  } catch { /* graceful degradation */ }
 
   // Recent Lab Results
   try {
@@ -214,7 +214,7 @@ export function formatHealthDataForPrompt(healthData?: HealthData): string {
         out += `• ${name}: ${value} ${unit} ${status ? `(${status})` : ''} ${date ? `on ${date}` : ''}\n`;
       });
     }
-  } catch {}
+  } catch { /* graceful degradation */ }
 
   // Biomarkers
   if (healthData.biomarkers?.length) {

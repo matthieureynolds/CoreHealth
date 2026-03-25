@@ -15,8 +15,8 @@ import {
 import {
   getAllHealthcareFacilities,
   getEmergencyContacts,
+  getClosestMedicalFacilities,
 } from '../services/travel/healthcarePlacesService';
-import { getClosestMedicalFacilities } from '../services/travel/healthcarePlacesServiceEnhanced';
 import {
   generateJetLagData,
   getCurrentDestinationTime

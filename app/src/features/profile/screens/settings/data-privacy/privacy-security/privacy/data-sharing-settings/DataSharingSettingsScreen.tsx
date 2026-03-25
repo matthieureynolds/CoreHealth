@@ -43,7 +43,7 @@ const DataSharingSettingsScreen: React.FC = () => {
       setLastSyncTime(formatDateTime(now));
       try {
         await AsyncStorage.setItem('@corehealth_last_sync_at', now.toISOString());
-      } catch {}
+      } catch (e) { console.error(e); }
       Alert.alert('Sync Complete', 'Your health data has been successfully synchronized.', [{ text: 'OK' }]);
     } catch (error) {
       Alert.alert('Sync Failed', 'There was an error syncing your data. Please try again.', [{ text: 'OK' }]);

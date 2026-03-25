@@ -94,7 +94,7 @@ const EditNameScreen: React.FC = () => {
       const displayName = `${nameData.firstName.trim()} ${nameData.surname.trim()}`.trim();
       try {
         await updateProfile({ displayName } as any);
-      } catch {}
+      } catch (e) { console.error(e); }
       // Optionally update username if provided and valid
       const cleaned = sanitize(nameData.username || '');
       if (cleaned && cleaned.length >= 3 && cleaned.length <= 20 && /^[a-z0-9](?:[a-z0-9_.]*[a-z0-9])?$/.test(cleaned)) {

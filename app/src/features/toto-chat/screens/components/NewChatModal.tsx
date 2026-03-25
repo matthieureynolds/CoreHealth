@@ -16,7 +16,7 @@ interface NewChatModalProps {
   onDismiss: () => void;
   onStartWithMemory: () => void;
   onStartWithoutMemory: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const NewChatModal: React.FC<NewChatModalProps> = ({

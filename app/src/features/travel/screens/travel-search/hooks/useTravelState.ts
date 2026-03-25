@@ -45,7 +45,7 @@ export function useTravelState() {
   const [flightNumber, setFlightNumber] = useState('');
   const [detectedAirline, setDetectedAirline] = useState<string | null>(null);
   const [isLookingUpFlight, setIsLookingUpFlight] = useState(false);
-  const [flightLookupResult, setFlightLookupResult] = useState<any>(null);
+  const [flightLookupResult, setFlightLookupResult] = useState<Record<string, unknown> | null>(null);
   const [flightSegments, setFlightSegments] = useState<any[]>([]);
   const [flightDetailsExpanded, setFlightDetailsExpanded] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);

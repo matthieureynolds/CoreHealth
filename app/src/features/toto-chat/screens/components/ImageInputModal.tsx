@@ -13,12 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface ImageInputModalProps {
   visible: boolean;
-  selectedImage: any | null;
+  selectedImage: { uri: string } | null;
   imageInputText: string;
   onTextChange: (text: string) => void;
   onClose: () => void;
   onSend: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const ImageInputModal: React.FC<ImageInputModalProps> = ({

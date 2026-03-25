@@ -10,7 +10,7 @@ import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/mod
 import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 import { circulationZones } from '../../circulatory';
 import { CirculationZone } from '../../circulatory/types';
-import { PanelPayload } from '../types';
+import { PanelPayload } from '../../types';
 
 const { width } = Dimensions.get('window');
 

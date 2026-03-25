@@ -176,9 +176,9 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                     style={styles.fileRow}
                     onPress={() =>
                       onViewFile(
-                        event.attachedFile.uri,
-                        event.attachedFile.name,
-                        event.attachedFile.type || undefined
+                        event.attachedFile?.uri ?? '',
+                        event.attachedFile?.name ?? '',
+                        event.attachedFile?.type || undefined
                       )
                     }
                   >

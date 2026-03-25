@@ -101,7 +101,7 @@ export const generateDailyInsights = async (
 
     setDailyInsights(insights);
     await AsyncStorage.setItem('dailyInsights', JSON.stringify(insights));
-    try { await refreshUserSnapshot(); } catch {}
+    try { await refreshUserSnapshot(); } catch (e) { console.error(e); }
   } catch (error) {
     console.error('Failed to generate daily insights:', error);
   }

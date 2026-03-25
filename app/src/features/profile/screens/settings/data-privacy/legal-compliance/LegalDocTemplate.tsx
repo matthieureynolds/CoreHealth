@@ -27,7 +27,7 @@ const LegalDocTemplate: React.FC<Props> = ({ title, content }) => {
             }
           }
         }
-      } catch {}
+      } catch (e) { console.error(e); }
     })();
   }, [title, content]);
   return (

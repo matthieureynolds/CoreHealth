@@ -8,7 +8,7 @@ interface ChatHeaderProps {
   streamingMessageId: string | null;
   onMenuPress: () => void;
   onNewChatPress: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({

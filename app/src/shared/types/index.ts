@@ -5,7 +5,23 @@ export * from './jetlag';
 export * from './navigation';
 
 // Also re-export domain-specific type files
-export * from './settings';
+export type {
+  GeneralSettings,
+  NotificationSettings,
+  PrivacySecuritySettings,
+  DataSyncSettings,
+  HealthEmergencySettings,
+  MedicalIdInfo,
+  TravelSettings,
+  AccessibilitySettings,
+  LifestyleSettings,
+  BiomarkerSettings,
+  AppSettings,
+  UserSettings,
+  SettingsAction,
+  EmergencyContact as SettingsEmergencyContact,
+} from './settings';
+export { defaultSettings } from './settings';
 export * from './biomarkers';
 export * from './symptoms';
 

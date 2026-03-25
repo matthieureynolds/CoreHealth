@@ -1,9 +1,8 @@
 import './src/shared/utils/polyfills';
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import RootNavigator from './src/shared/navigation/RootNavigator';
@@ -42,15 +41,6 @@ const AppContent: React.FC = () => {
 };
 
 export default function App() {
-  useEffect(() => {
-    console.log('🚀 CoreHealth App is starting up!');
-    console.log('📱 App.tsx: Main App component has loaded');
-    console.log('⚡ Setting up providers: Auth, HealthData, Navigation');
-
-    return () => {
-      console.log('👋 App is shutting down');
-    };
-  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

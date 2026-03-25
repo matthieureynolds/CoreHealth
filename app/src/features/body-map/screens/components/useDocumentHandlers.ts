@@ -93,12 +93,14 @@ export const useDocumentHandlers = ({
     });
 
     if (!result.canceled) {
-      const newDoc = {
+      const newDoc: ProcessedDocument & { uri: string; size: number } = {
         id: Date.now().toString(),
-        type: 'camera',
+        type: 'unknown' as const,
         uri: result.assets[0].uri,
         name: `Scanned Document ${uploadedDocuments.length + 1}`,
-        timestamp: new Date(),
+        uploadDate: new Date(),
+        extractedBiomarkers: [],
+        confidence: 0,
         size: result.assets[0].fileSize || 0,
       };
       setUploadedDocuments(prev => [...prev, newDoc]);
@@ -128,12 +130,14 @@ export const useDocumentHandlers = ({
           return;
         }
 
-        const newDoc = {
+        const newDoc: ProcessedDocument & { uri: string; size: number } = {
           id: Date.now().toString(),
-          type: 'upload',
+          type: 'unknown' as const,
           uri: asset.uri,
           name: asset.name || `Document ${uploadedDocuments.length + 1}`,
-          timestamp: new Date(),
+          uploadDate: new Date(),
+          extractedBiomarkers: [],
+          confidence: 0,
           size: asset.size || 0,
         };
         setUploadedDocuments(prev => [...prev, newDoc]);

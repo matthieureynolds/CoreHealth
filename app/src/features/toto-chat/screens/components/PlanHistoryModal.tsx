@@ -24,7 +24,7 @@ interface PlanHistoryModalProps {
   loading: boolean;
   planHistory: PlanHistoryItem[];
   onClose: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const PlanHistoryModal: React.FC<PlanHistoryModalProps> = ({

@@ -1,29 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../shared/types';
+import {
+  NameField,
+  EmailField,
+  PasswordField,
+  ProgressBar,
+} from './components/RegisterFormFields';
 
-type RegisterScreenNavigationProp = StackNavigationProp<
-  AuthStackParamList,
-  'Register'
->;
+type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
 
 interface Props {
   navigation: RegisterScreenNavigationProp;
 }
+
+const TOTAL_STEPS = 5;
 
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
@@ -37,63 +40,20 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   const { signUp } = useAuth();
 
-
-  const handleFirstNameChange = (text: string) => {
-    setFirstName(text);
-  };
-
-  const handleFirstNameEndEditing = () => {
-    if (firstName.trim().length > 0 && currentStep === 1) {
-      setCurrentStep(2);
-    }
-  };
-
-  const handleSurnameChange = (text: string) => {
-    setSurname(text);
-  };
-
-  const handleSurnameEndEditing = () => {
-    if (surname.trim().length > 0 && currentStep === 2) {
-      setCurrentStep(3);
-    }
-  };
-
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-  };
-
-  const handleEmailEndEditing = () => {
-    if (email.trim().length > 0 && currentStep === 3) {
-      setCurrentStep(4);
-    }
-  };
-
-  const handlePasswordChange = (text: string) => {
-    setPassword(text);
-  };
-
-  const handlePasswordEndEditing = () => {
-    if (password.trim().length > 0 && currentStep === 4) {
-      setCurrentStep(5);
-    }
-  };
+  const advance = (step: number) => setCurrentStep(s => (s === step ? step + 1 : s));
 
   const handleSignUp = async () => {
     if (!firstName || !surname || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
-
-    const displayName = `${firstName} ${surname}`;
-
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp(email, password, `${firstName} ${surname}`);
       navigation.navigate('EmailSent', { email });
     } catch (error: any) {
       Alert.alert('Registration Failed', error.message || 'Please try again');
@@ -109,163 +69,68 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            Join CoreHealth for personalized health insights
-          </Text>
+          <Text style={styles.subtitle}>Join CoreHealth for personalized health insights</Text>
         </View>
 
         <View style={styles.form}>
-          {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
-            <Text style={styles.progressText}>
-              Step {currentStep} of 5
-            </Text>
-            <View style={styles.progressBar}>
-              <View 
-                style={[
-                  styles.progressFill, 
-                  { width: `${(currentStep / 5) * 100}%` }
-                ]} 
-              />
-            </View>
-          </View>
+          <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-          {/* Step 1: First Name */}
           {currentStep >= 1 && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color="#666"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="First Name"
-                value={firstName}
-                onChangeText={handleFirstNameChange}
-                onEndEditing={handleFirstNameEndEditing}
-                autoCapitalize="words"
-              />
-              {firstName && currentStep > 1 && (
-                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              )}
-            </View>
+            <NameField
+              value={firstName}
+              onChange={setFirstName}
+              onEndEditing={() => { if (firstName.trim()) advance(1); }}
+              placeholder="First Name"
+              completed={currentStep > 1}
+            />
           )}
 
-          {/* Step 2: Surname */}
           {currentStep >= 2 && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color="#666"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Surname"
-                value={surname}
-                onChangeText={handleSurnameChange}
-                onEndEditing={handleSurnameEndEditing}
-                autoCapitalize="words"
-              />
-              {surname && currentStep > 2 && (
-                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              )}
-            </View>
+            <NameField
+              value={surname}
+              onChange={setSurname}
+              onEndEditing={() => { if (surname.trim()) advance(2); }}
+              placeholder="Surname"
+              completed={currentStep > 2}
+            />
           )}
 
-          {/* Step 3: Email */}
           {currentStep >= 3 && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="#666"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                onChangeText={handleEmailChange}
-                onEndEditing={handleEmailEndEditing}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {email && currentStep > 3 && (
-                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              )}
-            </View>
+            <EmailField
+              value={email}
+              onChange={setEmail}
+              onEndEditing={() => { if (email.trim()) advance(3); }}
+              completed={currentStep > 3}
+            />
           )}
 
-          {/* Step 4: Password */}
           {currentStep >= 4 && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color="#666"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                value={password}
-                onChangeText={handlePasswordChange}
-                onEndEditing={handlePasswordEndEditing}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                  size={20}
-                  color="#666"
-                />
-              </TouchableOpacity>
-              {password && currentStep > 4 && (
-                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              )}
-            </View>
+            <PasswordField
+              value={password}
+              onChange={setPassword}
+              onEndEditing={() => { if (password.trim()) advance(4); }}
+              placeholder="Password"
+              showPassword={showPassword}
+              onToggleShow={() => setShowPassword(p => !p)}
+              completed={currentStep > 4}
+            />
           )}
 
-          {/* Step 5: Confirm Password */}
           {currentStep >= 5 && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color="#666"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              {confirmPassword && password === confirmPassword && (
-                <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              )}
-            </View>
+            <PasswordField
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="Confirm Password"
+              showPassword={showPassword}
+              onToggleShow={() => setShowPassword(p => !p)}
+              completed={!!(confirmPassword && password === confirmPassword)}
+            />
           )}
 
-          {/* Create Account Button - Only show when all steps are complete */}
           {currentStep >= 5 && firstName && surname && email && password && confirmPassword && (
             <TouchableOpacity
               style={[styles.button, styles.registerButton]}
@@ -293,7 +158,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000', // Dark background
+    backgroundColor: '#000000',
   },
   scrollContent: {
     flexGrow: 1,
@@ -318,54 +183,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#A0A0A0', // Light gray for dark mode
+    color: '#A0A0A0',
     marginTop: 8,
     textAlign: 'center',
   },
   form: {
     width: '100%',
-  },
-  progressContainer: {
-    marginBottom: 24,
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#A0A0A0', // Light gray for dark mode
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#333333', // Dark gray for dark mode
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#007AFF',
-    borderRadius: 2,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333333', // Dark border
-    borderRadius: 12,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#1C1C1E', // Dark input background
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-    color: '#FFFFFF', // White text for dark mode
-  },
-  eyeIcon: {
-    padding: 4,
   },
   button: {
     height: 50,

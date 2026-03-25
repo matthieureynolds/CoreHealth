@@ -106,7 +106,7 @@ const MessageRow: React.FC<{
   // Handle pan gesture for user messages
   const lastTranslationX = useRef(0);
   
-  const onGestureEvent = (event: any) => {
+  const onGestureEvent = (event: { nativeEvent: { translationX: number; state: number } }) => {
     const translationX = event.nativeEvent.translationX;
     
     // Only allow left swipe (negative values)
@@ -127,7 +127,7 @@ const MessageRow: React.FC<{
     timestampOpacity.setValue(progress);
   };
 
-  const onHandlerStateChange = (event: any) => {
+  const onHandlerStateChange = (event: { nativeEvent: { translationX: number; state: number } }) => {
     const { state, translationX } = event.nativeEvent;
     
     if (state === State.ACTIVE) {

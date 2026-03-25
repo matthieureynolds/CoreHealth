@@ -32,7 +32,7 @@ const NotificationsScreen: React.FC = () => {
         const map: Record<string, boolean> = {};
         ITEMS.forEach((item, idx) => { map[item.storageKey] = results[idx] !== '0'; });
         setStatuses(map);
-      } catch {}
+      } catch (e) { console.error(e); }
     })();
   }, []);
 

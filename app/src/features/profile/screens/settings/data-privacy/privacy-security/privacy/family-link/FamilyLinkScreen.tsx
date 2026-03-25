@@ -111,8 +111,7 @@ const FamilyLinkScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.primaryButton, { backgroundColor: '#2C2C2E', marginTop: 10 }]}
             onPress={() => {
-              // @ts-ignore
-              navigation.navigate('FamilyLinkConsent');
+              (navigation as any).navigate('FamilyLinkConsent');
             }}
           >
             <Text style={[styles.primaryButtonText, { color: '#fff' }]}>Consent & Broadcast</Text>

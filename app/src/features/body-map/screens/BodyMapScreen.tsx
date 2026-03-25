@@ -63,7 +63,7 @@ const BodyMapScreen: React.FC = () => {
 
   const handleOrganSelect = (organ: PanelPayload) => {
     setSelectedOrganData(organ);
-    setSelectedOrgan(organ.id);
+    setSelectedOrgan(organ.id ?? null);
     Animated.spring(panelAnim, { toValue: 1, useNativeDriver: true }).start();
   };
 

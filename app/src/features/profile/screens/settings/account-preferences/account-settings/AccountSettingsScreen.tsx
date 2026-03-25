@@ -22,7 +22,7 @@ const AccountSettingsScreen: React.FC = () => {
         {/* Security Card */}
         <View style={styles.card}>
         <Text style={styles.cardHeader}>ACCOUNT SECURITY</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmailPassword' as never)}>
+        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('EmailPassword')}>
           <Ionicons name="mail-outline" size={22} color="#007AFF" style={styles.cardIcon} />
           <Text style={styles.cardLabel}>Email & Password</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />

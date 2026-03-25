@@ -13,7 +13,7 @@ interface TimelineHistoryItem {
   id: string;
   occurred_at: string;
   title: string;
-  meta?: any;
+  meta?: Record<string, unknown>;
 }
 
 interface TimelineHistoryModalProps {
@@ -22,7 +22,7 @@ interface TimelineHistoryModalProps {
   title: string;
   timelineHistory: TimelineHistoryItem[];
   onClose: () => void;
-  styles: any;
+  styles: typeof import('../HealthAssistantScreen.styles').styles;
 }
 
 const TimelineHistoryModal: React.FC<TimelineHistoryModalProps> = ({
@@ -59,9 +59,9 @@ const TimelineHistoryModal: React.FC<TimelineHistoryModalProps> = ({
                     <Text style={styles.historyRowMeta}>{new Date(item.occurred_at).toLocaleString()}</Text>
                   </View>
                   {item.meta?.doseMg ? (
-                    <Text style={styles.historyProgress}>{item.meta.doseMg} mg</Text>
+                    <Text style={styles.historyProgress}>{String(item.meta.doseMg)} mg</Text>
                   ) : item.meta?.updatedCount ? (
-                    <Text style={styles.historyProgress}>{item.meta.updatedCount} upd.</Text>
+                    <Text style={styles.historyProgress}>{String(item.meta.updatedCount)} upd.</Text>
                   ) : item.meta?.new ? (
                     <Text style={styles.historyProgress}>→ {String(item.meta.new).slice(11, 16)}</Text>
                   ) : null}

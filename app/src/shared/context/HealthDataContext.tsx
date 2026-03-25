@@ -1,7 +1,9 @@
 import React, {
   createContext,
   useContext,
+  useCallback,
   useEffect,
+  useMemo,
   useState,
   ReactNode,
 } from 'react';
@@ -132,7 +134,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     init();
   }, []);
 
-  const loadHealthData = async () => {
+  const loadHealthData = useCallback(async () => {
     await _loadHealthData({
       setProfile,
       setBiomarkers,
@@ -148,9 +150,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       setBodySystems,
       setIsLoading,
     });
-  };
+  }, []);
 
-  const refreshFamilyRiskFeatures = async () => {
+  const refreshFamilyRiskFeatures = useCallback(async () => {
     try {
       const signals = await familyService.listIncomingSignals();
       const features = deriveFeaturesFromSignals(signals);
@@ -159,14 +161,14 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     } catch (e) {
       console.warn('Family risk refresh failed', e);
     }
-  };
+  }, []);
 
   // Recalculate health score only when clinical data changes
-  const recalculateHealthScore = async (currentBiomarkers: Biomarker[]) => {
+  const recalculateHealthScore = useCallback(async (currentBiomarkers: Biomarker[]) => {
     await _recalculateHealthScore(currentBiomarkers, healthScoreCalculated, setHealthScore, setHealthScoreCalculated);
-  };
+  }, [healthScoreCalculated]);
 
-  const updateProfile = async (profileUpdates: Partial<UserProfile>) => {
+  const updateProfile = useCallback(async (profileUpdates: Partial<UserProfile>) => {
     try {
       const updatedProfile = { ...profile, ...profileUpdates } as UserProfile;
       await AsyncStorage.setItem('profile', JSON.stringify(updatedProfile));
@@ -175,9 +177,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to update profile:', error);
       throw error;
     }
-  };
+  }, [profile]);
 
-  const addBiomarker = async (biomarker: Biomarker) => {
+  const addBiomarker = useCallback(async (biomarker: Biomarker) => {
     try {
       const updatedBiomarkers = [...biomarkers, biomarker];
       await AsyncStorage.setItem('biomarkers', JSON.stringify(updatedBiomarkers));
@@ -188,9 +190,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to add biomarker:', error);
       throw error;
     }
-  };
+  }, [biomarkers, recalculateHealthScore]);
 
-  const updateBiomarker = async (id: string, updates: Partial<Biomarker>) => {
+  const updateBiomarker = useCallback(async (id: string, updates: Partial<Biomarker>) => {
     try {
       const updatedBiomarkers = biomarkers.map(b =>
         b.id === id ? { ...b, ...updates } : b,
@@ -203,9 +205,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to update biomarker:', error);
       throw error;
     }
-  };
+  }, [biomarkers, recalculateHealthScore]);
 
-  const addLabResult = async (labResult: LabResult) => {
+  const addLabResult = useCallback(async (labResult: LabResult) => {
     try {
       const updatedResults = [...labResults, labResult];
       await AsyncStorage.setItem('labResults', JSON.stringify(updatedResults));
@@ -215,9 +217,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to add lab result:', error);
       throw error;
     }
-  };
+  }, [labResults, biomarkers, recalculateHealthScore]);
 
-  const syncDeviceData = async (data: DeviceData) => {
+  const syncDeviceData = useCallback(async (data: DeviceData) => {
     try {
       const updatedData = [...deviceData, data];
       await AsyncStorage.setItem('deviceData', JSON.stringify(updatedData));
@@ -225,26 +227,18 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       try {
         const ts = data?.timestamp ? new Date(data.timestamp).toISOString() : new Date().toISOString();
         await AsyncStorage.setItem('@corehealth_last_sync_at', ts);
-      } catch {}
+      } catch (e) { console.error(e); }
     } catch (error) {
       console.error('Failed to sync device data:', error);
       throw error;
     }
-  };
+  }, [deviceData]);
 
-  const generateDailyInsights = async () => {
+  const generateDailyInsights = useCallback(async () => {
     await _generateDailyInsights(profile, biomarkers, healthScore, setDailyInsights);
-  };
+  }, [profile, biomarkers, healthScore]);
 
-  const updateLocation = async (location: string) => {
-    await _updateLocation(location, updateTravelHealthData);
-  };
-
-  const getCurrentLocation = async (): Promise<LocationData | null> => {
-    return _getCurrentLocation();
-  };
-
-  const updateTravelHealthData = async (locationData: LocationData) => {
+  const updateTravelHealthData = useCallback(async (locationData: LocationData) => {
     try {
       const result = await _updateTravelHealthData({
         locationData,
@@ -259,9 +253,17 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to update travel health data:', error);
       throw error;
     }
-  };
+  }, [originTimezone, originLocation, settings]);
 
-  const setOriginTimezone = async (timezone: string, location?: string) => {
+  const updateLocation = useCallback(async (location: string) => {
+    await _updateLocation(location, updateTravelHealthData);
+  }, [updateTravelHealthData]);
+
+  const getCurrentLocation = useCallback(async (): Promise<LocationData | null> => {
+    return _getCurrentLocation();
+  }, []);
+
+  const setOriginTimezone = useCallback(async (timezone: string, location?: string) => {
     try {
       setOriginTimezoneState(timezone);
       if (location) {
@@ -287,9 +289,9 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       console.error('Failed to set origin timezone:', error);
       throw error;
     }
-  };
+  }, [travelHealth, updateTravelHealthData]);
 
-  const calculateJetLag = (destinationTimezone: string, destinationLocation: string): JetLagData | null => {
+  const calculateJetLag = useCallback((destinationTimezone: string, destinationLocation: string): JetLagData | null => {
     if (!originTimezone) {
       console.warn('Origin timezone not set, cannot calculate jet lag');
       return null;
@@ -303,44 +305,44 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       settings.lifestyle.sleepSchedule.bedTime,
       settings.lifestyle.sleepSchedule.wakeUpTime
     );
-  };
+  }, [originTimezone, originLocation, settings]);
 
-  const addJetLagPlanningEvent = async (event: Omit<JetLagPlanningEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addJetLagPlanningEvent = useCallback(async (event: Omit<JetLagPlanningEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await _addJetLagPlanningEvent(event, jetLagPlanningEvents, setJetLagPlanningEvents);
     } catch (error) {
       console.error('Failed to add jet lag planning event:', error);
       throw error;
     }
-  };
+  }, [jetLagPlanningEvents]);
 
-  const updateJetLagPlanningEvent = async (id: string, updates: Partial<JetLagPlanningEvent>) => {
+  const updateJetLagPlanningEvent = useCallback(async (id: string, updates: Partial<JetLagPlanningEvent>) => {
     try {
       await _updateJetLagPlanningEvent(id, updates, jetLagPlanningEvents, setJetLagPlanningEvents);
     } catch (error) {
       console.error('Failed to update jet lag planning event:', error);
       throw error;
     }
-  };
+  }, [jetLagPlanningEvents]);
 
-  const deleteJetLagPlanningEvent = async (id: string) => {
+  const deleteJetLagPlanningEvent = useCallback(async (id: string) => {
     try {
       await _deleteJetLagPlanningEvent(id, jetLagPlanningEvents, setJetLagPlanningEvents);
     } catch (error) {
       console.error('Failed to delete jet lag planning event:', error);
       throw error;
     }
-  };
+  }, [jetLagPlanningEvents]);
 
-  const getUpcomingJetLagEvents = (): JetLagPlanningEvent[] => {
+  const getUpcomingJetLagEvents = useCallback((): JetLagPlanningEvent[] => {
     return _getUpcomingJetLagEvents(jetLagPlanningEvents);
-  };
+  }, [jetLagPlanningEvents]);
 
-  const resetHealthScoreCalculation = () => {
+  const resetHealthScoreCalculation = useCallback(() => {
     setHealthScoreCalculated(false);
-  };
+  }, []);
 
-  const value: HealthDataContextType = {
+  const value: HealthDataContextType = useMemo(() => ({
     profile,
     biomarkers,
     labResults,
@@ -369,7 +371,15 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     deleteJetLagPlanningEvent,
     getUpcomingJetLagEvents,
     resetHealthScoreCalculation,
-  };
+  }), [
+    profile, biomarkers, labResults, deviceData, dailyInsights, healthScore,
+    travelHealth, bodySystems, jetLagPlanningEvents, isLoading, derivedRiskFeatures,
+    refreshFamilyRiskFeatures, updateProfile, addBiomarker, updateBiomarker,
+    addLabResult, syncDeviceData, generateDailyInsights, updateLocation,
+    getCurrentLocation, updateTravelHealthData, setOriginTimezone, calculateJetLag,
+    addJetLagPlanningEvent, updateJetLagPlanningEvent, deleteJetLagPlanningEvent,
+    getUpcomingJetLagEvents, resetHealthScoreCalculation,
+  ]);
 
   return (
     <HealthDataContext.Provider value={value}>
