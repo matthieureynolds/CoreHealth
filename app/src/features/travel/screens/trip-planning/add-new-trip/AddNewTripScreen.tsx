@@ -81,7 +81,7 @@ const AddNewTripScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Add New Trip</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveBtn}>
@@ -94,7 +94,7 @@ const AddNewTripScreen: React.FC = () => {
         <View style={styles.tabBar}>
           {(['manual', 'flight'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.activeTab]} onPress={() => setActiveTab(tab)}>
-              <Ionicons name={tab === 'manual' ? 'create-outline' : 'airplane-outline'} size={16} color={activeTab === tab ? '#007AFF' : '#8E8E93'} style={{ marginRight: 6 }} />
+              <Ionicons name={tab === 'manual' ? 'create-outline' : 'airplane-outline'} size={16} color={activeTab === tab ? '#3AABF0' : '#8E8E93'} style={{ marginRight: 6 }} />
               <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab === 'manual' ? 'Manual Entry' : 'Flight Lookup'}</Text>
             </TouchableOpacity>
           ))}
@@ -126,7 +126,7 @@ const AddNewTripScreen: React.FC = () => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>DATES</Text>
               <TouchableOpacity style={styles.dateRow} onPress={() => setShowDatePicker('dep')}>
-                <Ionicons name="calendar-outline" size={18} color="#007AFF" style={{ marginRight: 12 }} />
+                <Ionicons name="calendar-outline" size={18} color="#3AABF0" style={{ marginRight: 12 }} />
                 <Text style={styles.dateLabel}>Departure</Text>
                 <Text style={styles.dateValue}>{form.departureDate.toDateString()}</Text>
               </TouchableOpacity>
@@ -191,17 +191,17 @@ const styles = StyleSheet.create({
   backButton: { padding: 8, marginBottom: -4 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
   saveBtn: { padding: 8, marginBottom: -4 },
-  saveBtnText: { fontSize: 16, fontWeight: '600', color: '#007AFF' },
+  saveBtnText: { fontSize: 16, fontWeight: '600', color: '#3AABF0' },
   tabBar: { flexDirection: 'row', marginHorizontal: 20, marginTop: 20, backgroundColor: '#1C1C1E', borderRadius: 12, padding: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10 },
   activeTab: { backgroundColor: '#2C2C2E' },
   tabText: { fontSize: 14, fontWeight: '500', color: '#8E8E93' },
-  activeTabText: { color: '#007AFF', fontWeight: '600' },
+  activeTabText: { color: '#3AABF0', fontWeight: '600' },
   section: { backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, marginTop: 16, paddingVertical: 16, paddingHorizontal: 20 },
   sectionTitle: { fontSize: 12, fontWeight: '600', color: '#8E8E93', letterSpacing: 0.5, marginBottom: 14 },
   label: { fontSize: 13, color: '#8E8E93', marginBottom: 6, marginTop: 10 },
   input: { backgroundColor: '#2C2C2E', borderRadius: 10, padding: 12, color: '#fff', fontSize: 15, marginBottom: 4 },
-  lookupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', borderRadius: 12, padding: 14, marginTop: 16 },
+  lookupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3AABF0', borderRadius: 12, padding: 14, marginTop: 16 },
   lookupBtnDisabled: { opacity: 0.5 },
   lookupBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   dateRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },
@@ -209,12 +209,12 @@ const styles = StyleSheet.create({
   dateValue: { fontSize: 14, color: '#8E8E93' },
   optionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#555', marginRight: 14 },
-  radioSelected: { borderColor: '#007AFF', backgroundColor: '#007AFF' },
+  radioSelected: { borderColor: '#3AABF0', backgroundColor: '#3AABF0' },
   optionLabel: { fontSize: 14, color: '#fff' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },
   toggleLabel: { flex: 1, fontSize: 15, color: '#fff', textTransform: 'capitalize' },
   togglePill: { width: 50, height: 28, borderRadius: 14, backgroundColor: '#555', justifyContent: 'center', paddingHorizontal: 2 },
-  togglePillOn: { backgroundColor: '#007AFF' },
+  togglePillOn: { backgroundColor: '#3AABF0' },
   toggleThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: 'flex-start' },
   toggleThumbOn: { alignSelf: 'flex-end' },
 });

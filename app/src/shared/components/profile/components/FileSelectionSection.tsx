@@ -16,7 +16,7 @@ const FileSelectionSection: React.FC<FileSelectionSectionProps> = ({ onTakePhoto
 
     <View style={styles.selectionButtons}>
       <TouchableOpacity style={styles.selectionButton} onPress={onTakePhoto}>
-        <View style={[styles.selectionIcon, { backgroundColor: '#007AFF' }]}>
+        <View style={[styles.selectionIcon, { backgroundColor: '#3AABF0' }]}>
           <Ionicons name="camera" size={32} color="#FFFFFF" />
         </View>
         <Text style={styles.selectionTitle}>Take Photo</Text>

@@ -1,10 +1,6 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -28,173 +24,59 @@ interface RecordDetailsSectionProps {
 }
 
 const RecordDetailsSection: React.FC<RecordDetailsSectionProps> = ({
-  selectedType,
-  name,
-  onNameChange,
-  recordDate,
-  dateMode,
-  onDateModeChange,
-  onShowDatePicker,
-  onShowTypePicker,
-  tags,
-  onTagsChange,
-  notes,
-  onNotesChange,
-  getTypeIcon,
-  getTypeLabel,
-  getTypeColor,
-  formatDateForMode,
+  selectedType, name, onNameChange, recordDate, dateMode, onDateModeChange,
+  onShowDatePicker, onShowTypePicker, tags, onTagsChange, notes, onNotesChange,
+  getTypeIcon, getTypeLabel, getTypeColor, formatDateForMode,
 }) => (
-  <View style={styles.detailsSection}>
-    <Text style={styles.sectionTitle}>Record Details</Text>
-
-    {/* Record Type */}
-    <TouchableOpacity style={styles.inputContainer} onPress={onShowTypePicker}>
-      <Text style={styles.inputLabel}>Record Type:</Text>
-      <View style={styles.inputRow}>
-        <Ionicons name={getTypeIcon(selectedType) as any} size={20} color={getTypeColor(selectedType)} />
-        <Text style={styles.inputText}>{getTypeLabel(selectedType)}</Text>
-        <Ionicons name="chevron-down" size={20} color="#888" />
-      </View>
-    </TouchableOpacity>
-
-    {/* Record Name */}
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>Record Name: *</Text>
-      <TextInput
-        style={styles.textInput}
-        value={name}
-        onChangeText={onNameChange}
-        placeholder="e.g., Blood Test Results, X-Ray Report"
-        placeholderTextColor="#666"
-      />
+  <View>
+    {/* Record Type & Name */}
+    <View style={s.group}>
+      <TouchableOpacity style={s.typeRow} onPress={onShowTypePicker}>
+        <Ionicons name={getTypeIcon(selectedType) as any} size={18} color={getTypeColor(selectedType)} />
+        <Text style={s.typeText}>{getTypeLabel(selectedType)}</Text>
+        <Ionicons name="chevron-down" size={18} color="#8E8E93" />
+      </TouchableOpacity>
+      <View style={s.divider} />
+      <TextInput style={s.gInput} placeholder="Record Name *" placeholderTextColor="#8E8E93" value={name} onChangeText={onNameChange} />
+      <View style={s.divider} />
+      <TextInput style={s.gInput} placeholder="Tags (e.g. cardiology, urgent)" placeholderTextColor="#555" value={tags} onChangeText={onTagsChange} />
     </View>
 
     {/* Date */}
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>Date:</Text>
-      <View style={styles.dateModeRow}>
-        {(['year', 'yearMonth', 'full'] as const).map((mode) => (
-          <TouchableOpacity
-            key={mode}
-            style={[styles.dateModeChip, dateMode === mode && styles.dateModeChipActive]}
-            onPress={() => onDateModeChange(mode)}
-          >
-            <Text style={[styles.dateModeText, dateMode === mode && styles.dateModeTextActive]}>
-              {mode === 'year' ? 'Year' : mode === 'yearMonth' ? 'Year-Month' : 'Full'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <TouchableOpacity style={styles.inputRow} onPress={onShowDatePicker}>
-        <Ionicons name="calendar-outline" size={20} color="#007AFF" />
-        <Text style={styles.inputText}>
-          {recordDate ? formatDateForMode(recordDate, dateMode) : 'Select date'}
-        </Text>
-        <Ionicons name="chevron-down" size={20} color="#888" />
-      </TouchableOpacity>
+    <Text style={s.sectionLabel}>Date</Text>
+    <View style={s.chipRow}>
+      {(['year', 'yearMonth', 'full'] as const).map(mode => (
+        <TouchableOpacity key={mode} style={[s.chip, dateMode === mode && s.chipActive]} onPress={() => onDateModeChange(mode)}>
+          <Text style={[s.chipText, dateMode === mode && s.chipTextActive]}>{mode === 'year' ? 'Year' : mode === 'yearMonth' ? 'Year-Month' : 'Full'}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
-
-    {/* Tags */}
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>Tags: (Optional)</Text>
-      <TextInput
-        style={styles.textInput}
-        value={tags}
-        onChangeText={onTagsChange}
-        placeholder="e.g., cardiology, urgent, follow-up"
-        placeholderTextColor="#666"
-      />
-    </View>
+    <TouchableOpacity style={s.dateRow} onPress={onShowDatePicker}>
+      <Text style={[s.dateText, !recordDate && { color: '#555' }]}>{recordDate ? formatDateForMode(recordDate, dateMode) : 'Select date'}</Text>
+      <Ionicons name="calendar-outline" size={18} color="#8E8E93" />
+    </TouchableOpacity>
 
     {/* Notes */}
-    <View style={[styles.inputContainer, { marginBottom: 0 }]}>
-      <Text style={styles.inputLabel}>Notes: (Optional)</Text>
-      <TextInput
-        style={[styles.textInput, styles.textArea]}
-        value={notes}
-        onChangeText={onNotesChange}
-        placeholder="Add any additional notes about this record"
-        placeholderTextColor="#666"
-        multiline
-        numberOfLines={3}
-      />
+    <View style={[s.group, { marginTop: 20 }]}>
+      <TextInput style={[s.gInput, { height: 70, textAlignVertical: 'top', paddingTop: 14 }]} placeholder="Notes" placeholderTextColor="#555" value={notes} onChangeText={onNotesChange} multiline />
     </View>
   </View>
 );
 
-const styles = StyleSheet.create({
-  detailsSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  inputText: {
-    fontSize: 16,
-    color: '#fff',
-    flex: 1,
-    marginLeft: 8,
-  },
-  textInput: {
-    backgroundColor: '#181818',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#fff',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  dateModeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  dateModeChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#181818',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  dateModeChipActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  dateModeText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  dateModeTextActive: {
-    color: '#fff',
-  },
+const s = StyleSheet.create({
+  group: { backgroundColor: '#2C2C2E', borderRadius: 12, overflow: 'hidden' },
+  gInput: { paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, color: '#FFFFFF' },
+  divider: { height: 1, backgroundColor: '#3A3A3C', marginLeft: 16 },
+  typeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13 },
+  typeText: { fontSize: 16, color: '#fff', flex: 1, marginLeft: 10 },
+  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', marginTop: 20, marginBottom: 10, marginLeft: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  chipRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#2C2C2E', borderWidth: 1, borderColor: '#3A3A3C' },
+  chipActive: { backgroundColor: '#3AABF0', borderColor: '#3AABF0' },
+  chipText: { color: '#fff', fontSize: 13, fontWeight: '500' },
+  chipTextActive: { color: '#fff' },
+  dateRow: { backgroundColor: '#2C2C2E', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dateText: { fontSize: 16, color: '#fff' },
 });
 
 export default RecordDetailsSection;

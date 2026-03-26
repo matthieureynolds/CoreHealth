@@ -140,7 +140,7 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
         >
           <Text style={styles.title}>You're All Set!</Text>
           <Text style={styles.subtitle}>
-            CoreHealth is now monitoring your health—stay in control.
+            TOTO is now monitoring your health—stay in control.
           </Text>
         </Animated.View>
 
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   finishButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,

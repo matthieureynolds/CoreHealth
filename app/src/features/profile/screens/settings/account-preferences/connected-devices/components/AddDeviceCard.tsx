@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 const AddDeviceCard: React.FC = () => (
   <TouchableOpacity style={styles.addDeviceCard}>
     <View style={styles.addDeviceIcon}>
-      <Ionicons name="add-circle" size={32} color="#007AFF" />
+      <Ionicons name="add-circle" size={32} color="#3AABF0" />
     </View>
     <View style={styles.addDeviceContent}>
       <Text style={styles.addDeviceText}>Connect New Device</Text>

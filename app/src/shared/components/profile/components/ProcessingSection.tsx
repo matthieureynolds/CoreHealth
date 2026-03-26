@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 const ProcessingSection: React.FC = () => (
   <View style={styles.processingSection}>
     <View style={styles.processingIcon}>
-      <Ionicons name="scan" size={48} color="#007AFF" />
+      <Ionicons name="scan" size={48} color="#3AABF0" />
     </View>
     <Text style={styles.processingTitle}>Processing Document</Text>
     <Text style={styles.processingSubtitle}>

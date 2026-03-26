@@ -98,7 +98,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.content}>
-        {/* CoreHealth Logo with Animation */}
+        {/* TOTO Logo with Animation */}
         <Animated.View
           style={[
             styles.logoContainer,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     marginHorizontal: 4,
   },
 });

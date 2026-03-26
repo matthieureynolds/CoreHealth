@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
@@ -98,155 +99,297 @@ const AllergyFormModal: React.FC<AllergyFormModalProps> = ({
     if (mode === 'year') return `${year}`; if (mode === 'yearMonth') return `${year}-${month}`; return `${year}-${month}-${day}`;
   };
 
+  const filteredSuggestions = showSuggestions && allergyName.length > 0
+    ? COMMON_ALLERGIES.filter(a => a.toLowerCase().includes(allergyName.toLowerCase())).slice(0, 5)
+    : [];
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="overFullScreen" statusBarTranslucent onRequestClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}><Text style={styles.cancelButton}>Cancel</Text></TouchableOpacity>
-          <Text style={styles.title}>{editingAllergy ? 'Edit Allergy' : 'Add Allergy'}</Text>
-          <TouchableOpacity onPress={handleSave}><Text style={styles.saveButton}>Save</Text></TouchableOpacity>
-        </View>
-        <ScrollView style={styles.content}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Allergy Name *:</Text>
-            <TextInput style={styles.textInput} value={allergyName} onChangeText={(text) => { setAllergyName(text); setShowSuggestions(text.length > 0); }} placeholder="e.g., Peanuts, Penicillin" placeholderTextColor="#666" />
-            {showSuggestions && allergyName.length > 0 && (
-              <View style={styles.suggestionsContainer}>
-                {COMMON_ALLERGIES.filter(a => a.toLowerCase().includes(allergyName.toLowerCase())).slice(0, 5).map((s, i) => (
-                  <TouchableOpacity key={i} style={styles.suggestionItem} onPress={() => { setAllergyName(s); setShowSuggestions(false); }}>
-                    <Text style={styles.suggestionText}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Severity:</Text>
-            <View style={styles.optionsContainer}>
-              {(['mild', 'moderate', 'severe'] as const).map(opt => (
-                <TouchableOpacity key={opt} style={[styles.optionButton, severity === opt && styles.selectedOption]} onPress={() => setSeverity(opt)}>
-                  <Text style={[styles.optionText, severity === opt && styles.selectedOptionText]}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Status:</Text>
-            <View style={styles.optionsContainer}>
-              {(['active', 'resolved'] as const).map(opt => (
-                <TouchableOpacity key={opt} style={[styles.optionButton, status === opt && styles.selectedOption]} onPress={() => { setStatus(opt); if (opt === 'resolved' && !endDate) setShowEndDatePicker(true); }}>
-                  <Text style={[styles.optionText, status === opt && styles.selectedOptionText]}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Reaction (Optional):</Text>
-            <TextInput style={styles.textInput} value={reaction} onChangeText={setReaction} placeholder="e.g., Hives, Swelling" placeholderTextColor="#666" />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Start Date:</Text>
-            <View style={styles.dateModeRow}>
-              {(['year', 'yearMonth', 'full'] as const).map(mode => (
-                <TouchableOpacity key={mode} style={[styles.dateModeChip, dateModeStart === mode && styles.dateModeChipActive]} onPress={() => setDateModeStart(mode)}>
-                  <Text style={[styles.dateModeText, dateModeStart === mode && styles.dateModeTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity style={styles.dateInput} onPress={() => setShowStartDatePicker(true)}>
-              <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>{formatDateForMode(startDate, dateModeStart)}</Text>
-              <Ionicons name="calendar-outline" size={20} color="#888" />
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <Pressable style={s.sheet} onPress={() => {}}>
+          {/* Header */}
+          <View style={s.header}>
+            <TouchableOpacity onPress={onClose} hitSlop={8}>
+              <Ionicons name="close" size={22} color="#FF3B30" />
+            </TouchableOpacity>
+            <Text style={s.title}>{editingAllergy ? 'Edit Allergy' : 'Add Allergy'}</Text>
+            <TouchableOpacity onPress={handleSave} hitSlop={8}>
+              <Ionicons name="checkmark" size={22} color="#34C759" />
             </TouchableOpacity>
           </View>
 
-          {status === 'resolved' && (
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>End Date *:</Text>
-              <View style={styles.dateModeRow}>
-                {(['year', 'yearMonth', 'full'] as const).map(mode => (
-                  <TouchableOpacity key={mode} style={[styles.dateModeChip, dateModeEnd === mode && styles.dateModeChipActive]} onPress={() => setDateModeEnd(mode)}>
-                    <Text style={[styles.dateModeText, dateModeEnd === mode && styles.dateModeTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TouchableOpacity style={styles.dateInput} onPress={() => setShowEndDatePicker(true)}>
-                <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>{formatDateForMode(endDate, dateModeEnd)}</Text>
-                <Ionicons name="calendar-outline" size={20} color="#888" />
-              </TouchableOpacity>
+          {/* Body */}
+          <ScrollView style={s.body} keyboardShouldPersistTaps="handled">
+            {/* Group 1: Allergy Name + Reaction */}
+            <View style={s.group}>
+              <TextInput
+                style={s.input}
+                value={allergyName}
+                onChangeText={(text) => { setAllergyName(text); setShowSuggestions(text.length > 0); }}
+                placeholder="Allergy name *"
+                placeholderTextColor="#8E8E93"
+              />
+              {filteredSuggestions.length > 0 && (
+                <View>
+                  {filteredSuggestions.map((suggestion, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      style={s.suggestion}
+                      onPress={() => { setAllergyName(suggestion); setShowSuggestions(false); }}
+                    >
+                      <Text style={s.suggestionText}>{suggestion}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              <View style={s.divider} />
+              <TextInput
+                style={s.input}
+                value={reaction}
+                onChangeText={setReaction}
+                placeholder="Reaction (e.g. Hives, Swelling)"
+                placeholderTextColor="#555"
+              />
             </View>
-          )}
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Notes (Optional):</Text>
-            <TextInput style={[styles.textInput, styles.textArea]} value={notes} onChangeText={setNotes} placeholder="Add any additional notes" placeholderTextColor="#666" multiline numberOfLines={3} />
-          </View>
+            {/* Severity */}
+            <Text style={s.sectionLabel}>Severity</Text>
+            <View style={s.chipRow}>
+              {(['mild', 'moderate', 'severe'] as const).map(opt => (
+                <TouchableOpacity key={opt} style={[s.chip, severity === opt && s.chipActive]} onPress={() => setSeverity(opt)}>
+                  <Text style={[s.chipText, severity === opt && s.chipTextActive]}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Attachments:</Text>
-            <View style={styles.attachmentsRow}>
+            {/* Status */}
+            <Text style={s.sectionLabel}>Status</Text>
+            <View style={s.chipRow}>
+              {(['active', 'resolved'] as const).map(opt => (
+                <TouchableOpacity key={opt} style={[s.chip, status === opt && s.chipActive]} onPress={() => { setStatus(opt); if (opt === 'resolved' && !endDate) setShowEndDatePicker(true); }}>
+                  <Text style={[s.chipText, status === opt && s.chipTextActive]}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Start Date */}
+            <Text style={s.sectionLabel}>Start Date</Text>
+            <View style={s.chipRow}>
+              {(['year', 'yearMonth', 'full'] as const).map(mode => (
+                <TouchableOpacity key={mode} style={[s.chip, dateModeStart === mode && s.chipActive]} onPress={() => setDateModeStart(mode)}>
+                  <Text style={[s.chipText, dateModeStart === mode && s.chipTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={s.dateRow} onPress={() => setShowStartDatePicker(true)}>
+              <Text style={[s.dateText, !startDate && { color: '#8E8E93' }]}>{formatDateForMode(startDate, dateModeStart)}</Text>
+              <Ionicons name="calendar-outline" size={18} color="#8E8E93" />
+            </TouchableOpacity>
+
+            {/* End Date (conditional) */}
+            {status === 'resolved' && (
+              <>
+                <Text style={s.sectionLabel}>End Date</Text>
+                <View style={s.chipRow}>
+                  {(['year', 'yearMonth', 'full'] as const).map(mode => (
+                    <TouchableOpacity key={mode} style={[s.chip, dateModeEnd === mode && s.chipActive]} onPress={() => setDateModeEnd(mode)}>
+                      <Text style={[s.chipText, dateModeEnd === mode && s.chipTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity style={s.dateRow} onPress={() => setShowEndDatePicker(true)}>
+                  <Text style={[s.dateText, !endDate && { color: '#8E8E93' }]}>{formatDateForMode(endDate, dateModeEnd)}</Text>
+                  <Ionicons name="calendar-outline" size={18} color="#8E8E93" />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Notes */}
+            <Text style={s.sectionLabel}>Notes</Text>
+            <View style={s.group}>
+              <TextInput
+                style={[s.input, { height: 80, textAlignVertical: 'top' }]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Additional notes"
+                placeholderTextColor="#555"
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            {/* Attachments */}
+            <Text style={s.sectionLabel}>Attachments</Text>
+            <View style={s.attachRow}>
               {attachments.map(file => (
-                <View key={file.uri} style={styles.attachmentChip}>
+                <View key={file.uri} style={s.attachChip}>
                   <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
-                  <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
-                  <TouchableOpacity onPress={() => setAttachments(prev => prev.filter(a => a.name !== file.name))} style={styles.attachmentRemove}>
-                    <Ionicons name="close" size={14} color="#FFFFFF" />
+                  <Text style={s.attachText} numberOfLines={1}>{file.name}</Text>
+                  <TouchableOpacity onPress={() => setAttachments(prev => prev.filter(a => a.name !== file.name))}>
+                    <Ionicons name="close" size={14} color="#FFFFFF" style={{ marginLeft: 6 }} />
                   </TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
-                <Ionicons name="attach" size={16} color="#007AFF" />
-                <Text style={styles.addAttachmentText}>Add file</Text>
+              <TouchableOpacity style={s.addAttach} onPress={handleAttachFile}>
+                <Ionicons name="attach" size={16} color="#3AABF0" />
+                <Text style={s.addAttachText}>Add file</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </Pressable>
+      </Pressable>
 
-        {showStartDatePicker && <IOSDatePicker visible title="Start Date" value={startDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setStartDate(d); setShowStartDatePicker(false); }} onCancel={() => setShowStartDatePicker(false)} />}
-        {showEndDatePicker && <IOSDatePicker visible title="End Date" value={endDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setEndDate(d); setShowEndDatePicker(false); }} onCancel={() => setShowEndDatePicker(false)} />}
-      </View>
+      {showStartDatePicker && <IOSDatePicker visible title="Start Date" value={startDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setStartDate(d); setShowStartDatePicker(false); }} onCancel={() => setShowStartDatePicker(false)} />}
+      {showEndDatePicker && <IOSDatePicker visible title="End Date" value={endDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setEndDate(d); setShowEndDatePicker(false); }} onCancel={() => setShowEndDatePicker(false)} />}
     </Modal>
   );
 };
 
 export default AllergyFormModal;
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#333' },
-  cancelButton: { fontSize: 16, color: '#007AFF' },
-  title: { fontSize: 18, fontWeight: '600', color: '#fff' },
-  saveButton: { fontSize: 16, color: '#007AFF', fontWeight: '600' },
-  content: { flex: 1, padding: 20 },
-  inputContainer: { marginBottom: 24 },
-  inputLabel: { fontSize: 16, fontWeight: '500', color: '#fff', marginBottom: 8 },
-  textInput: { backgroundColor: '#181818', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, color: '#fff' },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  suggestionsContainer: { backgroundColor: '#181818', borderRadius: 8, marginTop: 4, maxHeight: 150 },
-  suggestionItem: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#333' },
-  suggestionText: { color: '#fff', fontSize: 16 },
-  optionsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  optionButton: { backgroundColor: '#181818', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#333' },
-  selectedOption: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  optionText: { fontSize: 14, color: '#fff' },
-  selectedOptionText: { color: '#fff', fontWeight: '600' },
-  dateInput: { backgroundColor: '#181818', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#333', minHeight: 48 },
-  dateInputText: { fontSize: 16, color: '#fff', flex: 1 },
-  placeholderText: { color: '#666' },
-  dateModeRow: { flexDirection: 'row', gap: 8, marginBottom: 6, flexWrap: 'wrap' },
-  dateModeChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#181818', borderWidth: 1, borderColor: '#333' },
-  dateModeChipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  dateModeText: { color: '#fff', fontSize: 13, fontWeight: '500' },
-  dateModeTextActive: { color: '#fff' },
-  attachmentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
-  attachmentChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#3A3A3C' },
-  attachmentText: { color: '#FFFFFF', fontSize: 12, marginLeft: 6, maxWidth: 140 },
-  attachmentRemove: { marginLeft: 6 },
-  addAttachmentButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C1E', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#007AFF' },
-  addAttachmentText: { color: '#007AFF', fontSize: 12, marginLeft: 6, fontWeight: '600' },
-  attachmentsHelp: { marginTop: 8, color: '#8E8E93', fontSize: 12 },
+const s = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  body: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  group: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  input: {
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    marginLeft: 16,
+  },
+  suggestion: {
+    backgroundColor: '#3A3A3C',
+    marginHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  suggestionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginTop: 20,
+    marginBottom: 10,
+    marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#2C2C2E',
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  chipActive: {
+    backgroundColor: '#3AABF0',
+    borderColor: '#3AABF0',
+  },
+  chipText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  dateRow: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  attachRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'center',
+  },
+  attachChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  attachText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginLeft: 6,
+    maxWidth: 140,
+  },
+  addAttach: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3AABF0',
+  },
+  addAttachText: {
+    color: '#3AABF0',
+    fontSize: 12,
+    marginLeft: 6,
+    fontWeight: '600',
+  },
 });

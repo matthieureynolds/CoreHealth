@@ -92,15 +92,15 @@ const PastAppointmentsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Past Appointments</Text>
         <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#007AFF" />
+          <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 100, paddingBottom: 40 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95, paddingBottom: 40 }}>
         <View style={styles.content}>
           {appointments.length > 0 ? (
             appointments.map((apt) => (
@@ -170,26 +170,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
     position: 'absolute',
     top: 0, left: 0, right: 0,
-    zIndex: 10,
+    zIndex: 1000,
+    elevation: 10,
   },
-  backButton: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', flex: 1, textAlign: 'center' },
   addButton: { padding: 8 },
   scrollView: { flex: 1 },
   content: { padding: 20 },
   emptyState: { alignItems: 'center', paddingVertical: 48 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#fff', marginTop: 16 },
   emptySubtitle: { fontSize: 14, color: '#8E8E93', textAlign: 'center', marginTop: 8, paddingHorizontal: 24 },
-  addFirstButton: { marginTop: 24, paddingVertical: 14, paddingHorizontal: 24, backgroundColor: '#007AFF', borderRadius: 12 },
+  addFirstButton: { marginTop: 24, paddingVertical: 14, paddingHorizontal: 24, backgroundColor: '#3AABF0', borderRadius: 12 },
   addFirstButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
 });
 

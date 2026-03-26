@@ -32,7 +32,7 @@ const InsightsTabBar: React.FC<InsightsTabBarProps> = ({ activeTab, onTabChange 
         <Ionicons
           name={icon as any}
           size={16}
-          color={activeTab === key ? '#007AFF' : '#8E8E93'}
+          color={activeTab === key ? '#3AABF0' : '#8E8E93'}
         />
         <Text style={[styles.tabText, activeTab === key && styles.activeTabText]}>
           {label}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   activeTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
   },
 });
 

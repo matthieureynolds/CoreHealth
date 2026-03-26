@@ -35,7 +35,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginLeft: 0,
   },
   rowActionBtn: {
-    backgroundColor: '#0A84FF',
+    backgroundColor: '#3AABF0',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -252,7 +252,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   },
   medPackRight: {},
   medPackBtn: {
-    backgroundColor: '#0A84FF',
+    backgroundColor: '#3AABF0',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -305,7 +305,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginTop: 12,
   },
   medActionBtn: {
-    backgroundColor: '#0A84FF',
+    backgroundColor: '#3AABF0',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -450,7 +450,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginLeft: 8,
 },
   countdownContainer: {
-  backgroundColor: '#007AFF',
+  backgroundColor: '#3AABF0',
   borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -492,7 +492,7 @@ jetLagTitle: {
   },
   tapToViewText: {
   fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     marginRight: 8,
   },
   tripDetailsModal: {
@@ -545,13 +545,13 @@ jetLagTitle: {
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   completedCheckbox: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   checklistText: {
     fontSize: 16,
@@ -607,7 +607,7 @@ jetLagTitle: {
   datePickerCancelText: {
   fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   datePickerTitle: {
     fontSize: 20,
@@ -642,7 +642,7 @@ jetLagTitle: {
   useCurrentLocationText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginLeft: 8,
   },
   useCurrentLocationTextDisabled: {
@@ -942,7 +942,7 @@ jetLagTitle: {
   viewMoreButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginLeft: 4,
   },
   tripChecklist: {
@@ -959,11 +959,11 @@ jetLagTitle: {
     height: 16,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     marginRight: 4,
   },
   checkboxCompleted: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   checklistItemText: {
     fontSize: 16,

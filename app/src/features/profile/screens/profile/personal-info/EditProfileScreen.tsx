@@ -16,6 +16,7 @@ import FormSection from './components/FormSection';
 import FormField from './components/FormField';
 import PickerField from './components/PickerField';
 import PickerModal from './components/PickerModal';
+import BloodTypePickerModal from './components/BloodTypePickerModal';
 import { genderOptions, ethnicityOptions, bloodTypeOptions } from './components/pickerData';
 
 interface FormData {
@@ -30,10 +31,9 @@ interface FormData {
 
 type ActivePicker = 'gender' | 'ethnicity' | 'bloodType' | null;
 
-const pickerConfig: Record<NonNullable<ActivePicker>, { title: string; options: { value: string; label: string }[] }> = {
+const pickerConfig: Record<'gender' | 'ethnicity', { title: string; options: { value: string; label: string }[] }> = {
   gender: { title: 'Select Gender', options: genderOptions },
   ethnicity: { title: 'Select Ethnicity', options: ethnicityOptions },
-  bloodType: { title: 'Select Blood Type', options: bloodTypeOptions },
 };
 
 const EditProfileScreen: React.FC = () => {
@@ -115,11 +115,10 @@ const EditProfileScreen: React.FC = () => {
     setActivePicker(null);
   };
 
-  const activePickerConfig = activePicker ? pickerConfig[activePicker] : null;
+  const activePickerConfig = activePicker && activePicker !== 'bloodType' ? pickerConfig[activePicker] : null;
   const getPickerValue = () => {
     if (activePicker === 'gender') return formData.gender;
     if (activePicker === 'ethnicity') return formData.ethnicity;
-    if (activePicker === 'bloodType') return formData.bloodType;
     return '';
   };
 
@@ -161,7 +160,7 @@ const EditProfileScreen: React.FC = () => {
 
       {activePickerConfig && (
         <PickerModal
-          visible={activePicker !== null}
+          visible={activePicker !== null && activePicker !== 'bloodType'}
           title={activePickerConfig.title}
           options={activePickerConfig.options}
           selectedValue={getPickerValue()}
@@ -169,6 +168,13 @@ const EditProfileScreen: React.FC = () => {
           onClose={() => setActivePicker(null)}
         />
       )}
+
+      <BloodTypePickerModal
+        visible={activePicker === 'bloodType'}
+        selectedValue={formData.bloodType}
+        onSelect={handlePickerSelect}
+        onClose={() => setActivePicker(null)}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
   footer: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#E5E5EA' },
-  saveButton: { backgroundColor: '#007AFF', borderRadius: 8, paddingVertical: 16, alignItems: 'center' },
+  saveButton: { backgroundColor: '#3AABF0', borderRadius: 8, paddingVertical: 16, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: '#8E8E93' },
   saveButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
 });

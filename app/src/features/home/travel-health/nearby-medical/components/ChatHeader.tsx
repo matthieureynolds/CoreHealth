@@ -11,7 +11,7 @@ const ChatHeader: React.FC<Props> = ({ onClear, onClose }) => (
   <View style={styles.header}>
     <View style={styles.headerLeft}>
       <View style={styles.aiIcon}>
-        <Ionicons name="sparkles" size={20} color="#007AFF" />
+        <Ionicons name="sparkles" size={20} color="#3AABF0" />
       </View>
       <View>
         <Text style={styles.headerTitle}>Health Assistant</Text>

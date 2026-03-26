@@ -22,16 +22,16 @@ import { HealthTrackingIcon, TravelHealthIcon, RobotIcon } from './components/On
 const { height } = Dimensions.get('window');
 
 const TYPEWRITER_LINES = [
-  'Welcome to CoreHealth.',
+  'Welcome to TOTO.',
   'Track your health.',
   'Stay informed.',
   'Take control.',
   'Stay healthy.',
-  'This is CoreHealth.',
+  'This is TOTO.',
 ];
 
 const onboardingPages = [
-  { title: 'Welcome to CoreHealth', subtitle: 'Your Personal Health Companion', description: 'Track, monitor, and optimize your health with AI-powered insights and personalized recommendations.', icon: '', isTypewriter: true },
+  { title: 'Welcome to TOTO', subtitle: 'Your Personal Health Companion', description: 'Track, monitor, and optimize your health with AI-powered insights and personalized recommendations.', icon: '', isTypewriter: true },
   { title: 'Health Tracking', subtitle: 'Monitor Your Vital Signs', description: 'Real-time tracking of your health metrics with intelligent analysis and trend detection.', icon: 'custom', isTypewriter: false },
   { title: 'Travel Health', subtitle: 'Stay Healthy Anywhere', description: 'Location-based health insights, air quality monitoring, and jet lag management tips.', icon: 'custom-plane', isTypewriter: false },
   { title: 'AI Health Assistant', subtitle: 'Your Personal Health Expert', description: 'Get instant answers to health questions with our advanced AI assistant trained on medical knowledge.', icon: 'custom-robot', isTypewriter: false },
@@ -83,7 +83,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           {typewriterComplete && (
             <TouchableOpacity style={styles.typewriterNextButton} onPress={handleNext}>
               <Text style={styles.typewriterNextText}>Next</Text>
-              <Ionicons name="arrow-forward" size={16} color="#007AFF" style={styles.typewriterArrow} />
+              <Ionicons name="arrow-forward" size={16} color="#3AABF0" style={styles.typewriterArrow} />
             </TouchableOpacity>
           )}
         </View>
@@ -149,24 +149,24 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   page: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, minHeight: height },
   typewriterPage: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  typewriterNextButton: { position: 'absolute', bottom: 100, right: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: '#007AFF', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25 },
+  typewriterNextButton: { position: 'absolute', bottom: 100, right: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: '#3AABF0', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25 },
   typewriterNextText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
   typewriterArrow: { marginLeft: 4 },
   pageContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   iconContainer: { position: 'absolute', top: height * 0.1, alignSelf: 'center' },
   textContainer: { marginTop: 50, alignItems: 'center' },
   title: { fontSize: 38, fontWeight: 'bold', color: '#000', textAlign: 'center', marginBottom: 16 },
-  subtitle: { fontSize: 28, color: '#007AFF', textAlign: 'center', marginBottom: 20 },
+  subtitle: { fontSize: 28, color: '#3AABF0', textAlign: 'center', marginBottom: 20 },
   description: { fontSize: 22, color: '#666', textAlign: 'center', lineHeight: 30, fontWeight: 'normal' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20 },
   pagination: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5E5EA', marginHorizontal: 4 },
-  activeDot: { backgroundColor: '#007AFF' },
+  activeDot: { backgroundColor: '#3AABF0' },
   skipButton: { paddingVertical: 12, paddingHorizontal: 24 },
   skipButtonText: { fontSize: 16, color: '#666', fontWeight: '500' },
-  nextButton: { backgroundColor: '#007AFF', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  nextButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   nextButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
-  getStartedButton: { backgroundColor: '#007AFF', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  getStartedButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   getStartedButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
   buttonIcon: { marginLeft: 4 },
 });

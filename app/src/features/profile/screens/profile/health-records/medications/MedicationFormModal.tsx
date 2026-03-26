@@ -91,128 +91,132 @@ const MedicationFormModal: React.FC<MedicationFormModalProps> = ({
     if (mode === 'year') return `${y}`; if (mode === 'yearMonth') return `${y}-${m}`; return `${y}-${m}-${day}`;
   };
 
+  const filteredSuggestions = showSuggestions && medicationName.length > 0
+    ? COMMON_MEDICATIONS.filter(m => m.toLowerCase().includes(medicationName.toLowerCase())).slice(0, 5)
+    : [];
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="overFullScreen" statusBarTranslucent onRequestClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}><Text style={styles.cancelButton}>Cancel</Text></TouchableOpacity>
-          <Text style={styles.title}>{editingMedication ? 'Edit Medication' : 'Add Medication'}</Text>
-          <TouchableOpacity onPress={handleSave}><Text style={styles.saveButton}>Save</Text></TouchableOpacity>
-        </View>
-        <ScrollView style={styles.content}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Medication Name *:</Text>
-            <TextInput style={styles.textInput} value={medicationName} onChangeText={(t) => { setMedicationName(t); setShowSuggestions(t.length > 0); }} placeholder="e.g., Aspirin, Metformin" placeholderTextColor="#666" />
-            {showSuggestions && medicationName.length > 0 && (
-              <View style={styles.suggestionsContainer}>
-                {COMMON_MEDICATIONS.filter(m => m.toLowerCase().includes(medicationName.toLowerCase())).slice(0, 5).map((s, i) => (
-                  <TouchableOpacity key={i} style={styles.suggestionItem} onPress={() => { setMedicationName(s); setShowSuggestions(false); }}>
-                    <Text style={styles.suggestionText}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} onPress={() => {}} style={s.sheet}>
+          <View style={s.header}>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <Ionicons name="close" size={22} color="#FF3B30" />
+            </TouchableOpacity>
+            <Text style={s.title}>{editingMedication ? 'Edit Medication' : 'Add Medication'}</Text>
+            <TouchableOpacity onPress={handleSave} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <Ionicons name="checkmark" size={22} color="#34C759" />
+            </TouchableOpacity>
           </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Dosage:</Text>
-            <TextInput style={styles.textInput} value={dosage} onChangeText={setDosage} placeholder="e.g., 500mg, 10mg" placeholderTextColor="#666" />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Frequency:</Text>
-            <TextInput style={styles.textInput} value={frequency} onChangeText={setFrequency} placeholder="e.g., Twice daily, Once a week" placeholderTextColor="#666" />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Start Date:</Text>
-            <View style={styles.dateModeRow}>
+
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={s.body}>
+            {/* Medication Info */}
+            <View style={s.group}>
+              <TextInput style={s.gInput} placeholder="Medication Name *" placeholderTextColor="#8E8E93" value={medicationName} onChangeText={(t) => { setMedicationName(t); setShowSuggestions(t.length > 0); }} />
+              {filteredSuggestions.length > 0 && (
+                <View style={s.suggestions}>
+                  {filteredSuggestions.map((sug, i) => (
+                    <TouchableOpacity key={i} style={s.suggestionItem} onPress={() => { setMedicationName(sug); setShowSuggestions(false); }}>
+                      <Text style={s.suggestionText}>{sug}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              <View style={s.gDivider} />
+              <TextInput style={s.gInput} placeholder="Dosage (e.g. 500mg)" placeholderTextColor="#555" value={dosage} onChangeText={setDosage} />
+              <View style={s.gDivider} />
+              <TextInput style={s.gInput} placeholder="Frequency (e.g. Twice daily)" placeholderTextColor="#555" value={frequency} onChangeText={setFrequency} />
+              <View style={s.gDivider} />
+              <TextInput style={s.gInput} placeholder="Duration (e.g. 30 days)" placeholderTextColor="#555" value={duration} onChangeText={setDuration} />
+            </View>
+
+            {/* Start Date */}
+            <Text style={s.sectionLabel}>Start Date</Text>
+            <View style={s.chipRow}>
               {(['year', 'yearMonth', 'full'] as const).map(mode => (
-                <TouchableOpacity key={mode} style={[styles.dateModeChip, dateModeStart === mode && styles.dateModeChipActive]} onPress={() => setDateModeStart(mode)}>
-                  <Text style={[styles.dateModeText, dateModeStart === mode && styles.dateModeTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+                <TouchableOpacity key={mode} style={[s.chip, dateModeStart === mode && s.chipActive]} onPress={() => setDateModeStart(mode)}>
+                  <Text style={[s.chipText, dateModeStart === mode && s.chipTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <TouchableOpacity style={styles.dateInput} onPress={() => setShowStartDatePicker(true)}>
-              <Text style={[styles.dateInputText, !startDate && styles.placeholderText]}>{fmt(startDate, dateModeStart)}</Text>
-              <Ionicons name="calendar-outline" size={20} color="#888" />
+            <TouchableOpacity style={s.dateRow} onPress={() => setShowStartDatePicker(true)}>
+              <Text style={[s.dateText, !startDate && { color: '#555' }]}>{fmt(startDate, dateModeStart)}</Text>
+              <Ionicons name="calendar-outline" size={18} color="#8E8E93" />
             </TouchableOpacity>
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>End Date (Optional):</Text>
-            <View style={styles.dateModeRow}>
+
+            {/* End Date */}
+            <Text style={s.sectionLabel}>End Date</Text>
+            <View style={s.chipRow}>
               {(['year', 'yearMonth', 'full'] as const).map(mode => (
-                <TouchableOpacity key={mode} style={[styles.dateModeChip, dateModeEnd === mode && styles.dateModeChipActive]} onPress={() => setDateModeEnd(mode)}>
-                  <Text style={[styles.dateModeText, dateModeEnd === mode && styles.dateModeTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+                <TouchableOpacity key={mode} style={[s.chip, dateModeEnd === mode && s.chipActive]} onPress={() => setDateModeEnd(mode)}>
+                  <Text style={[s.chipText, dateModeEnd === mode && s.chipTextActive]}>{mode === 'yearMonth' ? 'Year-Month' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <TouchableOpacity style={styles.dateInput} onPress={() => setShowEndDatePicker(true)}>
-              <Text style={[styles.dateInputText, !endDate && styles.placeholderText]}>{fmt(endDate, dateModeEnd)}</Text>
-              <Ionicons name="calendar-outline" size={20} color="#888" />
+            <TouchableOpacity style={s.dateRow} onPress={() => setShowEndDatePicker(true)}>
+              <Text style={[s.dateText, !endDate && { color: '#555' }]}>{fmt(endDate, dateModeEnd)}</Text>
+              <Ionicons name="calendar-outline" size={18} color="#8E8E93" />
             </TouchableOpacity>
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Duration (Optional):</Text>
-            <TextInput style={styles.textInput} value={duration} onChangeText={setDuration} placeholder="e.g., 30 days, 3 months" placeholderTextColor="#666" />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Notes (Optional):</Text>
-            <TextInput style={[styles.textInput, styles.textArea]} value={notes} onChangeText={setNotes} placeholder="Add any additional notes" placeholderTextColor="#666" multiline numberOfLines={3} />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Attachments:</Text>
-            <View style={styles.attachmentsRow}>
+
+            {/* Notes */}
+            <View style={[s.group, { marginTop: 20 }]}>
+              <TextInput style={[s.gInput, { height: 70, textAlignVertical: 'top', paddingTop: 14 }]} placeholder="Notes" placeholderTextColor="#555" value={notes} onChangeText={setNotes} multiline />
+            </View>
+
+            {/* Attachments */}
+            <Text style={s.sectionLabel}>Attachments</Text>
+            <View style={s.attachRow}>
               {attachments.map(file => (
-                <View key={file.uri} style={styles.attachmentChip}>
+                <View key={file.uri} style={s.attachChip}>
                   <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
-                  <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
-                  <TouchableOpacity onPress={() => setAttachments(prev => prev.filter(a => a.name !== file.name))} style={styles.attachmentRemove}>
+                  <Text style={s.attachText} numberOfLines={1}>{file.name}</Text>
+                  <TouchableOpacity onPress={() => setAttachments(prev => prev.filter(a => a.name !== file.name))}>
                     <Ionicons name="close" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity style={styles.addAttachmentButton} onPress={handleAttachFile}>
-                <Ionicons name="attach" size={16} color="#007AFF" />
-                <Text style={styles.addAttachmentText}>Add file</Text>
+              <TouchableOpacity style={s.addAttach} onPress={handleAttachFile}>
+                <Ionicons name="attach" size={16} color="#3AABF0" />
+                <Text style={s.addAttachText}>Add file</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.attachmentsHelp}>PDFs and images are supported.</Text>
-          </View>
-        </ScrollView>
-        {showStartDatePicker && <IOSDatePicker visible title="Start Date" value={startDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setStartDate(d); setShowStartDatePicker(false); }} onCancel={() => setShowStartDatePicker(false)} />}
-        {showEndDatePicker && <IOSDatePicker visible title="End Date" value={endDate ?? new Date()} onConfirm={(d) => { setEndDate(d); setShowEndDatePicker(false); }} onCancel={() => setShowEndDatePicker(false)} />}
-      </View>
+            <Text style={s.attachHelp}>PDFs and images are supported.</Text>
+          </ScrollView>
+
+          {showStartDatePicker && <IOSDatePicker visible title="Start Date" value={startDate ?? new Date()} maximumDate={new Date()} onConfirm={(d) => { setStartDate(d); setShowStartDatePicker(false); }} onCancel={() => setShowStartDatePicker(false)} />}
+          {showEndDatePicker && <IOSDatePicker visible title="End Date" value={endDate ?? new Date()} onConfirm={(d) => { setEndDate(d); setShowEndDatePicker(false); }} onCancel={() => setShowEndDatePicker(false)} />}
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
 
 export default MedicationFormModal;
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#333' },
-  cancelButton: { fontSize: 16, color: '#007AFF' },
-  title: { fontSize: 18, fontWeight: '600', color: '#fff' },
-  saveButton: { fontSize: 16, color: '#007AFF', fontWeight: '600' },
-  content: { flex: 1, padding: 20 },
-  inputContainer: { marginBottom: 24 },
-  inputLabel: { fontSize: 16, fontWeight: '500', color: '#fff', marginBottom: 8 },
-  textInput: { backgroundColor: '#181818', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, color: '#fff' },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  suggestionsContainer: { backgroundColor: '#181818', borderRadius: 8, marginTop: 4, maxHeight: 150 },
-  suggestionItem: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#333' },
-  suggestionText: { color: '#fff', fontSize: 16 },
-  dateInput: { backgroundColor: '#181818', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#333', minHeight: 48 },
-  dateInputText: { fontSize: 16, color: '#fff', flex: 1 },
-  placeholderText: { color: '#666' },
-  dateModeRow: { flexDirection: 'row', gap: 8, marginBottom: 6, flexWrap: 'wrap' },
-  dateModeChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#181818', borderWidth: 1, borderColor: '#333' },
-  dateModeChipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  dateModeText: { color: '#fff', fontSize: 13, fontWeight: '500' },
-  dateModeTextActive: { color: '#fff' },
-  attachmentsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
-  attachmentChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#3A3A3C' },
-  attachmentText: { color: '#FFFFFF', fontSize: 12, marginLeft: 6, maxWidth: 140 },
-  attachmentRemove: { marginLeft: 6 },
-  addAttachmentButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C1E', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#007AFF' },
-  addAttachmentText: { color: '#007AFF', fontSize: 12, marginLeft: 6, fontWeight: '600' },
-  attachmentsHelp: { marginTop: 8, color: '#8E8E93', fontSize: 12 },
+const s = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#1C1C1E', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#2C2C2E' },
+  title: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  body: { padding: 20, paddingBottom: 40 },
+  group: { backgroundColor: '#2C2C2E', borderRadius: 12, overflow: 'hidden' },
+  gInput: { paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, color: '#FFFFFF' },
+  gDivider: { height: 1, backgroundColor: '#3A3A3C', marginLeft: 16 },
+  suggestions: { backgroundColor: '#3A3A3C', marginHorizontal: 16, borderRadius: 8, marginBottom: 4 },
+  suggestionItem: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#2C2C2E' },
+  suggestionText: { color: '#fff', fontSize: 15 },
+  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', marginTop: 20, marginBottom: 10, marginLeft: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  chipRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#2C2C2E', borderWidth: 1, borderColor: '#3A3A3C' },
+  chipActive: { backgroundColor: '#3AABF0', borderColor: '#3AABF0' },
+  chipText: { color: '#fff', fontSize: 13, fontWeight: '500' },
+  chipTextActive: { color: '#fff' },
+  dateRow: { backgroundColor: '#2C2C2E', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dateText: { fontSize: 16, color: '#fff' },
+  attachRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
+  attachChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, gap: 6, borderWidth: 1, borderColor: '#3A3A3C' },
+  attachText: { color: '#FFFFFF', fontSize: 12, maxWidth: 140 },
+  addAttach: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C1E', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#3AABF0', gap: 6 },
+  addAttachText: { color: '#3AABF0', fontSize: 12, fontWeight: '600' },
+  attachHelp: { marginTop: 8, color: '#555', fontSize: 12 },
 });

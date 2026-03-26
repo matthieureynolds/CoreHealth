@@ -62,11 +62,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#007AFF20',
+    borderColor: '#3AABF020',
   },
   quickQuestionText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
   },
 });

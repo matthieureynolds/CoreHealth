@@ -149,15 +149,15 @@ const HealthIDsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Health IDs</Text>
         <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-          <Ionicons name="add" size={24} color="#007AFF" />
+          <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
           {profile?.healthIDs?.length ? (
             profile.healthIDs.map((healthID, index) => (
@@ -208,38 +208,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    zIndex: 1000,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
   },
   backButton: {
     padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 24.7,
-    zIndex: 1,
+    width: 40,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
     color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 16.5,
-    paddingBottom: 8,
+    flex: 1,
   },
   addButton: {
     padding: 8,
-    position: 'absolute',
-    right: 20,
-    top: 24.7,
-    zIndex: 1,
+    width: 40,
+    alignItems: 'flex-end',
   },
   content: {
     padding: 20,

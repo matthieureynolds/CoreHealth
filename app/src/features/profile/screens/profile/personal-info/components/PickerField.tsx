@@ -16,7 +16,7 @@ const PickerField: React.FC<PickerFieldProps> = ({ label, value, onPress, placeh
       <Text style={[styles.pickerText, !value && styles.pickerPlaceholder]}>
         {value || placeholder}
       </Text>
-      <Ionicons name="chevron-down" size={20} color="#007AFF" />
+      <Ionicons name="chevron-down" size={20} color="#3AABF0" />
     </TouchableOpacity>
   </View>
 );

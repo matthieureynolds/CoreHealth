@@ -19,7 +19,7 @@ const DiseaseOutbreakScreen: React.FC = () => {
     <View style={s.container}>
       <View style={s.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={s.headerTitle} pointerEvents="none">Disease Outbreaks</Text>
         <View style={{ width: 24 }} />
@@ -48,7 +48,7 @@ const DiseaseOutbreakScreen: React.FC = () => {
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>RECOMMENDATIONS</Text>
-          {RECOMMENDATIONS.map((r, idx) => <View key={idx} style={s.row}><Ionicons name="arrow-forward" size={16} color="#007AFF" /><Text style={s.rowText}>{r}</Text></View>)}
+          {RECOMMENDATIONS.map((r, idx) => <View key={idx} style={s.row}><Ionicons name="arrow-forward" size={16} color="#3AABF0" /><Text style={s.rowText}>{r}</Text></View>)}
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>RISK FACTORS</Text>
@@ -58,7 +58,7 @@ const DiseaseOutbreakScreen: React.FC = () => {
           <Text style={s.sectionTitle}>HEALTH AUTHORITY RESOURCES</Text>
           {RESOURCES.map(res => (
             <TouchableOpacity key={res.url} style={styles.linkRow} onPress={() => Linking.openURL(res.url)}>
-              <Ionicons name="open-outline" size={16} color="#007AFF" />
+              <Ionicons name="open-outline" size={16} color="#3AABF0" />
               <Text style={styles.linkText}>{res.label}</Text>
             </TouchableOpacity>
           ))}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   scaleLabel: { fontSize: 14, color: '#fff' },
   scaleNote: { fontSize: 12, color: '#8E8E93', marginTop: 1 },
   linkRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },
-  linkText: { fontSize: 14, color: '#007AFF', marginLeft: 10, fontWeight: '500' },
+  linkText: { fontSize: 14, color: '#3AABF0', marginLeft: 10, fontWeight: '500' },
 });
 
 export default DiseaseOutbreakScreen;

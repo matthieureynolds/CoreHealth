@@ -40,7 +40,7 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
               <Ionicons
                 name={section.icon as any}
                 size={24}
-                color={isSelected ? '#007AFF' : '#888'}
+                color={isSelected ? '#3AABF0' : '#888'}
               />
               <View style={styles.sectionText}>
                 <Text style={[styles.sectionLabel, isSelected && styles.selectedSectionText]}>
@@ -85,9 +85,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   selectedSection: {
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   selectedSectionText: {
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   sectionCount: {
     fontSize: 14,
@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkedBox: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#3AABF0',
+    borderColor: '#3AABF0',
   },
 });
 

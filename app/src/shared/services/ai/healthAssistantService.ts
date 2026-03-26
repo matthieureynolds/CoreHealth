@@ -352,9 +352,9 @@ export class HealthAssistantService {
       if (/\bwhat\s+is\s+my\s+age\b|\bhow\s+old\s+am\s+i\b/.test(lower)) {
         const age = this.getUserAge(healthData.profile);
         if (typeof age === 'number') {
-          return `Based on your CoreHealth profile, you are ${age} years old.`;
+          return `Based on your TOTO profile, you are ${age} years old.`;
         }
-        return "I couldn't find your age in your CoreHealth profile.";
+        return "I couldn't find your age in your TOTO profile.";
       }
     }
 

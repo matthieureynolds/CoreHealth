@@ -82,7 +82,7 @@ const HealthScoreDetailScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What This Means</Text>
           <Text style={styles.description}>
-            Your CoreHealth score is a holistic measure of your overall wellness. It combines:
+            Your TOTO score is a holistic measure of your overall wellness. It combines:
           </Text>
           <View style={styles.factorItem}>
             <Ionicons name="heart" size={20} color="#FF3B30" />
@@ -92,7 +92,7 @@ const HealthScoreDetailScreen: React.FC = () => {
             </View>
           </View>
           <View style={styles.factorItem}>
-            <Ionicons name="flask" size={20} color="#007AFF" />
+            <Ionicons name="flask" size={20} color="#3AABF0" />
             <View style={styles.factorText}>
               <Text style={styles.factorTitle}>Biomarkers ({finalBiomarkersScore})</Text>
               <Text style={styles.factorDesc}>Lab results, hormone levels, and internal health indicators</Text>

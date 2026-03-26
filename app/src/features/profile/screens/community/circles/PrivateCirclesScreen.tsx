@@ -15,7 +15,7 @@ const PrivateCirclesScreen: React.FC = () => {
 
   const circles = useMemo<CircleSummary[]>(() => [
     { id: 'c1', name: 'Family', members: 5, icon: 'home', color: '#5856D6' },
-    { id: 'c2', name: 'Friends', members: 8, icon: 'people', color: '#007AFF' },
+    { id: 'c2', name: 'Friends', members: 8, icon: 'people', color: '#3AABF0' },
     { id: 'c3', name: 'Hikes and Parties', members: 42, icon: 'trail-sign', color: '#30D158' },
     { id: 'c4', name: 'Football Paris', members: 18, icon: 'football', color: '#FF9F0A' },
     { id: 'c5', name: 'Wellness Warriors', members: 12, icon: 'fitness', color: '#FF375F' },
@@ -46,7 +46,7 @@ const PrivateCirclesScreen: React.FC = () => {
             <Text style={styles.actionBtnPrimaryText}>Create Circle</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} activeOpacity={0.8}>
-            <Ionicons name="enter-outline" size={18} color="#007AFF" />
+            <Ionicons name="enter-outline" size={18} color="#3AABF0" />
             <Text style={styles.actionBtnText}>Join with Code</Text>
           </TouchableOpacity>
         </View>
@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
     gap: 8, paddingVertical: 13, borderRadius: 12,
     backgroundColor: '#1C1C1E', borderWidth: 1, borderColor: '#2C2C2E',
   },
-  actionBtnPrimary: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  actionBtnText: { color: '#007AFF', fontSize: 14, fontWeight: '600' },
+  actionBtnPrimary: { backgroundColor: '#3AABF0', borderColor: '#3AABF0' },
+  actionBtnText: { color: '#3AABF0', fontSize: 14, fontWeight: '600' },
   actionBtnPrimaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   sectionLabel: {
     fontSize: 12, fontWeight: '600', color: '#8E8E93', letterSpacing: 0.5,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   rowTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
   rowSubtitle: { fontSize: 13, color: '#8E8E93' },
-  joinBtn: { backgroundColor: '#007AFF', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
+  joinBtn: { backgroundColor: '#3AABF0', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
   joinBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
   joinedBtn: { backgroundColor: '#2C2C2E', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
   joinedBtnText: { color: '#8E8E93', fontSize: 13, fontWeight: '600' },

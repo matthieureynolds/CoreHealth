@@ -199,7 +199,7 @@ const MetricDetailModal: React.FC<Props> = ({ visible, metric, getStatusColor, o
               <Text style={styles.sectionTitle}>Recommendations</Text>
               {details.recommendations.map((recommendation: string, index: number) => (
                 <View key={index} style={styles.recommendationItem}>
-                  <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+                  <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
                   <Text style={styles.recommendationText}>{recommendation}</Text>
                 </View>
               ))}

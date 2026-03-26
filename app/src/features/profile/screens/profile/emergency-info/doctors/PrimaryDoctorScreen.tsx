@@ -143,10 +143,10 @@ const PrimaryDoctorScreen: React.FC = () => {
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <DoctorsHeader onBack={() => navigation.goBack()} />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         {doctors.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="medical-outline" size={64} color="#007AFF" style={{ opacity: 0.3 }} />
+            <Ionicons name="medical-outline" size={64} color="#3AABF0" style={{ opacity: 0.3 }} />
             <Text style={styles.emptyStateTitle}>No Doctors Added</Text>
             <Text style={styles.emptyStateText}>
               Add your doctors for quick access during emergencies
@@ -168,7 +168,7 @@ const PrimaryDoctorScreen: React.FC = () => {
               />
             ))}
             <TouchableOpacity style={styles.addMoreButton} onPress={handleAdd}>
-              <Ionicons name="add" size={20} color="#007AFF" />
+              <Ionicons name="add" size={20} color="#3AABF0" />
               <Text style={styles.addMoreButtonText}>Add Another Doctor</Text>
             </TouchableOpacity>
           </>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   addMoreButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginLeft: 8,
   },
 });

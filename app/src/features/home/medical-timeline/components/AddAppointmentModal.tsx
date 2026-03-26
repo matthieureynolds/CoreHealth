@@ -112,7 +112,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
       time: timeString,
       status: editingEvent?.status ?? 'UPCOMING',
       icon: 'medical',
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       doctor: doctor || undefined,
       notes: notes || undefined,
       location: location || undefined,

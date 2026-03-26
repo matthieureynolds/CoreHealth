@@ -23,7 +23,7 @@ const HelpSupportScreen: React.FC = () => {
     {
       id: '1',
       question: 'How do I sync my health data?',
-      answer: 'CoreHealth automatically syncs your data when you have an internet connection. You can also manually sync by pulling down on the main screen or going to Settings > Data & Sync > Sync Now.',
+      answer: 'TOTO automatically syncs your data when you have an internet connection. You can also manually sync by pulling down on the main screen or going to Settings > Data & Sync > Sync Now.',
     },
     {
       id: '2',
@@ -38,7 +38,7 @@ const HelpSupportScreen: React.FC = () => {
     {
       id: '4',
       question: 'Why am I not receiving notifications?',
-      answer: 'Check that notifications are enabled in Settings > Notifications & Alerts. Also verify that CoreHealth has notification permissions in your device settings.',
+      answer: 'Check that notifications are enabled in Settings > Notifications & Alerts. Also verify that TOTO has notification permissions in your device settings.',
     },
     {
       id: '5',
@@ -47,8 +47,8 @@ const HelpSupportScreen: React.FC = () => {
     },
     {
       id: '6',
-      question: 'Can I use CoreHealth while traveling?',
-      answer: 'Yes! CoreHealth has dedicated travel health features. Go to Settings > Travel Settings to enable automatic travel health monitoring and timezone adjustments.',
+      question: 'Can I use TOTO while traveling?',
+      answer: 'Yes! TOTO has dedicated travel health features. Go to Settings > Travel Settings to enable automatic travel health monitoring and timezone adjustments.',
     },
     {
       id: '7',
@@ -57,28 +57,28 @@ const HelpSupportScreen: React.FC = () => {
     },
     {
       id: '8',
-      question: 'What health metrics does CoreHealth track?',
-      answer: 'CoreHealth tracks vital signs, lab results, medications, symptoms, sleep patterns, exercise, and more. You can customize which metrics to track in your profile settings.',
+      question: 'What health metrics does TOTO track?',
+      answer: 'TOTO tracks vital signs, lab results, medications, symptoms, sleep patterns, exercise, and more. You can customize which metrics to track in your profile settings.',
     },
   ];
 
   const handleEmailSupport = () => {
-    const subject = 'CoreHealth Support Request';
-    const body = 'Hi CoreHealth Team,\n\nI need help with:\n\n[Please describe your issue here]\n\nApp Version: 1.0.0\nDevice: [Your device info]\n\nThank you!';
+    const subject = 'TOTO Support Request';
+    const body = 'Hi TOTO Team,\n\nI need help with:\n\n[Please describe your issue here]\n\nApp Version: 1.0.0\nDevice: [Your device info]\n\nThank you!';
     
     Linking.openURL(`mailto:support@corehealth.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
   const handleReportBug = () => {
-    const subject = 'CoreHealth Bug Report';
-    const body = 'Hi CoreHealth Team,\n\nI found a bug:\n\nWhat happened:\n[Describe the issue]\n\nSteps to reproduce:\n1. \n2. \n3. \n\nExpected behavior:\n[What should have happened]\n\nApp Version: 1.0.0\nDevice: [Your device info]\n\nThank you!';
+    const subject = 'TOTO Bug Report';
+    const body = 'Hi TOTO Team,\n\nI found a bug:\n\nWhat happened:\n[Describe the issue]\n\nSteps to reproduce:\n1. \n2. \n3. \n\nExpected behavior:\n[What should have happened]\n\nApp Version: 1.0.0\nDevice: [Your device info]\n\nThank you!';
     
     Linking.openURL(`mailto:bugs@corehealth.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
   const handleFeatureRequest = () => {
-    const subject = 'CoreHealth Feature Request';
-    const body = 'Hi CoreHealth Team,\n\nI would like to suggest a new feature:\n\n[Describe your feature idea]\n\nWhy this would be helpful:\n[Explain the benefit]\n\nThank you for considering my suggestion!';
+    const subject = 'TOTO Feature Request';
+    const body = 'Hi TOTO Team,\n\nI would like to suggest a new feature:\n\n[Describe your feature idea]\n\nWhy this would be helpful:\n[Explain the benefit]\n\nThank you for considering my suggestion!';
     
     Linking.openURL(`mailto:features@corehealth.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
@@ -112,7 +112,7 @@ const HelpSupportScreen: React.FC = () => {
   }) => (
     <TouchableOpacity style={styles.contactItem} onPress={onPress}>
       <View style={styles.contactItemLeft}>
-        <Ionicons name={icon as any} size={24} color="#007AFF" />
+        <Ionicons name={icon as any} size={24} color="#3AABF0" />
         <View style={styles.contactItemText}>
           <Text style={styles.contactItemTitle}>{title}</Text>
           <Text style={styles.contactItemSubtitle}>{subtitle}</Text>
@@ -177,7 +177,7 @@ const HelpSupportScreen: React.FC = () => {
         <ContactItem
           icon="bulb-outline"
           title="Request a Feature"
-          subtitle="Have an idea to improve CoreHealth?"
+          subtitle="Have an idea to improve TOTO?"
           onPress={handleFeatureRequest}
         />
       </View>
@@ -198,7 +198,7 @@ const HelpSupportScreen: React.FC = () => {
         <ContactItem
           icon="book-outline"
           title="User Guide"
-          subtitle="Learn how to use CoreHealth features"
+          subtitle="Learn how to use TOTO features"
           onPress={() => Linking.openURL('https://corehealth.app/guide')}
         />
         
@@ -224,7 +224,7 @@ const HelpSupportScreen: React.FC = () => {
           <Text style={styles.emergencyTitle}>Medical Emergency</Text>
         </View>
         <Text style={styles.emergencyText}>
-          CoreHealth is not a substitute for professional medical advice. In case of a medical emergency, call your local emergency number (911, 112, etc.) immediately.
+          TOTO is not a substitute for professional medical advice. In case of a medical emergency, call your local emergency number (911, 112, etc.) immediately.
         </Text>
       </View>
 

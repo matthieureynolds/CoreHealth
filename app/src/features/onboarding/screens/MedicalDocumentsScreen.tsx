@@ -58,7 +58,7 @@ const MedicalDocumentsScreen: React.FC<Props> = ({ onNext, onBack }) => {
           style={styles.backButton}
           onPress={onBack}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.title}>Medical Documents</Text>
         <Text style={styles.subtitle}>
@@ -69,12 +69,12 @@ const MedicalDocumentsScreen: React.FC<Props> = ({ onNext, onBack }) => {
       <View style={styles.content}>
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.scanButton} onPress={handleScanDocument}>
-            <Ionicons name="camera" size={24} color="#007AFF" />
+            <Ionicons name="camera" size={24} color="#3AABF0" />
             <Text style={styles.scanButtonText}>Scan Document</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.uploadButton} onPress={handleUploadDocument}>
-            <Ionicons name="cloud-upload-outline" size={24} color="#007AFF" />
+            <Ionicons name="cloud-upload-outline" size={24} color="#3AABF0" />
             <Text style={styles.uploadButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
@@ -98,7 +98,7 @@ const MedicalDocumentsScreen: React.FC<Props> = ({ onNext, onBack }) => {
                 <Ionicons 
                   name={doc.icon as any} 
                   size={32} 
-                  color={selectedDocuments.includes(doc.id) ? '#007AFF' : '#666'} 
+                  color={selectedDocuments.includes(doc.id) ? '#3AABF0' : '#666'} 
                 />
                 <Text style={[
                   styles.documentName,
@@ -107,7 +107,7 @@ const MedicalDocumentsScreen: React.FC<Props> = ({ onNext, onBack }) => {
                   {doc.name}
                 </Text>
                 {selectedDocuments.includes(doc.id) && (
-                  <Ionicons name="checkmark-circle" size={20} color="#007AFF" style={styles.checkIcon} />
+                  <Ionicons name="checkmark-circle" size={20} color="#3AABF0" style={styles.checkIcon} />
                 )}
               </TouchableOpacity>
             ))}
@@ -121,7 +121,7 @@ const MedicalDocumentsScreen: React.FC<Props> = ({ onNext, onBack }) => {
               const doc = documentTypes.find(d => d.id === docId);
               return (
                 <View key={docId} style={styles.selectedItem}>
-                  <Ionicons name={doc?.icon as any} size={16} color="#007AFF" />
+                  <Ionicons name={doc?.icon as any} size={16} color="#3AABF0" />
                   <Text style={styles.selectedText}>{doc?.name}</Text>
                 </View>
               );
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F0F8FF',
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   scanButtonText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 16,
     fontWeight: '600',
     marginTop: 8,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   uploadButtonText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 16,
     fontWeight: '600',
     marginTop: 8,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   documentCardSelected: {
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     backgroundColor: '#F0F8FF',
   },
   documentName: {
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   documentNameSelected: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   checkIcon: {
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   selectedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginBottom: 8,
   },
   selectedItem: {
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     marginLeft: 8,
   },
   footer: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,

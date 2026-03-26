@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   content: {
     flex: 1,

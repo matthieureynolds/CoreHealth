@@ -6,11 +6,11 @@ import { useNavigation } from '@react-navigation/native';
 const FAQScreen: React.FC = () => {
   const navigation = useNavigation();
 
-  const Section = ({ title, items }: { title: string; items: { q: string; a: string }[] }) => (
-    <View style={styles.card}>
+  const Section = ({ title, items, first }: { title: string; items: { q: string; a: string }[]; first?: boolean }) => (
+    <View style={[styles.section, !first && styles.sectionDivider]}>
       <Text style={styles.cardHeader}>{title}</Text>
       {items.map((item, idx) => (
-        <View key={idx} style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
+        <View key={idx} style={styles.faqItem}>
           <Text style={styles.question}>{idx + 1}. {item.q}</Text>
           <Text style={styles.answer}>{item.a}</Text>
         </View>
@@ -21,29 +21,30 @@ const FAQScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header} pointerEvents="box-none"> 
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">FAQs</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>FAQs</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <Section
+          first
           title="ABOUT"
           items={[
-            { q: 'What is CoreHealth?', a: 'CoreHealth is your personal health hub — it stores all your medical records, connects to wearables and smart devices, tracks your biomarkers, and gives you tailored recommendations for better health.' },
-            { q: 'How is CoreHealth different from Apple Health or Google Fit?', a: 'Unlike general health hubs, CoreHealth combines your medical history, wearable data, environmental health risks, and AI-powered insights into one place — plus a Travel Mode for health safety anywhere in the world.' },
-            { q: 'Which devices and apps can I connect to CoreHealth?', a: 'You can currently sync with Apple Health, Google Fit, WHOOP, Oura, Withings, and Eight Sleep, with more coming soon (Garmin, Fitbit, Dexcom, Abbott Libre, and more).' },
+            { q: 'What is TOTO?', a: 'TOTO is your personal health hub — it stores all your medical records, connects to wearables and smart devices, tracks your biomarkers, and gives you tailored recommendations for better health.' },
+            { q: 'How is TOTO different from Apple Health or Google Fit?', a: 'Unlike general health hubs, TOTO combines your medical history, wearable data, environmental health risks, and AI-powered insights into one place — plus a Travel Mode for health safety anywhere in the world.' },
+            { q: 'Which devices and apps can I connect to TOTO?', a: 'You can currently sync with Apple Health, Google Fit, WHOOP, Oura, Withings, and Eight Sleep, with more coming soon (Garmin, Fitbit, Dexcom, Abbott Libre, and more).' },
           ]}
         />
 
         <Section
           title="USING THE APP"
         items={[
-          { q: 'How do I connect my devices?', a: 'Go to Settings → Connected Devices & Integrations and select your device from the list. Sign in with your device account to allow CoreHealth to sync your data.' },
+          { q: 'How do I connect my devices?', a: 'Go to Settings → Connected Devices & Integrations and select your device from the list. Sign in with your device account to allow TOTO to sync your data.' },
           { q: 'Can I import my past medical records?', a: 'Yes. Go to Medical Records → Upload and select files such as PDFs, lab results, or scanned documents. You can also connect through Apple Health/Google Fit for past wearable data.' },
           { q: 'How does Travel Mode work?', a: 'When enabled, Travel Mode auto-detects your location (or you can enter it manually) to show local health alerts, vaccination requirements, air/water quality, and jet lag plans.' },
         ]}
@@ -52,8 +53,8 @@ const FAQScreen: React.FC = () => {
       <Section
         title="PRIVACY & SECURITY"
         items={[
-          { q: 'Is my data secure?', a: 'Yes — CoreHealth encrypts your data both in transit and at rest. Only you can access your full health profile unless you choose to share it.' },
-          { q: 'Will CoreHealth sell my data?', a: 'No. CoreHealth will never sell your personal health information to advertisers or other third parties.' },
+          { q: 'Is my data secure?', a: 'Yes — TOTO encrypts your data both in transit and at rest. Only you can access your full health profile unless you choose to share it.' },
+          { q: 'Will TOTO sell my data?', a: 'No. TOTO will never sell your personal health information to advertisers or other third parties.' },
           { q: 'Where is my data stored?', a: 'Data is stored securely in our cloud provider infrastructure, compliant with GDPR and HIPAA standards.' },
           { q: 'Can I delete my account and all my data?', a: 'Yes — go to Settings → Privacy & Security → Delete Account & Data to permanently remove all your data from our servers.' },
         ]}
@@ -62,7 +63,7 @@ const FAQScreen: React.FC = () => {
       <Section
         title="NOTIFICATIONS"
         items={[
-          { q: 'What reminders can I get?', a: 'Currently, CoreHealth supports medication reminders, appointment reminders, and jet lag bedtime/wake-up prompts. More health alerts are planned for future updates.' },
+          { q: 'What reminders can I get?', a: 'Currently, TOTO supports medication reminders, appointment reminders, and jet lag bedtime/wake-up prompts. More health alerts are planned for future updates.' },
           { q: 'Can I choose when reminders are sent?', a: 'Yes — in Settings → Notifications, you can set how early you want each reminder.' },
         ]}
       />
@@ -70,7 +71,7 @@ const FAQScreen: React.FC = () => {
       <Section
         title="TECHNICAL"
         items={[
-          { q: 'Does CoreHealth work offline?', a: 'You can view saved data offline, but new data from devices or travel alerts require an internet connection.' },
+          { q: 'Does TOTO work offline?', a: 'You can view saved data offline, but new data from devices or travel alerts require an internet connection.' },
           { q: 'Which phones are supported?', a: 'iOS and Android recent versions are supported.' },
           { q: 'How do I report a bug or suggest a feature?', a: 'Go to Settings → Support & Help → Feedback Submission.' },
         ]}
@@ -88,12 +89,13 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#000000' 
   },
-  header: { 
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+  header: {
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
     top: 0,
@@ -101,57 +103,51 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     elevation: 10,
+    paddingHorizontal: 20,
   },
-  backButton: { 
-    padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 23.5,
-    zIndex: 1,
-  },
-  headerTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 32.2,
-    paddingBottom: 8,
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
-  card: { 
-    backgroundColor: '#1C1C1E', 
-    borderRadius: 12, 
-    marginHorizontal: 20, 
-    marginTop: 20, 
-    paddingVertical: 16 
+  section: {
+    marginHorizontal: 20,
+    marginTop: 24,
   },
-  cardHeader: { 
-    fontSize: 12, 
-    fontWeight: '600', 
-    color: '#8E8E93', 
-    marginBottom: 16, 
-    marginHorizontal: 20, 
-    letterSpacing: 0.5 
+  sectionDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+    paddingTop: 24,
   },
-  question: { 
-    color: '#FFFFFF', 
-    fontSize: 16, 
-    fontWeight: '600', 
-    marginBottom: 6 
+  cardHeader: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#8E8E93',
+    marginBottom: 16,
+    letterSpacing: 0.8,
   },
-  answer: { 
-    color: '#8E8E93', 
-    fontSize: 14, 
+  faqItem: {
+    marginBottom: 20,
+  },
+  question: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  answer: {
+    color: '#8E8E93',
+    fontSize: 14,
     lineHeight: 20,
-    textAlign: 'justify'
   },
   bottomSpacing: {
-    height: 20,
+    height: 32,
   },
 });
 

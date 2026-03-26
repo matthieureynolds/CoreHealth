@@ -36,7 +36,7 @@ const TravelMedicationsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Travel Medications</Text>
         <View style={{ width: 24 }} />
@@ -78,7 +78,7 @@ const TravelMedicationsScreen: React.FC = () => {
         </View>
 
         <TouchableOpacity style={styles.linkBtn} onPress={() => Linking.openURL('https://wwwnc.cdc.gov/travel/page/pack-smart')}>
-          <Ionicons name="open-outline" size={18} color="#007AFF" />
+          <Ionicons name="open-outline" size={18} color="#3AABF0" />
           <Text style={styles.linkBtnText}>CDC — Pack Smart for Travel</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   itemCategory: { fontSize: 12, color: '#8E8E93' },
   tipRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
   tipText: { flex: 1, fontSize: 13, color: '#E5E5EA', marginLeft: 10, lineHeight: 18 },
-  linkBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, padding: 16, borderWidth: 1, borderColor: '#007AFF30' },
-  linkBtnText: { fontSize: 14, color: '#007AFF', fontWeight: '600', marginLeft: 8 },
+  linkBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, padding: 16, borderWidth: 1, borderColor: '#3AABF030' },
+  linkBtnText: { fontSize: 14, color: '#3AABF0', fontWeight: '600', marginLeft: 8 },
 });
 
 export default TravelMedicationsScreen;

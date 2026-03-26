@@ -8,7 +8,7 @@ export const colors = {
   divider: 'rgba(255,255,255,0.06)',
 
   // Navigation / UI
-  tabActive: '#007AFF',
+  tabActive: '#3AABF0',
   tabInactive: '#FFFFFF',
   surfaceMuted: '#333333',
   authCard: '#FFFFFF',

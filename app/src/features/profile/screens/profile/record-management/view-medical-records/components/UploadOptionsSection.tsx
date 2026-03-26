@@ -8,48 +8,26 @@ interface UploadOptionsSectionProps {
 }
 
 const UploadOptionsSection: React.FC<UploadOptionsSectionProps> = ({ onTakePhoto, onPickDocument }) => (
-  <View style={styles.uploadSection}>
-    <Text style={styles.sectionTitle}>Upload Method</Text>
-    <View style={styles.uploadOptions}>
-      <TouchableOpacity style={styles.uploadOption} onPress={onTakePhoto}>
-        <Ionicons name="camera" size={32} color="#007AFF" />
-        <Text style={styles.uploadOptionText}>Take Photo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.uploadOption} onPress={onPickDocument}>
-        <Ionicons name="document" size={32} color="#FF9500" />
-        <Text style={styles.uploadOptionText}>Pick Document</Text>
-      </TouchableOpacity>
-    </View>
+  <View style={s.group}>
+    <TouchableOpacity style={s.row} onPress={onTakePhoto}>
+      <Ionicons name="camera-outline" size={20} color="#3AABF0" />
+      <Text style={s.rowText}>Take Photo</Text>
+      <Ionicons name="chevron-forward" size={18} color="#3A3A3C" />
+    </TouchableOpacity>
+    <View style={s.divider} />
+    <TouchableOpacity style={s.row} onPress={onPickDocument}>
+      <Ionicons name="document-outline" size={20} color="#FF9500" />
+      <Text style={s.rowText}>Pick Document</Text>
+      <Ionicons name="chevron-forward" size={18} color="#3A3A3C" />
+    </TouchableOpacity>
   </View>
 );
 
-const styles = StyleSheet.create({
-  uploadSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  uploadOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  uploadOption: {
-    alignItems: 'center',
-    backgroundColor: '#181818',
-    borderRadius: 12,
-    padding: 20,
-    minWidth: 100,
-  },
-  uploadOptionText: {
-    fontSize: 14,
-    color: '#fff',
-    marginTop: 8,
-    textAlign: 'center',
-  },
+const s = StyleSheet.create({
+  group: { backgroundColor: '#2C2C2E', borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+  rowText: { fontSize: 16, color: '#fff', flex: 1, marginLeft: 12, fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#3A3A3C', marginLeft: 16 },
 });
 
 export default UploadOptionsSection;

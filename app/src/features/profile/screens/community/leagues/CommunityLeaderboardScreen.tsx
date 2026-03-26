@@ -54,7 +54,7 @@ const CommunityLeaderboardScreen: React.FC = () => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#007AFF" />
+          <Ionicons name="chevron-back" size={28} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Community</Text>
         <View style={styles.backButton} />

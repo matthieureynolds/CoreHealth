@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +16,24 @@ const DataSyncScreen: React.FC = () => {
   const navigation = useNavigation();
   const [lastSyncTime, setLastSyncTime] = useState<string>('Never');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncedRecently, setSyncedRecently] = useState(false);
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
+
+  const startSpin = () => {
+    spinAnim.setValue(0);
+    spinLoop.current = Animated.loop(
+      Animated.timing(spinAnim, { toValue: 1, duration: 800, useNativeDriver: true })
+    );
+    spinLoop.current.start();
+  };
+
+  const stopSpin = () => {
+    spinLoop.current?.stop();
+    spinAnim.setValue(0);
+  };
+
+  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   useEffect(() => {
     loadLastSyncTime();
@@ -26,11 +45,15 @@ const DataSyncScreen: React.FC = () => {
       if (iso) {
         const dt = new Date(iso);
         setLastSyncTime(formatDateTime(dt));
+        const hoursSince = (Date.now() - dt.getTime()) / (1000 * 60 * 60);
+        setSyncedRecently(hoursSince < 24);
       } else {
         setLastSyncTime('Never');
+        setSyncedRecently(false);
       }
     } catch {
       setLastSyncTime('Never');
+      setSyncedRecently(false);
     }
   };
 
@@ -51,45 +74,40 @@ const DataSyncScreen: React.FC = () => {
   const handleSyncNow = async () => {
     try {
       setIsSyncing(true);
-      
+      startSpin();
+
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const now = new Date();
       setLastSyncTime(formatDateTime(now));
       try {
         await AsyncStorage.setItem('@corehealth_last_sync_at', now.toISOString());
       } catch (e) { console.error(e); }
-      
-      Alert.alert(
-        'Sync Complete',
-        'Your health data has been successfully synchronized.',
-        [{ text: 'OK' }]
-      );
+
+      stopSpin();
+      setIsSyncing(false);
+      setSyncedRecently(true);
     } catch (error) {
       console.error('❌ DataSyncScreen: Sync failed:', error);
-      Alert.alert(
-        'Sync Failed',
-        'There was an error syncing your data. Please try again.',
-        [{ text: 'OK' }]
-      );
-    } finally {
+      stopSpin();
       setIsSyncing(false);
+      Alert.alert('Sync Failed', 'There was an error syncing your data. Please try again.', [{ text: 'OK' }]);
     }
   };
 
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Data & Sync</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Data & Sync</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* Last Sync Info */}
@@ -98,27 +116,17 @@ const DataSyncScreen: React.FC = () => {
               <Ionicons name="time-outline" size={20} color="#888" style={styles.syncIcon} />
               <Text style={styles.syncLabel}>Last Sync:</Text>
               <Text style={styles.syncTime}>{lastSyncTime}</Text>
+              <TouchableOpacity onPress={handleSyncNow} disabled={isSyncing} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginLeft: 'auto' }}>
+                <Animated.View style={{ transform: [{ rotate: isSyncing ? spin : '0deg' }] }}>
+                  <Ionicons
+                    name={isSyncing ? 'sync' : 'sync-outline'}
+                    size={22}
+                    color={syncedRecently ? '#34C759' : '#FF9F40'}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Sync Now Button */}
-          <TouchableOpacity
-            style={[styles.syncButton, isSyncing && styles.syncButtonDisabled]}
-            onPress={handleSyncNow}
-            disabled={isSyncing}
-            activeOpacity={0.8}
-          >
-            <View style={styles.syncButtonContent}>
-              {isSyncing ? (
-                <Ionicons name="sync" size={20} color="#007AFF" style={styles.syncIcon} />
-              ) : (
-                <Ionicons name="sync-outline" size={20} color="#007AFF" style={styles.syncIcon} />
-              )}
-              <Text style={styles.syncButtonText}>
-                {isSyncing ? 'Syncing...' : 'Sync Now'}
-              </Text>
-            </View>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -134,11 +142,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
     top: 0,
@@ -146,24 +155,18 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     elevation: 10,
+    paddingHorizontal: 20,
   },
   backButton: {
     padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 23.5,
-    zIndex: 1,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 32.2,
-    paddingBottom: 8,
+    flex: 1,
   },
   content: {
     paddingHorizontal: 24,
@@ -208,15 +211,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2C2C2E',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#FFFFFF',
+    alignSelf: 'flex-start',
   },
   syncButtonDisabled: {
-    backgroundColor: '#1C1C1E',
     borderColor: '#4A4A4A',
   },
   syncButtonContent: {
@@ -225,10 +228,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   syncButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginLeft: 6,
   },
 });
 

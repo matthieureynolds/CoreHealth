@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -83,11 +83,23 @@ const EditPhysicalStatsScreen: React.FC = () => {
     }
   };
 
-  const bloodTypeOptions = [
-    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'
-  ];
+  const bloodTypeOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+  const ITEM_HEIGHT = 52;
+  const VISIBLE_ITEMS = 5;
 
   const [showBloodTypePicker, setShowBloodTypePicker] = useState(false);
+  const [tempBloodType, setTempBloodType] = useState(bloodTypeOptions[0]);
+  const pickerScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (showBloodTypePicker) {
+      const idx = Math.max(0, bloodTypeOptions.indexOf(statsData.bloodType));
+      setTempBloodType(bloodTypeOptions[idx]);
+      setTimeout(() => {
+        pickerScrollRef.current?.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+      }, 50);
+    }
+  }, [showBloodTypePicker]);
 
   const handleBloodTypeSelect = (bloodType: string) => {
     setStatsData({ ...statsData, bloodType });
@@ -105,27 +117,16 @@ const EditPhysicalStatsScreen: React.FC = () => {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Edit Physical Stats</Text>
-        <TouchableOpacity
-          style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#007AFF" />
-          ) : (
-            <Text style={styles.saveButtonText}>Save</Text>
-          )}
-        </TouchableOpacity>
+        <Text style={styles.headerTitle} pointerEvents="none">Physical Stats</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.contentContainer, { paddingTop: 110 }]}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: 120 }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.inputContainer}>
@@ -177,40 +178,59 @@ const EditPhysicalStatsScreen: React.FC = () => {
       {/* Blood Type Picker Modal */}
       <Modal
         visible={showBloodTypePicker}
-        transparent={true}
-        animationType="slide"
+        transparent
+        animationType="fade"
         onRequestClose={() => setShowBloodTypePicker(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Blood Type</Text>
-              <TouchableOpacity onPress={() => setShowBloodTypePicker(false)}>
-                <Ionicons name="close" size={24} color="#007AFF" />
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <TouchableOpacity onPress={() => setShowBloodTypePicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="close" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.pickerTitle}>Blood Type</Text>
+              <TouchableOpacity onPress={() => handleBloodTypeSelect(tempBloodType)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="checkmark" size={24} color="#34C759" />
               </TouchableOpacity>
             </View>
-            
-            <ScrollView style={{ maxHeight: '65%' }}>
-              {bloodTypeOptions.map((bloodType) => (
-                <TouchableOpacity
-                  key={bloodType}
-                  style={styles.bloodTypeOption}
-                  onPress={() => handleBloodTypeSelect(bloodType)}
-                >
-                  <Text style={styles.bloodTypeText}>{bloodType}</Text>
-                  {statsData.bloodType === bloodType && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            
-            <TouchableOpacity 
-              style={styles.cancelButton} 
-              onPress={() => setShowBloodTypePicker(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+
+            <View style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS }}>
+              {/* Selection indicator lines */}
+              <View style={[styles.selectionLine, { top: ITEM_HEIGHT * 2 }]} pointerEvents="none" />
+              <View style={[styles.selectionLine, { top: ITEM_HEIGHT * 3 }]} pointerEvents="none" />
+
+              <ScrollView
+                ref={pickerScrollRef}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+                onMomentumScrollEnd={(e) => {
+                  const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+                  setTempBloodType(bloodTypeOptions[Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))]);
+                }}
+                onScrollEndDrag={(e) => {
+                  const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+                  setTempBloodType(bloodTypeOptions[Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))]);
+                }}
+              >
+                {bloodTypeOptions.map((bt) => (
+                  <TouchableOpacity
+                    key={bt}
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      const idx = bloodTypeOptions.indexOf(bt);
+                      pickerScrollRef.current?.scrollTo({ y: idx * ITEM_HEIGHT, animated: true });
+                      setTempBloodType(bt);
+                    }}
+                  >
+                    <Text style={[styles.pickerItemText, tempBloodType === bt && styles.pickerItemTextActive]}>
+                      {bt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>
@@ -226,13 +246,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
     zIndex: 1000,
     position: 'absolute',
     top: 0,
@@ -242,21 +259,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 25,
-    zIndex: 1,
+    marginLeft: -8,
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 20,
-    paddingBottom: 8,
+    flex: 1,
   },
   saveButton: {
     paddingHorizontal: 16,
@@ -272,7 +282,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveButtonText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -316,7 +326,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: '#3AABF0',
     marginTop: 20,
   },
   infoText: {
@@ -346,54 +356,58 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#666',
   },
-  modalOverlay: {
+  pickerOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  modalContainer: {
-    backgroundColor: '#181818',
-    borderRadius: 16,
-    width: '80%',
-    maxHeight: '75%',
-    padding: 20,
+  pickerContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 350,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: '#333',
   },
-  modalHeader: {
+  pickerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  bloodTypeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
-  bloodTypeText: {
+  pickerTitle: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  cancelButton: {
-    marginTop: 20,
-    paddingVertical: 16,
+  selectionLine: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    zIndex: 1,
+  },
+  pickerItem: {
+    height: 52,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  cancelButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
+  pickerItemText: {
+    color: '#555',
+    fontSize: 20,
     fontWeight: '600',
+  },
+  pickerItemTextActive: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
   },
 });
 

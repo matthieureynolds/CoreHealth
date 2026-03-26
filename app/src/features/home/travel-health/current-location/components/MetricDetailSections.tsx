@@ -37,7 +37,7 @@ const MetricDetailSections: React.FC<MetricDetailSectionsProps> = ({
       <Text style={styles.sectionTitle}>Recommendations</Text>
       {recommendations.map((rec, i) => (
         <View style={styles.row} key={i}>
-          <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+          <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
           <Text style={styles.rowText}>{rec}</Text>
         </View>
       ))}

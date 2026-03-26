@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const ReportInfoBanner: React.FC = () => (
   <View style={styles.infoSection}>
-    <Ionicons name="document-text-outline" size={48} color="#007AFF" />
+    <Ionicons name="document-text-outline" size={48} color="#3AABF0" />
     <Text style={styles.infoTitle}>Health Report</Text>
     <Text style={styles.infoSubtitle}>
       Generate a comprehensive PDF report of your health information

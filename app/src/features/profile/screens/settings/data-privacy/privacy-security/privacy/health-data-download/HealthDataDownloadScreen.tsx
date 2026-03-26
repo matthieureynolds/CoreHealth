@@ -34,12 +34,12 @@ const HealthDataDownloadScreen: React.FC = () => {
         <html>
         <head>
           <meta charset="utf-8">
-          <title>CoreHealth Data Export</title>
+          <title>TOTO Data Export</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
-            .header { text-align: center; border-bottom: 2px solid #007AFF; padding-bottom: 20px; margin-bottom: 30px; }
+            .header { text-align: center; border-bottom: 2px solid #3AABF0; padding-bottom: 20px; margin-bottom: 30px; }
             .section { margin-bottom: 25px; page-break-inside: avoid; }
-            .section-title { font-size: 18px; font-weight: bold; color: #007AFF; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+            .section-title { font-size: 18px; font-weight: bold; color: #3AABF0; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
             .info-item { margin-bottom: 8px; padding: 5px 0; }
             .label { font-weight: 600; color: #555; display: inline-block; width: 150px; }
             .value { color: #333; }
@@ -49,7 +49,7 @@ const HealthDataDownloadScreen: React.FC = () => {
         </head>
         <body>
           <div class="header">
-            <h1>CoreHealth Data Export</h1>
+            <h1>TOTO Data Export</h1>
             <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
           </div>
           <div class="section">
@@ -66,7 +66,7 @@ const HealthDataDownloadScreen: React.FC = () => {
             <div class="json-data">${JSON.stringify(exportData, null, 2)}</div>
           </div>
           <div class="footer">
-            <p>This document contains your personal health data from CoreHealth.</p>
+            <p>This document contains your personal health data from TOTO.</p>
             <p>Please keep this information secure and private.</p>
           </div>
         </body>
@@ -91,7 +91,7 @@ const HealthDataDownloadScreen: React.FC = () => {
       if (isAvailable) {
         await Sharing.shareAsync(pdfUri, { mimeType: 'application/pdf', dialogTitle: 'Share Health Data PDF', UTI: 'com.adobe.pdf' });
       } else {
-        await Share.share({ url: pdfUri, title: 'CoreHealth Health Data', message: 'Here is your health data export from CoreHealth.' });
+        await Share.share({ url: pdfUri, title: 'TOTO Health Data', message: 'Here is your health data export from TOTO.' });
       }
     } catch (error) {
       Alert.alert('Share Failed', 'Unable to share the PDF. Please try again.');
@@ -102,7 +102,7 @@ const HealthDataDownloadScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Health Data Download</Text>
         <View style={{ width: 24 }} />
@@ -135,7 +135,7 @@ const HealthDataDownloadScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>WHAT IS INCLUDED</Text>
             {[
-              { icon: 'person-outline', color: '#007AFF', title: 'Profile & Personal Info' },
+              { icon: 'person-outline', color: '#3AABF0', title: 'Profile & Personal Info' },
               { icon: 'pulse-outline', color: '#34C759', title: 'Biomarkers & Lab Results' },
               { icon: 'watch-outline', color: '#FF9500', title: 'Device & Activity Data' },
               { icon: 'settings-outline', color: '#8E8E93', title: 'App Settings & Preferences' },
@@ -155,11 +155,11 @@ const HealthDataDownloadScreen: React.FC = () => {
             <View style={styles.pdfModalHeader}>
               <Text style={styles.pdfModalTitle}>Health Data Export</Text>
               <TouchableOpacity onPress={() => setShowPdfModal(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#007AFF" />
+                <Ionicons name="close" size={24} color="#3AABF0" />
               </TouchableOpacity>
             </View>
             <View style={styles.pdfContent}>
-              <Ionicons name="document-text" size={64} color="#007AFF" />
+              <Ionicons name="document-text" size={64} color="#3AABF0" />
               <Text style={styles.pdfMessage}>Your health data has been exported to a PDF document.</Text>
               <Text style={styles.pdfSubMessage}>You can now share, save, or print this document.</Text>
             </View>
@@ -218,10 +218,10 @@ const styles = StyleSheet.create({
   pdfMessage: { fontSize: 16, color: '#fff', textAlign: 'center', marginTop: 16, marginBottom: 8 },
   pdfSubMessage: { fontSize: 14, color: '#8E8E93', textAlign: 'center' },
   pdfActions: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  shareButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
+  shareButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
   shareButtonText: { color: '#fff', fontSize: 16, fontWeight: '600', marginLeft: 8 },
-  closeModalButton: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2C2C2E', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: '#007AFF' },
-  closeModalButtonText: { color: '#007AFF', fontSize: 16, fontWeight: '600' },
+  closeModalButton: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2C2C2E', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, borderColor: '#3AABF0' },
+  closeModalButtonText: { color: '#3AABF0', fontSize: 16, fontWeight: '600' },
 });
 
 export default HealthDataDownloadScreen;

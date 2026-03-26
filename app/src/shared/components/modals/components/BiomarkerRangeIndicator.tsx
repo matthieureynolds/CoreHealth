@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderWidth: 2,
     borderColor: '#000000',
     shadowColor: '#000',
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   markerValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginTop: 2,
   },
   rangeLabels: {

@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderTopRightRadius: 4,
   },
   assistantMessage: {

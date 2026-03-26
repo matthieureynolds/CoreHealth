@@ -63,7 +63,7 @@ const BiometricLockScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Biometric Lock / Face ID</Text>
         <View style={{ width: 24 }} />
@@ -78,7 +78,7 @@ const BiometricLockScreen: React.FC = () => {
                 <Ionicons
                   name="finger-print-outline"
                   size={22}
-                  color={!biometricAvailable || isLoading ? '#666' : '#007AFF'}
+                  color={!biometricAvailable || isLoading ? '#666' : '#3AABF0'}
                   style={styles.cardIcon}
                 />
                 <View style={{ flex: 1 }}>
@@ -97,7 +97,7 @@ const BiometricLockScreen: React.FC = () => {
               <Switch
                 value={biometricEnabled}
                 onValueChange={handleBiometricToggle}
-                trackColor={{ false: '#333', true: '#007AFF' }}
+                trackColor={{ false: '#333', true: '#3AABF0' }}
                 thumbColor="#FFFFFF"
                 disabled={!biometricAvailable || isLoading}
               />
@@ -116,7 +116,7 @@ const BiometricLockScreen: React.FC = () => {
               </View>
             </View>
             <View style={styles.infoRow}>
-              <Ionicons name="lock-closed" size={20} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="lock-closed" size={20} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>How It Works</Text>
                 <Text style={styles.infoText}>

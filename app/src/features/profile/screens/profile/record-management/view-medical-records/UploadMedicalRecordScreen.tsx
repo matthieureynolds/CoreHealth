@@ -16,7 +16,7 @@ const recordTypes = [
   { value: 'lab_result', label: 'Lab Result', icon: 'flask-outline', color: '#34C759' },
   { value: 'imaging', label: 'Imaging', icon: 'scan-outline', color: '#AF52DE' },
   { value: 'prescription', label: 'Prescription', icon: 'medical-outline', color: '#FF3B30' },
-  { value: 'consultation', label: 'Consultation', icon: 'people-outline', color: '#0A84FF' },
+  { value: 'consultation', label: 'Consultation', icon: 'people-outline', color: '#3AABF0' },
   { value: 'procedure', label: 'Procedure', icon: 'bandage-outline', color: '#FF9F0A' },
   { value: 'other', label: 'Other', icon: 'document-outline', color: '#8E8E93' },
 ];
@@ -99,7 +99,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
 
   const getTypeIcon = (type: string) => recordTypes.find(t => t.value === type)?.icon || 'document-outline';
   const getTypeLabel = (type: string) => recordTypes.find(t => t.value === type)?.label || 'Other';
-  const getTypeColor = (type: string) => recordTypes.find(t => t.value === type)?.color || '#007AFF';
+  const getTypeColor = (type: string) => recordTypes.find(t => t.value === type)?.color || '#3AABF0';
 
   const formatDateForMode = (d: Date | null, mode: 'year' | 'yearMonth' | 'full') => {
     if (!d) return '';
@@ -128,11 +128,11 @@ const UploadMedicalRecordScreen: React.FC = () => {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="close" size={22} color="#FF3B30" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upload Medical Record</Text>
-        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save</Text>
+        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Ionicons name="checkmark" size={22} color="#34C759" />
         </TouchableOpacity>
       </View>
 
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   content: {

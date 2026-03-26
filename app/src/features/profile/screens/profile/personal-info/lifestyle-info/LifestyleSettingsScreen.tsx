@@ -155,7 +155,7 @@ const LifestyleSettingsScreen: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardHeader}>WORK SCHEDULE</Text>
           <View style={styles.cardRow}>
-            <Ionicons name="briefcase-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+            <Ionicons name="briefcase-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Schedule Type</Text>
             <Text style={styles.cardValue}>
               {formData.workSchedule.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 20,

@@ -238,7 +238,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
 
       {isLookingUpFlight && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#007AFF" />
+          <ActivityIndicator size="small" color="#3AABF0" />
           <Text style={styles.loadingText}>Looking up flight...</Text>
         </View>
       )}

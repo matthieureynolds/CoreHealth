@@ -35,7 +35,7 @@ const MedicalAppointmentScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Medical Appointments</Text>
         <View style={{ width: 24 }} />
@@ -51,7 +51,7 @@ const MedicalAppointmentScreen: React.FC = () => {
                 <Text style={styles.subtitle}>Get reminded about upcoming medical appointments and health tests</Text>
               </View>
             </View>
-            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#007AFF' }} thumbColor="#FFFFFF" />
+            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#3AABF0' }} thumbColor="#FFFFFF" />
           </View>
 
           {enabled && (
@@ -74,13 +74,13 @@ const MedicalAppointmentScreen: React.FC = () => {
                   {NOTIFICATION_TIME_OPTIONS.map(t => (
                     <TouchableOpacity key={t} style={styles.timeOption} onPress={() => updateAlert(editingIndex, t)}>
                       <Text style={styles.timeOptionText}>{t}</Text>
-                      {alerts[editingIndex] === t && <Ionicons name="checkmark" size={18} color="#007AFF" />}
+                      {alerts[editingIndex] === t && <Ionicons name="checkmark" size={18} color="#3AABF0" />}
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
               <TouchableOpacity style={styles.addBtn} onPress={addAlert}>
-                <Ionicons name="add" size={18} color="#0A84FF" />
+                <Ionicons name="add" size={18} color="#3AABF0" />
                 <Text style={styles.addBtnText}>Add Alert</Text>
               </TouchableOpacity>
             </View>
@@ -105,13 +105,13 @@ const styles = StyleSheet.create({
   alertsSection: { marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#333' },
   alertsLabel: { fontSize: 16, color: '#fff', fontWeight: '500', marginBottom: 12 },
   alertRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  alertPill: { flex: 1, backgroundColor: '#0A84FF14', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14, marginRight: 8, borderWidth: 1, borderColor: '#0A84FF33', alignItems: 'center' },
-  alertPillText: { fontSize: 14, color: '#0A84FF', fontWeight: '600' },
+  alertPill: { flex: 1, backgroundColor: '#3AABF014', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14, marginRight: 8, borderWidth: 1, borderColor: '#3AABF033', alignItems: 'center' },
+  alertPillText: { fontSize: 14, color: '#3AABF0', fontWeight: '600' },
   timePickerList: { backgroundColor: '#2C2C2E', borderRadius: 12, marginBottom: 12, overflow: 'hidden' },
   timeOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#3A3A3C' },
   timeOptionText: { fontSize: 15, color: '#fff' },
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A84FF14', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: '#0A84FF33', marginTop: 8 },
-  addBtnText: { color: '#0A84FF', fontSize: 14, fontWeight: '600', marginLeft: 6 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3AABF014', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: '#3AABF033', marginTop: 8 },
+  addBtnText: { color: '#3AABF0', fontSize: 14, fontWeight: '600', marginLeft: 6 },
 });
 
 export default MedicalAppointmentScreen;

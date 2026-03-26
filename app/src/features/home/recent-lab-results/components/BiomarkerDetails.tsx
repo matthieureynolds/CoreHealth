@@ -164,7 +164,7 @@ const BiomarkerDetails: React.FC<BiomarkerDetailsProps> = ({ details }) => (
       <Text style={styles.sectionTitle}>Recommendations:</Text>
       {details.recommendations.map((rec, index) => (
         <View key={index} style={styles.recommendationItem}>
-          <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+          <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
           <Text style={styles.recommendationText}>{rec}</Text>
         </View>
       ))}

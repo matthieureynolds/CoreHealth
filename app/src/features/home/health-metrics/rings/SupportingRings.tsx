@@ -35,7 +35,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
 
   const metrics: RingMetric[] = [
     { id: 'recovery', title: 'RECOVERY', value: safeRecovery, color: '#30D158', icon: 'refresh', subtitle: 'Sleep & HRV' },
-    { id: 'biomarkers', title: 'BIOMARKERS', value: safeBiomarkers, color: '#007AFF', icon: 'water', subtitle: 'Lab Results' },
+    { id: 'biomarkers', title: 'BIOMARKERS', value: safeBiomarkers, color: '#3AABF0', icon: 'water', subtitle: 'Lab Results' },
     { id: 'lifestyle', title: 'LIFESTYLE', value: safeLifestyle, color: '#FF9F0A', icon: 'fitness', subtitle: 'Activity & Habits' },
   ];
 

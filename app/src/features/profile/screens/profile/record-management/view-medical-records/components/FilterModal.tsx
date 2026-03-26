@@ -46,7 +46,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           >
             <Text style={styles.filterOptionText}>{type.label}</Text>
             {selectedFilter === type.value && (
-              <Ionicons name="checkmark" size={20} color="#007AFF" />
+              <Ionicons name="checkmark" size={20} color="#3AABF0" />
             )}
           </TouchableOpacity>
         ))}
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   modalTitle: {
     fontSize: 18,

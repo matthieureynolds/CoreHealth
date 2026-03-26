@@ -76,7 +76,7 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
         {/* Loading State */}
         {selectedLocation && isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color="#3AABF0" />
             <Text style={styles.loadingText}>Loading health data...</Text>
           </View>
         )}

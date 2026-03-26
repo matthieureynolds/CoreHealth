@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   closeButtonText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 16,
     fontWeight: '500',
   },

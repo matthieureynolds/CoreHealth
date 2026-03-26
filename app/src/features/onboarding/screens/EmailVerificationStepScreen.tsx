@@ -117,7 +117,7 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
             style={styles.backButton}
             onPress={onBack}
           >
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
           <Text style={styles.title}>Verify Your Email</Text>
           <Text style={styles.subtitle}>
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   emailText: {
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   form: {
     flex: 1,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   codeInputFilled: {
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     backgroundColor: '#F0F8FF',
   },
   codeInputVerified: {
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   resendButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
   },
   loadingContainer: {

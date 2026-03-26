@@ -12,8 +12,8 @@ export const travelUi = {
     textPrimary: '#FFFFFF',
     textSecondary: '#8E8E93',
     textMuted: '#EBEBF5',
-    accent: '#007AFF',
-    accentSoft: '#007AFF20',
+    accent: '#3AABF0',
+    accentSoft: '#3AABF020',
     overlay: 'rgba(0,0,0,0.7)',
   },
   radius: {

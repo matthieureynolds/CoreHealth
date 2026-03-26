@@ -96,7 +96,7 @@ const EmailPasswordScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Email & Password</Text>
         <View style={{ width: 40 }} />
@@ -114,44 +114,42 @@ const EmailPasswordScreen: React.FC = () => {
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'none'}
           contentContainerStyle={{ paddingBottom: 12 }}
         >
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Email Address</Text>
-            <View style={styles.card}>
-              <View style={styles.row}>
-                <View style={styles.infoSection}>
-                  <Ionicons name="mail-outline" size={20} color="#007AFF" />
-                  <Text style={styles.currentValue}>{user?.email || 'No email set'}</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={toggleEmailEditing}>
-                  {isEditingEmail ? <Ionicons name="close" size={18} color="#FF3B30" /> : <Feather name="edit-2" size={18} color="#007AFF" />}
-                </TouchableOpacity>
+          <View style={styles.card}>
+            {/* Email row */}
+            <View style={styles.row}>
+              <View style={styles.infoSection}>
+                <Ionicons name="mail-outline" size={20} color="#FF9500" />
+                <Text style={styles.currentValue}>{user?.email || 'No email set'}</Text>
               </View>
-              {isEditingEmail && (
-                <EmailForm
-                  emailCurrentPassword={emailCurrentPassword}
-                  setEmailCurrentPassword={setEmailCurrentPassword}
-                  newEmail={newEmail}
-                  setNewEmail={setNewEmail}
-                  showEmailCurrentPassword={showEmailCurrentPassword}
-                  toggleEmailPasswordVisibility={toggleEmailPasswordVisibility}
-                  isLoading={isLoading}
-                  handleUpdateEmail={handleUpdateEmail}
-                  setIsEditingEmail={setIsEditingEmail}
-                />
-              )}
+              <TouchableOpacity style={styles.editButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={toggleEmailEditing}>
+                {isEditingEmail ? <Ionicons name="close" size={18} color="#FF3B30" /> : <Feather name="edit-2" size={18} color="#FFFFFF" />}
+              </TouchableOpacity>
             </View>
-          </View>
+            {isEditingEmail && (
+              <EmailForm
+                emailCurrentPassword={emailCurrentPassword}
+                setEmailCurrentPassword={setEmailCurrentPassword}
+                newEmail={newEmail}
+                setNewEmail={setNewEmail}
+                showEmailCurrentPassword={showEmailCurrentPassword}
+                toggleEmailPasswordVisibility={toggleEmailPasswordVisibility}
+                isLoading={isLoading}
+                handleUpdateEmail={handleUpdateEmail}
+                setIsEditingEmail={setIsEditingEmail}
+              />
+            )}
 
-          <View style={[styles.section, styles.lastSection]}>
-            <Text style={styles.sectionTitle}>Password</Text>
-            <View style={styles.card}>
-              <View style={styles.row}>
-                <View style={styles.infoSection}>
-                  <Ionicons name="lock-closed-outline" size={20} color="#007AFF" />
-                  <Text style={styles.currentValue}>••••••••</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={togglePasswordEditing}>
-                  {isEditingPassword ? <Ionicons name="close" size={18} color="#FF3B30" /> : <Feather name="edit-2" size={18} color="#007AFF" />}
+            {/* Divider */}
+            <View style={styles.divider} />
+
+            {/* Password row */}
+            <View style={styles.row}>
+              <View style={styles.infoSection}>
+                <Ionicons name="lock-closed" size={20} color="#FF3B30" />
+                <Text style={styles.currentValue}>••••••••</Text>
+              </View>
+              <TouchableOpacity style={styles.editButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={togglePasswordEditing}>
+                  {isEditingPassword ? <Ionicons name="close" size={18} color="#FF3B30" /> : <Feather name="edit-2" size={18} color="#FFFFFF" />}
                 </TouchableOpacity>
               </View>
               {isEditingPassword && (
@@ -173,7 +171,6 @@ const EmailPasswordScreen: React.FC = () => {
                   setIsEditingPassword={setIsEditingPassword}
                 />
               )}
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

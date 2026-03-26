@@ -52,7 +52,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
           <Text style={styles.title}>Personal Information</Text>
           <Text style={styles.subtitle}>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   genderButtonSelected: {
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     backgroundColor: '#F0F8FF',
   },
   genderText: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   genderTextSelected: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   heightContainer: {
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,

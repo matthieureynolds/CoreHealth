@@ -12,7 +12,7 @@ const SleepRemindersScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Sleep Reminders</Text>
         <View style={{ width: 24 }} />
@@ -27,7 +27,7 @@ const SleepRemindersScreen: React.FC = () => {
                 <Text style={styles.subtitle}>Get bedtime reminders 3 hours before your planned bedtime</Text>
               </View>
             </View>
-            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#007AFF' }} thumbColor="#FFFFFF" />
+            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#3AABF0' }} thumbColor="#FFFFFF" />
           </View>
         </View>
         <View style={styles.infoCard}>

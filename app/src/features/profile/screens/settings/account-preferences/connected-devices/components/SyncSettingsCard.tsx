@@ -18,7 +18,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
   <View style={styles.settingsCard}>
     <View style={styles.settingItem}>
       <View style={styles.settingInfo}>
-        <Ionicons name="sync" size={20} color="#007AFF" />
+        <Ionicons name="sync" size={20} color="#3AABF0" />
         <View style={styles.settingText}>
           <Text style={styles.settingTitle}>Auto Sync</Text>
           <Text style={styles.settingDescription}>
@@ -29,7 +29,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
       <Switch
         value={autoSync}
         onValueChange={onAutoSyncChange}
-        trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+        trackColor={{ false: '#E5E5EA', true: '#3AABF0' }}
         thumbColor="#fff"
         ios_backgroundColor="#E5E5EA"
       />
@@ -37,7 +37,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
 
     <View style={styles.settingItem}>
       <View style={styles.settingInfo}>
-        <Ionicons name="cloud-upload" size={20} color="#007AFF" />
+        <Ionicons name="cloud-upload" size={20} color="#3AABF0" />
         <View style={styles.settingText}>
           <Text style={styles.settingTitle}>Background Sync</Text>
           <Text style={styles.settingDescription}>
@@ -48,7 +48,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
       <Switch
         value={backgroundSync}
         onValueChange={onBackgroundSyncChange}
-        trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+        trackColor={{ false: '#E5E5EA', true: '#3AABF0' }}
         thumbColor="#fff"
         ios_backgroundColor="#E5E5EA"
       />
@@ -56,7 +56,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
 
     <TouchableOpacity style={styles.settingItem}>
       <View style={styles.settingInfo}>
-        <Ionicons name="time" size={20} color="#007AFF" />
+        <Ionicons name="time" size={20} color="#3AABF0" />
         <View style={styles.settingText}>
           <Text style={styles.settingTitle}>Sync Frequency</Text>
           <Text style={styles.settingDescription}>How often to sync your data</Text>

@@ -12,7 +12,7 @@ const WeeklyHealthSummaryScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Weekly Health Summary</Text>
         <View style={{ width: 24 }} />
@@ -21,19 +21,19 @@ const WeeklyHealthSummaryScreen: React.FC = () => {
         <View style={styles.card}>
           <View style={styles.toggleRow}>
             <View style={styles.labelGroup}>
-              <Ionicons name="trending-up-outline" size={24} color="#007AFF" style={{ marginRight: 14 }} />
+              <Ionicons name="trending-up-outline" size={24} color="#3AABF0" style={{ marginRight: 14 }} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.title}>Weekly Health Summary</Text>
                 <Text style={styles.subtitle}>Get a weekly summary of your health progress and insights</Text>
               </View>
             </View>
-            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#007AFF' }} thumbColor="#FFFFFF" />
+            <Switch value={enabled} onValueChange={setEnabled} trackColor={{ false: '#333', true: '#3AABF0' }} thumbColor="#FFFFFF" />
           </View>
         </View>
         <View style={styles.infoCard}>
           <Text style={styles.cardHeader}>WHEN YOU'LL RECEIVE IT</Text>
           <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={18} color="#007AFF" style={{ marginRight: 12 }} />
+            <Ionicons name="calendar-outline" size={18} color="#3AABF0" style={{ marginRight: 12 }} />
             <Text style={styles.infoText}>Sent every Monday morning with your previous week's health highlights.</Text>
           </View>
         </View>

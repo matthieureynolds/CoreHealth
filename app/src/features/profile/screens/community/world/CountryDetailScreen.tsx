@@ -46,7 +46,7 @@ const CountryDetailScreen: React.FC = () => {
     {
       label: 'Biomarkers',
       icon: 'pulse',
-      color: '#007AFF',
+      color: '#3AABF0',
       score: between(s ^ 3, Math.round(score * 0.82), Math.round(score * 1.1)),
       change: between(s ^ 4, -4, 6),
     },
@@ -91,7 +91,7 @@ const CountryDetailScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#007AFF" />
+          <Ionicons name="chevron-back" size={28} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{flag}  {name}</Text>
         <View style={styles.backButton} />
@@ -176,7 +176,7 @@ const CountryDetailScreen: React.FC = () => {
         <Text style={styles.sectionLabel}>COMMUNITY STATS</Text>
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Ionicons name="people" size={20} color="#007AFF" style={{ marginBottom: 6 }} />
+            <Ionicons name="people" size={20} color="#3AABF0" style={{ marginBottom: 6 }} />
             <Text style={styles.statValue}>{participants.toLocaleString()}</Text>
             <Text style={styles.statLabel}>Participants</Text>
           </View>

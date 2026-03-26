@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   modalTitle: {
     fontSize: 18,

@@ -9,7 +9,7 @@ interface EmptyHealthIDStateProps {
 const EmptyHealthIDState: React.FC<EmptyHealthIDStateProps> = ({ onAddPress }) => (
   <View style={styles.emptyState}>
     <View style={styles.emptyIconContainer}>
-      <Ionicons name="card-outline" size={48} color="#007AFF" />
+      <Ionicons name="card-outline" size={48} color="#3AABF0" />
     </View>
     <Text style={styles.emptyTitle}>No Health IDs</Text>
     <Text style={styles.emptySubtitle}>
@@ -53,13 +53,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   addFirstButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#3AABF0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

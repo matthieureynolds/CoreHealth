@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   addFirstButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

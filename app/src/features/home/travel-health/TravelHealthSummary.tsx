@@ -134,7 +134,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="location" size={20} color="#007AFF" />
+          <Ionicons name="location" size={20} color="#3AABF0" />
           <Text style={styles.title}>Travel Health</Text>
         </View>
         <TouchableOpacity onPress={() => setShowMore(!showMore)}>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   moreTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
     fontSize: 14,
   },

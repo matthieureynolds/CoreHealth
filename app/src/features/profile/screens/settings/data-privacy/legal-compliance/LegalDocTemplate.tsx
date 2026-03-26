@@ -33,23 +33,20 @@ const LegalDocTemplate: React.FC<Props> = ({ title, content }) => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">{title}</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>{title}</Text>
+        <View style={{ width: 40 }} />
       </View>
       
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>{title.toUpperCase()}</Text>
-          <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
-            {content.map((p, idx) => (
-              <Text key={idx} style={styles.paragraph}>{p}</Text>
-            ))}
-          </View>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+        <View style={styles.section}>
+          {content.map((p, idx) => (
+            <Text key={idx} style={styles.paragraph}>{p}</Text>
+          ))}
         </View>
 
         {/* Bottom spacing to match the gap between cards */}
@@ -62,16 +59,15 @@ const LegalDocTemplate: React.FC<Props> = ({ title, content }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: 20, 
-    paddingTop: 72, 
-    paddingBottom: 5, 
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0,
     position: 'absolute',
     top: 0,
     left: 0,
@@ -79,21 +75,17 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 10,
   },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 17.7,
-    paddingBottom: 8,
+    flex: 1,
   },
-  card: { backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, marginTop: 20, paddingVertical: 16 },
-  cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },
-  paragraph: { color: '#FFFFFF', fontSize: 14, lineHeight: 20, marginBottom: 12, textAlign: 'justify' },
+  section: { marginHorizontal: 20, marginTop: 24 },
+  cardHeader: { fontSize: 16, fontWeight: '700', color: '#8E8E93', marginBottom: 16, letterSpacing: 0.8 },
+  paragraph: { color: '#FFFFFF', fontSize: 14, lineHeight: 20, marginBottom: 12 },
   bottomSpacing: { height: 20 },
 });
 

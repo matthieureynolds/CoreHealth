@@ -62,7 +62,7 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
             <Ionicons 
               name={system.icon} 
               size={18} 
-              color={selectedSystem === system.id ? '#007AFF' : '#8E8E93'} 
+              color={selectedSystem === system.id ? '#3AABF0' : '#8E8E93'} 
             />
             <Text
               style={[
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   selectedTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
+    borderBottomColor: '#3AABF0',
   },
   tabText: {
     fontSize: 15,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     maxWidth: 100,
   },
   selectedTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
 });

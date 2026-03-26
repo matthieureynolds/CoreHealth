@@ -144,10 +144,12 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
     ([, evts]) => evts.length > 0
   );
 
+  const hasMoreEvents = grouped.thisWeek.length > 0 || grouped.nextMonth.length > 0 || grouped.future.length > 0;
+
   return (
-    <View style={styles.container}>
+    <View style={events.length === 0 ? styles.containerEmpty : styles.container}>
       <View style={styles.header}>
-        <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+        <Ionicons name="calendar-outline" size={24} color="#3AABF0" />
         <Text style={styles.title}>Medical Timeline</Text>
         <TouchableOpacity onPress={() => { setEditingEvent(null); setAddModalVisible(true); }} style={{ padding: 6 }}>
           <Ionicons name="add" size={22} color="#FFFFFF" />
@@ -178,11 +180,13 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
         ))
       )}
 
-      <View style={{ alignItems: 'center', marginTop: 4 }}>
-        <TouchableOpacity onPress={() => setShowMore(v => !v)} style={styles.moreTab}>
-          <Text style={styles.moreTabText}>{showMore ? 'Show Less' : '+ More'}</Text>
-        </TouchableOpacity>
-      </View>
+      {hasMoreEvents && (
+        <View style={{ alignItems: 'center', marginTop: 4 }}>
+          <TouchableOpacity onPress={() => setShowMore(v => !v)} style={styles.moreTab}>
+            <Text style={styles.moreTabText}>{showMore ? 'Show Less' : '+ More'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <BpReadingModal
         visible={showBpModal}
@@ -229,9 +233,10 @@ export default MedicalTimeline;
 
 const styles = StyleSheet.create({
   container: { backgroundColor: '#1C1C1E', borderRadius: 20, padding: 20, marginHorizontal: 16, marginVertical: 8 },
+  containerEmpty: { backgroundColor: '#1C1C1E', borderRadius: 20, padding: 20, paddingBottom: 2, marginHorizontal: 16, marginVertical: 8 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   title: { fontSize: 18, fontWeight: '600', color: '#FFFFFF', marginLeft: 8, flex: 1 },
   categoryTitle: { fontSize: 18, fontWeight: '600', color: '#FFFFFF', marginBottom: 8, marginTop: 16, marginLeft: 16, textAlign: 'left' },
   moreTab: { alignItems: 'center', paddingVertical: 8 },
-  moreTabText: { color: '#007AFF', fontWeight: '600', fontSize: 14 },
+  moreTabText: { color: '#3AABF0', fontWeight: '600', fontSize: 14 },
 });

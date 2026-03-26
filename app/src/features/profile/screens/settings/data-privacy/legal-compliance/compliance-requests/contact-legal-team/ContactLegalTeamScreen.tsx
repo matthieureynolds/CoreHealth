@@ -21,7 +21,7 @@ const ContactLegalTeamScreen: React.FC = () => {
       title: 'General Legal Enquiry',
       subtitle: 'Questions about Terms, policies, or legal matters',
       icon: 'document-text-outline' as const,
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       email: 'legal@corehealth.com',
       subject: 'Legal Enquiry',
     },
@@ -55,7 +55,7 @@ const ContactLegalTeamScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Contact Legal Team</Text>
         <View style={{ width: 24 }} />
@@ -85,7 +85,7 @@ const ContactLegalTeamScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>RESPONSE TIMES</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="time-outline" size={20} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="time-outline" size={20} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>General Enquiries</Text>
                 <Text style={styles.infoText}>We aim to respond within 5 business days.</Text>

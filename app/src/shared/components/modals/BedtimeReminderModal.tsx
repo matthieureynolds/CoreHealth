@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   acknowledgeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,

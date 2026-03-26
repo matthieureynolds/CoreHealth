@@ -34,7 +34,7 @@ const getTypeIcon = (type: string): string => {
 const getTypeColor = (type: string): string => {
   switch (type) {
     case 'lab_result': return '#4CD964';
-    case 'imaging': return '#007AFF';
+    case 'imaging': return '#3AABF0';
     case 'prescription': return '#FF9500';
     case 'consultation': return '#6BCF7F';
     case 'procedure': return '#FF3B30';
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   uploadButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

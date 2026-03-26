@@ -15,7 +15,7 @@ const PickerBottomNav: React.FC<PickerBottomNavProps> = ({ activeTab, onTabChang
       style={[styles.navItem, activeTab === 'gallery' && styles.navItemActive]}
       onPress={() => onTabChange('gallery')}
     >
-      <Ionicons name="images" size={24} color={activeTab === 'gallery' ? '#007AFF' : '#8E8E93'} />
+      <Ionicons name="images" size={24} color={activeTab === 'gallery' ? '#3AABF0' : '#8E8E93'} />
       <Text style={[styles.navItemText, activeTab === 'gallery' && styles.navItemTextActive]}>
         Gallery
       </Text>
@@ -28,7 +28,7 @@ const PickerBottomNav: React.FC<PickerBottomNavProps> = ({ activeTab, onTabChang
       <Ionicons
         name="document-text"
         size={24}
-        color={activeTab === 'file' ? '#007AFF' : '#8E8E93'}
+        color={activeTab === 'file' ? '#3AABF0' : '#8E8E93'}
       />
       <Text style={[styles.navItemText, activeTab === 'file' && styles.navItemTextActive]}>
         File
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   navItemTextActive: {
-    color: '#007AFF',
+    color: '#3AABF0',
   },
 });
 

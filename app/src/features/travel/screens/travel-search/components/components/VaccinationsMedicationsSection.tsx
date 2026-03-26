@@ -59,7 +59,7 @@ const VaccinationsMedicationsSection: React.FC<VaccinationsMedicationsSectionPro
     <View style={styles.medicationSection}>
       <View style={styles.sectionGroupCard}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-          <Ionicons name="medkit" size={20} color="#0A84FF" />
+          <Ionicons name="medkit" size={20} color="#3AABF0" />
           <Text style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>Medications</Text>
         </View>
         {GENERAL_MEDS.map((m: { name: string; note: string }, idx: number) => (

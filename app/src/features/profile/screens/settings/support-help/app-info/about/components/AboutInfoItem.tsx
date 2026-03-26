@@ -16,7 +16,7 @@ const AboutInfoItem: React.FC<InfoItemProps> = ({ icon, title, value, onPress })
     disabled={!onPress}
   >
     <View style={styles.infoItemLeft}>
-      <Ionicons name={icon as any} size={24} color="#007AFF" />
+      <Ionicons name={icon as any} size={24} color="#3AABF0" />
       <Text style={styles.infoItemTitle}>{title}</Text>
     </View>
     <View style={styles.infoItemRight}>
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   linkText: {
-    color: '#007AFF',
+    color: '#3AABF0',
   },
 });
 

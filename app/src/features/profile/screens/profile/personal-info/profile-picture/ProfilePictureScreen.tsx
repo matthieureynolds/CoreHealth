@@ -58,7 +58,7 @@ const ProfilePictureScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Profile Picture</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveButton} disabled={!selectedImage}>
@@ -88,14 +88,14 @@ const ProfilePictureScreen: React.FC = () => {
           style={[styles.tab, activeTab === 'library' && styles.activeTab]}
           onPress={() => setActiveTab('library')}
         >
-          <Ionicons name="images-outline" size={18} color={activeTab === 'library' ? '#007AFF' : '#8E8E93'} style={{ marginRight: 6 }} />
+          <Ionicons name="images-outline" size={18} color={activeTab === 'library' ? '#3AABF0' : '#8E8E93'} style={{ marginRight: 6 }} />
           <Text style={[styles.tabText, activeTab === 'library' && styles.activeTabText]}>Choose from Library</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'camera' && styles.activeTab]}
           onPress={() => setActiveTab('camera')}
         >
-          <Ionicons name="camera-outline" size={18} color={activeTab === 'camera' ? '#007AFF' : '#8E8E93'} style={{ marginRight: 6 }} />
+          <Ionicons name="camera-outline" size={18} color={activeTab === 'camera' ? '#3AABF0' : '#8E8E93'} style={{ marginRight: 6 }} />
           <Text style={[styles.tabText, activeTab === 'camera' && styles.activeTabText]}>Take Photo</Text>
         </TouchableOpacity>
       </View>
@@ -104,7 +104,7 @@ const ProfilePictureScreen: React.FC = () => {
       <View style={styles.tabContent}>
         {activeTab === 'library' ? (
           <View style={styles.actionCard}>
-            <Ionicons name="images-outline" size={48} color="#007AFF" style={{ marginBottom: 16 }} />
+            <Ionicons name="images-outline" size={48} color="#3AABF0" style={{ marginBottom: 16 }} />
             <Text style={styles.actionTitle}>Choose from Library</Text>
             <Text style={styles.actionSubtitle}>Select a photo from your camera roll to use as your profile picture</Text>
             <TouchableOpacity style={styles.actionButton} onPress={pickFromLibrary} activeOpacity={0.8}>
@@ -138,22 +138,22 @@ const styles = StyleSheet.create({
   backButton: { padding: 8, marginTop: 16 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', marginTop: 16 },
   saveButton: { padding: 8, marginTop: 16 },
-  saveButtonText: { fontSize: 16, fontWeight: '600', color: '#007AFF' },
+  saveButtonText: { fontSize: 16, fontWeight: '600', color: '#3AABF0' },
   saveButtonDisabled: { color: '#555' },
   previewContainer: { alignItems: 'center', paddingTop: 32, paddingBottom: 24, position: 'relative' },
-  previewImage: { width: 120, height: 120, borderRadius: 60, borderWidth: 3, borderColor: '#007AFF' },
+  previewImage: { width: 120, height: 120, borderRadius: 60, borderWidth: 3, borderColor: '#3AABF0' },
   previewPlaceholder: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#1C1C1E', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#333' },
   clearButton: { position: 'absolute', top: 24, right: '30%' },
   tabBar: { flexDirection: 'row', marginHorizontal: 20, backgroundColor: '#1C1C1E', borderRadius: 12, padding: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10 },
   activeTab: { backgroundColor: '#2C2C2E' },
   tabText: { fontSize: 14, fontWeight: '500', color: '#8E8E93' },
-  activeTabText: { color: '#007AFF', fontWeight: '600' },
+  activeTabText: { color: '#3AABF0', fontWeight: '600' },
   tabContent: { flex: 1, padding: 20 },
   actionCard: { flex: 1, backgroundColor: '#1C1C1E', borderRadius: 16, padding: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#333' },
   actionTitle: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 10, textAlign: 'center' },
   actionSubtitle: { fontSize: 14, color: '#8E8E93', textAlign: 'center', lineHeight: 20, marginBottom: 28 },
-  actionButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 12 },
+  actionButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3AABF0', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 12 },
   actionButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 

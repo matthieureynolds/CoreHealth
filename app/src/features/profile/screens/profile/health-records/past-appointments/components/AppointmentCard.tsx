@@ -32,7 +32,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         style={styles.attachmentBadge}
         onPress={() => onAttachmentPress(apt)}
       >
-        <Ionicons name="document-attach" size={20} color="#007AFF" />
+        <Ionicons name="document-attach" size={20} color="#3AABF0" />
         <Text style={styles.attachmentText}>Attachment</Text>
       </TouchableOpacity>
     ) : null}
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   cardMain: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 4 },
   cardDoctor: { fontSize: 14, color: '#8E8E93', marginBottom: 2 },
-  cardDate: { fontSize: 13, color: '#007AFF', marginBottom: 2 },
+  cardDate: { fontSize: 13, color: '#3AABF0', marginBottom: 2 },
   cardLocation: { fontSize: 12, color: '#8E8E93' },
   attachmentBadge: {
     flexDirection: 'row',
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: 'rgba(0,122,255,0.15)',
   },
-  attachmentText: { fontSize: 12, color: '#007AFF', marginLeft: 4, fontWeight: '600' },
+  attachmentText: { fontSize: 12, color: '#3AABF0', marginLeft: 4, fontWeight: '600' },
 });
 
 export default AppointmentCard;

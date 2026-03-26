@@ -37,7 +37,7 @@ export const MissionSection: React.FC = () => (
     <SectionHeader title="Our Mission" />
     <View style={styles.missionContent}>
       <Text style={styles.missionText}>
-        CoreHealth was created to empower individuals to take control of their health through intelligent tracking, personalized insights, and seamless data management. We believe that everyone deserves access to comprehensive health tools that respect privacy and put the user in control.
+        TOTO was created to empower individuals to take control of their health through intelligent tracking, personalized insights, and seamless data management. We believe that everyone deserves access to comprehensive health tools that respect privacy and put the user in control.
       </Text>
       <Text style={styles.featuresTitle}>Key Features:</Text>
       <Text style={styles.featuresText}>
@@ -72,8 +72,8 @@ export const ConnectSection: React.FC = () => (
   <View style={styles.section}>
     <SectionHeader title="Connect With Us" />
     <AboutInfoItem icon="globe-outline" title="Website" value="corehealth.app" onPress={() => handleLinkPress('https://corehealth.app')} />
-    <AboutInfoItem icon="logo-twitter" title="Twitter" value="@CoreHealthApp" onPress={() => handleLinkPress('https://twitter.com/corehealthapp')} />
-    <AboutInfoItem icon="logo-linkedin" title="LinkedIn" value="CoreHealth" onPress={() => handleLinkPress('https://linkedin.com/company/corehealth')} />
+    <AboutInfoItem icon="logo-twitter" title="Twitter" value="@TOTOApp" onPress={() => handleLinkPress('https://twitter.com/corehealthapp')} />
+    <AboutInfoItem icon="logo-linkedin" title="LinkedIn" value="TOTO" onPress={() => handleLinkPress('https://linkedin.com/company/corehealth')} />
     <AboutInfoItem icon="logo-github" title="GitHub" value="Open Source Components" onPress={() => handleLinkPress('https://github.com/corehealth')} />
     <AboutInfoItem icon="mail-outline" title="Contact" value="hello@corehealth.app" onPress={() => handleEmailPress('hello@corehealth.app')} />
   </View>
@@ -94,7 +94,7 @@ export const AcknowledgmentsSection: React.FC = () => (
     <SectionHeader title="Acknowledgments" />
     <View style={styles.acknowledgments}>
       <Text style={styles.acknowledgeText}>
-        Special thanks to the open-source community, our beta testers, healthcare professionals who provided guidance, and the amazing libraries that make CoreHealth possible:
+        Special thanks to the open-source community, our beta testers, healthcare professionals who provided guidance, and the amazing libraries that make TOTO possible:
       </Text>
       <Text style={styles.librariesText}>
         {'• React Native & Expo\n• Supabase\n• Ionicons\n• React Navigation\n• TensorFlow\n• And many more...'}

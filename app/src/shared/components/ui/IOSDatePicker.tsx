@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
   },
   datePicker: {

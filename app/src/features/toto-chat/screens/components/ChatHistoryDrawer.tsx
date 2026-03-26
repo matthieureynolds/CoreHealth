@@ -49,7 +49,7 @@ const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
           <View style={{ flex: 1 }}>
             {historyLoading && (
               <View style={styles.centeredFill}>
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color="#3AABF0" />
                 <Text style={styles.mutedText}>Loading previous chat…</Text>
               </View>
             )}

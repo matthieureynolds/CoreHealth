@@ -72,7 +72,7 @@ const LocationAccessScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Location Access</Text>
         <View style={{ width: 24 }} />
@@ -87,7 +87,7 @@ const LocationAccessScreen: React.FC = () => {
                 <Ionicons
                   name="location-outline"
                   size={22}
-                  color={isLoading ? '#666' : '#007AFF'}
+                  color={isLoading ? '#666' : '#3AABF0'}
                   style={styles.cardIcon}
                 />
                 <View style={{ flex: 1 }}>
@@ -102,7 +102,7 @@ const LocationAccessScreen: React.FC = () => {
               <Switch
                 value={locationAccess}
                 onValueChange={handleLocationToggle}
-                trackColor={{ false: '#333', true: '#007AFF' }}
+                trackColor={{ false: '#333', true: '#3AABF0' }}
                 thumbColor="#FFFFFF"
                 disabled={isLoading}
               />
@@ -125,7 +125,7 @@ const LocationAccessScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>ABOUT LOCATION SERVICES</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="location" size={20} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="location" size={20} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>What Location Is Used For</Text>
                 <Text style={styles.infoText}>

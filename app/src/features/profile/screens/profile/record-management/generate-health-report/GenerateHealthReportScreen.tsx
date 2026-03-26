@@ -82,7 +82,7 @@ const GenerateHealthReportScreen: React.FC = () => {
       });
       setIsGenerating(false);
       const date = new Date().toISOString().split('T')[0];
-      const filename = `CoreHealth_Report_${patientName.replace(/\s+/g, '_')}_${date}.pdf`;
+      const filename = `TOTO_Report_${patientName.replace(/\s+/g, '_')}_${date}.pdf`;
 
       Alert.alert(
         'Health Report Generated! 📄',
@@ -153,7 +153,7 @@ const GenerateHealthReportScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ReportHeader onBack={() => navigation.goBack()} />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
           <ReportInfoBanner />
           <SectionSelector

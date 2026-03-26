@@ -18,8 +18,8 @@ type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 export const CoreProfileScreens = (Stack: StackType) => (
   <>
     <Stack.Screen name="ProfileDetails" component={ProfileDetailsScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
-    <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
+    <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: true, title: 'Edit Profile' }} />
     <Stack.Screen name="EditName" component={EditNameScreen} options={{ headerShown: false }} />
     <Stack.Screen name="EditUsername" component={EditUsernameScreen} options={{ headerShown: false }} />
     <Stack.Screen name="EditPhysicalStats" component={EditPhysicalStatsScreen} options={{ headerShown: false }} />

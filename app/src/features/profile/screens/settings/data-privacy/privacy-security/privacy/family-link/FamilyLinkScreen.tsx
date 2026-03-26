@@ -61,7 +61,7 @@ const FamilyLinkScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Family Link (Risk-Only)</Text>
         <View style={{ width: 24 }} />
@@ -121,14 +121,14 @@ const FamilyLinkScreen: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardHeader}>MY LINKS</Text>
           {isLoading ? (
-            <ActivityIndicator color="#007AFF" />
+            <ActivityIndicator color="#3AABF0" />
           ) : (
             <FlatList
               data={links}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <View style={styles.linkRow}>
-                  <Ionicons name="person" color="#007AFF" size={18} style={{ marginRight: 8 }} />
+                  <Ionicons name="person" color="#3AABF0" size={18} style={{ marginRight: 8 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.linkText}>{item.degree} • {item.direction} • {item.status}</Text>
                     <Text style={styles.subText}>hash: {item.relativeUidHash}</Text>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   degreePill: { backgroundColor: '#222', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, marginRight: 8 },
   pillText: { color: '#8E8E93', fontWeight: '600' },
   pillActive: { color: '#fff' },
-  primaryButton: { backgroundColor: '#007AFF', paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginTop: 8 },
+  primaryButton: { backgroundColor: '#3AABF0', paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginTop: 8 },
   primaryButtonText: { color: '#fff', fontWeight: '700' },
   linkRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   linkText: { color: '#fff', fontSize: 14, fontWeight: '600' },

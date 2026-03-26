@@ -66,7 +66,7 @@ const searchOSMHealthcare = async (
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'CoreHealth-App/1.0'
+        'User-Agent': 'TOTO-App/1.0'
       }
     });
     

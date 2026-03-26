@@ -25,15 +25,11 @@ const GenderPickerModal: React.FC<GenderPickerModalProps> = ({ visible, currentG
   }, [visible]);
 
   const handleSelect = (value: 'male' | 'female') => {
-    Animated.timing(translateY, { toValue: 1000, duration: 250, useNativeDriver: true }).start(() => {
-      onSelect(value);
-    });
+    onSelect(value);
   };
 
   const handleClose = () => {
-    Animated.timing(translateY, { toValue: 1000, duration: 250, useNativeDriver: true }).start(() => {
-      onClose();
-    });
+    onClose();
   };
 
   return (

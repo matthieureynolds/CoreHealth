@@ -45,7 +45,7 @@ const CircleDetailScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#007AFF" />
+          <Ionicons name="chevron-back" size={28} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{name}</Text>
         <View style={styles.backButton} />
@@ -133,7 +133,7 @@ const CircleDetailScreen: React.FC = () => {
                   </View>
                   {/* Scores */}
                   <ScorePill value={m.recovery}   color="#30D158" />
-                  <ScorePill value={m.biomarkers} color="#007AFF" />
+                  <ScorePill value={m.biomarkers} color="#3AABF0" />
                   <ScorePill value={m.lifestyle}  color="#FF9F0A" />
                 </View>
               ))}
@@ -153,7 +153,7 @@ const CircleDetailScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.shareButton}
             onPress={() => Share.share({
-              message: `Join my ${name} circle on CoreHealth. Invite code: ${inviteCode}`,
+              message: `Join my ${name} circle on TOTO. Invite code: ${inviteCode}`,
             })}
           >
             <Ionicons name="share-social" size={16} color="#FFFFFF" />

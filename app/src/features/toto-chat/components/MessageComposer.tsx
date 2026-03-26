@@ -207,7 +207,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={disabled ? ['#2C2C2E', '#2C2C2E'] : ['#0A84FF', '#2997FF']}
+              colors={disabled ? ['#2C2C2E', '#2C2C2E'] : ['#3AABF0', '#2997FF']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.actionButton}
@@ -298,12 +298,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   actionButtonWrapper: {
     marginLeft: 8,
     borderRadius: 20,
-    shadowColor: '#0A84FF',
+    shadowColor: '#3AABF0',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 8,

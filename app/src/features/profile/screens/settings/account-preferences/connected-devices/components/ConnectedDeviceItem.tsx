@@ -17,24 +17,16 @@ interface ConnectedDeviceItemProps {
   onDisconnect: (id: string, name: string) => void;
 }
 
-const getLogoStyle = (deviceName: string) => {
-  switch (deviceName) {
-    case 'ZOE™':             return styles.deviceLogoImageZoe;
-    case 'Apple Health':     return styles.deviceLogoImageApple;
-    case 'Withings® U-Scan': return styles.deviceLogoImageUScan;
-    case 'Withings® Thermo': return styles.deviceLogoImageThermo;
-    case 'Withings® Body+':  return styles.deviceLogoImageBodyPlus;
-    case 'Withings® BPM Connect': return styles.deviceLogoImageBPMConnect;
-    default:                 return styles.deviceLogoImage;
-  }
-};
+const getLogoStyle = (_deviceName: string) => styles.deviceLogoImage;
+
+const getLogoBg = (_deviceName: string): string => 'transparent';
 
 export const renderDeviceLogo = (device: Device) => {
   if (typeof device.logo === 'string') {
-    return <Ionicons name={device.logo as any} size={24} color={device.color} />;
+    return <Ionicons name={device.logo as any} size={28} color={device.color} />;
   }
   return (
-    <View style={styles.deviceLogoContainer}>
+    <View style={[styles.deviceLogoContainer, { backgroundColor: getLogoBg(device.name) }]}>
       <Image
         source={device.logo}
         style={getLogoStyle(device.name)}
@@ -45,38 +37,29 @@ export const renderDeviceLogo = (device: Device) => {
 };
 
 const ConnectedDeviceItem: React.FC<ConnectedDeviceItemProps> = ({ device, onDisconnect }) => (
-  <View style={styles.deviceCard}>
+  <View style={styles.deviceRow}>
     <View style={styles.deviceInfo}>
-      <View style={[styles.deviceLogo, { backgroundColor: device.color + '20' }]}>
-        {renderDeviceLogo(device)}
-      </View>
+      {renderDeviceLogo(device)}
       <View style={styles.deviceDetails}>
         <Text style={styles.deviceName}>{device.name}</Text>
-        <Text style={styles.deviceStatus}>{device.status}</Text>
-        <Text style={styles.deviceLastSync}>Last sync: {device.lastSync}</Text>
+        {device.lastSync && (
+          <Text style={styles.deviceLastSync}>Last sync: {device.lastSync}</Text>
+        )}
       </View>
     </View>
-    <TouchableOpacity
-      style={styles.disconnectButton}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      onPress={() => onDisconnect(device.id, device.name)}
-    >
-      <Ionicons name="close" size={18} color="#FF3B30" />
+    <TouchableOpacity style={styles.disconnectButton} onPress={() => onDisconnect(device.id, device.name)}>
+      <Text style={styles.disconnectButtonText}>Disconnect</Text>
     </TouchableOpacity>
   </View>
 );
 
 const styles = StyleSheet.create({
-  deviceCard: {
+  deviceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#333',
+    paddingVertical: 16,
+    borderBottomWidth: 0,
   },
   deviceInfo: {
     flexDirection: 'row',
@@ -84,29 +67,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
   },
-  deviceLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
   deviceLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    marginRight: 16,
   },
   deviceLogoImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 24,
+    borderRadius: 12,
   },
   deviceLogoImageZoe: {
     width: '100%',
@@ -148,20 +122,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   deviceStatus: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#34C759',
     fontWeight: '500',
     marginBottom: 2,
   },
   deviceLastSync: {
     fontSize: 12,
-    color: '#888',
+    color: '#555',
   },
   disconnectButton: {
-    padding: 0,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    borderRadius: 20,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+  },
+  disconnectButtonText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
 

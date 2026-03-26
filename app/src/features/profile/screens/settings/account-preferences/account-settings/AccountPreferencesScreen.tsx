@@ -50,7 +50,7 @@ const AccountPreferencesScreen: React.FC = () => {
     >
       <View style={styles.settingsItemContent}>
         <View style={styles.iconContainer}>
-          <Ionicons name={item.icon as any} size={24} color="#007AFF" />
+          <Ionicons name={item.icon as any} size={24} color="#3AABF0" />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.settingsTitle}>{item.title}</Text>
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,

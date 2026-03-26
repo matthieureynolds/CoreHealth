@@ -35,7 +35,7 @@ const MessageList: React.FC<Props> = ({
   >
     {isInitializing ? (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#007AFF" />
+        <ActivityIndicator size="small" color="#3AABF0" />
         <Text style={styles.loadingText}>Preparing your personalized health assistant...</Text>
       </View>
     ) : (
@@ -46,7 +46,7 @@ const MessageList: React.FC<Props> = ({
             <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}>
               {!isUser && (
                 <View style={styles.assistantIcon}>
-                  <Ionicons name="sparkles" size={16} color="#007AFF" />
+                  <Ionicons name="sparkles" size={16} color="#3AABF0" />
                 </View>
               )}
               <View style={styles.messageContent}>
@@ -68,7 +68,7 @@ const MessageList: React.FC<Props> = ({
     {isLoading && (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingBubble}>
-          <ActivityIndicator size="small" color="#007AFF" />
+          <ActivityIndicator size="small" color="#3AABF0" />
           <Text style={styles.loadingText}>Analyzing your health data...</Text>
         </View>
       </View>

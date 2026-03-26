@@ -78,7 +78,7 @@ const ShareWithDoctorScreen: React.FC = () => {
       const { uri } = await Print.printToFileAsync({ html, base64: false, width: 612, height: 792, margins: { left: 36, right: 36, top: 36, bottom: 36 } });
       setIsGenerating(false);
       const date = new Date().toISOString().split('T')[0];
-      const filename = `CoreHealth_Report_${patientName.replace(/\s+/g, '_')}_Dr_${selectedDoctor.name.replace(/\s+/g, '_')}_${date}.pdf`;
+      const filename = `TOTO_Report_${patientName.replace(/\s+/g, '_')}_Dr_${selectedDoctor.name.replace(/\s+/g, '_')}_${date}.pdf`;
       Alert.alert('Health Report Generated! 📄', `Ready to share with Dr. ${selectedDoctor.name}.`, [
         { text: 'Share with Doctor', onPress: async () => {
           try {
@@ -118,13 +118,13 @@ const ShareWithDoctorScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Share with Doctor</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
           <View style={styles.doctorSection}>
             <Text style={styles.sectionTitle}>Select Doctor</Text>
@@ -148,7 +148,7 @@ const ShareWithDoctorScreen: React.FC = () => {
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.addDoctorButton} onPress={() => setShowAddDoctor(true)}>
-              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+              <Ionicons name="add-circle-outline" size={20} color="#3AABF0" />
               <Text style={styles.addDoctorButtonText}>Add New Doctor</Text>
             </TouchableOpacity>
           </View>
@@ -160,7 +160,7 @@ const ShareWithDoctorScreen: React.FC = () => {
               <TouchableOpacity key={section.id} style={[styles.sectionCard, selectedSections.includes(section.id) && styles.selectedSection]} onPress={() => toggleSection(section.id)}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionInfo}>
-                    <Ionicons name={section.icon as any} size={24} color={selectedSections.includes(section.id) ? '#007AFF' : '#888'} />
+                    <Ionicons name={section.icon as any} size={24} color={selectedSections.includes(section.id) ? '#3AABF0' : '#888'} />
                     <View style={styles.sectionText}>
                       <Text style={[styles.sectionLabel, selectedSections.includes(section.id) && styles.selectedSectionText]}>{section.label}</Text>
                       {section.id !== 'personal_info' && <Text style={styles.sectionCount}>{getSectionCount(section.id)} items</Text>}
@@ -187,7 +187,7 @@ const ShareWithDoctorScreen: React.FC = () => {
       <Modal visible={showDoctorPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowDoctorPicker(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowDoctorPicker(false)}><Text style={styles.cancelButton}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowDoctorPicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}><Ionicons name="close" size={22} color="#FF3B30" /></TouchableOpacity>
             <Text style={styles.modalTitle}>Select Doctor</Text>
             <View style={{ width: 60 }} />
           </View>
@@ -221,33 +221,39 @@ const ShareWithDoctorScreen: React.FC = () => {
       </Modal>
 
       {/* Add Doctor Modal */}
-      <Modal visible={showAddDoctor} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowAddDoctor(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowAddDoctor(false)}><Text style={styles.cancelButton}>Cancel</Text></TouchableOpacity>
-            <Text style={styles.modalTitle}>Add New Doctor</Text>
-            <TouchableOpacity onPress={addNewDoctor}><Text style={styles.saveButton}>Save</Text></TouchableOpacity>
-          </View>
-          <ScrollView style={styles.modalContent}>
-            {[
-              { key: 'name', label: 'Doctor Name *', placeholder: 'e.g., John Smith' },
-              { key: 'specialty', label: 'Specialty *', placeholder: 'e.g., Cardiology' },
-              { key: 'phone', label: 'Phone Number', placeholder: 'e.g., +1 (555) 123-4567', keyboardType: 'phone-pad' },
-              { key: 'email', label: 'Email', placeholder: 'e.g., doctor@hospital.com', keyboardType: 'email-address' },
-              { key: 'office', label: 'Office/Hospital', placeholder: 'e.g., City General Hospital' },
-              { key: 'address', label: 'Address', placeholder: 'e.g., 123 Medical Center Dr' },
-            ].map(f => (
-              <View key={f.key} style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>{f.label}</Text>
-                <TextInput style={styles.textInput} value={(newDoctor as any)[f.key]} onChangeText={t => setNewDoctor({ ...newDoctor, [f.key]: t })} placeholder={f.placeholder} placeholderTextColor="#666" keyboardType={(f as any).keyboardType || 'default'} />
-              </View>
-            ))}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes (Optional)</Text>
-              <TextInput style={[styles.textInput, styles.textArea]} value={newDoctor.notes} onChangeText={t => setNewDoctor({ ...newDoctor, notes: t })} placeholder="Add any additional notes" placeholderTextColor="#666" multiline numberOfLines={3} />
+      <Modal visible={showAddDoctor} transparent animationType="fade" onRequestClose={() => setShowAddDoctor(false)}>
+        <TouchableOpacity style={styles.addDoctorOverlay} activeOpacity={1} onPress={() => setShowAddDoctor(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={styles.addDoctorSheet}>
+            <View style={styles.addDoctorHeader}>
+              <TouchableOpacity onPress={() => setShowAddDoctor(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="close" size={22} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.addDoctorTitle}>Add New Doctor</Text>
+              <TouchableOpacity onPress={addNewDoctor} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="checkmark" size={22} color="#34C759" />
+              </TouchableOpacity>
             </View>
-          </ScrollView>
-        </View>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ padding: 20, paddingBottom: 40 }}>
+              <View style={styles.groupedInputs}>
+                <TextInput style={styles.groupedInput} placeholder="Doctor Name *" placeholderTextColor="#8E8E93" value={newDoctor.name} onChangeText={t => setNewDoctor({ ...newDoctor, name: t })} />
+                <View style={styles.groupedDivider} />
+                <TextInput style={styles.groupedInput} placeholder="Specialty *" placeholderTextColor="#8E8E93" value={newDoctor.specialty} onChangeText={t => setNewDoctor({ ...newDoctor, specialty: t })} />
+                <View style={styles.groupedDivider} />
+                <TextInput style={styles.groupedInput} placeholder="Phone Number" placeholderTextColor="#555" value={newDoctor.phone} onChangeText={t => setNewDoctor({ ...newDoctor, phone: t })} keyboardType="phone-pad" />
+                <View style={styles.groupedDivider} />
+                <TextInput style={styles.groupedInput} placeholder="Email" placeholderTextColor="#555" value={newDoctor.email} onChangeText={t => setNewDoctor({ ...newDoctor, email: t })} keyboardType="email-address" />
+              </View>
+              <View style={[styles.groupedInputs, { marginTop: 20 }]}>
+                <TextInput style={styles.groupedInput} placeholder="Office/Hospital" placeholderTextColor="#555" value={newDoctor.office} onChangeText={t => setNewDoctor({ ...newDoctor, office: t })} />
+                <View style={styles.groupedDivider} />
+                <TextInput style={styles.groupedInput} placeholder="Address" placeholderTextColor="#555" value={newDoctor.address} onChangeText={t => setNewDoctor({ ...newDoctor, address: t })} />
+              </View>
+              <View style={[styles.groupedInputs, { marginTop: 20 }]}>
+                <TextInput style={[styles.groupedInput, { height: 70, textAlignVertical: 'top', paddingTop: 14 }]} placeholder="Notes" placeholderTextColor="#555" value={newDoctor.notes} onChangeText={t => setNewDoctor({ ...newDoctor, notes: t })} multiline />
+              </View>
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -256,9 +262,9 @@ const ShareWithDoctorScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818', borderBottomWidth: 1, borderBottomColor: '#222' },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 24.7, zIndex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center', position: 'absolute', left: 0, right: 0, paddingTop: 16.5, paddingBottom: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, backgroundColor: '#000000', zIndex: 1000, position: 'absolute', top: 0, left: 0, right: 0, elevation: 10 },
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', textAlign: 'center', flex: 1 },
   content: { padding: 20 },
   doctorSection: { marginBottom: 32 },
   sectionTitle: { fontSize: 20, fontWeight: '600', color: '#fff', marginBottom: 8 },
@@ -267,48 +273,51 @@ const styles = StyleSheet.create({
   selectedDoctor: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   doctorInfo: { flex: 1 },
   doctorName: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  doctorSpecialty: { fontSize: 14, color: '#007AFF', marginBottom: 2 },
+  doctorSpecialty: { fontSize: 14, color: '#3AABF0', marginBottom: 2 },
   doctorOffice: { fontSize: 14, color: '#888' },
   noDoctorSelected: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   noDoctorText: { fontSize: 16, color: '#888', flex: 1, marginLeft: 12 },
-  addDoctorButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#181818', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#007AFF' },
-  addDoctorButtonText: { fontSize: 16, color: '#007AFF', marginLeft: 8 },
+  addDoctorButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#181818', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#3AABF0' },
+  addDoctorButtonText: { fontSize: 16, color: '#3AABF0', marginLeft: 8 },
   sectionsSection: { marginBottom: 32 },
   sectionCard: { backgroundColor: '#181818', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#333' },
-  selectedSection: { borderColor: '#007AFF', backgroundColor: '#0A1929' },
+  selectedSection: { borderColor: '#3AABF0', backgroundColor: '#0A1929' },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   sectionText: { marginLeft: 12, flex: 1 },
   sectionLabel: { fontSize: 16, color: '#fff', fontWeight: '500' },
-  selectedSectionText: { color: '#007AFF' },
+  selectedSectionText: { color: '#3AABF0' },
   sectionCount: { fontSize: 12, color: '#888', marginTop: 2 },
   checkbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: '#555', alignItems: 'center', justifyContent: 'center' },
-  checkedBox: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  checkedBox: { backgroundColor: '#3AABF0', borderColor: '#3AABF0' },
   shareSection: { marginBottom: 32 },
-  shareButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#007AFF', borderRadius: 12, paddingVertical: 16, gap: 8 },
+  shareButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3AABF0', borderRadius: 12, paddingVertical: 16, gap: 8 },
   disabledButton: { backgroundColor: '#3A3A3C' },
   shareButtonText: { fontSize: 16, fontWeight: '600', color: '#fff', marginLeft: 8 },
   modalContainer: { flex: 1, backgroundColor: '#1C1C1E' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
-  cancelButton: { fontSize: 16, color: '#007AFF' },
-  saveButton: { fontSize: 16, color: '#007AFF', fontWeight: '600' },
+  cancelButton: { fontSize: 16, color: '#3AABF0' },
+  saveButton: { fontSize: 16, color: '#3AABF0', fontWeight: '600' },
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#fff' },
   modalContent: { flex: 1, padding: 20 },
   doctorCountText: { fontSize: 14, color: '#888', marginBottom: 16 },
   doctorOption: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 12, padding: 16, marginBottom: 12 },
   doctorOptionInfo: { flex: 1 },
   doctorOptionName: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  doctorOptionSpecialty: { fontSize: 14, color: '#007AFF', marginBottom: 2 },
+  doctorOptionSpecialty: { fontSize: 14, color: '#3AABF0', marginBottom: 2 },
   doctorOptionOffice: { fontSize: 12, color: '#888' },
   noDoctorsState: { alignItems: 'center', paddingVertical: 60 },
   noDoctorsTitle: { fontSize: 18, fontWeight: '600', color: '#fff', marginTop: 16, marginBottom: 8 },
   noDoctorsSubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 24 },
-  addFromDoctorsButton: { backgroundColor: '#007AFF', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  addFromDoctorsButton: { backgroundColor: '#3AABF0', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
   addFromDoctorsButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  inputContainer: { marginBottom: 20 },
-  inputLabel: { fontSize: 14, fontWeight: '500', color: '#888', marginBottom: 8 },
-  textInput: { backgroundColor: '#2C2C2E', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: '#fff' },
-  textArea: { height: 80, textAlignVertical: 'top' },
+  addDoctorOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  addDoctorSheet: { backgroundColor: '#1C1C1E', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
+  addDoctorHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#2C2C2E' },
+  addDoctorTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  groupedInputs: { backgroundColor: '#2C2C2E', borderRadius: 12, overflow: 'hidden' },
+  groupedInput: { paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, color: '#FFFFFF' },
+  groupedDivider: { height: 1, backgroundColor: '#3A3A3C', marginLeft: 16 },
 });
 
 export default ShareWithDoctorScreen;

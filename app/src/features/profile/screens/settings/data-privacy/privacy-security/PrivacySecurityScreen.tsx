@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -11,86 +11,62 @@ type NavItem = {
   route: string;
 };
 
-const SECURITY_ITEMS: NavItem[] = [
-  {
-    title: 'Biometric Lock / Face ID',
-    subtitle: 'Protect your health data with fingerprint or face recognition',
-    icon: 'finger-print-outline',
-    iconColor: '#007AFF',
-    route: 'BiometricLock',
-  },
-  {
-    title: 'Location Access',
-    subtitle: 'Manage location permissions for travel and health features',
-    icon: 'location-outline',
-    iconColor: '#34C759',
-    route: 'LocationAccess',
-  },
-  {
-    title: 'Data Consent',
-    subtitle: 'Control how your anonymized data is used for research',
-    icon: 'shield-checkmark-outline',
-    iconColor: '#FF9500',
-    route: 'DataConsent',
-  },
-];
-
-const SECURITY_INFO_ITEMS: NavItem[] = [
-  {
-    title: 'Data Processing Agreement',
-    subtitle: 'How CoreHealth processes your personal data',
-    icon: 'document-text-outline',
-    iconColor: '#5856D6',
-    route: 'DataProcessingAgreement',
-  },
-  {
-    title: 'Data Retention Policy',
-    subtitle: 'How long we store your data and deletion timelines',
-    icon: 'time-outline',
-    iconColor: '#007AFF',
-    route: 'DataRetentionPolicy',
-  },
-];
-
 const PRIVACY_ITEMS: NavItem[] = [
   {
     title: 'Family Link',
     subtitle: 'Anonymous family history links for risk-only insights',
     icon: 'link-outline',
-    iconColor: '#0A84FF',
-    route: 'FamilyLink',
-  },
-  {
-    title: 'Data Sharing Settings',
-    subtitle: 'Sync your data and manage sharing preferences',
-    icon: 'people-outline',
-    iconColor: '#34C759',
-    route: 'DataSharingSettings',
-  },
-  {
-    title: 'Health Data Download',
-    subtitle: 'Export and download all your health data as a PDF',
-    icon: 'download-outline',
-    iconColor: '#5856D6',
-    route: 'HealthDataDownload',
+    iconColor: '#3AABF0',
+    route: '',
   },
   {
     title: 'Delete Account & Data',
     subtitle: 'Permanently remove your account and all health data',
     icon: 'trash-outline',
     iconColor: '#FF3B30',
-    route: 'DeleteAccount',
+    route: '__delete__',
   },
 ];
 
 const PrivacySecurityScreen: React.FC = () => {
   const navigation = useNavigation();
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account & Data',
+      'Are you sure you want to delete your account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'This will permanently delete',
+              '• Your account and profile\n• All health records and biomarkers\n• Wearable sync history\n• AI insights and recommendations\n• All app data\n\nThis action cannot be undone.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', style: 'destructive', onPress: () => Alert.alert('Account Deleted', 'Your account and all data have been permanently deleted.') },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const [biometric, setBiometric] = useState(false);
+  const [locationAccess, setLocationAccess] = useState(false);
+  const [dataConsent, setDataConsent] = useState(false);
 
   const renderNavItem = (item: NavItem) => (
     <TouchableOpacity
       key={item.route}
       style={styles.cardRow}
-      onPress={() => (navigation as any).navigate(item.route)}
+      onPress={() => {
+        if (item.route === '__delete__') handleDeleteAccount();
+        else if (item.route) (navigation as any).navigate(item.route);
+        else Alert.alert('Coming Soon', 'This feature is coming soon.');
+      }}
       activeOpacity={0.7}
     >
       <Ionicons name={item.icon as any} size={22} color={item.iconColor} style={styles.cardIcon} />
@@ -106,26 +82,49 @@ const PrivacySecurityScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Privacy & Security</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Privacy & Security</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
+          {/* Security toggles */}
           <View style={styles.card}>
             <Text style={styles.cardHeader}>SECURITY</Text>
-            {SECURITY_ITEMS.map(renderNavItem)}
+
+            <View style={styles.toggleRow}>
+              <Ionicons name="finger-print-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardLabel}>Biometric Lock / Face ID</Text>
+                <Text style={styles.cardSub}>Protect your health data with fingerprint or face recognition</Text>
+              </View>
+              <Switch value={biometric} onValueChange={setBiometric} trackColor={{ false: '#3A3A3C', true: '#3AABF0' }} thumbColor="#FFFFFF" />
+            </View>
+
+            <View style={styles.toggleRow}>
+              <Ionicons name="location-outline" size={22} color="#34C759" style={styles.cardIcon} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardLabel}>Location Access</Text>
+                <Text style={styles.cardSub}>Manage location permissions for travel and health features</Text>
+              </View>
+              <Switch value={locationAccess} onValueChange={setLocationAccess} trackColor={{ false: '#3A3A3C', true: '#34C759' }} thumbColor="#FFFFFF" />
+            </View>
+
+            <View style={styles.toggleRow}>
+              <Ionicons name="shield-checkmark-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardLabel}>Data Consent</Text>
+                <Text style={styles.cardSub}>Sharing anonymised data for research and app improvement</Text>
+              </View>
+              <Switch value={dataConsent} onValueChange={setDataConsent} trackColor={{ false: '#3A3A3C', true: '#FF9500' }} thumbColor="#FFFFFF" />
+            </View>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardHeader}>SECURITY INFORMATION</Text>
-            {SECURITY_INFO_ITEMS.map(renderNavItem)}
-          </View>
-
+          {/* Privacy nav items */}
           <View style={styles.card}>
             <Text style={styles.cardHeader}>PRIVACY</Text>
             {PRIVACY_ITEMS.map(renderNavItem)}
@@ -142,19 +141,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
   header: {
-    paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818',
-    borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between',
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10,
+    paddingTop: 56, paddingBottom: 12, backgroundColor: '#000000',
+    borderBottomWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10, paddingHorizontal: 20,
   },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: {
-    fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center',
-    position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8,
-  },
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', textAlign: 'center', flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 0 },
   card: { backgroundColor: '#181818', borderRadius: 12, marginBottom: 20, paddingVertical: 16 },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },
   cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 20 },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 20 },
   cardIcon: { marginRight: 12 },
   cardLabel: { fontSize: 16, fontWeight: '500', color: '#FFFFFF' },
   cardSub: { fontSize: 13, color: '#8E8E93', marginTop: 2 },

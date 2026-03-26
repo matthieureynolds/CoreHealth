@@ -58,7 +58,7 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
             maximumValue={10}
             value={severity}
             onValueChange={onSeverityChange}
-            minimumTrackTintColor="#007AFF"
+            minimumTrackTintColor="#3AABF0"
             maximumTrackTintColor="#3A3A3C"
           />
         ) : (
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3A3A3C',
   },
   durationOptionSelected: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   durationOptionText: {
     color: '#FFFFFF',
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3A3A3C',
   },
   factorChipSelected: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   factorChipText: {
     color: '#FFFFFF',

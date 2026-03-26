@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   editModalTitle: {
     fontSize: 18,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   modalContent: {

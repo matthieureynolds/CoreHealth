@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   periodButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   periodButtonText: {
     color: '#8E8E93',

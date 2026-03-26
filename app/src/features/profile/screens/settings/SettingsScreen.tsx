@@ -17,30 +17,34 @@ const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={{ width: 24 }} />
-        <View style={{ width: 24 }} />
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={{ width: 40 }} />
       </View>
 
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       {/* Content */}
       <View style={styles.content}>
         {/* Account & Preferences Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>ACCOUNT & PREFERENCES</Text>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('AccountSettings' as any)}>
-            <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
-            <Text style={styles.cardLabel}>Account Settings</Text>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmailPassword' as any)}>
+            <Ionicons name="mail-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Email & Password</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ConnectedDevices' as any)}>
             <Ionicons name="phone-portrait-outline" size={22} color="#4CD964" style={styles.cardIcon} />
-            <Text style={styles.cardLabel}>Connected Devices & Integrations</Text>
+            <Text style={styles.cardLabel}>Connected Devices</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DisplayFormat' as any)}>
-            <Ionicons name="options-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+            <Ionicons name="options-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Display & Format</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
@@ -60,12 +64,12 @@ const SettingsScreen: React.FC = () => {
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrivacySecurity' as any)}>
-            <Ionicons name="lock-closed-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+            <Ionicons name="lock-closed-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Privacy & Security</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('LegalCompliance' as any)}>
-            <Ionicons name="document-text-outline" size={22} color="#007AFF" style={styles.cardIcon} />
+            <Ionicons name="document-text-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Legal & Compliance</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
@@ -86,7 +90,8 @@ const SettingsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -98,27 +103,30 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 0,
+    paddingTop: 56,
+    paddingBottom: 8,
     backgroundColor: '#000000',
   },
   backButton: {
-    padding: 10,
+    padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
   },
   content: {
     paddingHorizontal: 20,
+    paddingTop: 0,
   },
   card: {
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
-    marginTop: 20,
+    marginTop: 12,
     marginBottom: 18,
     paddingVertical: 16,
     shadowColor: '#000',

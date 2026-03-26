@@ -69,7 +69,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
               }}
               disabled={isGettingLocation}
             >
-              <Ionicons name="navigate" size={16} color={isGettingLocation ? '#8E8E93' : '#007AFF'} />
+              <Ionicons name="navigate" size={16} color={isGettingLocation ? '#8E8E93' : '#3AABF0'} />
               <Text style={styles.suggestionText}>
                 {isGettingLocation ? 'Getting location…' : 'Use current location'}
               </Text>
@@ -84,7 +84,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
               style={styles.suggestionItem}
               onPress={() => { onSetDepartureLocation(city); Keyboard.dismiss(); }}
             >
-              <Ionicons name="location" size={16} color="#007AFF" />
+              <Ionicons name="location" size={16} color="#3AABF0" />
               <Text style={styles.suggestionText}>{city}</Text>
             </TouchableOpacity>
           ))}
@@ -109,7 +109,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
               style={styles.suggestionItem}
               onPress={() => { onSetDestination(city); Keyboard.dismiss(); }}
             >
-              <Ionicons name="location" size={16} color="#007AFF" />
+              <Ionicons name="location" size={16} color="#3AABF0" />
               <Text style={styles.suggestionText}>{city}</Text>
             </TouchableOpacity>
           ))}

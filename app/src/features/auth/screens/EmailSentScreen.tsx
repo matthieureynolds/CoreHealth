@@ -85,13 +85,13 @@ const EmailSentScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
           <View style={styles.iconContainer}>
-            <Ionicons name="mail" size={80} color="#007AFF" />
+            <Ionicons name="mail" size={80} color="#3AABF0" />
           </View>
 
           <Text style={styles.title}>Check Your Email</Text>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   emailText: {
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   instructionText: {
     fontSize: 14,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     height: 50,
     borderRadius: 12,
     justifyContent: 'center',
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   resendLink: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
 });

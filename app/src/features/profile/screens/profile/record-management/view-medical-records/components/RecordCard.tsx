@@ -47,7 +47,7 @@ const RecordCard: React.FC<RecordCardProps> = ({
       </View>
       <View style={styles.recordActions}>
         <TouchableOpacity onPress={() => onView(record)} style={styles.actionButton}>
-          <Ionicons name="eye-outline" size={20} color="#007AFF" />
+          <Ionicons name="eye-outline" size={20} color="#3AABF0" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => onEdit(record)} style={styles.actionButton}>
           <Feather name="edit-2" size={16} color="#FFFFFF" />
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tag: {
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   moreTags: {
     fontSize: 12,

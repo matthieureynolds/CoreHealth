@@ -78,7 +78,7 @@ const DataSharingSettingsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Data Sharing Settings</Text>
         <View style={{ width: 24 }} />
@@ -103,7 +103,7 @@ const DataSharingSettingsScreen: React.FC = () => {
                 <Ionicons
                   name={isSyncing ? 'sync' : 'sync-outline'}
                   size={20}
-                  color="#007AFF"
+                  color="#3AABF0"
                   style={styles.cardIcon}
                 />
                 <Text style={styles.syncButtonText}>{isSyncing ? 'Syncing...' : 'Sync Now'}</Text>
@@ -154,11 +154,11 @@ const styles = StyleSheet.create({
   syncButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#2C2C2E', paddingHorizontal: 20, paddingVertical: 16,
-    borderRadius: 12, borderWidth: 1, borderColor: '#007AFF',
+    borderRadius: 12, borderWidth: 1, borderColor: '#3AABF0',
   },
   syncButtonDisabled: { backgroundColor: '#1C1C1E', borderColor: '#4A4A4A' },
   syncButtonContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  syncButtonText: { fontSize: 16, fontWeight: '600', color: '#007AFF', marginLeft: 8 },
+  syncButtonText: { fontSize: 16, fontWeight: '600', color: '#3AABF0', marginLeft: 8 },
 });
 
 export default DataSharingSettingsScreen;

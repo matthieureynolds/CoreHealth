@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import DateOfBirthPickerModal from './DateOfBirthPickerModal';
 import GenderPickerModal from './GenderPickerModal';
 import StickyHeader from './components/StickyHeader';
 import ScrollableProfileHeader from './components/ScrollableProfileHeader';
 import InfoCard, { CardRowConfig } from './components/InfoCard';
-import { useProfileDetails, genderOptions } from './useProfileDetails';
+import ProfilePicturePicker from '../../../../../shared/components/profile/ProfilePicturePicker';
+import { useProfileDetails, genderOptions, AVATAR_LARGE, COLLAPSE_DISTANCE } from './useProfileDetails';
 
 const ProfileDetailsScreen: React.FC = () => {
+  const { width: screenWidth } = useWindowDimensions();
   const {
     navigation,
     user,
@@ -23,13 +25,11 @@ const ProfileDetailsScreen: React.FC = () => {
     handleDateConfirm,
     handleGenderSelect,
     avatarScale,
+    avatarOpacity,
     avatarTranslateY,
+    avatarTranslateX,
     largeNameOpacity,
     largeNameTranslateY,
-    largeUsernameOpacity,
-    largeUsernameTranslateY,
-    nameSize,
-    usernameSize,
     headerBgOpacity,
     stickyHeaderOpacity,
     stickyHeaderTranslateY,
@@ -48,19 +48,12 @@ const ProfileDetailsScreen: React.FC = () => {
     },
     {
       icon: 'body-outline',
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       label: 'Gender',
       value: profile?.gender
         ? genderOptions.find(opt => opt.value === profile.gender)?.label || profile.gender
         : 'Not set',
       onPress: () => setShowGenderPicker(true),
-    },
-    {
-      icon: 'fitness-outline',
-      iconColor: '#FF3B30',
-      label: 'Physical Stats',
-      value: profile ? `${profile.height}cm, ${profile.weight}kg` : 'Not set',
-      onPress: () => navigation.navigate('EditPhysicalStats'),
     },
     {
       icon: 'bed-outline',
@@ -132,7 +125,7 @@ const ProfileDetailsScreen: React.FC = () => {
     },
     {
       icon: 'search-outline',
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       label: 'Screenings',
       value: profile?.screenings?.length ? `${profile.screenings.length} screenings` : 'Not set',
       onPress: () => navigation.navigate('Screenings'),
@@ -177,7 +170,7 @@ const ProfileDetailsScreen: React.FC = () => {
     },
     {
       icon: 'medical-outline',
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       label: 'Doctors',
       value: profile?.doctors?.length
         ? `${profile.doctors.length} doctor${profile.doctors.length > 1 ? 's' : ''}`
@@ -196,36 +189,64 @@ const ProfileDetailsScreen: React.FC = () => {
         headerBgOpacity={headerBgOpacity}
         isHeaderVisible={isHeaderVisible}
         userName={userName}
-        onCommunityPress={() => (navigation as any).navigate('CommunityLeaderboard')}
-        onSettingsPress={() => (navigation as any).navigate('Settings')}
       />
+
+      {/* Floating avatar — ONE element that morphs from hero → navbar */}
+      <Animated.View
+        style={[
+          styles.floatingAvatar,
+          {
+            left: (screenWidth - AVATAR_LARGE) / 2,
+            opacity: avatarOpacity,
+            transform: [
+              { translateX: avatarTranslateX },
+              { translateY: avatarTranslateY },
+              { scale: avatarScale },
+            ],
+          },
+        ]}
+      >
+        <ProfilePicturePicker
+          currentPhotoURL={user?.photoURL}
+          onPhotoSelected={handlePhotoSelected}
+          size={AVATAR_LARGE}
+          userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
+          progressPercent={profileCompletion}
+          showProgressLabel={!isHeaderVisible}
+        />
+      </Animated.View>
+
+      {/* Always-visible top buttons — sit above everything, never scroll */}
+      <TouchableOpacity
+        onPress={() => (navigation as any).navigate('CommunityLeaderboard')}
+        style={styles.topCommunityButton}
+      >
+        <FontAwesome5 name="users" size={22} color="#FFD60A" solid />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => (navigation as any).navigate('Settings')}
+        style={styles.topSettingsButton}
+      >
+        <Ionicons name="settings" size={24} color="#D1D1D6" />
+      </TouchableOpacity>
 
       <Animated.ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: true }
         )}
         scrollEventThrottle={16}
+        snapToOffsets={[0, COLLAPSE_DISTANCE]}
+        snapToEnd={false}
+        decelerationRate="fast"
       >
         <ScrollableProfileHeader
-          avatarScale={avatarScale}
-          avatarTranslateY={avatarTranslateY}
           largeNameOpacity={largeNameOpacity}
           largeNameTranslateY={largeNameTranslateY}
-          largeUsernameOpacity={largeUsernameOpacity}
-          largeUsernameTranslateY={largeUsernameTranslateY}
-          nameSize={nameSize}
-          usernameSize={usernameSize}
           userName={userName}
-          userUsername={userUsername}
           profileCompletion={profileCompletion}
-          photoURL={user?.photoURL}
-          userInitial={user?.preferredName?.charAt(0) || user?.firstName?.charAt(0) || 'U'}
-          onPhotoSelected={handlePhotoSelected}
-          onCommunityPress={() => (navigation as any).navigate('CommunityLeaderboard')}
-          onSettingsPress={() => (navigation as any).navigate('Settings')}
         />
 
         {/* Name row — custom layout with two-line value */}
@@ -233,17 +254,12 @@ const ProfileDetailsScreen: React.FC = () => {
           <Text style={styles.cardHeader}>PERSONAL INFO</Text>
           <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
             <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
-            <Text style={styles.cardLabel}>Name</Text>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.cardValue}>
-                {user?.firstName && user?.surname
-                  ? `${user.firstName} ${user.surname}`
-                  : user?.displayName || 'Not set'}
-              </Text>
-              {user?.username ? (
-                <Text style={[styles.cardValue, { color: '#9AA3AF', marginTop: 2 }]}>@{user.username}</Text>
-              ) : null}
-            </View>
+            <Text style={styles.cardLabel}>Personal Info</Text>
+            <Text style={styles.cardValue}>
+              {user?.firstName && user?.surname
+                ? `${user.firstName} ${user.surname}`
+                : user?.displayName || 'Not set'}
+            </Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
           {personalInfoRows.map((row, index) => (
@@ -296,6 +312,25 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  floatingAvatar: {
+    position: 'absolute',
+    top: 66, // matches profileHeader paddingTop
+    zIndex: 1000,
+  },
+  topCommunityButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 58 : 32,
+    left: 16,
+    padding: 8,
+    zIndex: 1001,
+  },
+  topSettingsButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 58 : 32,
+    right: 16,
+    padding: 8,
+    zIndex: 1001,
   },
   card: {
     backgroundColor: '#181818',

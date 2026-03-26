@@ -15,7 +15,7 @@ const PublicLeaguesScreen: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('All');
 
   const leagues = useMemo<LeagueSummary[]>(() => [
-    { id: 'rl1', name: 'UK · Men 20–30', members: 128, icon: 'flag', color: '#007AFF', category: 'Regional' },
+    { id: 'rl1', name: 'UK · Men 20–30', members: 128, icon: 'flag', color: '#3AABF0', category: 'Regional' },
     { id: 'rl3', name: 'Football · Recovery Circle', members: 96, icon: 'football', color: '#FF9F0A', category: 'Sport' },
     { id: 'rl4', name: 'Entrepreneurs Anti‑Stress', members: 173, icon: 'briefcase', color: '#BF5AF2', category: 'Lifestyle' },
     { id: 'rl5', name: 'Paris · Women 30–40', members: 88, icon: 'flag', color: '#FF375F', category: 'Regional' },
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
     backgroundColor: '#1C1C1E', borderWidth: 1, borderColor: '#2C2C2E',
   },
-  filterChipActive: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  filterChipActive: { backgroundColor: '#3AABF0', borderColor: '#3AABF0' },
   filterText: { color: '#8E8E93', fontSize: 14, fontWeight: '500' },
   filterTextActive: { color: '#FFFFFF', fontWeight: '600' },
   card: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   rowTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
   rowSubtitle: { fontSize: 13, color: '#8E8E93' },
-  joinBtn: { backgroundColor: '#007AFF', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
+  joinBtn: { backgroundColor: '#3AABF0', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 10 },
   joinBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
   joinedBtn: { backgroundColor: '#2C2C2E' },
   joinedBtnText: { color: '#8E8E93', fontSize: 13, fontWeight: '600' },

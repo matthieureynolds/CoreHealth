@@ -81,7 +81,7 @@ const ConditionsScreen: React.FC = () => {
     switch (status) {
       case 'active': return '#FF3B30';
       case 'resolved': return '#4CD964';
-      case 'managed': return '#007AFF';
+      case 'managed': return '#3AABF0';
       default: return '#888';
     }
   };
@@ -92,15 +92,15 @@ const ConditionsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Medical Conditions</Text>
         <TouchableOpacity onPress={() => { setEditingCondition(null); setShowAddModal(true); }} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="add" size={24} color="#007AFF" />
+          <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
           {profile?.medicalHistory?.length ? (
             profile.medicalHistory.map((condition) => (
@@ -194,15 +194,15 @@ const ConditionsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818', borderBottomWidth: 1, borderBottomColor: '#222', zIndex: 1000, position: 'absolute', top: 0, left: 0, right: 0, elevation: 10 },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 24.7, zIndex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center', position: 'absolute', left: 0, right: 0, paddingTop: 16.5, paddingBottom: 8 },
-  addButton: { padding: 8, position: 'absolute', right: 20, top: 24.7, zIndex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, backgroundColor: '#000000', zIndex: 1000, position: 'absolute', top: 0, left: 0, right: 0, elevation: 10 },
+  backButton: { padding: 8, width: 40 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', textAlign: 'center', flex: 1 },
+  addButton: { padding: 8, width: 40, alignItems: 'flex-end' },
   content: { padding: 20 },
-  conditionCard: { backgroundColor: '#1C1C1E', borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#007AFF', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 5 },
+  conditionCard: { backgroundColor: '#1C1C1E', borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#3AABF0', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 5 },
   conditionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   conditionHeaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
-  conditionIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#0A84FF33', alignItems: 'center', justifyContent: 'center' },
+  conditionIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#3AABF033', alignItems: 'center', justifyContent: 'center' },
   conditionInfo: { flex: 1 },
   conditionName: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', marginBottom: 6 },
   conditionTagsRow: { flexDirection: 'row', gap: 8 },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#fff', marginTop: 16, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 24, paddingHorizontal: 40 },
-  addFirstButton: { backgroundColor: '#007AFF', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  addFirstButton: { backgroundColor: '#3AABF0', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
   addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 

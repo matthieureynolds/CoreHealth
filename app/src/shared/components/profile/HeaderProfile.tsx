@@ -277,7 +277,7 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
                 accessibilityLabel="Set Profile Photo"
                 accessibilityRole="button"
               >
-                <Ionicons name="camera" size={16} color="#007AFF" />
+                <Ionicons name="camera" size={16} color="#3AABF0" />
                 <Text style={styles.quickActionText}>Set Photo</Text>
               </TouchableOpacity>
 
@@ -287,7 +287,7 @@ export const HeaderProfile: React.FC<HeaderProfileProps> = ({
                 accessibilityLabel="Set Username"
                 accessibilityRole="button"
               >
-                <Ionicons name="create" size={16} color="#007AFF" />
+                <Ionicons name="create" size={16} color="#3AABF0" />
                 <Text style={styles.quickActionText}>Set Username</Text>
               </TouchableOpacity>
             </Animated.View>
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   quickActionText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '500',
   },

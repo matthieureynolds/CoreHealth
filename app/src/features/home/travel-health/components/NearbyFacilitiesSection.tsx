@@ -75,7 +75,7 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
             buttonText="Add Trip"
             onButtonPress={onTravelPress}
             iconColor="#8E8E93"
-            buttonColor="#007AFF"
+            buttonColor="#3AABF0"
           />
         )}
       </View>
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     marginTop: 5.5,
   },
   lessTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
     fontSize: 13,
   },

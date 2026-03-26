@@ -149,7 +149,7 @@ const AddDataModal: React.FC<AddDataModalProps> = ({
         ],
         metadata: {
           documentType: 'Lab Results',
-          institution: 'CoreHealth Medical Center',
+          institution: 'TOTO Medical Center',
           date: new Date().toISOString(),
         },
       };
@@ -187,7 +187,7 @@ const AddDataModal: React.FC<AddDataModalProps> = ({
       title: 'Scan with Camera',
       subtitle: 'Take a photo of lab results or documents',
       icon: 'camera' as const,
-      color: '#007AFF',
+      color: '#3AABF0',
       onPress: handleCameraScan,
     },
     {
@@ -233,7 +233,7 @@ const AddDataModal: React.FC<AddDataModalProps> = ({
 
         <View style={styles.content}>
           <Text style={styles.subtitle}>
-            Choose how you'd like to add your health data to CoreHealth
+            Choose how you'd like to add your health data to TOTO
           </Text>
 
           <View style={styles.optionsContainer}>
@@ -258,7 +258,7 @@ const AddDataModal: React.FC<AddDataModalProps> = ({
 
           {isProcessing && (
             <View style={styles.processingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color="#3AABF0" />
               <Text style={styles.processingText}>Processing document...</Text>
             </View>
           )}

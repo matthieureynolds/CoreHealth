@@ -48,7 +48,7 @@ const DataConsentScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Data Consent</Text>
         <View style={{ width: 24 }} />
@@ -63,7 +63,7 @@ const DataConsentScreen: React.FC = () => {
                 <Ionicons
                   name="shield-checkmark-outline"
                   size={22}
-                  color={isLoading ? '#666' : '#007AFF'}
+                  color={isLoading ? '#666' : '#3AABF0'}
                   style={styles.cardIcon}
                 />
                 <View style={{ flex: 1 }}>
@@ -78,7 +78,7 @@ const DataConsentScreen: React.FC = () => {
               <Switch
                 value={dataConsent}
                 onValueChange={handleDataConsentToggle}
-                trackColor={{ false: '#333', true: '#007AFF' }}
+                trackColor={{ false: '#333', true: '#3AABF0' }}
                 thumbColor="#FFFFFF"
                 disabled={isLoading}
               />
@@ -88,7 +88,7 @@ const DataConsentScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>WHAT WE COLLECT</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="analytics-outline" size={20} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="analytics-outline" size={20} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Anonymized Health Data</Text>
                 <Text style={styles.infoText}>
@@ -101,7 +101,7 @@ const DataConsentScreen: React.FC = () => {
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Research & Improvement</Text>
                 <Text style={styles.infoText}>
-                  Shared data helps improve CoreHealth's features and contributes to anonymized health research. You can opt out at any time.
+                  Shared data helps improve TOTO's features and contributes to anonymized health research. You can opt out at any time.
                 </Text>
               </View>
             </View>
@@ -110,7 +110,7 @@ const DataConsentScreen: React.FC = () => {
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Third-Party Sharing</Text>
                 <Text style={styles.infoText}>
-                  Your data is never sold or shared with third-party advertisers. Analytics data stays within the CoreHealth platform.
+                  Your data is never sold or shared with third-party advertisers. Analytics data stays within the TOTO platform.
                 </Text>
               </View>
             </View>

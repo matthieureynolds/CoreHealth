@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,8 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../../../../../shared/types';
 import { useSettings } from '../../../../../../shared/context/SettingsContext';
 import { LifestyleSettings } from '../../../../../../shared/types/settings';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
+import SleepClockPicker from '../../../../../../shared/components/ui/SleepClockPicker';
 
 type LifestyleInfoScreenNavigationProp = StackNavigationProp<ProfileTabParamList, 'LifestyleInfo'>;
 
@@ -24,59 +22,25 @@ const LifestyleInfoScreen: React.FC = () => {
   const { settings, updateSettings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Time picker states
-  const [showWakeUpPicker, setShowWakeUpPicker] = useState(false);
-  const [showBedTimePicker, setShowBedTimePicker] = useState(false);
+  // Sleep clock picker state
+  const [showSleepPicker, setShowSleepPicker] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState<LifestyleSettings>(settings.lifestyle);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Convert time string to Date object
-  const timeStringToDate = (timeString: string): Date => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-    return date;
-  };
-
-  // Convert Date object to time string
-  const dateToTimeString = (date: Date): string => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
-
-  // Handle wake up time change
-  const handleWakeUpTimeChange = (event: any, selectedDate?: Date) => {
-    setShowWakeUpPicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      const newTime = dateToTimeString(selectedDate);
-      setFormData(prev => ({
-        ...prev,
-        sleepSchedule: {
-          ...prev.sleepSchedule,
-          wakeUpTime: newTime,
-        },
-      }));
-      setHasChanges(true);
-    }
-  };
-
-  // Handle bed time change
-  const handleBedTimeChange = (event: any, selectedDate?: Date) => {
-    setShowBedTimePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      const newTime = dateToTimeString(selectedDate);
-      setFormData(prev => ({
-        ...prev,
-        sleepSchedule: {
-          ...prev.sleepSchedule,
-          bedTime: newTime,
-        },
-      }));
-      setHasChanges(true);
-    }
+  // Handle sleep schedule change from clock picker
+  const handleSleepScheduleChange = (wakeUpTime: string, bedTime: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sleepSchedule: {
+        ...prev.sleepSchedule,
+        wakeUpTime,
+        bedTime,
+      },
+    }));
+    setHasChanges(true);
+    setShowSleepPicker(false);
   };
 
   // Save settings
@@ -115,7 +79,7 @@ const LifestyleInfoScreen: React.FC = () => {
       {/* Header with divider, back arrow, and save button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lifestyle Info</Text>
         {hasChanges ? (
@@ -140,7 +104,7 @@ const LifestyleInfoScreen: React.FC = () => {
       <View style={styles.divider} />
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         {/* Sleep Schedule Card */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>SLEEP SCHEDULE</Text>
@@ -148,7 +112,7 @@ const LifestyleInfoScreen: React.FC = () => {
           {/* Wake Up Time */}
           <TouchableOpacity 
             style={styles.cardRow} 
-            onPress={() => setShowWakeUpPicker(true)}
+            onPress={() => setShowSleepPicker(true)}
           >
             <Ionicons name="sunny-outline" size={22} color="#FF9500" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Wake Up Time</Text>
@@ -159,7 +123,7 @@ const LifestyleInfoScreen: React.FC = () => {
           {/* Bed Time */}
           <TouchableOpacity 
             style={[styles.cardRow, styles.lastRow]} 
-            onPress={() => setShowBedTimePicker(true)}
+            onPress={() => setShowSleepPicker(true)}
           >
             <Ionicons name="moon-outline" size={22} color="#5856D6" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Bed Time</Text>
@@ -169,34 +133,14 @@ const LifestyleInfoScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Time Pickers */}
-      {showWakeUpPicker && (
-        <IOSDatePicker
-          visible
-          title="Wake Up Time"
-          mode="time"
-          value={timeStringToDate(formData.sleepSchedule.wakeUpTime)}
-          onCancel={() => setShowWakeUpPicker(false)}
-          onConfirm={(date) => {
-            handleWakeUpTimeChange(null as any, date);
-            setShowWakeUpPicker(false);
-          }}
-        />
-      )}
-
-      {showBedTimePicker && (
-        <IOSDatePicker
-          visible
-          title="Bed Time"
-          mode="time"
-          value={timeStringToDate(formData.sleepSchedule.bedTime)}
-          onCancel={() => setShowBedTimePicker(false)}
-          onConfirm={(date) => {
-            handleBedTimeChange(null as any, date);
-            setShowBedTimePicker(false);
-          }}
-        />
-      )}
+      {/* Sleep Clock Picker */}
+      <SleepClockPicker
+        visible={showSleepPicker}
+        wakeUpTime={formData.sleepSchedule.wakeUpTime}
+        bedTime={formData.sleepSchedule.bedTime}
+        onConfirm={handleSleepScheduleChange}
+        onCancel={() => setShowSleepPicker(false)}
+      />
     </View>
   );
 };
@@ -209,18 +153,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 16,
+    paddingTop: 56,
+    paddingBottom: 12,
     backgroundColor: '#000000',
+    zIndex: 1000,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    elevation: 10,
   },
   backButton: {
-    padding: 10,
+    padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#FFFFFF',
     flex: 1,
     textAlign: 'center',
@@ -243,26 +193,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#8E8E93',
     marginHorizontal: 0,
-  },
-  timePickerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  timePicker: {
-    backgroundColor: '#333',
-    borderRadius: 12,
-    color: '#FFFFFF',
   },
   content: {
     flex: 1,

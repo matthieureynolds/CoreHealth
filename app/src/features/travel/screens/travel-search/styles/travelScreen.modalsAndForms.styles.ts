@@ -346,7 +346,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   manualEntryButtonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
     textDecorationLine: 'none',
   },
@@ -384,11 +384,11 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     textAlign: 'center',
   },
   modalButtonPrimary: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   modalButtonPrimaryText: {
     fontSize: 16,
@@ -405,7 +405,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   primaryCenteredButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     minWidth: 160,
     alignItems: 'center',
@@ -491,7 +491,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -619,8 +619,8 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     borderColor: '#3A3A3C',
   },
   chipActive: {
-    backgroundColor: '#007AFF20',
-    borderColor: '#007AFF40',
+    backgroundColor: '#3AABF020',
+    borderColor: '#3AABF040',
   },
   chipText: {
     color: '#8E8E93',
@@ -628,6 +628,6 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextActive: {
-    color: '#0A84FF',
+    color: '#3AABF0',
   },
 });

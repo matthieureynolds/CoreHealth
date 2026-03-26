@@ -19,7 +19,7 @@ const AboutScreen: React.FC = () => {
         <View style={styles.logoContainer}>
           <Ionicons name="heart" size={64} color="#FF3B30" />
         </View>
-        <Text style={styles.appName}>CoreHealth</Text>
+        <Text style={styles.appName}>TOTO</Text>
         <Text style={styles.tagline}>Your Personal Health Companion</Text>
         <Text style={styles.version}>Version 1.0.0 (Build 001)</Text>
       </View>
@@ -34,7 +34,7 @@ const AboutScreen: React.FC = () => {
       <AcknowledgmentsSection />
 
       <View style={styles.footer}>
-        <Text style={styles.copyright}>© 2024 CoreHealth. All rights reserved.</Text>
+        <Text style={styles.copyright}>© 2024 TOTO. All rights reserved.</Text>
         <Text style={styles.footerText}>Made with ❤️ for better health outcomes</Text>
       </View>
 

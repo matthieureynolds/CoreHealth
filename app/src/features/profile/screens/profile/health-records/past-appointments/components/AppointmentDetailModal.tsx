@@ -45,7 +45,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             )}
             {appointment.fileUrl && (
               <TouchableOpacity style={styles.viewAttachmentButton} onPress={() => onViewAttachment(appointment)}>
-                <Ionicons name="document-attach" size={22} color="#007AFF" />
+                <Ionicons name="document-attach" size={22} color="#3AABF0" />
                 <Text style={styles.viewAttachmentText}>View attachment from doctor</Text>
               </TouchableOpacity>
             )}
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,122,255,0.15)',
     borderRadius: 12,
   },
-  viewAttachmentText: { fontSize: 16, color: '#007AFF', marginLeft: 10, fontWeight: '600' },
+  viewAttachmentText: { fontSize: 16, color: '#3AABF0', marginLeft: 10, fontWeight: '600' },
 });
 
 export default AppointmentDetailModal;

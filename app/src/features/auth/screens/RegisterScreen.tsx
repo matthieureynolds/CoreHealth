@@ -70,10 +70,10 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join CoreHealth for personalized health insights</Text>
+          <Text style={styles.subtitle}>Join TOTO for personalized health insights</Text>
         </View>
 
         <View style={styles.form}>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginTop: 40,
   },
   subtitle: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   registerButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   registerButtonText: {
     color: '#ffffff',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signInText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '600',
   },

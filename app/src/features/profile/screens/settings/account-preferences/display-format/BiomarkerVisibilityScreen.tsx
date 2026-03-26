@@ -104,7 +104,7 @@ const BiomarkerVisibilityScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Biomarker Visibility</Text>
         <View style={styles.headerRight} />
@@ -114,7 +114,7 @@ const BiomarkerVisibilityScreen: React.FC = () => {
         <Text style={styles.statsText}>{getTotalVisibleBiomarkers()} biomarkers visible</Text>
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlButton} onPress={handleShowAllCore}>
-            <Ionicons name="star-outline" size={16} color="#007AFF" />
+            <Ionicons name="star-outline" size={16} color="#3AABF0" />
             <Text style={styles.controlButtonText}>Show Core</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.controlButton} onPress={handleHideAll}>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   statsText: { fontSize: 15, color: '#8E8E93', textAlign: 'center', marginBottom: 12 },
   controlsRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginBottom: 12 },
   controlButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F2F2F7', gap: 4 },
-  controlButtonText: { fontSize: 14, color: '#007AFF', fontWeight: '500' },
+  controlButtonText: { fontSize: 14, color: '#3AABF0', fontWeight: '500' },
   filterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   filterLabel: { fontSize: 15, color: '#000000' },
   scrollView: { flex: 1 },

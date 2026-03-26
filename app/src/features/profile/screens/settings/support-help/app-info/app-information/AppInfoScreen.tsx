@@ -13,7 +13,7 @@ const AppInfoScreen: React.FC = () => {
       title: 'App Version',
       value: '1.0.0',
       icon: 'information-circle-outline',
-      color: '#007AFF', // Keep this one blue
+      color: '#3AABF0', // Keep this one blue
     },
     {
       title: 'Build Number',
@@ -58,16 +58,16 @@ const AppInfoScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">App Info</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>App Info</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         {/* Content */}
         <View style={styles.content}>
           {/* About Card */}
@@ -75,8 +75,8 @@ const AppInfoScreen: React.FC = () => {
           <Text style={styles.cardHeader}>ABOUT</Text>
           <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
             <Text style={styles.aboutText}>
-              CoreHealth is your comprehensive health companion, designed to help you track, understand, and
-              optimize your health journey. Built with privacy and security at its core, CoreHealth provides
+              TOTO is your comprehensive health companion, designed to help you track, understand, and
+              optimize your health journey. Built with privacy and security at its core, TOTO provides
               personalized insights and actionable recommendations to support your wellness goals.
             </Text>
           </View>
@@ -129,11 +129,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
     top: 0,
@@ -141,24 +142,18 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     elevation: 10,
+    paddingHorizontal: 20,
   },
   backButton: {
     padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 24.5,
-    zIndex: 1,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    paddingTop: 33,
-    paddingBottom: 8,
+    flex: 1,
   },
   card: {
     backgroundColor: '#1C1C1E',
@@ -229,7 +224,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     lineHeight: 20,
-    textAlign: 'justify',
+    textAlign: 'left',
   },
   scrollView: {
     flex: 1,

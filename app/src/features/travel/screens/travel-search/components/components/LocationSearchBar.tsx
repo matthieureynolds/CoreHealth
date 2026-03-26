@@ -82,7 +82,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
               onPress={onGetCurrentLocation}
               disabled={isGettingLocation}
             >
-              <Ionicons name="navigate" size={16} color={isGettingLocation ? '#8E8E93' : '#007AFF'} />
+              <Ionicons name="navigate" size={16} color={isGettingLocation ? '#8E8E93' : '#3AABF0'} />
               <Text style={styles.suggestionText}>
                 {isGettingLocation ? 'Getting location…' : 'Use current location'}
               </Text>
@@ -96,7 +96,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
             <View style={styles.suggestionsContainer}>
               {isSearchingCities && (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#007AFF" />
+                  <ActivityIndicator size="small" color="#3AABF0" />
                   <Text style={styles.loadingText}>Searching cities...</Text>
                 </View>
               )}
@@ -112,7 +112,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                     Keyboard.dismiss();
                   }}
                 >
-                  <Ionicons name="location" size={16} color="#007AFF" />
+                  <Ionicons name="location" size={16} color="#3AABF0" />
                   <View style={styles.suggestionContent}>
                     <Text style={styles.suggestionText}>{city.name}</Text>
                     <Text style={styles.suggestionSubtext}>{city.country}</Text>

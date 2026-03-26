@@ -24,7 +24,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   buttonText,
   onButtonPress,
   iconColor = '#8E8E93',
-  buttonColor = '#007AFF',
+  buttonColor = '#3AABF0',
 }) => {
   return (
     <View style={styles.container}>

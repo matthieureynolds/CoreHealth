@@ -83,7 +83,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="flask" size={20} color="#007AFF" />
+          <Ionicons name="flask" size={20} color="#3AABF0" />
           <Text style={styles.title}>Recent Lab Results</Text>
         </View>
         {/* View All button top right, like Travel Health */}
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
   },
   labResultsList: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   moreTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   lessTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
     fontSize: 14,
   },

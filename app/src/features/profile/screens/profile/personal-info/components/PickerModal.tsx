@@ -40,7 +40,7 @@ const PickerModal: React.FC<PickerModalProps> = ({ visible, title, options, sele
             >
               <Text style={styles.pickerOptionText}>{option.label}</Text>
               {selectedValue === option.value && (
-                <Ionicons name="checkmark" size={20} color="#007AFF" />
+                <Ionicons name="checkmark" size={20} color="#3AABF0" />
               )}
             </TouchableOpacity>
           ))}

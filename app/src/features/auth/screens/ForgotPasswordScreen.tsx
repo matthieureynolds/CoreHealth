@@ -53,7 +53,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        <Ionicons name="arrow-back" size={24} color="#3AABF0" />
       </TouchableOpacity>
 
       <View style={styles.content}>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#3AABF0',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     height: 50,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',

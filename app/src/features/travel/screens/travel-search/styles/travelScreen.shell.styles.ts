@@ -59,7 +59,7 @@ export const travelShellStyles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
+    borderBottomColor: '#3AABF0',
   },
   tabText: {
     fontSize: 15,
@@ -67,7 +67,7 @@ export const travelShellStyles = StyleSheet.create({
     color: '#8E8E93',
   },
   activeTabText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   scrollContainer: {
@@ -353,7 +353,7 @@ export const travelShellStyles = StyleSheet.create({
   },
   tripTabActive: {
     color: '#FFFFFF',
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
   },
   tripChecklistBox: {
     backgroundColor: '#2C2C2E',
@@ -401,7 +401,7 @@ export const travelShellStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,

@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#007AFF', // Keep blue for brand
+    color: '#3AABF0', // Keep blue for brand
     marginBottom: 8,
   },
   subtitle: {
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#007AFF', // Keep blue for progress
+    backgroundColor: '#3AABF0', // Keep blue for progress
     borderRadius: 2,
   },
   inputContainer: {
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   stepButtonEnabled: {
-    backgroundColor: '#007AFF', // Keep blue for enabled
+    backgroundColor: '#3AABF0', // Keep blue for enabled
   },
   stepButtonDisabled: {
     backgroundColor: '#333333', // Dark gray for disabled
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   nextButton: {
-    backgroundColor: '#007AFF', // Keep blue for final button
+    backgroundColor: '#3AABF0', // Keep blue for final button
     height: 50,
     borderRadius: 12,
     justifyContent: 'center',

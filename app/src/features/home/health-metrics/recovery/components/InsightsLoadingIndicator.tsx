@@ -34,7 +34,7 @@ const InsightsLoadingIndicator: React.FC<InsightsLoadingIndicatorProps> = ({
         ]}
       >
         <LinearGradient
-          colors={['#007AFF', '#5AC8FA', '#007AFF']}
+          colors={['#3AABF0', '#3AABF0', '#3AABF0']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.loadingGradient}
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#007AFF',
+    shadowColor: '#3AABF0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     marginHorizontal: 4,
   },
 });

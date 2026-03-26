@@ -173,15 +173,11 @@ const MedicalHistoryScreen: React.FC = () => {
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Medical History</Text>
-            <Text style={styles.headerSubtitle}>Manage your health records</Text>
-          </View>
-        </View>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Medical History</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -255,9 +251,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingTop: 32,
-    paddingBottom: 16,
-    backgroundColor: '#1C1C1E',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
   },
   headerContent: {
     flexDirection: 'row',
@@ -266,15 +265,17 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    marginRight: 12,
+    marginLeft: -8,
   },
   headerText: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 14,

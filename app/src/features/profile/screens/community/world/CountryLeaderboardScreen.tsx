@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  FlatList,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -10,355 +18,376 @@ type Nav = StackNavigationProp<ProfileTabParamList, 'CountryLeaderboard'>;
 
 const SF_FONT = Platform.select({ ios: 'SF Pro Text', android: 'System' }) ?? 'System';
 
+// ─── Category definitions ────────────────────────────────────────────────────
+
+type Category = {
+  id: string;
+  label: string;
+  emoji: string;
+  color: string;
+  subLabel: string;
+  unit: string;
+};
+
+const CATEGORIES: Category[] = [
+  { id: 'overall',    label: 'Overall',   emoji: '🏆', color: '#FFD60A', subLabel: 'Health Index',      unit: '' },
+  { id: 'sleep',      label: 'Sleep',     emoji: '😴', color: '#5E5CE6', subLabel: 'Sleep Quality',     unit: 'hrs' },
+  { id: 'cardio',     label: 'Cardio',    emoji: '❤️', color: '#FF453A', subLabel: 'Heart Health',      unit: 'bpm' },
+  { id: 'mind',       label: 'Mind',      emoji: '🧠', color: '#30D158', subLabel: 'Mental Wellness',   unit: '' },
+  { id: 'fitness',    label: 'Fitness',   emoji: '💪', color: '#FF9F0A', subLabel: 'Physical Activity', unit: 'k/day' },
+  { id: 'nutrition',  label: 'Nutrition', emoji: '🥗', color: '#32D74B', subLabel: 'Diet Quality',      unit: '' },
+  { id: 'longevity',  label: 'Longevity', emoji: '🧬', color: '#BF5AF2', subLabel: 'Lifespan Index',    unit: 'yrs' },
+  { id: 'zen',        label: 'Zen',       emoji: '🧘', color: '#64D2FF', subLabel: 'Stress & Calm',     unit: '' },
+  { id: 'recovery',   label: 'Recovery',  emoji: '⚡', color: '#FFD60A', subLabel: 'Recovery Rate',    unit: '%' },
+  { id: 'vitality',   label: 'Vitality',  emoji: '🌿', color: '#4CD964', subLabel: 'Energy Index',     unit: '' },
+];
+
+// ─── Country data ────────────────────────────────────────────────────────────
+
+const FLAG_CODES: Record<string, string> = {
+  'Japan': 'JP', 'Switzerland': 'CH', 'Singapore': 'SG', 'Spain': 'ES',
+  'South Korea': 'KR', 'Italy': 'IT', 'Sweden': 'SE', 'Norway': 'NO',
+  'Australia': 'AU', 'Iceland': 'IS', 'Denmark': 'DK', 'Finland': 'FI',
+  'Netherlands': 'NL', 'Austria': 'AT', 'New Zealand': 'NZ', 'France': 'FR',
+  'Germany': 'DE', 'Canada': 'CA', 'Ireland': 'IE', 'Israel': 'IL',
+  'Portugal': 'PT', 'Belgium': 'BE', 'Greece': 'GR', 'Luxembourg': 'LU',
+  'Malta': 'MT', 'Slovenia': 'SI', 'United Kingdom': 'GB', 'United States': 'US',
+  'Costa Rica': 'CR', 'Qatar': 'QA', 'Chile': 'CL', 'China': 'CN',
+  'Thailand': 'TH', 'Brazil': 'BR', 'India': 'IN', 'Japan (Okinawa)': 'JP',
+  'Bhutan': 'BT', 'Cyprus': 'CY', 'Croatia': 'HR', 'Taiwan': 'TW',
+  'Estonia': 'EE', 'Czech Republic': 'CZ', 'Poland': 'PL', 'Uruguay': 'UY',
+  'Colombia': 'CO', 'Vietnam': 'VN', 'Indonesia': 'ID', 'Turkey': 'TR',
+};
+
+const flagEmoji = (code: string) => {
+  const up = code.toUpperCase();
+  const base = 0x1f1e6;
+  return String.fromCodePoint(up.charCodeAt(0) - 65 + base, up.charCodeAt(1) - 65 + base);
+};
+
+// Seeded pseudo-random so order is deterministic per category
+const seededRandom = (seed: number) => {
+  let s = seed;
+  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+};
+
+type CountryRow = { name: string; flag: string; score: number; delta: number };
+
+const BASE_RANKING: CountryRow[] = [
+  { name: 'Japan', flag: flagEmoji('JP'), score: 84.4, delta: 1 },
+  { name: 'Switzerland', flag: flagEmoji('CH'), score: 83.7, delta: 0 },
+  { name: 'Singapore', flag: flagEmoji('SG'), score: 83.5, delta: -1 },
+  { name: 'Spain', flag: flagEmoji('ES'), score: 83.5, delta: 1 },
+  { name: 'South Korea', flag: flagEmoji('KR'), score: 83.2, delta: 0 },
+  { name: 'Italy', flag: flagEmoji('IT'), score: 83.2, delta: -1 },
+  { name: 'Sweden', flag: flagEmoji('SE'), score: 83.0, delta: 1 },
+  { name: 'Norway', flag: flagEmoji('NO'), score: 82.9, delta: 0 },
+  { name: 'Australia', flag: flagEmoji('AU'), score: 82.9, delta: -1 },
+  { name: 'Iceland', flag: flagEmoji('IS'), score: 82.6, delta: 1 },
+  { name: 'Denmark', flag: flagEmoji('DK'), score: 81.2, delta: 0 },
+  { name: 'Finland', flag: flagEmoji('FI'), score: 81.8, delta: 1 },
+  { name: 'Netherlands', flag: flagEmoji('NL'), score: 82.0, delta: -1 },
+  { name: 'Austria', flag: flagEmoji('AT'), score: 81.8, delta: 0 },
+  { name: 'New Zealand', flag: flagEmoji('NZ'), score: 81.7, delta: 1 },
+  { name: 'France', flag: flagEmoji('FR'), score: 82.6, delta: 0 },
+  { name: 'Germany', flag: flagEmoji('DE'), score: 81.0, delta: -1 },
+  { name: 'Canada', flag: flagEmoji('CA'), score: 82.0, delta: 1 },
+  { name: 'Ireland', flag: flagEmoji('IE'), score: 82.3, delta: 0 },
+  { name: 'Israel', flag: flagEmoji('IL'), score: 82.8, delta: -1 },
+  { name: 'Portugal', flag: flagEmoji('PT'), score: 80.9, delta: 1 },
+  { name: 'Belgium', flag: flagEmoji('BE'), score: 81.7, delta: 0 },
+  { name: 'Greece', flag: flagEmoji('GR'), score: 81.9, delta: -1 },
+  { name: 'Luxembourg', flag: flagEmoji('LU'), score: 82.4, delta: 1 },
+  { name: 'Malta', flag: flagEmoji('MT'), score: 82.6, delta: 0 },
+  { name: 'Slovenia', flag: flagEmoji('SI'), score: 81.3, delta: -1 },
+  { name: 'United Kingdom', flag: flagEmoji('GB'), score: 81.2, delta: 1 },
+  { name: 'United States', flag: flagEmoji('US'), score: 78.5, delta: 0 },
+  { name: 'Costa Rica', flag: flagEmoji('CR'), score: 80.2, delta: -1 },
+  { name: 'Qatar', flag: flagEmoji('QA'), score: 80.1, delta: 1 },
+  { name: 'Chile', flag: flagEmoji('CL'), score: 80.0, delta: 0 },
+  { name: 'China', flag: flagEmoji('CN'), score: 77.1, delta: -1 },
+  { name: 'Thailand', flag: flagEmoji('TH'), score: 76.0, delta: 1 },
+  { name: 'Brazil', flag: flagEmoji('BR'), score: 75.9, delta: 0 },
+  { name: 'India', flag: flagEmoji('IN'), score: 70.4, delta: -1 },
+];
+
+const CATEGORY_RANKINGS: Record<string, CountryRow[]> = (() => {
+  const result: Record<string, CountryRow[]> = {};
+  CATEGORIES.forEach((cat, ci) => {
+    const rng = seededRandom(ci * 997 + 42);
+    const shuffled = [...BASE_RANKING]
+      .map((c) => ({
+        ...c,
+        score: parseFloat((c.score * (0.88 + rng() * 0.24)).toFixed(1)),
+        delta: Math.floor(rng() * 3) - 1,
+      }))
+      .sort((a, b) => b.score - a.score);
+    result[cat.id] = shuffled;
+  });
+  return result;
+})();
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const CountryLeaderboardScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
+  const [activeCatId, setActiveCatId] = useState('overall');
   const [joinedCountry, setJoinedCountry] = useState(false);
 
-  const countryAverages = useMemo(() => {
-    const countries = [
-      { name: 'Afghanistan', code: 'AF' },
-      { name: 'Albania', code: 'AL' },
-      { name: 'Algeria', code: 'DZ' },
-      { name: 'Andorra', code: 'AD' },
-      { name: 'Angola', code: 'AO' },
-      { name: 'Antigua and Barbuda', code: 'AG' },
-      { name: 'Argentina', code: 'AR' },
-      { name: 'Armenia', code: 'AM' },
-      { name: 'Australia', code: 'AU' },
-      { name: 'Austria', code: 'AT' },
-      { name: 'Azerbaijan', code: 'AZ' },
-      { name: 'Bahamas', code: 'BS' },
-      { name: 'Bahrain', code: 'BH' },
-      { name: 'Bangladesh', code: 'BD' },
-      { name: 'Barbados', code: 'BB' },
-      { name: 'Belarus', code: 'BY' },
-      { name: 'Belgium', code: 'BE' },
-      { name: 'Belize', code: 'BZ' },
-      { name: 'Benin', code: 'BJ' },
-      { name: 'Bhutan', code: 'BT' },
-      { name: 'Bolivia', code: 'BO' },
-      { name: 'Bosnia and Herzegovina', code: 'BA' },
-      { name: 'Botswana', code: 'BW' },
-      { name: 'Brazil', code: 'BR' },
-      { name: 'Brunei', code: 'BN' },
-      { name: 'Bulgaria', code: 'BG' },
-      { name: 'Burkina Faso', code: 'BF' },
-      { name: 'Burundi', code: 'BI' },
-      { name: 'Cabo Verde', code: 'CV' },
-      { name: 'Cambodia', code: 'KH' },
-      { name: 'Cameroon', code: 'CM' },
-      { name: 'Canada', code: 'CA' },
-      { name: 'Central African Republic', code: 'CF' },
-      { name: 'Chad', code: 'TD' },
-      { name: 'Chile', code: 'CL' },
-      { name: 'China', code: 'CN' },
-      { name: 'Colombia', code: 'CO' },
-      { name: 'Comoros', code: 'KM' },
-      { name: 'Congo (Congo-Brazzaville)', code: 'CG' },
-      { name: 'Costa Rica', code: 'CR' },
-      { name: 'Croatia', code: 'HR' },
-      { name: 'Cuba', code: 'CU' },
-      { name: 'Cyprus', code: 'CY' },
-      { name: 'Czechia', code: 'CZ' },
-      { name: 'Democratic Republic of the Congo', code: 'CD' },
-      { name: 'Denmark', code: 'DK' },
-      { name: 'Djibouti', code: 'DJ' },
-      { name: 'Dominica', code: 'DM' },
-      { name: 'Dominican Republic', code: 'DO' },
-      { name: 'Ecuador', code: 'EC' },
-      { name: 'Egypt', code: 'EG' },
-      { name: 'El Salvador', code: 'SV' },
-      { name: 'Equatorial Guinea', code: 'GQ' },
-      { name: 'Eritrea', code: 'ER' },
-      { name: 'Estonia', code: 'EE' },
-      { name: 'Eswatini', code: 'SZ' },
-      { name: 'Ethiopia', code: 'ET' },
-      { name: 'Fiji', code: 'FJ' },
-      { name: 'Finland', code: 'FI' },
-      { name: 'France', code: 'FR' },
-      { name: 'Gabon', code: 'GA' },
-      { name: 'Gambia', code: 'GM' },
-      { name: 'Georgia', code: 'GE' },
-      { name: 'Germany', code: 'DE' },
-      { name: 'Ghana', code: 'GH' },
-      { name: 'Greece', code: 'GR' },
-      { name: 'Grenada', code: 'GD' },
-      { name: 'Guatemala', code: 'GT' },
-      { name: 'Guinea', code: 'GN' },
-      { name: 'Guinea-Bissau', code: 'GW' },
-      { name: 'Guyana', code: 'GY' },
-      { name: 'Haiti', code: 'HT' },
-      { name: 'Honduras', code: 'HN' },
-      { name: 'Hungary', code: 'HU' },
-      { name: 'Iceland', code: 'IS' },
-      { name: 'India', code: 'IN' },
-      { name: 'Indonesia', code: 'ID' },
-      { name: 'Iran', code: 'IR' },
-      { name: 'Iraq', code: 'IQ' },
-      { name: 'Ireland', code: 'IE' },
-      { name: 'Israel', code: 'IL' },
-      { name: 'Italy', code: 'IT' },
-      { name: 'Jamaica', code: 'JM' },
-      { name: 'Japan', code: 'JP' },
-      { name: 'Jordan', code: 'JO' },
-      { name: 'Kazakhstan', code: 'KZ' },
-      { name: 'Kenya', code: 'KE' },
-      { name: 'Kuwait', code: 'KW' },
-      { name: 'Kyrgyzstan', code: 'KG' },
-      { name: 'Laos', code: 'LA' },
-      { name: 'Latvia', code: 'LV' },
-      { name: 'Lebanon', code: 'LB' },
-      { name: 'Lesotho', code: 'LS' },
-      { name: 'Liberia', code: 'LR' },
-      { name: 'Libya', code: 'LY' },
-      { name: 'Liechtenstein', code: 'LI' },
-      { name: 'Lithuania', code: 'LT' },
-      { name: 'Luxembourg', code: 'LU' },
-      { name: 'Madagascar', code: 'MG' },
-      { name: 'Malawi', code: 'MW' },
-      { name: 'Malaysia', code: 'MY' },
-      { name: 'Maldives', code: 'MV' },
-      { name: 'Mali', code: 'ML' },
-      { name: 'Malta', code: 'MT' },
-      { name: 'Mauritania', code: 'MR' },
-      { name: 'Mauritius', code: 'MU' },
-      { name: 'Mexico', code: 'MX' },
-      { name: 'Moldova', code: 'MD' },
-      { name: 'Monaco', code: 'MC' },
-      { name: 'Mongolia', code: 'MN' },
-      { name: 'Montenegro', code: 'ME' },
-      { name: 'Morocco', code: 'MA' },
-      { name: 'Mozambique', code: 'MZ' },
-      { name: 'Myanmar', code: 'MM' },
-      { name: 'Namibia', code: 'NA' },
-      { name: 'Nepal', code: 'NP' },
-      { name: 'Netherlands', code: 'NL' },
-      { name: 'New Zealand', code: 'NZ' },
-      { name: 'Nicaragua', code: 'NI' },
-      { name: 'Niger', code: 'NE' },
-      { name: 'Nigeria', code: 'NG' },
-      { name: 'North Korea', code: 'KP' },
-      { name: 'North Macedonia', code: 'MK' },
-      { name: 'Norway', code: 'NO' },
-      { name: 'Oman', code: 'OM' },
-      { name: 'Pakistan', code: 'PK' },
-      { name: 'Panama', code: 'PA' },
-      { name: 'Papua New Guinea', code: 'PG' },
-      { name: 'Paraguay', code: 'PY' },
-      { name: 'Peru', code: 'PE' },
-      { name: 'Philippines', code: 'PH' },
-      { name: 'Poland', code: 'PL' },
-      { name: 'Portugal', code: 'PT' },
-      { name: 'Qatar', code: 'QA' },
-      { name: 'Romania', code: 'RO' },
-      { name: 'Russia', code: 'RU' },
-      { name: 'Rwanda', code: 'RW' },
-      { name: 'Saudi Arabia', code: 'SA' },
-      { name: 'Senegal', code: 'SN' },
-      { name: 'Serbia', code: 'RS' },
-      { name: 'Seychelles', code: 'SC' },
-      { name: 'Sierra Leone', code: 'SL' },
-      { name: 'Singapore', code: 'SG' },
-      { name: 'Slovakia', code: 'SK' },
-      { name: 'Slovenia', code: 'SI' },
-      { name: 'Somalia', code: 'SO' },
-      { name: 'South Africa', code: 'ZA' },
-      { name: 'South Korea', code: 'KR' },
-      { name: 'South Sudan', code: 'SS' },
-      { name: 'Spain', code: 'ES' },
-      { name: 'Sri Lanka', code: 'LK' },
-      { name: 'Sudan', code: 'SD' },
-      { name: 'Sweden', code: 'SE' },
-      { name: 'Switzerland', code: 'CH' },
-      { name: 'Syria', code: 'SY' },
-      { name: 'Taiwan', code: 'TW' },
-      { name: 'Tajikistan', code: 'TJ' },
-      { name: 'Tanzania', code: 'TZ' },
-      { name: 'Thailand', code: 'TH' },
-      { name: 'Togo', code: 'TG' },
-      { name: 'Tunisia', code: 'TN' },
-      { name: 'Turkey', code: 'TR' },
-      { name: 'Uganda', code: 'UG' },
-      { name: 'Ukraine', code: 'UA' },
-      { name: 'United Arab Emirates', code: 'AE' },
-      { name: 'United Kingdom', code: 'GB' },
-      { name: 'United States', code: 'US' },
-      { name: 'Uruguay', code: 'UY' },
-      { name: 'Uzbekistan', code: 'UZ' },
-      { name: 'Venezuela', code: 'VE' },
-      { name: 'Vietnam', code: 'VN' },
-      { name: 'Yemen', code: 'YE' },
-      { name: 'Zambia', code: 'ZM' },
-      { name: 'Zimbabwe', code: 'ZW' },
-      { name: 'Palestine', code: 'PS' },
-      { name: 'Hong Kong SAR, China', code: 'HK' },
-      { name: 'Macao SAR, China', code: 'MO' },
-    ];
-
-    const byName = new Map(countries.map((c) => [c.name, c.code]));
-
-    const ranked = [
-      { name: 'Hong Kong SAR, China', score: 85.1 },
-      { name: 'Japan', score: 84.4 },
-      { name: 'Macao SAR, China', score: 84.2 },
-      { name: 'Switzerland', score: 83.7 },
-      { name: 'Singapore', score: 83.5 },
-      { name: 'Spain', score: 83.5 },
-      { name: 'South Korea', score: 83.2 },
-      { name: 'Italy', score: 83.2 },
-      { name: 'Liechtenstein', score: 83.0 },
-      { name: 'Sweden', score: 83.0 },
-      { name: 'Norway', score: 82.9 },
-      { name: 'Australia', score: 82.9 },
-      { name: 'Israel', score: 82.8 },
-      { name: 'Malta', score: 82.6 },
-      { name: 'France', score: 82.6 },
-      { name: 'Iceland', score: 82.6 },
-      { name: 'Luxembourg', score: 82.4 },
-      { name: 'Ireland', score: 82.3 },
-      { name: 'Canada', score: 82.0 },
-      { name: 'Netherlands', score: 82.0 },
-      { name: 'Greece', score: 81.9 },
-      { name: 'Austria', score: 81.8 },
-      { name: 'Finland', score: 81.8 },
-      { name: 'Belgium', score: 81.7 },
-      { name: 'New Zealand', score: 81.7 },
-      { name: 'Slovenia', score: 81.3 },
-      { name: 'United Kingdom', score: 81.2 },
-      { name: 'Denmark', score: 81.2 },
-      { name: 'Cyprus', score: 81.0 },
-      { name: 'Germany', score: 81.0 },
-      { name: 'Portugal', score: 80.9 },
-      { name: 'Costa Rica', score: 80.2 },
-      { name: 'Qatar', score: 80.1 },
-      { name: 'Chile', score: 80.0 },
-      { name: 'United States', score: 78.5 },
-      { name: 'Czech Republic', score: 78.4 },
-      { name: 'Cuba', score: 78.0 },
-      { name: 'Albania', score: 77.8 },
-      { name: 'Panama', score: 77.5 },
-      { name: 'Estonia', score: 77.3 },
-      { name: 'Croatia', score: 77.2 },
-      { name: 'Uruguay', score: 77.1 },
-      { name: 'Oman', score: 76.9 },
-      { name: 'Poland', score: 76.7 },
-      { name: 'Turkey', score: 76.5 },
-      { name: 'Colombia', score: 76.3 },
-      { name: 'Thailand', score: 76.0 },
-      { name: 'China', score: 77.1 },
-      { name: 'Brazil', score: 75.9 },
-      { name: 'India', score: 70.4 },
-      { name: 'Nigeria', score: 54.7 },
-      { name: 'Chad', score: 52.1 },
-    ];
-
-    const flagFromCode = (code: string) => {
-      const upper = code.toUpperCase();
-      const base = 0x1f1e6;
-      const first = upper.charCodeAt(0) - 65 + base;
-      const second = upper.charCodeAt(1) - 65 + base;
-      return String.fromCodePoint(first, second);
-    };
-
-    return ranked.map((entry, idx) => {
-      const code = byName.get(entry.name);
-      return {
-        name: entry.name,
-        flag: code ? flagFromCode(code) : '🌐',
-        score: entry.score,
-        delta: idx % 3 === 0 ? 1 : idx % 3 === 1 ? 0 : -1,
-      };
-    });
-  }, []);
-
-  const RankDelta = ({ delta }: { delta: number }) => {
-    if (delta === 0) return <View style={styles.deltaFlat} />;
-    return (
-      <View style={[styles.deltaChip, delta > 0 ? styles.deltaUp : styles.deltaDown]}>
-        <Ionicons
-          name={delta > 0 ? 'arrow-up' : 'arrow-down'}
-          size={9}
-          color={delta > 0 ? '#34C759' : '#FF453A'}
-        />
-      </View>
-    );
-  };
+  const activeCat = CATEGORIES.find((c) => c.id === activeCatId)!;
+  const ranking = CATEGORY_RANKINGS[activeCatId];
+  const top3 = ranking.slice(0, 3);
+  const rest = ranking.slice(3);
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Country Leaderboard</Text>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>World Rankings</Text>
+          <Text style={[styles.headerSub, { color: activeCat.color }]}>{activeCat.subLabel}</Text>
+        </View>
         <TouchableOpacity
           style={[styles.joinBtn, joinedCountry && styles.joinedBtn]}
-          onPress={() => setJoinedCountry((prev) => !prev)}
+          onPress={() => setJoinedCountry((p) => !p)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text style={[styles.joinBtnText, joinedCountry && styles.joinedBtnText]}>
-            {joinedCountry ? 'Joined' : 'Join'}
+            {joinedCountry ? '✓ Joined' : 'Join'}
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={[styles.card, styles.leaderboardCard]}>
-          {countryAverages.map((c, idx) => (
-            <View key={c.name} style={styles.lbRow}>
-              <Text style={styles.lbRank}>#{idx + 1}</Text>
-              <Text style={styles.lbFlag}>{c.flag}</Text>
-              <Text style={styles.lbName}>{c.name}</Text>
-              <View style={styles.lbScoreRow}>
-                <RankDelta delta={c.delta} />
-                <Text style={styles.lbScore}>{typeof c.score === 'number' ? c.score.toFixed(1) : '—'}</Text>
-              </View>
-            </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Category Selector */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.catScrollContent}
+          style={styles.catScroll}
+        >
+          {CATEGORIES.map((cat) => {
+            const active = cat.id === activeCatId;
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.catBtn, active && { borderColor: cat.color, backgroundColor: `${cat.color}18` }]}
+                onPress={() => setActiveCatId(cat.id)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.catEmoji}>{cat.emoji}</Text>
+                <Text style={[styles.catLabel, active && { color: cat.color }]}>{cat.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Podium — top 3 */}
+        <View style={styles.podiumRow}>
+          {/* #2 */}
+          <PodiumCard country={top3[1]} rank={2} color={activeCat.color} size="small" />
+          {/* #1 */}
+          <PodiumCard country={top3[0]} rank={1} color={activeCat.color} size="large" />
+          {/* #3 */}
+          <PodiumCard country={top3[2]} rank={3} color={activeCat.color} size="small" />
+        </View>
+
+        {/* Rest of rankings */}
+        <View style={styles.listSection}>
+          <Text style={styles.listHeader}>ALL COUNTRIES</Text>
+          {rest.map((c, i) => (
+            <RankRow key={c.name} country={c} rank={i + 4} color={activeCat.color} />
           ))}
         </View>
-        <View style={{ height: 24 }} />
+
+        <View style={{ height: 40 }} />
       </ScrollView>
+    </View>
+  );
+};
+
+// ─── Podium Card ──────────────────────────────────────────────────────────────
+
+const MEDAL = ['', '🥇', '🥈', '🥉'];
+const MEDAL_COLOR = ['', '#FFD60A', '#C0C0C0', '#CD7F32'];
+
+type PodiumProps = { country: CountryRow; rank: 1 | 2 | 3; color: string; size: 'large' | 'small' };
+
+const PodiumCard: React.FC<PodiumProps> = ({ country, rank, color, size }) => {
+  const isFirst = rank === 1;
+  return (
+    <View style={[styles.podiumCard, isFirst && styles.podiumCardFirst, { borderColor: isFirst ? color : 'transparent' }]}>
+      {isFirst && (
+        <View style={[styles.podiumGlow, { shadowColor: color }]} />
+      )}
+      <Text style={styles.podiumMedal}>{MEDAL[rank]}</Text>
+      <Text style={styles.podiumFlag}>{country.flag}</Text>
+      <Text style={[styles.podiumName, isFirst && styles.podiumNameFirst]} numberOfLines={1}>
+        {country.name}
+      </Text>
+      <Text style={[styles.podiumScore, { color: isFirst ? color : MEDAL_COLOR[rank] }]}>
+        {country.score.toFixed(1)}
+      </Text>
+      {/* Podium base bar */}
+      <View style={[styles.podiumBase, {
+        height: isFirst ? 36 : rank === 2 ? 26 : 18,
+        backgroundColor: isFirst ? color : MEDAL_COLOR[rank],
+      }]}>
+        <Text style={styles.podiumRankLabel}>#{rank}</Text>
+      </View>
+    </View>
+  );
+};
+
+// ─── Rank Row ─────────────────────────────────────────────────────────────────
+
+type RowProps = { country: CountryRow; rank: number; color: string };
+
+const RankRow: React.FC<RowProps> = ({ country, rank, color }) => (
+  <View style={styles.rankRow}>
+    <Text style={styles.rankNum}>#{rank}</Text>
+    <Text style={styles.rankFlag}>{country.flag}</Text>
+    <Text style={styles.rankName} numberOfLines={1}>{country.name}</Text>
+    <DeltaIndicator delta={country.delta} />
+    <Text style={[styles.rankScore, { color }]}>{country.score.toFixed(1)}</Text>
+  </View>
+);
+
+// ─── Delta ────────────────────────────────────────────────────────────────────
+
+const DeltaIndicator: React.FC<{ delta: number }> = ({ delta }) => {
+  if (delta === 0) return <View style={styles.deltaFlat} />;
+  return (
+    <View style={[styles.deltaChip, delta > 0 ? styles.deltaUp : styles.deltaDown]}>
+      <Ionicons name={delta > 0 ? 'arrow-up' : 'arrow-down'} size={9} color={delta > 0 ? '#34C759' : '#FF453A'} />
     </View>
   );
 };
 
 export default CountryLeaderboardScreen;
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  headerRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 48, paddingHorizontal: 20, paddingBottom: 4, backgroundColor: colors.bg },
-  scrollContent: { flex: 1 },
-  headerBackBtn: { padding: 4 },
-  headerTitle: { flex: 1, color: colors.textPrimary, fontSize: 20, fontWeight: '600', textAlign: 'center', fontFamily: SF_FONT },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 52,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerTitle: { color: colors.textPrimary, fontSize: 18, fontWeight: '700', fontFamily: SF_FONT },
+  headerSub: { fontSize: 11, fontWeight: '600', marginTop: 1, fontFamily: SF_FONT },
   joinBtn: {
     backgroundColor: colors.cta,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
   },
-  joinBtnText: {
-    color: colors.ctaText,
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: SF_FONT,
-  },
+  joinBtnText: { color: colors.ctaText, fontSize: 12, fontWeight: '700', fontFamily: SF_FONT },
   joinedBtn: { backgroundColor: colors.surfaceMuted },
   joinedBtnText: { color: colors.textSecondary },
-  card: { backgroundColor: 'transparent', marginHorizontal: 20, marginBottom: 10 },
-  leaderboardCard: { paddingTop: 0, paddingBottom: 0 },
-  lbRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  lbRank: { color: colors.textSecondary, width: 40, fontSize: 13, fontFamily: SF_FONT },
-  lbFlag: { width: 24, textAlign: 'center' },
-  lbName: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', flex: 1, fontFamily: SF_FONT },
-  lbScoreRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 70, justifyContent: 'flex-end' },
-  lbScore: { color: '#FFD60A', fontWeight: '700', textAlign: 'right', fontSize: 14, fontFamily: SF_FONT },
-  deltaChip: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
+
+  // Category selector
+  catScroll: { marginBottom: 4 },
+  catScrollContent: { paddingHorizontal: 16, gap: 8, paddingVertical: 8 },
+  catBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+    backgroundColor: '#1C1C1E',
+  },
+  catEmoji: { fontSize: 14 },
+  catLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '600', fontFamily: SF_FONT },
+
+  // Podium
+  podiumRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+    gap: 8,
+  },
+  podiumCard: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    paddingTop: 12,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  podiumCardFirst: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  podiumGlow: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0,
+    height: 2,
+    backgroundColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  podiumMedal: { fontSize: 22, marginBottom: 2 },
+  podiumFlag: { fontSize: 28, marginBottom: 4 },
+  podiumName: { color: colors.textSecondary, fontSize: 11, fontWeight: '600', textAlign: 'center', fontFamily: SF_FONT, marginBottom: 3 },
+  podiumNameFirst: { color: colors.textPrimary, fontSize: 12 },
+  podiumScore: { fontSize: 16, fontWeight: '800', fontFamily: SF_FONT, marginBottom: 8 },
+  podiumBase: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
-  deltaUp: { backgroundColor: 'rgba(52, 199, 89, 0.15)' },
-  deltaDown: { backgroundColor: 'rgba(255, 69, 58, 0.15)' },
+  podiumRankLabel: { color: '#000', fontSize: 11, fontWeight: '800', fontFamily: SF_FONT },
+
+  // List
+  listSection: { paddingHorizontal: 20 },
+  listHeader: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    fontFamily: SF_FONT,
+  },
+  rankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2C2C2E',
+  },
+  rankNum: { color: colors.textSecondary, width: 36, fontSize: 13, fontFamily: SF_FONT },
+  rankFlag: { width: 26, textAlign: 'center', fontSize: 18 },
+  rankName: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', flex: 1, fontFamily: SF_FONT },
+  rankScore: { fontSize: 15, fontWeight: '700', fontFamily: SF_FONT, marginLeft: 6, minWidth: 40, textAlign: 'right' },
+
+  // Delta
+  deltaChip: { width: 16, height: 16, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
+  deltaUp: { backgroundColor: 'rgba(52,199,89,0.15)' },
+  deltaDown: { backgroundColor: 'rgba(255,69,58,0.15)' },
   deltaFlat: { width: 16, height: 16 },
 });

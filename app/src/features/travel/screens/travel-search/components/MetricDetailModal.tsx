@@ -102,7 +102,7 @@ const MetricDetailModal: React.FC<MetricDetailModalProps> = ({ visible, metric, 
             <Text style={styles.sectionTitleDetailed}>Recommendations</Text>
             {getMetricDetails(metric.id, metric.status).recommendations.map((r: string, idx: number) => (
               <View key={idx} style={styles.recommendationItemDetailed}>
-                <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+                <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
                 <Text style={styles.recommendationTextDetailed}>{r}</Text>
               </View>
             ))}

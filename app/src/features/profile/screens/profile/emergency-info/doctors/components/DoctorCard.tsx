@@ -29,18 +29,18 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onCall, onEmail, onOpti
         onPress={() => onOptions(doctor)}
         accessibilityLabel="Edit doctor"
       >
-        <Feather name="edit-2" size={18} color="#007AFF" />
+        <Feather name="edit-2" size={18} color="#3AABF0" />
       </TouchableOpacity>
     </View>
 
     <View style={styles.contactActions}>
       <TouchableOpacity style={styles.actionChip} onPress={() => onCall(doctor)}>
-        <Ionicons name="call-outline" size={18} color="#007AFF" />
+        <Ionicons name="call-outline" size={18} color="#3AABF0" />
         <Text style={styles.actionChipText}>Call</Text>
       </TouchableOpacity>
       {doctor.email && (
         <TouchableOpacity style={styles.actionChip} onPress={() => onEmail(doctor)}>
-          <Ionicons name="mail-outline" size={18} color="#007AFF" />
+          <Ionicons name="mail-outline" size={18} color="#3AABF0" />
           <Text style={styles.actionChipText}>Email</Text>
         </TouchableOpacity>
       )}
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#0A84FF33',
+    borderColor: '#3AABF033',
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#0A84FF14',
+    backgroundColor: '#3AABF014',
     borderWidth: 1,
-    borderColor: '#0A84FF33',
+    borderColor: '#3AABF033',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -153,11 +153,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     flex: 1,
   },
   actionChipText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,

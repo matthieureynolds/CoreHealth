@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   dateModeChipActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#3AABF0',
+    borderColor: '#3AABF0',
   },
   dateModeText: {
     color: '#FFFFFF',

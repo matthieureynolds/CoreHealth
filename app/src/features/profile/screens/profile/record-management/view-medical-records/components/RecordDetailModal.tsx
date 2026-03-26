@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   modalTitle: {
     fontSize: 18,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   modalContent: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tag: {
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#3AABF0',
   },
   recordDetailNotes: {
     marginBottom: 16,

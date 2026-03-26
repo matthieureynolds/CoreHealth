@@ -1,4 +1,4 @@
-// Settings Types for CoreHealth App
+// Settings Types for TOTO App
 
 export interface GeneralSettings {
   language: string;

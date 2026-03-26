@@ -93,7 +93,7 @@ const FileViewerModal: React.FC<FileViewerModalProps> = ({
     if (fileUri.startsWith('file://')) {
       return (
         <View style={styles.errorContainer}>
-          <Ionicons name="document" size={64} color="#007AFF" />
+          <Ionicons name="document" size={64} color="#3AABF0" />
           <Text style={styles.errorTitle}>Local PDF File</Text>
           <Text style={styles.errorText}>
             This PDF is stored locally on your device. WebView cannot directly access local files in Expo Go.
@@ -186,7 +186,7 @@ const FileViewerModal: React.FC<FileViewerModalProps> = ({
           ) : (
             <View style={styles.nonPdfContainer}>
               <View style={styles.fileIconContainer}>
-                <Ionicons name={getFileIcon()} size={64} color="#007AFF" />
+                <Ionicons name={getFileIcon()} size={64} color="#3AABF0" />
               </View>
               
               <Text style={styles.fileTitle}>{fileName}</Text>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   openButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   fallbackButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

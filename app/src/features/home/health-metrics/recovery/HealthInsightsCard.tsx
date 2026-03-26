@@ -72,7 +72,7 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="sparkles" size={24} color="#007AFF" />
+          <Ionicons name="sparkles" size={24} color="#3AABF0" />
           <Text style={styles.title}>AI Health Insights</Text>
         </View>
         <InsightsLoadingIndicator pulseAnim={pulseAnim} rotateAnim={rotateAnim} scaleAnim={scaleAnim} />
@@ -84,11 +84,11 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleSection}>
-          <Ionicons name="sparkles" size={24} color="#007AFF" />
+          <Ionicons name="sparkles" size={24} color="#3AABF0" />
           <Text style={styles.title}>AI Health Insights</Text>
         </View>
         <TouchableOpacity style={styles.chatButton} onPress={onChatPress}>
-          <Ionicons name="chatbubble-ellipses" size={20} color="#007AFF" />
+          <Ionicons name="chatbubble-ellipses" size={20} color="#3AABF0" />
           <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
       </View>
@@ -100,7 +100,7 @@ const HealthInsightsCard: React.FC<HealthInsightsCardProps> = ({ onChatPress }) 
       </ScrollView>
 
       <TouchableOpacity style={styles.refreshButton} onPress={loadHealthInsights}>
-        <Ionicons name="refresh" size={16} color="#007AFF" />
+        <Ionicons name="refresh" size={16} color="#3AABF0" />
         <Text style={styles.refreshText}>Refresh Insights</Text>
       </TouchableOpacity>
     </View>
@@ -120,10 +120,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#F2F2F7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
-  chatButtonText: { fontSize: 14, color: '#007AFF', fontWeight: '500', marginLeft: 4 },
+  chatButtonText: { fontSize: 14, color: '#3AABF0', fontWeight: '500', marginLeft: 4 },
   contentScrollView: { maxHeight: 200 },
   refreshButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16, paddingVertical: 8 },
-  refreshText: { fontSize: 14, color: '#007AFF', fontWeight: '500', marginLeft: 4 },
+  refreshText: { fontSize: 14, color: '#3AABF0', fontWeight: '500', marginLeft: 4 },
 });
 
 export default HealthInsightsCard;

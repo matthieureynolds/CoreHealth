@@ -18,7 +18,7 @@ const DeviceConnectionScreen: React.FC<Props> = ({ onNext, onBack }) => {
   const [connectedDevices, setConnectedDevices] = useState<string[]>([]);
 
   const devices = [
-    { id: 'apple_health', name: 'Apple Health', icon: 'logo-apple', color: '#007AFF' },
+    { id: 'apple_health', name: 'Apple Health', icon: 'logo-apple', color: '#3AABF0' },
     { id: 'whoop', name: 'WHOOP', icon: 'fitness', color: '#00D4AA' },
     { id: 'oura', name: 'Oura Ring', icon: 'radio', color: '#00B2CA' },
     { id: 'garmin', name: 'Garmin', icon: 'watch', color: '#007CC3' },
@@ -62,7 +62,7 @@ const DeviceConnectionScreen: React.FC<Props> = ({ onNext, onBack }) => {
           style={styles.backButton}
           onPress={onBack}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.title}>Connect Devices</Text>
         <Text style={styles.subtitle}>
@@ -126,15 +126,15 @@ const DeviceConnectionScreen: React.FC<Props> = ({ onNext, onBack }) => {
         <View style={styles.benefitsContainer}>
           <Text style={styles.benefitsTitle}>Benefits of Connecting:</Text>
           <View style={styles.benefitItem}>
-            <Ionicons name="analytics" size={20} color="#007AFF" />
+            <Ionicons name="analytics" size={20} color="#3AABF0" />
             <Text style={styles.benefitText}>Automatic health data sync</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="trending-up" size={20} color="#007AFF" />
+            <Ionicons name="trending-up" size={20} color="#3AABF0" />
             <Text style={styles.benefitText}>Better insights and trends</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="notifications" size={20} color="#007AFF" />
+            <Ionicons name="notifications" size={20} color="#3AABF0" />
             <Text style={styles.benefitText}>Personalized recommendations</Text>
           </View>
         </View>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   deviceCardConnected: {
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     backgroundColor: '#F0F8FF',
   },
   deviceIcon: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   deviceNameConnected: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '600',
   },
   connectedBadge: {
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   connectedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginBottom: 12,
   },
   connectedItem: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   connectedText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
   },
   benefitsContainer: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,

@@ -229,7 +229,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !isEnrolled) return false;
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Enable biometric authentication for CoreHealth',
+        promptMessage: 'Enable biometric authentication for TOTO',
         cancelLabel: 'Cancel',
         fallbackLabel: 'Use passcode',
       });
@@ -258,7 +258,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'CoreHealth Test',
+          title: 'TOTO Test',
           body: 'Notifications are working correctly!',
           data: { type: 'test' },
         },

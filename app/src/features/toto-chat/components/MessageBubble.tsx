@@ -69,7 +69,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         )}
         {message.documentUri && (
           <View style={styles.documentPreview}>
-            <Ionicons name="document" size={22} color="#007AFF" style={{ marginRight: 8 }} />
+            <Ionicons name="document" size={22} color="#3AABF0" style={{ marginRight: 8 }} />
             <Text style={styles.documentText}>{message.documentName || 'Document'}</Text>
           </View>
         )}
@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#3AABF020',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
     marginTop: 4,
     borderWidth: 1,
-    borderColor: '#007AFF30',
+    borderColor: '#3AABF030',
   },
   userAvatar: {
     width: 28,
@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 8,
     borderWidth: 2,
-    borderColor: '#007AFF',
-    shadowColor: '#007AFF',
+    borderColor: '#3AABF0',
+    shadowColor: '#3AABF0',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
@@ -225,10 +225,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 6,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
   },
   documentText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '700',
     fontSize: 15,
   },

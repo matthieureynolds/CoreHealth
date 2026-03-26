@@ -16,13 +16,13 @@ const HealthContextBar: React.FC<Props> = ({ healthScore, biomarkerCount }) => {
       <View style={styles.healthContextRow}>
         {healthScore?.overall && (
           <View style={styles.healthContextItem}>
-            <Ionicons name="fitness" size={16} color="#007AFF" />
+            <Ionicons name="fitness" size={16} color="#3AABF0" />
             <Text style={styles.healthContextText}>Health Score: {healthScore.overall}</Text>
           </View>
         )}
         {biomarkerCount !== undefined && biomarkerCount > 0 && (
           <View style={styles.healthContextItem}>
-            <Ionicons name="analytics" size={16} color="#007AFF" />
+            <Ionicons name="analytics" size={16} color="#3AABF0" />
             <Text style={styles.healthContextText}>{biomarkerCount} Biomarkers</Text>
           </View>
         )}
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   healthContextText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#3AABF0',
     marginLeft: 4,
     fontWeight: '500',
   },

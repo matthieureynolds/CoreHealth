@@ -7,26 +7,21 @@ import ConnectedDeviceItem, { Device } from './components/ConnectedDeviceItem';
 import AvailableDeviceItem from './components/AvailableDeviceItem';
 
 const AVAILABLE_DEVICES: Device[] = [
-  { id: 'whoop',              name: 'WHOOP®',                  logo: require('../../../../../../../assets/device-logos/WHOOP.png'),                color: '#4CD964', description: 'Activity & recovery tracking' },
-  { id: 'apple-health',       name: 'Apple Health',            logo: require('../../../../../../../assets/device-logos/Apple-Logo.png'),            color: '#007AFF', description: 'iOS aggregator' },
-  { id: 'dexcom',             name: 'Dexcom®',                 logo: require('../../../../../../../assets/device-logos/Dexcom.png'),                color: '#FF9500', description: 'Continuous glucose monitoring' },
-  { id: 'eight-sleep',        name: 'Eight Sleep™',            logo: require('../../../../../../../assets/device-logos/EightSleep.png'),            color: '#34C759', description: 'Smart mattress & sleep tracking' },
-  { id: 'fitbit',             name: 'Fitbit®',                 logo: require('../../../../../../../assets/device-logos/Fitbit.png'),                color: '#FF3B30', description: 'Activity & health tracking' },
-  { id: 'freestyle-libre',    name: 'FreeStyle Libre®',        logo: require('../../../../../../../assets/device-logos/FreeStyle Libre.png'),       color: '#007AFF', description: 'Glucose monitoring system' },
-  { id: 'garmin',             name: 'Garmin® Connect',         logo: require('../../../../../../../assets/device-logos/Garmin.png'),                color: '#FF9500', description: 'Fitness devices & wearables' },
-  { id: 'oura',               name: 'Oura Ring™',              logo: require('../../../../../../../assets/device-logos/OURA.png'),                  color: '#AF52DE', description: 'Sleep & recovery tracking' },
-  { id: 'withings-bp',        name: 'Withings® BPM Connect',   logo: require('../../../../../../../assets/device-logos/WithingsBPM2.png'),          color: '#FF3B30', description: 'Systolic, diastolic, heart rate' },
-  { id: 'withings-scale',     name: 'Withings® Body+',         logo: require('../../../../../../../assets/device-logos/Withings Body+.jpg'),        color: '#34C759', description: 'Weight, body fat, muscle mass' },
-  { id: 'withings-sleep',     name: 'Withings® Sleep Tracker', logo: require('../../../../../../../assets/device-logos/Withings ScanWatch.jpg'),    color: '#AF52DE', description: 'Sleep stages, HR, breathing' },
-  { id: 'withings-thermo',    name: 'Withings® Thermo',        logo: require('../../../../../../../assets/device-logos/WithingsThermo.jpg'),        color: '#FF9500', description: 'Body temperature readings' },
-  { id: 'withings-uscan',     name: 'Withings® U-Scan',        logo: require('../../../../../../../assets/device-logos/Withings U-Scan.png'),       color: '#007AFF', description: 'Toilet urine analyzer' },
-  { id: 'withings-watch',     name: 'Withings® ScanWatch',     logo: require('../../../../../../../assets/device-logos/Withings ScanWatch.jpg'),    color: '#34C759', description: 'HR, steps, workouts, sleep' },
-  { id: 'zoe',                name: 'ZOE™',                    logo: require('../../../../../../../assets/device-logos/ZOE2.jpg'),                  color: '#FF3B30', description: 'Nutrition & gut health insights' },
+  { id: 'whoop',           name: 'WHOOP',           logo: require('../../../../../../../assets/device-logos/WHOOP.webp'),            color: '#000000', description: 'Activity & recovery tracking' },
+  { id: 'apple-health',    name: 'Apple Health',    logo: require('../../../../../../../assets/device-logos/Apple-Health.webp'),     color: '#FF2D55', description: 'iOS aggregator' },
+  { id: 'dexcom',          name: 'Dexcom',          logo: require('../../../../../../../assets/device-logos/DEXCOM.webp'),           color: '#FF9500', description: 'Continuous glucose monitoring' },
+  { id: 'eight-sleep',     name: 'Eight Sleep',     logo: require('../../../../../../../assets/device-logos/EIGHT-SLEEP.webp'),      color: '#000000', description: 'Smart mattress & sleep tracking' },
+  { id: 'fitbit',          name: 'Fitbit',          logo: require('../../../../../../../assets/device-logos/FITBIT.webp'),           color: '#00B0B9', description: 'Activity & health tracking' },
+  { id: 'freestyle-libre', name: 'FreeStyle Libre', logo: require('../../../../../../../assets/device-logos/FREESTYLELIBRE-3.webp'),color: '#3AABF0', description: 'Glucose monitoring system' },
+  { id: 'garmin',          name: 'Garmin Connect',  logo: require('../../../../../../../assets/device-logos/GARMIN.webp'),           color: '#1A1A2E', description: 'Fitness devices & wearables' },
+  { id: 'oura',            name: 'Oura Ring',       logo: require('../../../../../../../assets/device-logos/OURA.webp'),             color: '#1A2B5E', description: 'Sleep & recovery tracking' },
+  { id: 'withings',        name: 'Withings',        logo: require('../../../../../../../assets/device-logos/WITHINGS.webp'),         color: '#3AABF0', description: 'Health monitoring devices' },
+  { id: 'zoe',             name: 'ZOE',             logo: require('../../../../../../../assets/device-logos/ZOE.webp'),              color: '#000000', description: 'Nutrition & gut health insights' },
 ];
 
 const DEFAULT_CONNECTED: Device[] = [
-  { id: '2', name: 'Apple Health', logo: require('../../../../../../../assets/device-logos/Apple-Logo.png'), color: '#007AFF', status: 'Connected', lastSync: '1 hour ago' },
-  { id: '1', name: 'WHOOP®',       logo: require('../../../../../../../assets/device-logos/WHOOP.png'),       color: '#4CD964', status: 'Connected', lastSync: '2 hours ago' },
+  { id: '2', name: 'Apple Health', logo: require('../../../../../../../assets/device-logos/Apple-Health.webp'), color: '#FF2D55', status: 'Connected', lastSync: '1 hour ago' },
+  { id: '1', name: 'WHOOP',        logo: require('../../../../../../../assets/device-logos/WHOOP.webp'),        color: '#000000', status: 'Connected', lastSync: '2 hours ago' },
 ];
 
 const sortAlpha = (devices: Device[]) =>
@@ -99,19 +94,19 @@ const ConnectedDevicesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Connected Devices</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Connected Devices</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
           {connectedDevices.length > 0 ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Currently Connected</Text>
+              <Text style={styles.sectionTitle}>Connections</Text>
               {connectedDevices.map(device => (
                 <ConnectedDeviceItem key={device.id} device={device} onDisconnect={handleDisconnect} />
               ))}
@@ -147,38 +142,34 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   scrollView: { flex: 1 },
   header: {
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    paddingTop: 56,
+    paddingBottom: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
     top: 0, left: 0, right: 0,
     zIndex: 1000,
     elevation: 10,
+    paddingHorizontal: 20,
   },
   backButton: {
     padding: 8,
-    position: 'absolute',
-    left: 20,
-    top: 23.5,
-    zIndex: 1,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    position: 'absolute',
-    left: 0, right: 0,
-    paddingTop: 32.2,
-    paddingBottom: 8,
+    flex: 1,
   },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 0 },
-  section: { marginBottom: 20 },
+  content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 0 },
+  section: { marginBottom: 32 },
   lastSection: { marginBottom: 0 },
-  sectionTitle: { fontSize: 20, fontWeight: '600', color: '#fff', marginBottom: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#8E8E93', marginBottom: 8, letterSpacing: 0.5 },
   emptyState: { alignItems: 'center', paddingVertical: 40, marginBottom: 30 },
   emptyStateText: { fontSize: 18, fontWeight: '600', color: '#fff', marginTop: 16, marginBottom: 8 },
   emptyStateSubtext: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 20 },

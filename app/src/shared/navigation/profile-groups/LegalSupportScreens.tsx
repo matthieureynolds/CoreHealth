@@ -28,11 +28,11 @@ type StackType = ReturnType<typeof createStackNavigator<ProfileTabParamList>>;
 export const LegalSupportScreens = (Stack: StackType) => (
   <>
     {/* Support & Help */}
-    <Stack.Screen name="HelpSupport" component={HelpSupportScreen} options={{ title: 'Help & Support' }} />
+    <Stack.Screen name="HelpSupport" component={HelpSupportScreen} options={{ headerShown: true, title: 'Help & Support' }} />
     <Stack.Screen name="SupportHelp" component={SupportHelpScreen} options={{ headerShown: false }} />
     <Stack.Screen name="FAQ" component={FAQScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AppInfo" component={AppInfoScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About CoreHealth' }} />
+    <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: true, title: 'About TOTO' }} />
 
     {/* Legal Compliance — hub */}
     <Stack.Screen name="LegalCompliance" component={LegalComplianceScreen} options={{ headerShown: false }} />

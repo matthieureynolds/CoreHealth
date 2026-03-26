@@ -29,7 +29,7 @@ const BiomarkerItem: React.FC<BiomarkerItemProps> = ({
   return (
     <View style={styles.biomarkerItem}>
       <View style={styles.biomarkerLeft}>
-        <Ionicons name={biomarker.icon as any} size={24} color={isVisible ? '#007AFF' : '#C7C7CC'} />
+        <Ionicons name={biomarker.icon as any} size={24} color={isVisible ? '#3AABF0' : '#C7C7CC'} />
         <View style={styles.biomarkerInfo}>
           <View style={styles.biomarkerTitleRow}>
             <Text style={[styles.biomarkerName, !isVisible && styles.disabledText]}>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   coreIndicator: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

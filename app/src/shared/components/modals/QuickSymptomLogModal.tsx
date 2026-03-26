@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 2,
   },
   progressText: {
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     flex: 2,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     alignItems: 'center',
   },
   nextButtonDisabled: {

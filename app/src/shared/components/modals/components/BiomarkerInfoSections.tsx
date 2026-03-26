@@ -19,7 +19,7 @@ const BiomarkerInfoSections: React.FC<BiomarkerInfoSectionsProps> = ({ biomarker
         </Text>
         <TouchableOpacity style={styles.fullComparisonButton} onPress={onComparePress}>
           <Text style={styles.fullComparisonText}>Full Comparison</Text>
-          <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+          <Ionicons name="chevron-forward" size={16} color="#3AABF0" />
         </TouchableOpacity>
       </View>
     </View>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   fullComparisonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
     marginRight: 4,
   },

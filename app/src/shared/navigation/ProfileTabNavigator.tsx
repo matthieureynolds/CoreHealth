@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { ProfileTabParamList } from '../types';
 import { colors } from '../theme/colors';
 
@@ -15,6 +16,7 @@ const ProfileTabNavigator: React.FC = () => {
   return (
     <Stack.Navigator
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.bg,
           elevation: 0,
@@ -26,6 +28,10 @@ const ProfileTabNavigator: React.FC = () => {
           color: colors.textPrimary,
         },
         headerTitleAlign: 'center',
+        headerBackTitle: '',
+        headerBackImage: () => (
+          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} style={{ marginLeft: 8 }} />
+        ),
       }}
     >
       {CoreProfileScreens(Stack)}

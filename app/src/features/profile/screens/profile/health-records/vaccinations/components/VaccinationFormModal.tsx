@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Vaccination, AttachedFile } from '../../../../../../../shared/types';
 import { DateMode } from './components/DateModeSelector';
 import VaccineNameField from './components/VaccineNameField';
@@ -81,149 +82,158 @@ const VaccinationFormModal: React.FC<VaccinationFormModalProps> = ({
 }) => (
   <Modal
     visible={visible}
-    animationType="slide"
-    presentationStyle="overFullScreen"
+    transparent
+    animationType="fade"
     statusBarTranslucent
     onRequestClose={onCancel}
   >
-    <View style={styles.modalContainer}>
-      <View style={styles.modalHeader}>
-        <TouchableOpacity onPress={onCancel}>
-          <Text style={styles.cancelButton}>Cancel</Text>
-        </TouchableOpacity>
-        <Text style={styles.modalTitle}>
-          {editingVaccination ? 'Edit Vaccination' : 'Add Vaccination'}
-        </Text>
-        <TouchableOpacity onPress={onSave}>
-          <Text style={styles.saveButton}>Save</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.modalContent}>
-        <VaccineNameField
-          vaccineName={vaccineName}
-          setVaccineName={setVaccineName}
-          showSuggestions={showSuggestions}
-          setShowSuggestions={setShowSuggestions}
-          commonVaccines={commonVaccines}
-        />
-
-        <DateField
-          label="Date Received *:"
-          date={dateReceived}
-          setDate={setDateReceived}
-          showPicker={showDateReceivedPicker}
-          setShowPicker={setShowDateReceivedPicker}
-          dateMode={dateModeReceived}
-          setDateMode={setDateModeReceived}
-          maximumDate={new Date()}
-        />
-
-        <DateField
-          label="Next Due Date (Optional):"
-          date={nextDueDate}
-          setDate={setNextDueDate}
-          showPicker={showNextDuePicker}
-          setShowPicker={setShowNextDuePicker}
-          dateMode={dateModeNextDue}
-          setDateMode={setDateModeNextDue}
-          minimumDate={new Date()}
-        />
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Location (Optional):</Text>
-          <TextInput
-            style={styles.textInput}
-            value={location}
-            onChangeText={setLocation}
-            placeholder="e.g., Doctor's office, Pharmacy"
-            placeholderTextColor="#666"
-          />
+    <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onCancel}>
+      <TouchableOpacity style={s.sheet} activeOpacity={1} onPress={() => {}}>
+        {/* Header */}
+        <View style={s.header}>
+          <TouchableOpacity onPress={onCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="close" size={22} color="#FF3B30" />
+          </TouchableOpacity>
+          <Text style={s.title}>
+            {editingVaccination ? 'Edit Vaccination' : 'Add Vaccination'}
+          </Text>
+          <TouchableOpacity onPress={onSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="checkmark" size={22} color="#34C759" />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Batch Number (Optional):</Text>
-          <TextInput
-            style={styles.textInput}
-            value={batchNumber}
-            onChangeText={setBatchNumber}
-            placeholder="e.g., ABC123456"
-            placeholderTextColor="#666"
+        {/* Body */}
+        <ScrollView style={s.body} keyboardShouldPersistTaps="handled">
+          <VaccineNameField
+            vaccineName={vaccineName}
+            setVaccineName={setVaccineName}
+            showSuggestions={showSuggestions}
+            setShowSuggestions={setShowSuggestions}
+            commonVaccines={commonVaccines}
           />
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Notes (Optional):</Text>
-          <TextInput
-            style={[styles.textInput, styles.textArea]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Add any additional notes about this vaccination"
-            placeholderTextColor="#666"
-            multiline
-            numberOfLines={3}
+          <DateField
+            label="Date Received *:"
+            date={dateReceived}
+            setDate={setDateReceived}
+            showPicker={showDateReceivedPicker}
+            setShowPicker={setShowDateReceivedPicker}
+            dateMode={dateModeReceived}
+            setDateMode={setDateModeReceived}
+            maximumDate={new Date()}
           />
-        </View>
 
-        <AttachmentsSection
-          attachments={attachments}
-          onRemoveAttachment={onRemoveAttachment}
-          onAttachFile={onAttachFile}
-        />
-      </ScrollView>
-    </View>
+          <DateField
+            label="Next Due Date:"
+            date={nextDueDate}
+            setDate={setNextDueDate}
+            showPicker={showNextDuePicker}
+            setShowPicker={setShowNextDuePicker}
+            dateMode={dateModeNextDue}
+            setDateMode={setDateModeNextDue}
+            minimumDate={new Date()}
+          />
+
+          {/* Location + Batch Number grouped */}
+          <Text style={s.sectionLabel}>Details</Text>
+          <View style={s.group}>
+            <TextInput
+              style={s.groupInput}
+              value={location}
+              onChangeText={setLocation}
+              placeholder="Location (e.g., Doctor's office, Pharmacy)"
+              placeholderTextColor="#555"
+            />
+            <View style={s.divider} />
+            <TextInput
+              style={s.groupInput}
+              value={batchNumber}
+              onChangeText={setBatchNumber}
+              placeholder="Batch number (e.g., ABC123456)"
+              placeholderTextColor="#555"
+            />
+          </View>
+
+          {/* Notes grouped */}
+          <Text style={s.sectionLabel}>Notes</Text>
+          <View style={s.group}>
+            <TextInput
+              style={[s.groupInput, s.textArea]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Add any additional notes about this vaccination"
+              placeholderTextColor="#555"
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+
+          <AttachmentsSection
+            attachments={attachments}
+            onRemoveAttachment={onRemoveAttachment}
+            onAttachFile={onAttachFile}
+          />
+        </ScrollView>
+      </TouchableOpacity>
+    </TouchableOpacity>
   </Modal>
 );
 
-const styles = StyleSheet.create({
-  modalContainer: {
+const s = StyleSheet.create({
+  overlay: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
   },
-  modalHeader: {
+  sheet: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#2C2C2E',
   },
-  cancelButton: {
-    fontSize: 16,
-    color: '#007AFF',
-  },
-  modalTitle: {
+  title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
-  saveButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
+  body: {
     padding: 20,
+    paddingBottom: 40,
   },
-  inputContainer: {
-    marginBottom: 24,
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginTop: 20,
+    marginBottom: 10,
+    marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 8,
+  group: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  textInput: {
-    backgroundColor: '#181818',
-    borderRadius: 8,
+  groupInput: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 13,
     fontSize: 16,
     color: '#FFFFFF',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    marginLeft: 16,
   },
   textArea: {
     height: 80,

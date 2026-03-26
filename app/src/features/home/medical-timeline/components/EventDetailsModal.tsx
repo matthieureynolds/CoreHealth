@@ -182,7 +182,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                       )
                     }
                   >
-                    <Ionicons name="document" size={18} color="#007AFF" />
+                    <Ionicons name="document" size={18} color="#3AABF0" />
                     <Text style={[styles.sectionValue, styles.fileName]}>
                       {event.attachedFile.name}
                     </Text>
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   link: {
-    color: '#007AFF',
+    color: '#3AABF0',
     textDecorationLine: 'underline',
   },
   fileRow: {

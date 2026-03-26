@@ -14,7 +14,7 @@ const PollenScreen: React.FC = () => {
     <View style={s.container}>
       <View style={s.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={s.headerTitle} pointerEvents="none">Pollen</Text>
         <View style={{ width: 24 }} />
@@ -41,7 +41,7 @@ const PollenScreen: React.FC = () => {
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>RECOMMENDATIONS</Text>
-          {RECOMMENDATIONS.map((r, idx) => <View key={idx} style={s.row}><Ionicons name="arrow-forward" size={16} color="#007AFF" /><Text style={s.rowText}>{r}</Text></View>)}
+          {RECOMMENDATIONS.map((r, idx) => <View key={idx} style={s.row}><Ionicons name="arrow-forward" size={16} color="#3AABF0" /><Text style={s.rowText}>{r}</Text></View>)}
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>RISK FACTORS</Text>

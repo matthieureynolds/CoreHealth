@@ -38,8 +38,8 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const isComplete = typeof progressPercent === 'number' && progressPercent >= 100;
   // When complete: no ring, avatar full size. Otherwise: ring gap and inset.
-  const ringStrokeWidth = Math.max(3, Math.round(size * 0.04));
-  const ringGap = 1;
+  const ringStrokeWidth = Math.max(4, Math.round(size * 0.05));
+  const ringGap = 8;
   const inset = isComplete ? 0 : PixelRatio.roundToNearestPixel(ringStrokeWidth / 2 + ringGap);
   const innerSize = PixelRatio.roundToNearestPixel(size - inset * 2);
   const innerRadius = innerSize / 2;
@@ -172,92 +172,102 @@ const ProfilePicturePicker: React.FC<ProfilePicturePickerProps> = ({
         {!isComplete && (
           <ProgressRing size={size} percent={progressPercent} strokeWidth={ringStrokeWidth} />
         )}
-      </TouchableOpacity>
 
-      {/* Progress label below the avatar - hidden when profile 100% complete */}
-      {showProgressLabel && !isComplete && (
-        <View style={{ alignItems: 'center', marginTop: 6, marginBottom: 10 }}>
+        {/* Progress badge - bottom right, overlapping avatar */}
+        {showProgressLabel && !isComplete && (
           <View style={{
+            position: 'absolute',
+            bottom: 6,
+            right: -44,
             backgroundColor: '#FFFFFF',
             paddingHorizontal: 8,
             paddingVertical: 4,
-            borderRadius: 8,
+            borderRadius: 10,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.08,
+            shadowOpacity: 0.15,
             shadowRadius: 2,
-            elevation: 2,
+            elevation: 3,
+            zIndex: 10,
           }}>
-            <Text style={{ color: '#000000', fontSize: 10, fontWeight: '700', letterSpacing: 0.3 }}>
+            <Text numberOfLines={1} style={{ color: '#000000', fontSize: 10, fontWeight: '700', letterSpacing: 0.3 }}>
               {`${Math.max(0, Math.min(100, typeof progressPercent === 'number' ? progressPercent : 0))}% COMPLETE`}
             </Text>
           </View>
-        </View>
-      )}
+        )}
+      </TouchableOpacity>
+
 
       {/* Options Modal */}
       <Modal
         visible={showOptions}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowOptions(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.optionsContainer}>
-            <Text style={styles.modalTitle}>Change Profile Picture</Text>
-            
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowOptions(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={styles.optionsContainer}>
+            {/* Header row: X left, title center */}
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowOptions(false)} style={styles.closeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={20} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Profile Photo</Text>
+              <View style={{ width: 32 }} />
+            </View>
+
             <TouchableOpacity style={styles.optionButton} onPress={takePhoto}>
-              <Ionicons name="camera" size={24} color="#007AFF" />
+              <Ionicons name="camera" size={20} color="#FF9500" />
               <Text style={styles.optionText}>Take Photo</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={styles.optionButton} onPress={chooseFromLibrary}>
-              <Ionicons name="images" size={24} color="#007AFF" />
+              <Ionicons name="images" size={20} color="#AF52DE" />
               <Text style={styles.optionText}>Choose from Library</Text>
             </TouchableOpacity>
-            
+
             {currentPhotoURL && (
-              <TouchableOpacity style={styles.optionButton} onPress={removePhoto}>
-                <Ionicons name="trash" size={24} color="#FF3B30" />
+              <TouchableOpacity style={[styles.optionButton, styles.destructiveButton]} onPress={removePhoto}>
+                <Ionicons name="trash" size={20} color="#FF3B30" />
                 <Text style={[styles.optionText, { color: '#FF3B30' }]}>Remove Photo</Text>
               </TouchableOpacity>
             )}
-            
-            <TouchableOpacity 
-              style={styles.cancelButton} 
-              onPress={() => setShowOptions(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </>
   );
 };
 
 const ProgressRing = ({ size, percent, strokeWidth: strokeWidthProp }: { size: number; percent: number; strokeWidth?: number }) => {
-  const strokeWidth = strokeWidthProp ?? Math.max(3, Math.round(size * 0.04)); // Thin ring
+  const strokeWidth = strokeWidthProp ?? Math.max(4, Math.round(size * 0.05));
   const radius = size / 2 - strokeWidth / 2;
   const center = size / 2;
-  const circumference = 2 * Math.PI * radius;
+
+  // Full 360° arc, starting at top (0°)
+  const fullCircumference = 2 * Math.PI * radius;
+  const trackLength = fullCircumference;
+  const startAngle = -90; // start at top
+
   const clamped = Math.max(0, Math.min(100, isNaN(percent) ? 0 : percent));
-  const progress = clamped / 100;
-  const dashoffset = circumference * (1 - progress);
+  const progressLength = (clamped / 100) * trackLength;
 
   return (
     <View style={{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center', zIndex: 1, pointerEvents: 'none' as any }}>
       <Svg width={size} height={size}>
-        {/* White background ring */}
+        {/* Light gray track arc */}
         <Circle
           cx={center}
           cy={center}
           r={radius}
-          stroke="#FFFFFF"
+          stroke="#C7C7CC"
           strokeWidth={strokeWidth}
           fill="transparent"
+          strokeDasharray={`${trackLength} ${fullCircumference - trackLength}`}
+          strokeLinecap="round"
+          transform={`rotate(${startAngle} ${center} ${center})`}
         />
-        {/* Progress ring - using teal color (we'll add gradient after restart) */}
+        {/* Teal progress arc */}
         <Circle
           cx={center}
           cy={center}
@@ -265,10 +275,9 @@ const ProgressRing = ({ size, percent, strokeWidth: strokeWidthProp }: { size: n
           stroke="#4ECDC4"
           strokeWidth={strokeWidth}
           fill="transparent"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={dashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${center} ${center})`}
+          strokeDasharray={`${progressLength} ${fullCircumference - progressLength}`}
+          strokeLinecap="butt"
+          transform={`rotate(${startAngle} ${center} ${center})`}
         />
       </Svg>
     </View>
@@ -309,7 +318,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 15,
     width: 30,
     height: 30,
@@ -324,44 +333,48 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   optionsContainer: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 44,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  closeButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
   },
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
     marginBottom: 8,
-    backgroundColor: '#333',
-    borderRadius: 12,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 14,
+  },
+  destructiveButton: {
+    marginTop: 8,
   },
   optionText: {
     fontSize: 16,
     color: '#fff',
-    marginLeft: 16,
+    marginLeft: 14,
     fontWeight: '500',
   },
-  cancelButton: {
-    marginTop: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
+  cancelButton: {},
+  cancelButtonText: {},
 });
 
 export default ProfilePicturePicker;

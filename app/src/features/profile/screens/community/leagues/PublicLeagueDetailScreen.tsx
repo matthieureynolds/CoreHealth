@@ -40,7 +40,7 @@ const PublicLeagueDetailScreen: React.FC = () => {
       ],
     };
     return byId[id] || [
-      { id: 'a1', name: 'CoreHealth', points: 480, wins: 4, losses: 1 },
+      { id: 'a1', name: 'TOTO', points: 480, wins: 4, losses: 1 },
       { id: 'a2', name: 'Momentum', points: 466, wins: 3, losses: 2 },
       { id: 'a3', name: 'Rhythm', points: 452, wins: 3, losses: 2 },
       { id: 'a4', name: 'Pulse', points: 439, wins: 2, losses: 3 },
@@ -117,16 +117,16 @@ const styles = StyleSheet.create({
   leaderCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginHorizontal: 20, marginTop: 24,
-    backgroundColor: '#007AFF15', borderRadius: 14, padding: 18,
-    borderWidth: 1, borderColor: '#007AFF30',
+    backgroundColor: '#3AABF015', borderRadius: 14, padding: 18,
+    borderWidth: 1, borderColor: '#3AABF030',
   },
   leaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   leaderAvatar: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#3AABF0', justifyContent: 'center', alignItems: 'center',
   },
   leaderAvatarText: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
-  leaderLabel: { fontSize: 11, fontWeight: '700', color: '#007AFF', letterSpacing: 0.5, marginBottom: 2 },
+  leaderLabel: { fontSize: 11, fontWeight: '700', color: '#3AABF0', letterSpacing: 0.5, marginBottom: 2 },
   leaderName: { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' },
   leaderPoints: { fontSize: 28, fontWeight: '900', color: '#FFD60A', textAlign: 'right' },
   leaderPtsLabel: { fontSize: 12, color: '#8E8E93', fontWeight: '600', textAlign: 'right' },
@@ -148,9 +148,9 @@ const styles = StyleSheet.create({
   medal: { fontSize: 18 },
   avatarSmall: {
     width: 34, height: 34, borderRadius: 17,
-    backgroundColor: '#007AFF20', justifyContent: 'center', alignItems: 'center', marginRight: 12,
+    backgroundColor: '#3AABF020', justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
-  avatarSmallText: { color: '#007AFF', fontSize: 14, fontWeight: 'bold' },
+  avatarSmallText: { color: '#3AABF0', fontSize: 14, fontWeight: 'bold' },
   rowText: { flex: 1 },
   rowName: { fontSize: 15, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
   rowRecord: { fontSize: 12, color: '#8E8E93' },

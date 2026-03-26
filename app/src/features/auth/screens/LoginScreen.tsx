@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   forgotPasswordText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   loginButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   buttonDisabled: {
-    backgroundColor: '#007AFF80',
+    backgroundColor: '#3AABF080',
   },
   loginButtonText: {
     color: '#FFFFFF',
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signUpText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '600',
   },

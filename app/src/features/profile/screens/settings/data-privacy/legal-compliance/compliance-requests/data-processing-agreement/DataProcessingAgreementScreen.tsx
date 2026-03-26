@@ -5,7 +5,7 @@ const DataProcessingAgreementScreen: React.FC = () => (
   <LegalDocTemplate
     title="Data Processing Agreement"
     content={[
-      'Parties. This DPA forms part of the Terms between you (Controller) and CoreHealth (Processor) when we process personal data on your behalf.',
+      'Parties. This DPA forms part of the Terms between you (Controller) and TOTO (Processor) when we process personal data on your behalf.',
       'Subject Matter. Processing personal and health data to provide app functionality, synchronization, analytics, and support.',
       'Duration. For the term of your use of the Service and as otherwise required by law.',
       'Nature & Purpose. Storage, retrieval, analysis, and transmission of health and account data to deliver features you request.',

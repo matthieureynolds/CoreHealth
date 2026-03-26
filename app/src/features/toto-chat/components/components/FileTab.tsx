@@ -10,12 +10,12 @@ interface FileTabProps {
 const FileTab: React.FC<FileTabProps> = ({ onSelectDocument, onSelectFromGallery }) => (
   <View style={styles.fileContainer}>
     <TouchableOpacity style={styles.fileOption} onPress={onSelectDocument}>
-      <Ionicons name="document" size={24} color="#007AFF" />
+      <Ionicons name="document" size={24} color="#3AABF0" />
       <Text style={styles.fileOptionText}>Select Document</Text>
     </TouchableOpacity>
 
     <TouchableOpacity style={styles.fileOption} onPress={onSelectFromGallery}>
-      <Ionicons name="image" size={24} color="#007AFF" />
+      <Ionicons name="image" size={24} color="#3AABF0" />
       <Text style={styles.fileOptionText}>Select Image</Text>
     </TouchableOpacity>
   </View>

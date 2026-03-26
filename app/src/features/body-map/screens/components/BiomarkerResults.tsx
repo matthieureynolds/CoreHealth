@@ -50,7 +50,7 @@ const BiomarkerResults: React.FC<BiomarkerResultsProps> = ({
         {Object.entries(groupedBiomarkers).map(([organ, biomarkers]) => (
           <View key={organ} style={styles.organResultsCard}>
             <View style={styles.organResultsHeader}>
-              <Ionicons name="medical" size={16} color="#007AFF" />
+              <Ionicons name="medical" size={16} color="#3AABF0" />
               <Text style={styles.organResultsTitle}>{organ}</Text>
             </View>
 

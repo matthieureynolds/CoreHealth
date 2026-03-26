@@ -1,70 +1,179 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NOTIFICATION_TIME_OPTIONS } from './constants';
 
-type NavItem = {
+type NotifItem = {
   title: string;
   subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
   iconColor: string;
-  route: string;
   storageKey: string;
+  alertsKey?: string;
+  defaultAlerts?: string[];
 };
 
-const ITEMS: NavItem[] = [
-  { title: 'Supplements & Medication Reminders', subtitle: 'Reminders to take supplements or medications', icon: 'medical-outline', iconColor: '#FF9500', route: 'SupplementsMedicationReminders', storageKey: '@notif_med_enabled' },
-  { title: 'Medical Appointments', subtitle: 'Reminders for upcoming appointments and health tests', icon: 'calendar-outline', iconColor: '#AF52DE', route: 'MedicalAppointment', storageKey: '@notif_appt_enabled' },
-  { title: 'Monthly Health Summary', subtitle: 'Monthly overview of your health and insights', icon: 'bar-chart-outline', iconColor: '#34C759', route: 'MonthlyHealthSummary', storageKey: '@notif_monthly_enabled' },
-  { title: 'Weekly Health Summary', subtitle: 'Weekly recap of your health progress', icon: 'trending-up-outline', iconColor: '#007AFF', route: 'WeeklyHealthSummary', storageKey: '@notif_weekly_enabled' },
-  { title: 'Sleep Reminders', subtitle: 'Bedtime reminders to improve your sleep', icon: 'bed-outline', iconColor: '#FF3B30', route: 'SleepReminders', storageKey: '@notif_sleep_enabled' },
+const ITEMS: NotifItem[] = [
+  { title: 'Supplements & Medication Reminders', subtitle: 'Reminders to take supplements or medications', icon: 'medical-outline', iconColor: '#FF9500', storageKey: '@notif_med_enabled', alertsKey: '@notif_med_alerts', defaultAlerts: ['30 minutes before'] },
+  { title: 'Medical Appointments', subtitle: 'Reminders for upcoming appointments and health tests', icon: 'calendar-outline', iconColor: '#AF52DE', storageKey: '@notif_appt_enabled', alertsKey: '@notif_appt_alerts', defaultAlerts: ['1 hour before'] },
+  { title: 'Monthly Health Summary', subtitle: 'Monthly overview of your health and insights', icon: 'bar-chart-outline', iconColor: '#34C759', storageKey: '@notif_monthly_enabled' },
+  { title: 'Weekly Health Summary', subtitle: 'Weekly recap of your health progress', icon: 'trending-up-outline', iconColor: '#3AABF0', storageKey: '@notif_weekly_enabled' },
+  { title: 'Sleep Reminders', subtitle: 'Bedtime reminders to improve your sleep', icon: 'bed-outline', iconColor: '#FF3B30', storageKey: '@notif_sleep_enabled', alertsKey: '@notif_sleep_alerts', defaultAlerts: ['30 minutes before bed'] },
 ];
 
 const NotificationsScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [statuses, setStatuses] = useState<Record<string, boolean>>({});
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({});
+  const [alerts, setAlerts] = useState<Record<string, string[]>>({});
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const results = await Promise.all(ITEMS.map(i => AsyncStorage.getItem(i.storageKey)));
-        const map: Record<string, boolean> = {};
-        ITEMS.forEach((item, idx) => { map[item.storageKey] = results[idx] !== '0'; });
-        setStatuses(map);
+        const enabledMap: Record<string, boolean> = {};
+        const alertsMap: Record<string, string[]> = {};
+        for (const item of ITEMS) {
+          const val = await AsyncStorage.getItem(item.storageKey);
+          enabledMap[item.storageKey] = val !== '0';
+          if (item.alertsKey) {
+            const al = await AsyncStorage.getItem(item.alertsKey);
+            if (al) {
+              const p = JSON.parse(al);
+              alertsMap[item.alertsKey] = Array.isArray(p) && p.length ? p : (item.defaultAlerts || []);
+            } else {
+              alertsMap[item.alertsKey] = item.defaultAlerts || [];
+            }
+          }
+        }
+        setEnabled(enabledMap);
+        setAlerts(alertsMap);
       } catch (e) { console.error(e); }
     })();
   }, []);
 
+  const toggleEnabled = async (key: string, value: boolean) => {
+    setEnabled(prev => ({ ...prev, [key]: value }));
+    await AsyncStorage.setItem(key, value ? '1' : '0');
+    const item = ITEMS.find(i => i.storageKey === key);
+    if (item?.alertsKey) {
+      setExpandedKey(value ? key : null);
+    }
+  };
+
+  const updateAlerts = async (alertsKey: string, newAlerts: string[]) => {
+    setAlerts(prev => ({ ...prev, [alertsKey]: newAlerts }));
+    await AsyncStorage.setItem(alertsKey, JSON.stringify(newAlerts));
+  };
+
+  const handleRowPress = (item: NotifItem) => {
+    if (!item.alertsKey) return;
+    setEditingIndex(null);
+    setExpandedKey(expandedKey === item.storageKey ? null : item.storageKey);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Notifications</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.card}>
           <Text style={styles.cardHeader}>NOTIFICATION TYPES</Text>
-          {ITEMS.map((item, index) => (
-            <TouchableOpacity
-              key={item.route}
-              style={[styles.cardRow, index === ITEMS.length - 1 && styles.lastRow]}
-              onPress={() => (navigation as any).navigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={22} color={item.iconColor} style={styles.cardIcon} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardLabel}>{item.title}</Text>
-                <Text style={styles.cardSub}>{item.subtitle}</Text>
+          {ITEMS.map((item, index) => {
+            const isEnabled = enabled[item.storageKey] !== false;
+            const isExpanded = expandedKey === item.storageKey && isEnabled;
+            const hasExtra = !!item.alertsKey;
+            const itemAlerts = item.alertsKey ? (alerts[item.alertsKey] || item.defaultAlerts || []) : [];
+
+            return (
+              <View key={item.storageKey}>
+                <TouchableOpacity
+                  style={[styles.cardRow, !hasExtra && index === ITEMS.length - 1 && !isExpanded && styles.lastRow]}
+                  onPress={() => handleRowPress(item)}
+                  activeOpacity={hasExtra ? 0.7 : 1}
+                >
+                  <Ionicons name={item.icon} size={22} color={item.iconColor} style={styles.cardIcon} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardLabel}>{item.title}</Text>
+                    <Text style={styles.cardSub}>{item.subtitle}</Text>
+                  </View>
+                  <Switch
+                    value={isEnabled}
+                    onValueChange={(val) => toggleEnabled(item.storageKey, val)}
+                    trackColor={{ false: '#333', true: '#3AABF0' }}
+                    thumbColor="#FFFFFF"
+                    style={{ marginLeft: 8 }}
+                  />
+                </TouchableOpacity>
+
+                {isExpanded && item.alertsKey && (
+                  <View style={styles.expandedSection}>
+                    <View style={styles.alertList}>
+                      {itemAlerts.map((alert, i) => (
+                        <View key={i}>
+                          <TouchableOpacity
+                            style={styles.alertRow}
+                            onPress={() => setEditingIndex(editingIndex === i ? null : i)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="time-outline" size={16} color="#8E8E93" style={{ marginRight: 10 }} />
+                            <Text style={styles.alertRowText}>{alert}</Text>
+                            {itemAlerts.length > 1 && (
+                              <TouchableOpacity
+                                onPress={() => updateAlerts(item.alertsKey!, itemAlerts.filter((_, idx) => idx !== i))}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              >
+                                <Ionicons name="remove-circle-outline" size={18} color="#8E8E93" />
+                              </TouchableOpacity>
+                            )}
+                          </TouchableOpacity>
+                          {editingIndex === i && (
+                            <View style={styles.timePickerList}>
+                              {NOTIFICATION_TIME_OPTIONS.map(t => (
+                                <TouchableOpacity
+                                  key={t}
+                                  style={styles.timeOption}
+                                  onPress={() => {
+                                    const newAlerts = [...itemAlerts];
+                                    newAlerts[editingIndex] = t;
+                                    updateAlerts(item.alertsKey!, newAlerts);
+                                    setEditingIndex(null);
+                                  }}
+                                >
+                                  <Text style={styles.timeOptionText}>{t}</Text>
+                                  {itemAlerts[editingIndex] === t && <Ionicons name="checkmark" size={18} color="#3AABF0" />}
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
+                          {i < itemAlerts.length - 1 && <View style={styles.alertSeparator} />}
+                        </View>
+                      ))}
+                      <View style={styles.alertSeparator} />
+                      <TouchableOpacity
+                        style={styles.addAlertRow}
+                        onPress={() => updateAlerts(item.alertsKey!, [...itemAlerts, '1 hour before'])}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="add-circle-outline" size={16} color="#3AABF0" style={{ marginRight: 10 }} />
+                        <Text style={styles.addAlertText}>Add Alert</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {index < ITEMS.length - 1 && !isExpanded && <View style={styles.separator} />}
               </View>
-              <View style={[styles.statusDot, { backgroundColor: statuses[item.storageKey] !== false ? '#34C759' : '#555' }]} />
-              <Ionicons name="chevron-forward" size={20} color="#888" style={{ marginLeft: 8 }} />
-            </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -74,17 +183,27 @@ const NotificationsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   scrollView: { flex: 1 },
-  header: { paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818', borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10 },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center', position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8 },
-  card: { backgroundColor: '#1C1C1E', borderRadius: 16, margin: 20, paddingVertical: 16 },
+  header: { paddingTop: 56, paddingBottom: 12, backgroundColor: '#000000', borderBottomWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10, paddingHorizontal: 20 },
+  backButton: { padding: 8, marginLeft: -8 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', textAlign: 'center', flex: 1 },
+  card: { backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, marginTop: 20, paddingTop: 16, overflow: 'hidden' },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },
-  cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 20 },
   lastRow: { borderBottomWidth: 0 },
+  separator: { height: 1, backgroundColor: '#2A2A2A', marginHorizontal: 20 },
   cardIcon: { marginRight: 12 },
   cardLabel: { fontSize: 15, fontWeight: '600', color: '#FFFFFF', marginBottom: 2 },
   cardSub: { fontSize: 12, color: '#8E8E93' },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  expandedSection: { paddingBottom: 4 },
+  alertList: { borderTopWidth: 1, borderTopColor: '#2A2A2A' },
+  alertRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 20 },
+  alertRowText: { flex: 1, fontSize: 14, color: '#FFFFFF' },
+  alertSeparator: { height: 1, backgroundColor: '#2A2A2A', marginHorizontal: 20 },
+  addAlertRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 20 },
+  addAlertText: { fontSize: 14, color: '#3AABF0' },
+  timePickerList: { backgroundColor: '#2C2C2E', marginHorizontal: 20, borderRadius: 10, marginBottom: 8, overflow: 'hidden' },
+  timeOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#3A3A3C' },
+  timeOptionText: { fontSize: 14, color: '#fff' },
 });
 
 export default NotificationsScreen;

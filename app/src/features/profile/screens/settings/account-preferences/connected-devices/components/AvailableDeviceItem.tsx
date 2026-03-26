@@ -9,54 +9,35 @@ interface AvailableDeviceItemProps {
 }
 
 const AvailableDeviceItem: React.FC<AvailableDeviceItemProps> = ({ device, isLast, onConnect }) => (
-  <View style={[styles.deviceCard, isLast && styles.lastDeviceCard]}>
+  <View style={[styles.deviceRow, isLast && styles.lastDeviceRow]}>
     <View style={styles.deviceInfo}>
-      <View style={[styles.deviceLogo, { backgroundColor: device.color + '20' }]}>
-        {renderDeviceLogo(device)}
-      </View>
+      {renderDeviceLogo(device)}
       <View style={styles.deviceDetails}>
         <Text style={styles.deviceName}>{device.name}</Text>
-        {device.description && (
-          <Text style={styles.deviceDescription}>{device.description}</Text>
-        )}
       </View>
     </View>
-    <TouchableOpacity
-      style={styles.connectButtonSmall}
-      onPress={() => onConnect(device)}
-    >
-      <Text style={styles.connectButtonSmallText}>Connect</Text>
+    <TouchableOpacity style={styles.connectButton} onPress={() => onConnect(device)}>
+      <Text style={styles.connectButtonText}>Connect</Text>
     </TouchableOpacity>
   </View>
 );
 
 const styles = StyleSheet.create({
-  deviceCard: {
+  deviceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#333',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
   },
-  lastDeviceCard: {
-    marginBottom: 20,
+  lastDeviceRow: {
+    borderBottomWidth: 0,
   },
   deviceInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 16,
-  },
-  deviceLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 16,
   },
   deviceDetails: {
@@ -66,25 +47,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   deviceDescription: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 2,
+    fontSize: 13,
+    color: '#555',
   },
-  connectButtonSmall: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  connectButton: {
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#444',
+    borderRadius: 20,
+    paddingVertical: 7,
+    paddingHorizontal: 18,
   },
-  connectButtonSmallText: {
-    color: '#007AFF',
+  connectButtonText: {
+    color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 

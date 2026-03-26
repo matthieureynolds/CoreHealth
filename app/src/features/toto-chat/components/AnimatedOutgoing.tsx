@@ -55,7 +55,7 @@ export const AnimatedOutgoing: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   ghostBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,

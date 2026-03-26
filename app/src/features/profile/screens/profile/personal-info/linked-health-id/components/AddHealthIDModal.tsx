@@ -81,26 +81,28 @@ const AddHealthIDModal: React.FC<AddHealthIDModalProps> = ({
     <>
       <Modal
         visible={visible}
-        animationType="slide"
-        presentationStyle="pageSheet"
+        animationType="fade"
+        transparent
         onRequestClose={onClose}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>{isEditing ? 'Edit Health ID' : 'Add Health ID'}</Text>
-            <TouchableOpacity onPress={onSave}>
-              <Text style={styles.saveButton}>Save</Text>
-            </TouchableOpacity>
-          </View>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={styles.sheet}>
+            {/* X / Title / Tick header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="close" size={22} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>{isEditing ? 'Edit Health ID' : 'Add Health ID'}</Text>
+              <TouchableOpacity onPress={onSave} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Ionicons name="checkmark" size={22} color="#34C759" />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.modalContent}>
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Primary toggle */}
-            <View style={styles.inputContainer}>
-              <View style={styles.inputRow}>
-                <Text style={styles.inputText}>Set as main ID</Text>
+            <View style={styles.group}>
+              <View style={styles.toggleRow}>
+                <Text style={styles.toggleText}>Set as main ID</Text>
                 <Switch
                   value={isPrimaryDraft}
                   onValueChange={onPrimaryChange}
@@ -110,7 +112,7 @@ const AddHealthIDModal: React.FC<AddHealthIDModalProps> = ({
               </View>
             </View>
 
-            {/* Scan ID */}
+            {/* Scan button */}
             <View style={styles.scanRow}>
               <TouchableOpacity style={styles.scanButton} onPress={onScanPress}>
                 <Ionicons name="scan" size={18} color="#FFFFFF" />
@@ -118,16 +120,15 @@ const AddHealthIDModal: React.FC<AddHealthIDModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Country Selection */}
-            <TouchableOpacity style={styles.inputContainer} onPress={handleCountrySelect}>
-              <Text style={styles.inputLabel}>Country:</Text>
-              <View style={styles.inputRow}>
-                <View style={styles.countrySelector}>
+            {/* Country + ID Number group */}
+            <View style={styles.group}>
+              <TouchableOpacity style={styles.countryRow} onPress={handleCountrySelect}>
+                <View style={styles.countryInner}>
                   {selectedCountry && selectedCountryCode ? (
                     FLAG_IMAGES[flagKey] ? (
                       <Image
                         source={FLAG_IMAGES[flagKey]}
-                        style={styles.selectedCountryFlagImage}
+                        style={styles.flagImage}
                         resizeMode="contain"
                       />
                     ) : (
@@ -135,45 +136,43 @@ const AddHealthIDModal: React.FC<AddHealthIDModalProps> = ({
                         colors={(COUNTRIES.find(c => c.code === selectedCountryCode)?.gradient ?? ['#444', '#666']) as [string, string]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={styles.selectedCountryBadge}
+                        style={styles.flagBadge}
                       />
                     )
                   ) : null}
-                  <Text style={[styles.inputText, !selectedCountry && styles.placeholderText]}>
-                    {selectedCountry || 'Select a country'}
+                  <Text style={[styles.rowText, !selectedCountry && { color: '#8E8E93' }]}>
+                    {selectedCountry || 'Country'}
                   </Text>
                 </View>
-                <Ionicons name="chevron-down" size={20} color="#888" />
-              </View>
-            </TouchableOpacity>
+                <Ionicons name="chevron-down" size={18} color="#8E8E93" />
+              </TouchableOpacity>
 
-            {/* ID Number */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>ID Number:</Text>
+              <View style={styles.divider} />
+
               <TextInput
-                style={styles.textInput}
+                style={styles.gInput}
                 value={idNumber}
                 onChangeText={onIdNumberChange}
-                placeholder="Enter your health ID number"
-                placeholderTextColor="#666"
+                placeholder="Health ID Number"
+                placeholderTextColor="#8E8E93"
               />
             </View>
 
-            {/* Notes */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Notes: (Optional)</Text>
+            {/* Notes group */}
+            <View style={styles.group}>
               <TextInput
-                style={[styles.textInput, styles.textArea]}
+                style={[styles.gInput, styles.notesInput]}
                 value={notes}
                 onChangeText={onNotesChange}
-                placeholder="Add any additional notes"
-                placeholderTextColor="#666"
+                placeholder="Notes"
+                placeholderTextColor="#555"
                 multiline
                 numberOfLines={3}
               />
             </View>
           </ScrollView>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <MedicalRecordScanner
@@ -186,48 +185,66 @@ const AddHealthIDModal: React.FC<AddHealthIDModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  overlay: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
   },
-  modalHeader: {
+  sheet: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    backgroundColor: '#181818',
+    borderBottomColor: '#2C2C2E',
   },
-  cancelButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  modalTitle: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#fff',
   },
-  saveButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
+  content: {
     padding: 20,
+    paddingBottom: 40,
+  },
+  group: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    marginLeft: 16,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  toggleText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
   },
   scanRow: {
-    marginBottom: 16,
+    marginBottom: 20,
     flexDirection: 'row',
   },
   scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
@@ -238,69 +255,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 12,
-  },
-  inputRow: {
+  countryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: '#333',
+    paddingVertical: 14,
   },
-  inputText: {
-    fontSize: 16,
-    color: '#fff',
-    flex: 1,
-    fontWeight: '500',
-  },
-  placeholderText: {
-    color: '#666',
-  },
-  textInput: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#333',
-    fontWeight: '500',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  countrySelector: {
+  countryInner: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  selectedCountryBadge: {
-    width: 50,
-    height: 34,
-    borderRadius: 4,
-    marginRight: 8,
+  flagImage: {
+    width: 32,
+    height: 22,
+    marginRight: 10,
+  },
+  flagBadge: {
+    width: 32,
+    height: 22,
+    borderRadius: 3,
+    marginRight: 10,
     borderWidth: 1,
     borderColor: '#222',
   },
-  selectedCountryFlagImage: {
-    width: 50,
-    height: 34,
-    borderRadius: 0,
-    marginRight: 8,
-    overflow: 'hidden',
+  rowText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  gInput: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  notesInput: {
+    height: 90,
+    textAlignVertical: 'top',
   },
 });
 

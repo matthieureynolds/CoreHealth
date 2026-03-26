@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   cameraIconContainer: {
     width: 48,
     height: 48,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',

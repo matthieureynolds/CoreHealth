@@ -19,7 +19,7 @@ const DeleteAccountScreen: React.FC = () => {
   const handleDeleteRequest = () => {
     Alert.alert(
       'Delete Account & Data',
-      'This will permanently delete your CoreHealth account and all associated health data. This action cannot be undone.\n\nAre you sure you want to proceed?',
+      'This will permanently delete your TOTO account and all associated health data. This action cannot be undone.\n\nAre you sure you want to proceed?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -35,7 +35,7 @@ const DeleteAccountScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Delete Account & Data</Text>
         <View style={{ width: 24 }} />
@@ -69,7 +69,7 @@ const DeleteAccountScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>BEFORE YOU DELETE</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="download-outline" size={18} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="download-outline" size={18} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Download Your Data First</Text>
                 <Text style={styles.infoText}>

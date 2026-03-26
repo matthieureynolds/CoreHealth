@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   addonsContainer: { backgroundColor: '#1C1C1E', borderRadius: 12, padding: 12, marginBottom: 16 },
   tabsRow: { flexDirection: 'row', gap: 12, marginBottom: 12, justifyContent: 'center' },
   tab: { color: '#8E8E93', fontWeight: '600', fontSize: 13, backgroundColor: '#2C2C2E', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12 },
-  tabActive: { color: '#FFFFFF', backgroundColor: '#007AFF20' },
+  tabActive: { color: '#FFFFFF', backgroundColor: '#3AABF020' },
   checklistBox: { backgroundColor: '#2C2C2E', borderRadius: 12, padding: 12 },
   checklistRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
   checklistLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },

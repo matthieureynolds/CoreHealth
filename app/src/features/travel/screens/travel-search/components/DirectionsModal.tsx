@@ -35,7 +35,7 @@ const DirectionsModal: React.FC<DirectionsModalProps> = ({ destination, onClose 
               onClose();
             }}
           >
-            <Ionicons name="map" size={20} color="#0A84FF" />
+            <Ionicons name="map" size={20} color="#3AABF0" />
             <Text style={styles.directionsButtonText}>Apple Maps</Text>
           </TouchableOpacity>
           <TouchableOpacity

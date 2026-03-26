@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   saveText: {
-    color: '#0A84FF',
+    color: '#3AABF0',
     fontSize: 16,
     fontWeight: '600',
   },

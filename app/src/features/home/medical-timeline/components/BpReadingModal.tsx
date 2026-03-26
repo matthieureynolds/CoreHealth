@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   bpButtons: { flexDirection: 'row', gap: 12, justifyContent: 'flex-end' },
   bpSkip: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, backgroundColor: '#3A3A3C' },
   bpSkipText: { color: '#FFFFFF', fontWeight: '600', fontSize: 16 },
-  bpSave: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, backgroundColor: '#007AFF' },
+  bpSave: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, backgroundColor: '#3AABF0' },
   bpSaveText: { color: '#FFFFFF', fontWeight: '600', fontSize: 16 },
 });
 

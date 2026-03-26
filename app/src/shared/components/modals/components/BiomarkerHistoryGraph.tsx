@@ -42,7 +42,7 @@ const BiomarkerHistoryGraph: React.FC<BiomarkerHistoryGraphProps> = ({ historyDa
         <Text style={styles.graphTitle}>12-Month Trend</Text>
         <TouchableOpacity style={styles.fullHistoryButton}>
           <Text style={styles.fullHistoryText}>Full History</Text>
-          <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+          <Ionicons name="chevron-forward" size={16} color="#3AABF0" />
         </TouchableOpacity>
       </View>
       <View style={styles.graphContainer}>
@@ -57,12 +57,12 @@ const BiomarkerHistoryGraph: React.FC<BiomarkerHistoryGraphProps> = ({ historyDa
               d={`M 0 ${graphHeight * 0.3} L ${graphWidth} ${graphHeight * 0.3} L ${graphWidth} ${graphHeight * 0.7} L 0 ${graphHeight * 0.7} Z`}
               fill="#1C3A1C"
             />
-            <Path d={pathData} stroke="#007AFF" strokeWidth="2" fill="none" />
+            <Path d={pathData} stroke="#3AABF0" strokeWidth="2" fill="none" />
             <Circle
               cx={points[points.length - 1].x}
               cy={points[points.length - 1].y}
               r="4"
-              fill="#007AFF"
+              fill="#3AABF0"
             />
           </Svg>
           <View style={styles.xAxisContainer}>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   fullHistoryText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontWeight: '500',
     marginRight: 4,
   },

@@ -23,7 +23,7 @@ const RequestDataScreen: React.FC = () => {
       title: 'Request a Copy of My Data',
       subtitle: 'Receive all personal data we hold about you (Right of Access)',
       icon: 'download-outline' as const,
-      iconColor: '#007AFF',
+      iconColor: '#3AABF0',
       subject: 'Data Access Request (Subject Access Request)',
       body: 'I am submitting a Subject Access Request under UK GDPR / GDPR. Please provide a copy of all personal data you hold about me.\n\nAccount email: [your email]\nDate of request: ' + new Date().toLocaleDateString(),
     },
@@ -57,7 +57,7 @@ const RequestDataScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Request Data</Text>
         <View style={{ width: 24 }} />
@@ -94,7 +94,7 @@ const RequestDataScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>HOW IT WORKS</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={20} color="#007AFF" style={styles.cardIcon} />
+              <Ionicons name="mail-outline" size={20} color="#3AABF0" style={styles.cardIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Submit Your Request</Text>
                 <Text style={styles.infoText}>Select the type of request above. An email will open pre-filled with the required information.</Text>

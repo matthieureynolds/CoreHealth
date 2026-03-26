@@ -148,7 +148,7 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.title}>How You Compare</Text>
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   tabText: {
     fontSize: 14,

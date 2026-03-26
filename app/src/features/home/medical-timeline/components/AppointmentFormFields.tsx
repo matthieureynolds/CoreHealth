@@ -94,7 +94,7 @@ export const DateTimeField: React.FC<DateTimeFieldProps> = ({
   <View style={styles.inputGroup}>
     <Text style={styles.inputLabel}>Date & Time *</Text>
     <TouchableOpacity onPress={onPress} style={styles.dateButton}>
-      <Ionicons name="calendar" size={20} color="#007AFF" />
+      <Ionicons name="calendar" size={20} color="#3AABF0" />
       <Text style={[styles.dateText, { color: date ? '#fff' : '#888' }]}>
         {date ? dateLabel : 'Select Date & Time'}
       </Text>
@@ -123,7 +123,7 @@ export const AttachFileField: React.FC<AttachFileFieldProps> = ({
   <View style={styles.inputGroup}>
     <Text style={styles.inputLabel}>Attach Files (optional)</Text>
     <TouchableOpacity style={styles.attachButton} onPress={onAttach}>
-      <Ionicons name="attach" size={20} color="#007AFF" />
+      <Ionicons name="attach" size={20} color="#3AABF0" />
       <Text style={styles.attachButtonText}>
         {attachedDoc ? 'File Attached' : 'Attach File'}
       </Text>
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   dateButton: { backgroundColor: '#3A3A3C', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center' },
   dateText: { fontSize: 16, marginLeft: 8 },
   attachButton: { backgroundColor: '#3A3A3C', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  attachButtonText: { color: '#007AFF', fontSize: 16, marginLeft: 8 },
+  attachButtonText: { color: '#3AABF0', fontSize: 16, marginLeft: 8 },
   attachedFile: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 8, padding: 8, marginTop: 8 },
   attachedFileName: { color: '#FFFFFF', fontSize: 14, marginLeft: 8, flex: 1 },
   removeFile: { padding: 4 },

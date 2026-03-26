@@ -44,7 +44,7 @@ const FamilyLinkConsentScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Consent & Broadcast</Text>
         <View style={{ width: 24 }} />
@@ -70,7 +70,7 @@ const FamilyLinkConsentScreen: React.FC = () => {
               <Switch
                 value={t.enabled}
                 onValueChange={(v) => toggle(t.key, v)}
-                trackColor={{ false: '#333', true: '#007AFF' }}
+                trackColor={{ false: '#333', true: '#3AABF0' }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   label: { color: '#fff', fontSize: 15, fontWeight: '600' },
   sub: { color: '#8E8E93', fontSize: 12 },
-  primaryButton: { backgroundColor: '#007AFF', paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginTop: 12 },
+  primaryButton: { backgroundColor: '#3AABF0', paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginTop: 12 },
   primaryButtonText: { color: '#fff', fontWeight: '700' },
 });
 

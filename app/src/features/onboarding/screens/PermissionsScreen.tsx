@@ -29,7 +29,7 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
       description: 'For Travel Health features and location-based health insights',
       icon: 'location-outline',
       color: '#FF9500',
-      reason: 'So CoreHealth can keep you safe wherever you are',
+      reason: 'So TOTO can keep you safe wherever you are',
     },
     {
       id: 'notifications',
@@ -44,7 +44,7 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
       title: 'File Access',
       description: 'To upload and manage your medical documents and PDFs',
       icon: 'document-outline',
-      color: '#007AFF',
+      color: '#3AABF0',
       reason: 'Easily store and access your medical records',
     },
   ];
@@ -59,7 +59,7 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
   const handleRequestPermission = (permissionId: string) => {
     Alert.alert(
       'Permission Required',
-      `CoreHealth needs ${permissionId} permission to provide the best experience.`,
+      `TOTO needs ${permissionId} permission to provide the best experience.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -92,11 +92,11 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
           style={styles.backButton}
           onPress={onBack}
         >
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.title}>Permissions</Text>
         <Text style={styles.subtitle}>
-          Grant permissions to unlock all CoreHealth features
+          Grant permissions to unlock all TOTO features
         </Text>
       </View>
 
@@ -136,7 +136,7 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
                 onPress={() => handleRequestPermission(item.id)}
               >
                 <Text style={styles.requestButtonText}>Grant Permission</Text>
-                <Ionicons name="arrow-forward" size={16} color="#007AFF" />
+                <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
               </TouchableOpacity>
             )}
           </View>
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toggleButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   reasonContainer: {
     backgroundColor: '#F0F8FF',
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   reasonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#3AABF0',
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -261,13 +261,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   requestButtonText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 14,
     fontWeight: '600',
     marginRight: 8,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   privacyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3AABF0',
     marginBottom: 4,
   },
   privacyDescription: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   nextButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,

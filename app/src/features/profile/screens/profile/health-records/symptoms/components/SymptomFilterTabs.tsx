@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterTabActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3AABF0',
   },
   filterTabText: {
     color: '#8E8E93',

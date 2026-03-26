@@ -40,7 +40,7 @@ const NearbyHospitalsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Nearby Hospitals</Text>
         <View style={{ width: 24 }} />
@@ -49,13 +49,13 @@ const NearbyHospitalsScreen: React.FC = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110, paddingBottom: 40 }}>
         <TouchableOpacity style={styles.mapButton} onPress={openMaps} activeOpacity={0.8}>
           <View style={styles.mapButtonLeft}>
-            <View style={styles.mapIcon}><Ionicons name="map-outline" size={24} color="#007AFF" /></View>
+            <View style={styles.mapIcon}><Ionicons name="map-outline" size={24} color="#3AABF0" /></View>
             <View>
               <Text style={styles.mapButtonTitle}>Find Nearest Hospital</Text>
               <Text style={styles.mapButtonSub}>Search on Apple Maps or Google Maps</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#007AFF" />
+          <Ionicons name="chevron-forward" size={20} color="#3AABF0" />
         </TouchableOpacity>
 
         <View style={styles.section}>
@@ -76,7 +76,7 @@ const NearbyHospitalsScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>TRAVEL TIPS</Text>
           {TIPS.map((t, i) => (
             <View key={i} style={styles.tipRow}>
-              <View style={styles.tipIconCircle}><Ionicons name={t.icon} size={18} color="#007AFF" /></View>
+              <View style={styles.tipIconCircle}><Ionicons name={t.icon} size={18} color="#3AABF0" /></View>
               <Text style={styles.tipText}>{t.tip}</Text>
             </View>
           ))}
@@ -96,9 +96,9 @@ const styles = StyleSheet.create({
   header: { paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818', borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10 },
   backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center', position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8 },
-  mapButton: { backgroundColor: '#1C1C1E', borderRadius: 16, marginHorizontal: 20, marginTop: 20, marginBottom: 16, padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#007AFF30' },
+  mapButton: { backgroundColor: '#1C1C1E', borderRadius: 16, marginHorizontal: 20, marginTop: 20, marginBottom: 16, padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#3AABF030' },
   mapButtonLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  mapIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#007AFF20', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  mapIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#3AABF020', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   mapButtonTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 2 },
   mapButtonSub: { fontSize: 13, color: '#8E8E93' },
   section: { backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, marginBottom: 16, paddingVertical: 16, paddingHorizontal: 20 },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   emergencyRegion: { fontSize: 15, color: '#fff' },
   emergencyNumber: { fontSize: 16, fontWeight: '700', color: '#FF3B30' },
   tipRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
-  tipIconCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#007AFF15', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  tipIconCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#3AABF015', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   tipText: { flex: 1, fontSize: 14, color: '#E5E5EA', lineHeight: 20, paddingTop: 7 },
   infoCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, padding: 16 },
   infoText: { flex: 1, fontSize: 13, color: '#8E8E93', lineHeight: 18 },

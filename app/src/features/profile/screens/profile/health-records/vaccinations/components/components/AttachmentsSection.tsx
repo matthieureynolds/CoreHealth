@@ -36,7 +36,7 @@ const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({
         </View>
       ))}
       <TouchableOpacity style={styles.addAttachmentButton} onPress={onAttachFile}>
-        <Ionicons name="attach" size={16} color="#007AFF" />
+        <Ionicons name="attach" size={16} color="#3AABF0" />
         <Text style={styles.addAttachmentText}>Add file</Text>
       </TouchableOpacity>
     </View>
@@ -87,10 +87,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3AABF0',
   },
   addAttachmentText: {
-    color: '#007AFF',
+    color: '#3AABF0',
     fontSize: 12,
     marginLeft: 6,
     fontWeight: '600',
