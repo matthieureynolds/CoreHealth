@@ -20,138 +20,174 @@ export const APPOINTMENT_TYPES = [
   'Travel Vaccination', 'Flu Shot', 'COVID-19 Vaccine', 'Other',
 ];
 
-// ── Title field with autocomplete suggestions ─────────────────────────────────
-interface TitleFieldProps {
-  value: string;
-  onChange: (text: string) => void;
+interface AppointmentFieldsProps {
+  title: string;
+  doctor: string;
+  location: string;
+  date: Date | null;
+  notes: string;
+  attachedDoc: { uri: string; name: string; type?: string } | null;
+  showDatePicker: boolean;
   showSuggestions: boolean;
-  suggestions: string[];
+  filteredSuggestions: string[];
+  dateLabel: string;
+  onTitleChange: (text: string) => void;
+  onDoctorChange: (text: string) => void;
+  onLocationChange: (text: string) => void;
+  onDatePress: () => void;
+  onPickerChange: (event: any, selectedDate?: Date) => void;
+  onNotesChange: (text: string) => void;
+  onAttach: () => void;
+  onRemoveAttachment: () => void;
   onSelectSuggestion: (item: string) => void;
 }
 
-export const TitleField: React.FC<TitleFieldProps> = ({
-  value, onChange, showSuggestions, suggestions, onSelectSuggestion,
+export const AppointmentFields: React.FC<AppointmentFieldsProps> = ({
+  title, doctor, location, date, notes, attachedDoc,
+  showDatePicker, showSuggestions, filteredSuggestions, dateLabel,
+  onTitleChange, onDoctorChange, onLocationChange,
+  onDatePress, onPickerChange, onNotesChange,
+  onAttach, onRemoveAttachment, onSelectSuggestion,
 }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>Appointment Type *</Text>
-    <TextInput
-      placeholder="e.g., Blood Test, Dentist, Physical Therapy"
-      placeholderTextColor="#888"
-      value={value}
-      onChangeText={onChange}
-      style={styles.input}
-    />
-    {showSuggestions && suggestions.length > 0 && (
-      <View style={styles.suggestions}>
-        {suggestions.slice(0, 8).map(item => (
-          <TouchableOpacity key={item} style={styles.suggestionItem} onPress={() => onSelectSuggestion(item)}>
-            <Text style={styles.suggestionText}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    )}
-  </View>
-);
-
-// ── Simple text input field ───────────────────────────────────────────────────
-interface TextFieldProps {
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (text: string) => void;
-  multiline?: boolean;
-}
-
-export const TextField: React.FC<TextFieldProps> = ({
-  label, placeholder, value, onChange, multiline = false,
-}) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <TextInput
-      placeholder={placeholder}
-      placeholderTextColor="#888"
-      value={value}
-      onChangeText={onChange}
-      multiline={multiline}
-      numberOfLines={multiline ? 3 : 1}
-      style={[styles.input, multiline && { textAlignVertical: 'top' }]}
-    />
-  </View>
-);
-
-// ── Date & time picker field ──────────────────────────────────────────────────
-interface DateTimeFieldProps {
-  date: Date | null;
-  showPicker: boolean;
-  dateLabel: string;
-  onPress: () => void;
-  onPickerChange: (event: any, selectedDate?: Date) => void;
-}
-
-export const DateTimeField: React.FC<DateTimeFieldProps> = ({
-  date, showPicker, dateLabel, onPress, onPickerChange,
-}) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>Date & Time *</Text>
-    <TouchableOpacity onPress={onPress} style={styles.dateButton}>
-      <Ionicons name="calendar" size={20} color="#3AABF0" />
-      <Text style={[styles.dateText, { color: date ? '#fff' : '#888' }]}>
-        {date ? dateLabel : 'Select Date & Time'}
-      </Text>
-    </TouchableOpacity>
-    {showPicker && (
-      <DateTimePicker
-        value={date || new Date()}
-        mode="datetime"
-        display="default"
-        onChange={onPickerChange}
+  <>
+    {/* Group 1: Appointment type + Doctor */}
+    <View style={s.group}>
+      <TextInput
+        style={s.groupInput}
+        value={title}
+        onChangeText={onTitleChange}
+        placeholder="Appointment type *"
+        placeholderTextColor="#8E8E93"
       />
-    )}
-  </View>
-);
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <View style={s.suggestions}>
+          {filteredSuggestions.slice(0, 8).map(item => (
+            <TouchableOpacity key={item} style={s.suggestionItem} onPress={() => onSelectSuggestion(item)}>
+              <Text style={s.suggestionText}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+      <View style={s.divider} />
+      <TextInput
+        style={s.groupInput}
+        value={doctor}
+        onChangeText={onDoctorChange}
+        placeholder="Doctor name"
+        placeholderTextColor="#555"
+      />
+    </View>
 
-// ── File attachment field ─────────────────────────────────────────────────────
-interface AttachFileFieldProps {
-  attachedDoc: { uri: string; name: string; type?: string } | null;
-  onAttach: () => void;
-  onRemove: () => void;
-}
+    {/* Group 2: Location */}
+    <View style={[s.group, s.groupSpacing]}>
+      <TextInput
+        style={s.groupInput}
+        value={location}
+        onChangeText={onLocationChange}
+        placeholder="Location"
+        placeholderTextColor="#555"
+      />
+    </View>
 
-export const AttachFileField: React.FC<AttachFileFieldProps> = ({
-  attachedDoc, onAttach, onRemove,
-}) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>Attach Files (optional)</Text>
-    <TouchableOpacity style={styles.attachButton} onPress={onAttach}>
-      <Ionicons name="attach" size={20} color="#3AABF0" />
-      <Text style={styles.attachButtonText}>
-        {attachedDoc ? 'File Attached' : 'Attach File'}
+    {/* Group 3: Date & Time + Notes */}
+    <View style={[s.group, s.groupSpacing]}>
+      <TouchableOpacity style={s.groupInput} onPress={onDatePress}>
+        <View style={s.dateRow}>
+          <Text style={[s.dateText, !date && s.placeholder]}>
+            {date ? dateLabel : 'Date & time *'}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
+        </View>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date || new Date()}
+          mode="datetime"
+          display="default"
+          onChange={onPickerChange}
+        />
+      )}
+      <View style={s.divider} />
+      <TextInput
+        style={[s.groupInput, s.notesInput]}
+        value={notes}
+        onChangeText={onNotesChange}
+        placeholder="Notes"
+        placeholderTextColor="#555"
+        multiline
+        textAlignVertical="top"
+      />
+    </View>
+
+    {/* Attach file */}
+    <TouchableOpacity style={[s.attachButton, s.groupSpacing]} onPress={onAttach}>
+      <Ionicons name="document-attach" size={22} color="#3AABF0" />
+      <Text style={s.attachButtonText}>
+        {attachedDoc ? attachedDoc.name : 'Attach file'}
       </Text>
-    </TouchableOpacity>
-    {attachedDoc && (
-      <View style={styles.attachedFile}>
-        <Ionicons name="document" size={16} color="#30D158" />
-        <Text style={styles.attachedFileName}>{attachedDoc.name}</Text>
-        <TouchableOpacity onPress={onRemove} style={styles.removeFile}>
-          <Ionicons name="close-circle" size={16} color="#FF3B30" />
+      {attachedDoc && (
+        <TouchableOpacity onPress={onRemoveAttachment} style={s.removeFile} hitSlop={8}>
+          <Ionicons name="close-circle" size={18} color="#FF3B30" />
         </TouchableOpacity>
-      </View>
-    )}
-  </View>
+      )}
+    </TouchableOpacity>
+  </>
 );
 
-const styles = StyleSheet.create({
-  inputGroup: { marginBottom: 16 },
-  inputLabel: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 8 },
-  input: { backgroundColor: '#3A3A3C', borderRadius: 8, padding: 12, color: '#FFFFFF', fontSize: 16 },
-  suggestions: { backgroundColor: '#3A3A3C', borderRadius: 8, marginTop: 4, maxHeight: 200 },
-  suggestionItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#2C2C2E' },
+const s = StyleSheet.create({
+  group: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  groupSpacing: { marginTop: 20 },
+  groupInput: {
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#3A3A3C',
+    marginLeft: 16,
+  },
+  suggestions: {
+    backgroundColor: '#3A3A3C',
+    maxHeight: 200,
+  },
+  suggestionItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
   suggestionText: { color: '#FFFFFF', fontSize: 14 },
-  dateButton: { backgroundColor: '#3A3A3C', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center' },
-  dateText: { fontSize: 16, marginLeft: 8 },
-  attachButton: { backgroundColor: '#3A3A3C', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  attachButtonText: { color: '#3AABF0', fontSize: 16, marginLeft: 8 },
-  attachedFile: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2C2C2E', borderRadius: 8, padding: 8, marginTop: 8 },
-  attachedFileName: { color: '#FFFFFF', fontSize: 14, marginLeft: 8, flex: 1 },
-  removeFile: { padding: 4 },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateText: { fontSize: 16, color: '#FFFFFF' },
+  placeholder: { color: '#8E8E93' },
+  notesInput: {
+    minHeight: 80,
+  },
+  attachButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+    borderStyle: 'dashed',
+  },
+  attachButtonText: {
+    fontSize: 16,
+    color: '#3AABF0',
+    marginLeft: 10,
+    flex: 1,
+  },
+  removeFile: { padding: 2 },
 });

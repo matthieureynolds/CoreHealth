@@ -135,7 +135,6 @@ const EmailPasswordScreen: React.FC = () => {
                 toggleEmailPasswordVisibility={toggleEmailPasswordVisibility}
                 isLoading={isLoading}
                 handleUpdateEmail={handleUpdateEmail}
-                setIsEditingEmail={setIsEditingEmail}
               />
             )}
 
@@ -168,7 +167,6 @@ const EmailPasswordScreen: React.FC = () => {
                   toggleConfirmPasswordVisibility={toggleConfirmPasswordVisibility}
                   isLoading={isLoading}
                   handleUpdatePassword={handleUpdatePassword}
-                  setIsEditingPassword={setIsEditingPassword}
                 />
               )}
           </View>

@@ -8,9 +8,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { format } from 'date-fns';
 import { useSettings } from '../../../../shared/context/SettingsContext';
 import type { MedicalEvent } from '../types';
-import {
-  TitleField, TextField, DateTimeField, AttachFileField, APPOINTMENT_TYPES,
-} from './AppointmentFormFields';
+import { AppointmentFields, APPOINTMENT_TYPES } from './AppointmentFormFields';
 
 export { APPOINTMENT_TYPES };
 
@@ -185,27 +183,26 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
             </View>
 
             <ScrollView style={styles.body} showsVerticalScrollIndicator={false} contentContainerStyle={styles.bodyContent}>
-              <TitleField
-                value={title}
-                onChange={handleTitleChange}
-                showSuggestions={showSuggestions}
-                suggestions={filteredSuggestions}
-                onSelectSuggestion={s => { setTitle(s); setShowSuggestions(false); setFilteredSuggestions([]); }}
-              />
-              <TextField label="Doctor Name (optional)" placeholder="Dr. Smith" value={doctor} onChange={setDoctor} />
-              <TextField label="Location (optional)" placeholder="Clinic name or address" value={location} onChange={setLocation} />
-              <DateTimeField
+              <AppointmentFields
+                title={title}
+                doctor={doctor}
+                location={location}
                 date={date}
-                showPicker={showDatePicker}
-                dateLabel={dateLabel}
-                onPress={() => setShowDatePicker(true)}
-                onPickerChange={(_event, selectedDate) => { setShowDatePicker(false); if (selectedDate) setDate(selectedDate); }}
-              />
-              <TextField label="Notes (optional)" placeholder="Add details" value={notes} onChange={setNotes} multiline />
-              <AttachFileField
+                notes={notes}
                 attachedDoc={attachedDoc}
+                showDatePicker={showDatePicker}
+                showSuggestions={showSuggestions}
+                filteredSuggestions={filteredSuggestions}
+                dateLabel={dateLabel}
+                onTitleChange={handleTitleChange}
+                onDoctorChange={setDoctor}
+                onLocationChange={setLocation}
+                onDatePress={() => setShowDatePicker(true)}
+                onPickerChange={(_event, selectedDate) => { setShowDatePicker(false); if (selectedDate) setDate(selectedDate); }}
+                onNotesChange={setNotes}
                 onAttach={handleAttachFile}
-                onRemove={() => setAttachedDoc(null)}
+                onRemoveAttachment={() => setAttachedDoc(null)}
+                onSelectSuggestion={s => { setTitle(s); setShowSuggestions(false); setFilteredSuggestions([]); }}
               />
             </ScrollView>
           </Animated.View>

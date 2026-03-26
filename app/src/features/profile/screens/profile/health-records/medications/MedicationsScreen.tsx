@@ -15,6 +15,7 @@ import { Medication } from '../../../../../../shared/types';
 import { getAdherence, getLastNDays, type AdherenceData } from '../../../../../../shared/utils/medicationAdherence';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import MedicationFormModal from './MedicationFormModal';
+import { useFileViewer } from '../hooks/useFileViewer';
 
 const TIMELINE_MEDICATION_NAMES = ['Vitamin D Supplement'];
 
@@ -23,10 +24,7 @@ const MedicationsScreen: React.FC = () => {
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
-  const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
   const [adherenceData, setAdherenceData] = useState<AdherenceData>({});
   const [expandedAdherenceMed, setExpandedAdherenceMed] = useState<string | null>(null);
 
@@ -65,9 +63,7 @@ const MedicationsScreen: React.FC = () => {
     ]);
   };
 
-  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
-    setCurrentFileUri(fileUri); setCurrentFileName(fileName); setCurrentFileType(fileType || ''); setFileViewerVisible(true);
-  };
+
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
@@ -174,7 +170,7 @@ const MedicationsScreen: React.FC = () => {
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={() => setFileViewerVisible(false)} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
     </View>
   );
 };

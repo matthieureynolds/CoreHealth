@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AttachedFile } from '../../../../../../../../shared/types';
+import { AttachedFile } from '../../../../../../../shared/types';
 
 interface AttachmentsSectionProps {
   attachments: AttachedFile[];

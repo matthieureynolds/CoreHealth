@@ -12,7 +12,6 @@ export type EmailFormProps = {
   toggleEmailPasswordVisibility: () => void;
   isLoading: boolean;
   handleUpdateEmail: () => void;
-  setIsEditingEmail: (value: boolean) => void;
 };
 
 const EmailForm: React.FC<EmailFormProps> = React.memo(({

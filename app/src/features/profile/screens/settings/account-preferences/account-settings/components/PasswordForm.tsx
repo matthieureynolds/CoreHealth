@@ -18,7 +18,6 @@ export type PasswordFormProps = {
   toggleConfirmPasswordVisibility: () => void;
   isLoading: boolean;
   handleUpdatePassword: () => void;
-  setIsEditingPassword: (value: boolean) => void;
 };
 
 const PasswordForm: React.FC<PasswordFormProps> = React.memo(({

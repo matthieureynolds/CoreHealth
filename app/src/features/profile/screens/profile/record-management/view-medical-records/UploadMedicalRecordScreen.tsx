@@ -238,11 +238,6 @@ const styles = StyleSheet.create({
     right: 20,
     top: 24.4,
   },
-  saveButtonText: {
-    fontSize: 16,
-    color: '#3AABF0',
-    fontWeight: '600',
-  },
   content: {
     padding: 20,
   },

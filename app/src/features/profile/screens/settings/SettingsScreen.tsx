@@ -33,22 +33,22 @@ const SettingsScreen: React.FC = () => {
         {/* Account & Preferences Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>ACCOUNT & PREFERENCES</Text>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmailPassword' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EmailPassword')}>
             <Ionicons name="mail-outline" size={22} color="#FF9500" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Email & Password</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ConnectedDevices' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('ConnectedDevices')}>
             <Ionicons name="phone-portrait-outline" size={22} color="#4CD964" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Connected Devices</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DisplayFormat' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DisplayFormat')}>
             <Ionicons name="options-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Display & Format</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('Notifications' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('Notifications')}>
             <Ionicons name="notifications-outline" size={22} color="#FF3B30" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Notifications</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -58,17 +58,17 @@ const SettingsScreen: React.FC = () => {
         {/* Data & Privacy Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>DATA & PRIVACY</Text>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DataSync' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('DataSync')}>
             <Ionicons name="cloud-upload-outline" size={22} color="#5856D6" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Data & Sync</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrivacySecurity' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('PrivacySecurity')}>
             <Ionicons name="lock-closed-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Privacy & Security</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('LegalCompliance' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('LegalCompliance')}>
             <Ionicons name="document-text-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Legal & Compliance</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
@@ -78,12 +78,12 @@ const SettingsScreen: React.FC = () => {
         {/* Support & Help Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('SupportHelp' as any)}>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('SupportHelp')}>
             <Ionicons name="help-circle-outline" size={22} color="#4CD964" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>Support & Help</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('AppInfo' as any)}>
+          <TouchableOpacity style={[styles.cardRow, styles.notificationsRow, styles.lastRow]} onPress={() => navigation.navigate('AppInfo')}>
             <Ionicons name="information-circle-outline" size={22} color="#8E8E93" style={styles.cardIcon} />
             <Text style={styles.cardLabel}>App Info</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />

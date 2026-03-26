@@ -8,7 +8,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ScrollView,
   Modal,
 } from 'react-native';
@@ -268,24 +267,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
-  saveButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    right: 20,
-    top: 26.5,
-    zIndex: 1,
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: '#3AABF0',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   content: {
     flex: 1,
   },
@@ -319,22 +300,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'right',
     marginTop: 4,
-  },
-  infoContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
-    padding: 20,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3AABF0',
-    marginTop: 20,
-  },
-  infoText: {
-    color: '#aaa',
-    fontSize: 14,
-    lineHeight: 22,
-    marginLeft: 16,
-    flex: 1,
   },
   pickerButton: {
     flexDirection: 'row',

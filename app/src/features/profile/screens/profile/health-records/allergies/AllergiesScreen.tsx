@@ -14,16 +14,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { Allergy } from '../../../../../../shared/types';
 import AllergyFormModal from './AllergyFormModal';
+import { useFileViewer } from '../hooks/useFileViewer';
 
 const AllergiesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAllergy, setEditingAllergy] = useState<Allergy | null>(null);
-  const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
   const handleSave = (allergy: Allergy) => {
     const existing = profile?.allergies || [];
@@ -49,10 +47,6 @@ const AllergiesScreen: React.FC = () => {
       { text: 'Delete', style: 'destructive', onPress: () => handleDelete(a.id) },
         { text: 'Cancel', style: 'cancel' },
     ]);
-  };
-
-  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
-    setCurrentFileUri(fileUri); setCurrentFileName(fileName); setCurrentFileType(fileType || ''); setFileViewerVisible(true);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -131,7 +125,7 @@ const AllergiesScreen: React.FC = () => {
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={() => setFileViewerVisible(false)} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
     </View>
   );
 };

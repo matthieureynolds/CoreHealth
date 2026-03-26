@@ -8,6 +8,7 @@ import familyService from '../../../../../../shared/services/user/familyService'
 import { FamilyCondition } from '../../../../../../shared/types';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import FamilyHistoryFormModal from './FamilyHistoryFormModal';
+import { useFileViewer } from '../hooks/useFileViewer';
 
 const FamilyHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -15,10 +16,7 @@ const FamilyHistoryScreen: React.FC = () => {
   const [linkCount, setLinkCount] = useState<number>(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingFamily, setEditingFamily] = useState<FamilyCondition | null>(null);
-  const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
   React.useEffect(() => {
     const loadLinks = async () => {
@@ -58,9 +56,7 @@ const FamilyHistoryScreen: React.FC = () => {
     ]);
   };
 
-  const handleViewFile = (uri: string, name: string, type?: string) => {
-    setCurrentFileUri(uri); setCurrentFileName(name); setCurrentFileType(type || ''); setFileViewerVisible(true);
-  };
+
 
   return (
     <View style={styles.container}>
@@ -134,7 +130,7 @@ const FamilyHistoryScreen: React.FC = () => {
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={() => setFileViewerVisible(false)} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
     </View>
   );
 };

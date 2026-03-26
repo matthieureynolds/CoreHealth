@@ -133,13 +133,6 @@ export function useProfileDetails() {
     extrapolate: 'clamp',
   });
 
-  // Community button fades out to make room for collapsed avatar
-  const communityButtonOpacity = scrollY.interpolate({
-    inputRange: [0, COLLAPSE_DISTANCE * 0.50],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
   const userName = user?.firstName && user?.surname
     ? `${user.firstName} ${user.surname}`
     : user?.displayName || 'User';
@@ -174,7 +167,6 @@ export function useProfileDetails() {
     headerBgOpacity,
     stickyHeaderOpacity,
     stickyHeaderTranslateY,
-    communityButtonOpacity,
     // Derived values
     userName,
     userUsername,

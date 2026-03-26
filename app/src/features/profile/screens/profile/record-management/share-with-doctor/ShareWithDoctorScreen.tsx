@@ -296,8 +296,6 @@ const styles = StyleSheet.create({
   shareButtonText: { fontSize: 16, fontWeight: '600', color: '#fff', marginLeft: 8 },
   modalContainer: { flex: 1, backgroundColor: '#1C1C1E' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
-  cancelButton: { fontSize: 16, color: '#3AABF0' },
-  saveButton: { fontSize: 16, color: '#3AABF0', fontWeight: '600' },
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#fff' },
   modalContent: { flex: 1, padding: 20 },
   doctorCountText: { fontSize: 14, color: '#888', marginBottom: 16 },

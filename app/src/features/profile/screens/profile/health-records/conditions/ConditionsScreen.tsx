@@ -14,16 +14,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { MedicalCondition } from '../../../../../../shared/types';
 import ConditionFormModal from './ConditionFormModal';
+import { useFileViewer } from '../hooks/useFileViewer';
 
 const ConditionsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCondition, setEditingCondition] = useState<MedicalCondition | null>(null);
-  const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
   const handleSave = (condition: MedicalCondition) => {
     const existing = profile?.medicalHistory || [];
@@ -59,13 +57,6 @@ const ConditionsScreen: React.FC = () => {
       { text: 'Delete', style: 'destructive', onPress: () => handleDelete(c.id) },
       { text: 'Cancel', style: 'cancel' },
     ]);
-  };
-
-  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
-    setCurrentFileUri(fileUri);
-    setCurrentFileName(fileName);
-    setCurrentFileType(fileType || '');
-    setFileViewerVisible(true);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -182,7 +173,7 @@ const ConditionsScreen: React.FC = () => {
 
       <FileViewerModal
         visible={fileViewerVisible}
-        onClose={() => setFileViewerVisible(false)}
+        onClose={closeFileViewer}
         fileUri={currentFileUri}
         fileName={currentFileName}
         fileType={currentFileType}

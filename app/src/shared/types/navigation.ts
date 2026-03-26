@@ -106,7 +106,6 @@ export type ProfileTabParamList = {
   PastAppointments: undefined;
   GenerateHealthReport: undefined;
   ShareWithDoctor: undefined;
-  MedicalHistory: undefined;
   EmergencyContacts: undefined;
   PrimaryDoctor: undefined;
   BiomarkerVisibility: undefined;
@@ -122,7 +121,6 @@ export type ProfileTabParamList = {
   DateFormat: undefined;
   TimeFormat: undefined;
   Language: undefined;
-  Appearance: undefined;
   Notifications: undefined;
   SupplementsMedicationReminders: undefined;
   MedicalAppointment: undefined;
@@ -130,7 +128,6 @@ export type ProfileTabParamList = {
   WeeklyHealthSummary: undefined;
   SleepReminders: undefined;
   LifestyleSettings: undefined;
-  TravelSettings: undefined;
   PrivacySecurity: undefined;
   BiometricLock: undefined;
   LocationAccess: undefined;

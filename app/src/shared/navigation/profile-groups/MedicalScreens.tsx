@@ -13,7 +13,6 @@ import ViewMedicalRecordsScreen from '../../../features/profile/screens/profile/
 import PastAppointmentsScreen from '../../../features/profile/screens/profile/health-records/past-appointments/PastAppointmentsScreen';
 import GenerateHealthReportScreen from '../../../features/profile/screens/profile/record-management/generate-health-report/GenerateHealthReportScreen';
 import ShareWithDoctorScreen from '../../../features/profile/screens/profile/record-management/share-with-doctor/ShareWithDoctorScreen';
-import MedicalHistoryScreen from '../../../features/profile/screens/profile/health-records/MedicalHistoryScreen';
 import EmergencyContactsScreen from '../../../features/profile/screens/profile/emergency-info/emergency-contacts/EmergencyContactsScreen';
 import PrimaryDoctorScreen from '../../../features/profile/screens/profile/emergency-info/doctors/PrimaryDoctorScreen';
 
@@ -32,7 +31,6 @@ export const MedicalScreens = (Stack: StackType) => (
     <Stack.Screen name="PastAppointments" component={PastAppointmentsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GenerateHealthReport" component={GenerateHealthReportScreen} options={{ headerShown: false }} />
     <Stack.Screen name="ShareWithDoctor" component={ShareWithDoctorScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="MedicalHistory" component={MedicalHistoryScreen} options={{ headerShown: false }} />
     <Stack.Screen name="EmergencyContacts" component={EmergencyContactsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="PrimaryDoctor" component={PrimaryDoctorScreen} options={{ headerShown: false }} />
   </>

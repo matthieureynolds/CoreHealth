@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateModeSelector, { DateMode } from './DateModeSelector';
-import IOSDatePicker from '../../../../../../../../shared/components/ui/IOSDatePicker';
+import IOSDatePicker from '../../../../../../../shared/components/ui/IOSDatePicker';
 
 export const formatDateForMode = (d: Date | null, mode: DateMode): string => {
   if (!d) return 'Select date';

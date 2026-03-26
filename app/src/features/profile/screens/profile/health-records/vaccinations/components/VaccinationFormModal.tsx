@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Vaccination, AttachedFile } from '../../../../../../../shared/types';
-import { DateMode } from './components/DateModeSelector';
-import VaccineNameField from './components/VaccineNameField';
-import DateField from './components/DateField';
-import AttachmentsSection from './components/AttachmentsSection';
+import { DateMode } from './DateModeSelector';
+import VaccineNameField from './VaccineNameField';
+import DateField from './DateField';
+import AttachmentsSection from './AttachmentsSection';
 
 interface VaccinationFormModalProps {
   visible: boolean;

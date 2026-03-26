@@ -314,19 +314,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  cameraOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#3AABF0',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#111',
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -373,8 +360,6 @@ const styles = StyleSheet.create({
     marginLeft: 14,
     fontWeight: '500',
   },
-  cancelButton: {},
-  cancelButtonText: {},
 });
 
 export default ProfilePicturePicker;

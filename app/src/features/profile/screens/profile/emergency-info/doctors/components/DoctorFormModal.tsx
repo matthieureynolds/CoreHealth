@@ -108,9 +108,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  closeButton: {
-    padding: 4,
-  },
   modalBody: {
     padding: 20,
     paddingBottom: 40,

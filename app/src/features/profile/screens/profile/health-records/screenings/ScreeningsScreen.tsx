@@ -7,16 +7,14 @@ import { useHealthData } from '../../../../../../shared/context/HealthDataContex
 import { Screening } from '../../../../../../shared/types';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import ScreeningFormModal from './ScreeningFormModal';
+import { useFileViewer } from '../hooks/useFileViewer';
 
 const ScreeningsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingScreening, setEditingScreening] = useState<Screening | null>(null);
-  const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
   const handleSave = (screening: Screening) => {
     const existing = profile?.screenings || [];
@@ -44,9 +42,7 @@ const ScreeningsScreen: React.FC = () => {
     ]);
   };
 
-  const handleViewFile = (uri: string, name: string, type?: string) => {
-    setCurrentFileUri(uri); setCurrentFileName(name); setCurrentFileType(type || ''); setFileViewerVisible(true);
-  };
+
 
   const getResultColor = (result: string) => result === 'normal' ? '#34C759' : result === 'abnormal' ? '#FF3B30' : '#FF9500';
 
@@ -123,7 +119,7 @@ const ScreeningsScreen: React.FC = () => {
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={() => setFileViewerVisible(false)} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
     </View>
   );
 };
