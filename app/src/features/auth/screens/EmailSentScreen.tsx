@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../shared/types';
-import { supabase } from '../../../shared/config/supabase';
+import { performResendSignUpCode } from '../../../shared/context/authHelpers';
 
 type EmailSentScreenNavigationProp = StackNavigationProp<
   AuthStackParamList,
@@ -56,19 +56,11 @@ const EmailSentScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      });
-
-      if (error) {
-        Alert.alert('Error', error.message);
-      } else {
-        Alert.alert('Email Sent', 'A new verification email has been sent to your inbox.');
-        setTimeLeft(30);
-      }
+      await performResendSignUpCode(email);
+      Alert.alert('Email Sent', 'A new verification email has been sent to your inbox.');
+      setTimeLeft(30);
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to resend email. Please try again.');
+      Alert.alert('Error', error.message ?? 'Failed to resend email. Please try again.');
     } finally {
       setIsResending(false);
     }

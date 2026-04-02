@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../shared/types';
-import { supabase } from '../../../shared/config/supabase';
+import { performConfirmSignUp, performResendSignUpCode } from '../../../shared/context/authHelpers';
 
 type EmailVerificationScreenNavigationProp = StackNavigationProp<
   AuthStackParamList,
@@ -113,50 +113,31 @@ const EmailVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: codeToVerify,
-        type: 'email'
-      });
-
-      if (error) {
-        Alert.alert('Verification Failed', error.message);
-        setCode(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      } else {
-        Alert.alert(
-          'Success!',
-          'Your email has been verified successfully.',
-          [{ text: 'Continue', onPress: () => navigation.navigate('PersonalInfo') }]
-        );
-      }
+      await performConfirmSignUp(email, codeToVerify);
+      Alert.alert(
+        'Email verified!',
+        'Your account is ready. Sign in to get started.',
+        [{ text: 'Sign In', onPress: () => navigation.navigate('Login') }],
+      );
     } catch (error: any) {
-      Alert.alert('Error', 'Verification failed. Please try again.');
+      Alert.alert('Verification Failed', error.message ?? 'Please try again.');
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleResendCode = async () => {
     setResendLoading(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      });
-
-      if (error) {
-        Alert.alert('Error', error.message);
-      } else {
-        Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
-        setTimeLeft(60);
-        setCode(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      }
+      await performResendSignUpCode(email);
+      Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
+      setTimeLeft(60);
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to resend code. Please try again.');
+      Alert.alert('Error', error.message ?? 'Failed to resend code. Please try again.');
     } finally {
       setResendLoading(false);
     }

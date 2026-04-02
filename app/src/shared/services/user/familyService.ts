@@ -1,4 +1,5 @@
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../config/supabase'; // TODO Phase 3: replace DB calls with real API
+import { getCurrentUser } from 'aws-amplify/auth';
 import { Database } from '../../types/database';
 import { HereditarySignal, RelationshipDirection, RelationshipLink, RelationshipStatus, RelationshipDegree } from '../../types';
 
@@ -16,9 +17,8 @@ function decodeEnvelope(ciphertext: string): any {
 }
 
 async function getCurrentUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new Error('Not authenticated');
-  return data.user.id;
+  const { userId } = await getCurrentUser();
+  return userId;
 }
 
 export const familyService = {

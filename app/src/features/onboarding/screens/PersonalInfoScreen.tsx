@@ -8,7 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -30,10 +29,6 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
   const [weight, setWeight] = useState('');
 
   const handleNext = () => {
-    if (!age || !gender || !height || !weight) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
     navigation.navigate('MedicalDocuments');
   };
 

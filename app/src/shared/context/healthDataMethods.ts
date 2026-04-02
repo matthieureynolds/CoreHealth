@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadStoredHealthData } from './healthDataLoader';
 import { bootstrapHealthData } from './healthDataBootstrap';
+import { DataService } from '../services/data/dataService';
 import {
   UserProfile,
   Biomarker,
@@ -38,18 +39,19 @@ interface LoadHealthDataSetters {
   setIsLoading: (v: boolean) => void;
 }
 
-export const loadHealthData = async (setters: LoadHealthDataSetters): Promise<void> => {
+export const loadHealthData = async (
+  setters: LoadHealthDataSetters,
+  userId?: string,
+): Promise<void> => {
   try {
-    const data = await loadStoredHealthData();
+    // ── Local preferences (jet lag, timezone, connected devices) ─────────────
+    const stored = await loadStoredHealthData();
+    if (stored.originTimezone) setters.setOriginTimezoneState(stored.originTimezone);
+    if (stored.originLocation) setters.setOriginLocationState(stored.originLocation);
+    setters.setJetLagPlanningEvents(stored.jetLagPlanningEvents);
 
-    setters.setProfile(data.profile);
-    if (data.biomarkers) setters.setBiomarkers(data.biomarkers);
-    if (data.labResults) setters.setLabResults(data.labResults);
-    if (data.deviceData) setters.setDeviceDataDirect(data.deviceData);
-
-    // Merge connected devices into deviceData for assistant context
-    if (data.connectedDevices) {
-      const mapped: DeviceData[] = data.connectedDevices
+    if (stored.connectedDevices) {
+      const mapped: DeviceData[] = stored.connectedDevices
         .filter((d: any) => /connected/i.test(d.status || ''))
         .map((d: any, idx: number) => ({
           id: `conn-${idx}`,
@@ -62,46 +64,49 @@ export const loadHealthData = async (setters: LoadHealthDataSetters): Promise<vo
       }
     }
 
-    // Persist latest device sync timestamp for assistant queries
-    try {
-      const allEvents = Array.isArray(data.deviceData) ? data.deviceData : [];
-      let lastTs: number | null = null;
-      allEvents.forEach((ev: any) => {
-        const t = ev?.timestamp ? new Date(ev.timestamp).getTime() : NaN;
-        if (Number.isFinite(t) && (lastTs === null || t > lastTs)) lastTs = t;
-      });
-      if (lastTs) {
-        await AsyncStorage.setItem('@corehealth_last_sync_at', new Date(lastTs).toISOString());
+    // ── Health data from API ──────────────────────────────────────────────────
+    if (userId) {
+      const biomarkers = await DataService.getBiomarkers();
+      setters.setBiomarkers(biomarkers);
+
+      // New user with no data — show bootstrap insights/score only (not fake biomarkers)
+      if (biomarkers.length === 0) {
+        const bootstrapped = await bootstrapHealthData();
+        setters.setHealthScore(bootstrapped.healthScore);
+        setters.setDailyInsights(bootstrapped.insights);
+        setters.setBodySystems(bootstrapped.bodySystems);
+        setters.setHealthScoreCalculated(true);
+      } else {
+        setters.setHealthScoreCalculated(false);
       }
-    } catch (e) { console.error(e); }
 
-    if (data.insights) setters.setDailyInsights(data.insights);
-    if (data.healthScore) {
-      setters.setHealthScore(data.healthScore);
-      setters.setHealthScoreCalculated(true);
+      try {
+        await AsyncStorage.setItem('@corehealth_last_sync_at', new Date().toISOString());
+      } catch (e) { /* non-critical */ }
     } else {
-      setters.setHealthScoreCalculated(false);
+      // Not yet authenticated — use local cache if available, otherwise bootstrap
+      if (stored.biomarkers) setters.setBiomarkers(stored.biomarkers);
+      if (stored.labResults) setters.setLabResults(stored.labResults);
+      if (stored.healthScore) {
+        setters.setHealthScore(stored.healthScore);
+        setters.setHealthScoreCalculated(true);
+      } else {
+        const bootstrapped = await bootstrapHealthData();
+        setters.setHealthScore(bootstrapped.healthScore);
+        setters.setDailyInsights(bootstrapped.insights);
+        setters.setBodySystems(bootstrapped.bodySystems);
+        setters.setHealthScoreCalculated(true);
+      }
     }
-    if (data.originTimezone) setters.setOriginTimezoneState(data.originTimezone);
-    if (data.originLocation) setters.setOriginLocationState(data.originLocation);
-    setters.setJetLagPlanningEvents(data.jetLagPlanningEvents);
-
-    if (data.needsBootstrap) {
+  } catch (error) {
+    console.error('Failed to load health data:', error);
+    try {
       const bootstrapped = await bootstrapHealthData();
-      setters.setBiomarkers(bootstrapped.biomarkers);
       setters.setHealthScore(bootstrapped.healthScore);
       setters.setDailyInsights(bootstrapped.insights);
       setters.setBodySystems(bootstrapped.bodySystems);
       setters.setHealthScoreCalculated(true);
-    }
-  } catch (error) {
-    console.error('Failed to load health data:', error);
-    const bootstrapped = await bootstrapHealthData();
-    setters.setBiomarkers(bootstrapped.biomarkers);
-    setters.setHealthScore(bootstrapped.healthScore);
-    setters.setDailyInsights(bootstrapped.insights);
-    setters.setBodySystems(bootstrapped.bodySystems);
-    setters.setHealthScoreCalculated(true);
+    } catch (e) { /* ignore bootstrap failure */ }
   } finally {
     setters.setIsLoading(false);
   }

@@ -19,10 +19,10 @@ import OnboardingScreen from '../../features/onboarding/screens/OnboardingScreen
 const Stack = createStackNavigator<AuthStackParamList>();
 
 const AuthNavigator: React.FC = () => {
-  const { hasSeenOnboarding, isLoading } = useOnboarding();
+  const { hasSeenOnboarding, isLoading, markOnboardingComplete } = useOnboarding();
 
   if (isLoading) {
-    return null; // or a loading component
+    return null;
   }
 
   return (
@@ -34,7 +34,9 @@ const AuthNavigator: React.FC = () => {
       }}
     >
       {!hasSeenOnboarding ? (
-        <Stack.Screen name="Onboarding" component={OnboardingScreen as any} />
+        <Stack.Screen name="Onboarding">
+          {(props) => <OnboardingScreen {...props} onComplete={markOnboardingComplete} />}
+        </Stack.Screen>
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -46,10 +48,37 @@ const AuthNavigator: React.FC = () => {
             component={EmailVerificationScreen}
           />
           <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
-          <Stack.Screen name="MedicalDocuments" component={MedicalDocumentsScreen as any} />
-          <Stack.Screen name="DeviceConnection" component={DeviceConnectionScreen as any} />
-          <Stack.Screen name="Permissions" component={PermissionsScreen as any} />
-          <Stack.Screen name="FinishOnboarding" component={FinishOnboardingScreen as any} />
+          <Stack.Screen name="MedicalDocuments">
+            {(props) => (
+              <MedicalDocumentsScreen
+                onNext={() => props.navigation.navigate('DeviceConnection')}
+                onBack={() => props.navigation.goBack()}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="DeviceConnection">
+            {(props) => (
+              <DeviceConnectionScreen
+                onNext={() => props.navigation.navigate('Permissions')}
+                onBack={() => props.navigation.goBack()}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="Permissions">
+            {(props) => (
+              <PermissionsScreen
+                onNext={() => props.navigation.navigate('FinishOnboarding')}
+                onBack={() => props.navigation.goBack()}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="FinishOnboarding">
+            {(props) => (
+              <FinishOnboardingScreen
+                onComplete={markOnboardingComplete}
+              />
+            )}
+          </Stack.Screen>
         </>
       )}
     </Stack.Navigator>

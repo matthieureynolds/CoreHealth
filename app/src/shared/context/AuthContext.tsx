@@ -5,20 +5,18 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
-import { supabase } from '../config/supabase';
-import { Session } from '@supabase/supabase-js';
+import { Hub } from 'aws-amplify/utils';
 import { User } from '../types';
+import { DataService } from '../services/data/dataService';
 import {
-  transformSupabaseUser,
-  loadMockUserData,
-  saveMockUserData,
+  performGetCurrentUser,
   performSignUp,
   performSignIn,
   performSignOut,
   performResetPassword,
-  performResendVerification,
-  performHandleEmailVerification,
+  performResendSignUpCode,
   performSignInWithGoogle,
+  performSignInWithApple,
   performUpdateEmail,
   performUpdatePassword,
   performUpdateDisplayName,
@@ -29,17 +27,15 @@ import {
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   isLoading: boolean;
   isInitializing: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<any>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ needsVerification: boolean; email: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  resendVerificationEmail: () => Promise<void>;
-  handleEmailVerification: () => Promise<boolean>;
+  resendVerificationEmail: (email?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  unlinkAccount: (provider: 'google') => Promise<void>;
+  signInWithApple: () => Promise<void>;
   updateEmail: (newEmail: string, currentPassword: string) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   updateUserDisplayName: (displayName: string) => Promise<void>;
@@ -50,69 +46,53 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
+  // ─── Initialise: restore session on app launch ────────────────────────────
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase timeout')), 3000),
-        );
-        const sessionPromise = supabase.auth.getSession();
-        const { data: { session: s } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-        setSession(s);
-        if (s?.user) {
-          setUser(transformSupabaseUser(s.user));
-        } else {
-          const mockUser = await loadMockUserData();
-          if (mockUser) setUser(mockUser);
-        }
-      } catch {
-        const mockUser = await loadMockUserData();
-        if (mockUser) setUser(mockUser);
-      } finally {
-        setIsLoading(false);
-        setIsInitializing(false);
-      }
-    };
-    initAuth();
-
-    let subscription: any;
-    try {
-      const authSubscription = supabase.auth.onAuthStateChange(async (_event, s) => {
-        setSession(s);
-        if (s?.user) {
-          try { setUser(transformSupabaseUser(s.user)); }
-          catch { setUser(transformSupabaseUser(s.user)); }
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      });
-      subscription = authSubscription.data.subscription;
-    } catch {
-      subscription = { unsubscribe: () => {} };
-    }
-
-    return () => subscription.unsubscribe();
+    performGetCurrentUser()
+      .then(u => setUser(u))
+      .finally(() => setIsInitializing(false));
   }, []);
+
+  // ─── Listen for Cognito auth events (token refresh, sign out, social login) ─
+  useEffect(() => {
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      switch (payload.event) {
+        case 'signedIn':
+          performGetCurrentUser().then(u => {
+            if (u) {
+              setUser(u);
+              DataService.ensureUser(u.id, u.email, u.firstName, u.surname, u.preferredName).catch(() => {});
+            }
+          });
+          break;
+        case 'signedOut':
+          setUser(null);
+          break;
+        case 'tokenRefresh':
+          // Session refreshed silently — no UI update needed
+          break;
+        case 'tokenRefresh_failure':
+          // Refresh failed — force sign out
+          setUser(null);
+          break;
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // ─── Auth actions ─────────────────────────────────────────────────────────
 
   const signUp = async (email: string, password: string, displayName: string) => {
     setIsLoading(true);
     try {
-      const newUser = await performSignUp(email, password, displayName);
-      setUser(newUser);
+      return await performSignUp(email, password, displayName);
     } catch (error: any) {
-      console.error('Sign up error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Sign up failed');
     } finally {
       setIsLoading(false);
     }
@@ -121,18 +101,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const mockUser = await loadMockUserData();
-      const result = await performSignIn(email, password, mockUser, saveMockUserData);
-      setUser(result);
+      const u = await performSignIn(email, password);
+      setUser(u);
+      // Ensure user row exists in DB (idempotent)
+      DataService.ensureUser(u.id, u.email, u.firstName, u.surname, u.preferredName).catch(() => {});
     } catch (error: any) {
-      console.error('❌ Sign in error details:', { message: error.message, code: error.code, status: error.status, name: error.name });
-      if (error.message?.includes('Network request failed')) {
-        throw new Error('Network connection failed. Please check your internet connection and try again.');
-      } else if (error.message?.includes('Invalid login credentials')) {
-        throw new Error('Invalid email or password. Please check your credentials and try again.');
-      } else {
-        throw new Error(error.message || 'An unexpected error occurred during sign in.');
+      if (error.name === 'NotAuthorizedException') {
+        throw new Error('Invalid email or password.');
+      } else if (error.name === 'UserNotConfirmedException') {
+        throw new Error('Please verify your email before signing in.');
+      } else if (error.message?.includes('Network')) {
+        throw new Error('Network error. Check your connection and try again.');
       }
+      throw new Error(error.message ?? 'Sign in failed');
     } finally {
       setIsLoading(false);
     }
@@ -142,10 +123,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await performSignOut();
       setUser(null);
-      setSession(null);
     } catch (error: any) {
-      console.error('Sign out error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Sign out failed');
     }
   };
 
@@ -153,27 +132,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await performResetPassword(email);
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Password reset failed');
     }
   };
 
-  const resendVerificationEmail = async () => {
+  const resendVerificationEmail = async (email?: string) => {
+    const target = email ?? user?.email;
+    if (!target) throw new Error('No email address found');
     try {
-      if (!user?.email) throw new Error('No user email found');
-      await performResendVerification(user.email);
+      await performResendSignUpCode(target);
     } catch (error: any) {
-      console.error('Resend verification error:', error);
-      throw new Error(error.message);
-    }
-  };
-
-  const handleEmailVerification = async (): Promise<boolean> => {
-    try {
-      return await performHandleEmailVerification();
-    } catch (error: any) {
-      console.error('Email verification error:', error);
-      return false;
+      throw new Error(error.message ?? 'Failed to resend code');
     }
   };
 
@@ -181,38 +150,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       await performSignInWithGoogle();
+      // Hub listener above handles setUser after redirect completes
     } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Google sign-in failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const unlinkAccount = async (_provider: 'google') => Promise.resolve();
-
-  const updateEmail = async (newEmail: string, currentPassword: string) => {
-    if (!user?.email) throw new Error('No authenticated user');
+  const signInWithApple = async () => {
     setIsLoading(true);
     try {
-      const updated = await performUpdateEmail(user, session, newEmail, currentPassword, saveMockUserData);
-      setUser(updated);
+      await performSignInWithApple();
     } catch (error: any) {
-      console.error('Update email error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Apple sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateEmail = async (newEmail: string, _currentPassword: string) => {
+    if (!user) throw new Error('No authenticated user');
+    setIsLoading(true);
+    try {
+      await performUpdateEmail(newEmail);
+      setUser({ ...user, email: newEmail });
+    } catch (error: any) {
+      throw new Error(error.message ?? 'Failed to update email');
     } finally {
       setIsLoading(false);
     }
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string) => {
-    if (!user?.email) throw new Error('No authenticated user');
     setIsLoading(true);
     try {
-      await performUpdatePassword(user, session, currentPassword, newPassword);
+      await performUpdatePassword(currentPassword, newPassword);
     } catch (error: any) {
-      console.error('Update password error:', error);
-      throw new Error(error.message);
+      if (error.name === 'NotAuthorizedException') throw new Error('Current password is incorrect.');
+      throw new Error(error.message ?? 'Failed to update password');
     } finally {
       setIsLoading(false);
     }
@@ -221,50 +197,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateUserDisplayName = async (displayName: string) => {
     if (!user) return;
     try {
-      const updated = await performUpdateDisplayName(user, session, displayName, saveMockUserData);
+      const updated = await performUpdateDisplayName(user, displayName);
       setUser(updated);
     } catch (error: any) {
-      console.error('Update display name error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Failed to update display name');
     }
   };
 
   const updateUserName = async (firstName: string, surname: string, preferredName: string) => {
     if (!user) return;
     try {
-      const updated = await performUpdateUserName(user, session, firstName, surname, preferredName, saveMockUserData);
+      const updated = await performUpdateUserName(user, firstName, surname, preferredName);
       setUser(updated);
     } catch (error: any) {
-      console.error('Update full name error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Failed to update name');
     }
   };
 
   const updateUsername = async (username: string) => {
     if (!user) return;
     try {
-      const updated = await performUpdateUsername(user, session, username, saveMockUserData);
+      const updated = await performUpdateUsername(user, username);
       setUser(updated);
     } catch (error: any) {
-      console.error('Update username error:', error);
-      throw new Error(error.message || 'Failed to update username');
+      throw new Error(error.message ?? 'Failed to update username');
     }
   };
 
   const updateUserPhoto = async (photoURL: string) => {
     if (!user) return;
     try {
-      const updated = await performUpdateUserPhoto(user, session, photoURL, saveMockUserData);
+      const updated = await performUpdateUserPhoto(user, photoURL);
       setUser(updated);
     } catch (error: any) {
-      console.error('Update photo error:', error);
-      throw new Error(error.message);
+      throw new Error(error.message ?? 'Failed to update photo');
     }
   };
 
   const value: AuthContextType = {
     user,
-    session,
     isLoading,
     isInitializing,
     signIn,
@@ -272,9 +243,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     resetPassword,
     resendVerificationEmail,
-    handleEmailVerification,
     signInWithGoogle,
-    unlinkAccount,
+    signInWithApple,
     updateEmail,
     updatePassword,
     updateUserDisplayName,
@@ -288,8 +258,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

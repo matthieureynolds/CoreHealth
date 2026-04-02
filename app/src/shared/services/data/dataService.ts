@@ -1,289 +1,128 @@
-import { supabase } from '../../config/supabase';
-import { Database } from '../../types/database';
-import {
-  UserProfile,
-  Biomarker,
-  LabResult,
-  DeviceData,
-  MedicalCondition,
-  Vaccination,
-} from '../../types';
+import { api } from './apiClient';
+import { Biomarker, LabResult } from '../../types';
 
-type Tables = Database['public']['Tables'];
+// Maps backend risk_level → app riskLevel
+function mapRiskLevel(r: string | null): Biomarker['riskLevel'] {
+  if (r === 'abnormal') return 'high';
+  if (r === 'unknown') return 'medium';
+  return 'low';
+}
+
+// Maps backend trend → app trend (backend trend is value direction, not health direction)
+function mapTrend(t: string | null): Biomarker['trend'] {
+  if (t === 'increasing' || t === 'decreasing') return 'stable'; // can't infer health dir without context
+  return 'stable';
+}
+
+function rowToBiomarker(r: any): Biomarker {
+  return {
+    id: r.id,
+    name: r.name,
+    value: parseFloat(r.value),
+    unit: r.unit,
+    category: r.category,
+    trend: mapTrend(r.trend),
+    riskLevel: mapRiskLevel(r.risk_level),
+    lastUpdated: new Date(r.recorded_at ?? r.created_at),
+  };
+}
 
 export class DataService {
-  // Profile operations
-  static async createProfile(
+  // ─── User profile ────────────────────────────────────────────────────────
+
+  static async ensureUser(
     userId: string,
     email: string,
-    displayName?: string,
-  ) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert({
-        supabase_uid: userId,
-        email,
-        display_name: displayName,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    firstName?: string,
+    surname?: string,
+    preferredName?: string,
+  ): Promise<void> {
+    await api.post(`/users/${userId}`, { email, firstName, surname, preferredName });
   }
 
-  static async getProfile(
-    userId: string,
-  ): Promise<Tables['profiles']['Row'] | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('supabase_uid', userId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows found
-    return data;
-  }
-
-  static async updateProfile(
-    userId: string,
-    updates: Partial<Tables['profiles']['Update']>,
-  ) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('supabase_uid', userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Biomarkers operations
-  static async getBiomarkers(
-    userId: string,
-  ): Promise<Tables['biomarkers']['Row'][]> {
-    const { data, error } = await supabase
-      .from('biomarkers')
-      .select('*')
-      .eq('user_id', userId)
-      .order('recorded_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  static async addBiomarker(
-    userId: string,
-    biomarker: Omit<Tables['biomarkers']['Insert'], 'user_id'>,
-  ) {
-    const { data, error } = await supabase
-      .from('biomarkers')
-      .insert({
-        ...biomarker,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  static async updateBiomarker(
-    id: string,
-    updates: Tables['biomarkers']['Update'],
-  ) {
-    const { data, error } = await supabase
-      .from('biomarkers')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Medical conditions operations
-  static async getMedicalConditions(
-    userId: string,
-  ): Promise<Tables['medical_conditions']['Row'][]> {
-    const { data, error } = await supabase
-      .from('medical_conditions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  static async addMedicalCondition(
-    userId: string,
-    condition: Omit<Tables['medical_conditions']['Insert'], 'user_id'>,
-  ) {
-    const { data, error } = await supabase
-      .from('medical_conditions')
-      .insert({
-        ...condition,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Vaccinations operations
-  static async getVaccinations(
-    userId: string,
-  ): Promise<Tables['vaccinations']['Row'][]> {
-    const { data, error } = await supabase
-      .from('vaccinations')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  static async addVaccination(
-    userId: string,
-    vaccination: Omit<Tables['vaccinations']['Insert'], 'user_id'>,
-  ) {
-    const { data, error } = await supabase
-      .from('vaccinations')
-      .insert({
-        ...vaccination,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Lab results operations
-  static async getLabResults(
-    userId: string,
-  ): Promise<Tables['lab_results']['Row'][]> {
-    const { data, error } = await supabase
-      .from('lab_results')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  }
-
-  static async addLabResult(
-    userId: string,
-    labResult: Omit<Tables['lab_results']['Insert'], 'user_id'>,
-  ) {
-    const { data, error } = await supabase
-      .from('lab_results')
-      .insert({
-        ...labResult,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Device data operations
-  static async getDeviceData(
-    userId: string,
-    deviceType?: string,
-  ): Promise<Tables['device_data']['Row'][]> {
-    let query = supabase.from('device_data').select('*').eq('user_id', userId);
-
-    if (deviceType) {
-      query = query.eq('device_type', deviceType);
+  static async getProfile(userId: string): Promise<any | null> {
+    try {
+      return await api.get<any>(`/users/${userId}`);
+    } catch (e: any) {
+      if (e.message?.includes('404')) return null;
+      throw e;
     }
+  }
 
-    const { data, error } = await query.order('timestamp', {
-      ascending: false,
+  static async updateProfile(userId: string, updates: {
+    firstName?: string;
+    surname?: string;
+    preferredName?: string;
+    username?: string;
+    photoUrl?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    heightCm?: number;
+    weightKg?: number;
+    ethnicity?: string;
+  }): Promise<any> {
+    return api.put<any>(`/users/${userId}`, updates);
+  }
+
+  // ─── Biomarkers ──────────────────────────────────────────────────────────
+
+  static async getBiomarkers(category?: string): Promise<Biomarker[]> {
+    const path = category ? `/biomarkers?category=${category}` : '/biomarkers';
+    const rows = await api.get<any[]>(path);
+    return rows.map(rowToBiomarker);
+  }
+
+  static async addBiomarker(biomarker: {
+    name: string;
+    value: number;
+    unit: string;
+    category: string;
+    referenceMin?: number;
+    referenceMax?: number;
+    recordedAt?: string;
+    labResultId?: string;
+  }): Promise<Biomarker> {
+    const row = await api.post<any>('/biomarkers', biomarker);
+    return rowToBiomarker(row);
+  }
+
+  static async deleteBiomarker(biomarkerId: string): Promise<void> {
+    await api.delete(`/biomarkers/${biomarkerId}`);
+  }
+
+  // ─── Lab results (PDFs) ──────────────────────────────────────────────────
+  // Note: backend lab_results are PDF documents; the app's LabResult type is individual test values.
+  // These are used for the upload/processing flow only.
+
+  static async getLabResultDocuments(): Promise<any[]> {
+    return api.get<any[]>('/lab-results');
+  }
+
+  static async addLabResultDocument(data: {
+    s3Key: string;
+    fileName: string;
+    labName?: string;
+    reportDate?: string;
+  }): Promise<any> {
+    return api.post<any>('/lab-results', {
+      s3_key: data.s3Key,
+      file_name: data.fileName,
+      lab_name: data.labName,
+      report_date: data.reportDate,
     });
-
-    if (error) throw error;
-    return data || [];
   }
 
-  static async addDeviceData(
-    userId: string,
-    deviceData: Omit<Tables['device_data']['Insert'], 'user_id'>,
-  ) {
-    const { data, error } = await supabase
-      .from('device_data')
-      .insert({
-        ...deviceData,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+  static async deleteLabResultDocument(labResultId: string): Promise<void> {
+    await api.delete(`/lab-results/${labResultId}`);
   }
 
-  // Utility functions
-  static async initializeUserData(
-    userId: string,
-    email: string,
-    displayName?: string,
-  ) {
-    // Create profile if it doesn't exist
-    let profile = await this.getProfile(userId);
+  // ─── AI chat ─────────────────────────────────────────────────────────────
 
-    if (!profile) {
-      profile = await this.createProfile(userId, email, displayName);
-    }
-
-    return profile;
+  static async sendChatMessage(message: string): Promise<{ reply: string }> {
+    return api.post<{ reply: string }>('/ai/chat', { message });
   }
 
-  // Real-time subscriptions
-  static subscribeToBiomarkers(
-    userId: string,
-    callback: (payload: any) => void,
-  ) {
-    return supabase
-      .channel('biomarkers_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'biomarkers',
-          filter: `user_id=eq.${userId}`,
-        },
-        callback,
-      )
-      .subscribe();
-  }
-
-  static subscribeToProfile(userId: string, callback: (payload: any) => void) {
-    return supabase
-      .channel('profile_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `supabase_uid=eq.${userId}`,
-        },
-        callback,
-      )
-      .subscribe();
+  static async getChatHistory(): Promise<Array<{ role: string; content: string; created_at: string }>> {
+    return api.get('/ai/history');
   }
 }

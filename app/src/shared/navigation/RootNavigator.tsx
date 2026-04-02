@@ -19,9 +19,9 @@ import HealthScoreDetailScreen from '../../features/home/score/HealthScoreDetail
 const Stack = createStackNavigator<RootStackParamList>();
 
 const RootNavigator: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isInitializing } = useAuth();
 
-  if (isLoading) {
+  if (isInitializing) {
     return <LoadingScreen visible={true} />;
   }
 

@@ -6,9 +6,13 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useOnboarding } from '../../../shared/hooks/useOnboarding';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AuthStackParamList } from '../../../shared/types';
 import RegistrationStepScreen from './RegistrationStepScreen';
 import AgeGenderStepScreen from './AgeGenderStepScreen';
 import EmailVerificationStepScreen from './EmailVerificationStepScreen';
@@ -38,14 +42,19 @@ const onboardingPages = [
 ];
 
 interface OnboardingScreenProps {
-  onComplete: () => void;
+  onComplete?: () => void;
+  navigation?: StackNavigationProp<AuthStackParamList, 'Onboarding'>;
 }
 
-const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
+const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigation }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [typewriterComplete, setTypewriterComplete] = useState(false);
   const [userData, setUserData] = useState<Record<string, string>>({});
   const { signUp } = useAuth();
+
+  const handleComplete = () => {
+    if (onComplete) onComplete();
+  };
 
   const handleRegistrationComplete = async (registrationData: Record<string, string>) => {
     try {
@@ -53,14 +62,22 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
       await signUp(registrationData.email, registrationData.password, displayName);
       setUserData((prev) => ({ ...prev, ...registrationData }));
       setCurrentPage(5);
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Registration failed in onboarding:', error);
+      const message = error?.message ?? 'Something went wrong. Please try again.';
+      if (message.includes('already exists') || message.includes('UsernameExists')) {
+        Alert.alert('Account already exists', 'An account with this email already exists. Please sign in instead.');
+      } else if (message.includes('password') || message.includes('Password')) {
+        Alert.alert('Invalid password', 'Password must be at least 8 characters with uppercase, lowercase, and a number.');
+      } else {
+        Alert.alert('Registration failed', message);
+      }
     }
   };
 
   const handleAgeGenderComplete = (ageGenderData: Record<string, string>) => {
     setUserData((prev) => ({ ...prev, ...ageGenderData }));
-    setCurrentPage(6);
+    setCurrentPage(7);
   };
 
   const handleNext = () => {
@@ -73,7 +90,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   if (currentPage === 7) return <MedicalDocumentsScreen onNext={() => setCurrentPage(8)} onBack={() => setCurrentPage(6)} />;
   if (currentPage === 8) return <DeviceConnectionScreen onNext={() => setCurrentPage(9)} onBack={() => setCurrentPage(7)} />;
   if (currentPage === 9) return <PermissionsScreen onNext={() => setCurrentPage(10)} onBack={() => setCurrentPage(8)} />;
-  if (currentPage === 10) return <FinishOnboardingScreen onComplete={onComplete} />;
+  if (currentPage === 10) return <FinishOnboardingScreen onComplete={handleComplete} />;
 
   const renderPage = (page: typeof onboardingPages[0], index: number) => {
     if (index === 0 && page.isTypewriter) {
@@ -134,10 +151,15 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
           </TouchableOpacity>
         )}
         {currentPage === onboardingPages.length - 1 && (
-          <TouchableOpacity style={styles.getStartedButton} onPress={() => setCurrentPage(4)}>
-            <Text style={styles.getStartedButtonText}>Get Started</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-          </TouchableOpacity>
+          <View style={styles.lastPageButtons}>
+            <TouchableOpacity style={styles.getStartedButton} onPress={() => setCurrentPage(4)}>
+              <Text style={styles.getStartedButtonText}>Get Started</Text>
+              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleComplete} style={styles.signInLink}>
+              <Text style={styles.signInLinkText}>Already have an account? <Text style={styles.signInLinkBold}>Sign in</Text></Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -166,8 +188,12 @@ const styles = StyleSheet.create({
   skipButtonText: { fontSize: 16, color: '#666', fontWeight: '500' },
   nextButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   nextButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
+  lastPageButtons: { alignItems: 'center', gap: 12 },
   getStartedButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
   getStartedButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
+  signInLink: { paddingVertical: 8 },
+  signInLinkText: { fontSize: 14, color: '#666' },
+  signInLinkBold: { color: '#3AABF0', fontWeight: '600' },
   buttonIcon: { marginLeft: 4 },
 });
 

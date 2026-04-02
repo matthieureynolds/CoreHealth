@@ -1,4 +1,7 @@
+import 'react-native-get-random-values'; // must be first — Amplify crypto dependency
+import '@aws-amplify/react-native'; // React Native adapter for Amplify
 import './src/shared/utils/polyfills';
+import './src/shared/config/amplify'; // configure Amplify before anything else
 import React, { useEffect, useState } from 'react';import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';

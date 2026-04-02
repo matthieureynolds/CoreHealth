@@ -9,7 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../../shared/config/supabase';
+import { performConfirmSignUp, performResendSignUpCode } from '../../../shared/context/authHelpers';
 
 interface Props {
   email: string;
@@ -55,34 +55,18 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
   const handleVerifyCode = async (verificationCode: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: verificationCode,
-        type: 'email'
+      await performConfirmSignUp(email, verificationCode);
+      setShowTick(true);
+      tickAnim.setValue(0);
+      Animated.timing(tickAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        setTimeout(() => { onNext(); }, 1000);
       });
-
-      if (error) {
-        console.error('❌ Email verification failed:', error);
-        Alert.alert('Verification Failed', 'Invalid code. Please try again.');
-        setCode(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      } else {
-        // Show tick animation
-        setShowTick(true);
-        tickAnim.setValue(0);
-        Animated.timing(tickAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start(() => {
-          setTimeout(() => {
-            onNext();
-          }, 1000);
-        });
-      }
     } catch (error: any) {
-      console.error('❌ Email verification error:', error);
-      Alert.alert('Error', 'Verification failed. Please try again.');
+      Alert.alert('Verification Failed', error.message ?? 'Invalid code. Please try again.');
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -92,20 +76,10 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
 
   const handleResendCode = async () => {
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      });
-
-      if (error) {
-        console.error('❌ Failed to resend code:', error);
-        Alert.alert('Error', 'Failed to resend code. Please try again.');
-      } else {
-        Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
-      }
-    } catch (error) {
-      console.error('❌ Resend code error:', error);
-      Alert.alert('Error', 'Failed to resend code. Please try again.');
+      await performResendSignUpCode(email);
+      Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
+    } catch (error: any) {
+      Alert.alert('Error', error.message ?? 'Failed to resend code. Please try again.');
     }
   };
 

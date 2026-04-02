@@ -30,6 +30,8 @@ import familyService from '../services/user/familyService';
 import { deriveFeaturesFromSignals } from '../services/user/familyRiskService';
 import { generateJetLagData } from '../services/travel/jetLagService';
 import { useSettings } from './SettingsContext';
+import { useAuth } from './AuthContext';
+import { DataService } from '../services/data/dataService';
 import { validateApiKeys } from '../config/api';
 import { updateTravelHealthData as _updateTravelHealthData } from './updateTravelHealthData';
 import {
@@ -109,6 +111,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   children,
 }) => {
   const { settings } = useSettings();
+  const { user, isInitializing } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [labResults, setLabResults] = useState<LabResult[]>([]);
@@ -126,13 +129,14 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const [derivedRiskFeatures, setDerivedRiskFeatures] = useState<DerivedRiskFeature[]>([]);
 
   useEffect(() => {
+    if (isInitializing) return;
     const init = async () => {
       await clearCorruptedHealthScore();
       await loadHealthData();
       validateApiKeys();
     };
     init();
-  }, []);
+  }, [isInitializing, user?.id]);
 
   const loadHealthData = useCallback(async () => {
     await _loadHealthData({
@@ -149,8 +153,8 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       setJetLagPlanningEvents,
       setBodySystems,
       setIsLoading,
-    });
-  }, []);
+    }, user?.id);
+  }, [user?.id]);
 
   const refreshFamilyRiskFeatures = useCallback(async () => {
     try {
@@ -171,18 +175,32 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const updateProfile = useCallback(async (profileUpdates: Partial<UserProfile>) => {
     try {
       const updatedProfile = { ...profile, ...profileUpdates } as UserProfile;
-      await AsyncStorage.setItem('profile', JSON.stringify(updatedProfile));
       setProfile(updatedProfile);
+      if (user?.id) {
+        await DataService.updateProfile(user.id, {
+          firstName: (profileUpdates as any).firstName ?? (updatedProfile as any).firstName,
+          surname: (profileUpdates as any).surname ?? (updatedProfile as any).surname,
+          preferredName: (profileUpdates as any).preferredName,
+          gender: profileUpdates.gender,
+          heightCm: profileUpdates.height,
+          weightKg: profileUpdates.weight,
+        });
+      }
     } catch (error) {
       console.error('Failed to update profile:', error);
       throw error;
     }
-  }, [profile]);
+  }, [profile, user?.id]);
 
   const addBiomarker = useCallback(async (biomarker: Biomarker) => {
     try {
-      const updatedBiomarkers = [...biomarkers, biomarker];
-      await AsyncStorage.setItem('biomarkers', JSON.stringify(updatedBiomarkers));
+      const saved = await DataService.addBiomarker({
+        name: biomarker.name,
+        value: biomarker.value,
+        unit: biomarker.unit,
+        category: biomarker.category,
+      });
+      const updatedBiomarkers = [...biomarkers, saved];
       setBiomarkers(updatedBiomarkers);
       setHealthScoreCalculated(false);
       await recalculateHealthScore(updatedBiomarkers);
@@ -197,7 +215,6 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
       const updatedBiomarkers = biomarkers.map(b =>
         b.id === id ? { ...b, ...updates } : b,
       );
-      await AsyncStorage.setItem('biomarkers', JSON.stringify(updatedBiomarkers));
       setBiomarkers(updatedBiomarkers);
       setHealthScoreCalculated(false);
       await recalculateHealthScore(updatedBiomarkers);
@@ -209,15 +226,13 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
 
   const addLabResult = useCallback(async (labResult: LabResult) => {
     try {
-      const updatedResults = [...labResults, labResult];
-      await AsyncStorage.setItem('labResults', JSON.stringify(updatedResults));
-      setLabResults(updatedResults);
+      setLabResults(prev => [...prev, labResult]);
       await recalculateHealthScore(biomarkers);
     } catch (error) {
       console.error('Failed to add lab result:', error);
       throw error;
     }
-  }, [labResults, biomarkers, recalculateHealthScore]);
+  }, [biomarkers, recalculateHealthScore]);
 
   const syncDeviceData = useCallback(async (data: DeviceData) => {
     try {
