@@ -1,6 +1,8 @@
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
+  RingDetail: { id: 'recovery' | 'biomarkers' | 'lifestyle' };
+  HealthScoreDetail: undefined;
   EnvironmentalMetric: {
     metricId: 'air_quality' | 'pollen' | 'water_quality' | 'uv_index' | 'food_safety' | 'altitude' | 'outbreaks';
     label: string;
@@ -9,15 +11,6 @@ export type RootStackParamList = {
     score?: number;
     icon?: string;
   };
-  ScoreDetail: {
-    id: 'recovery' | 'biomarkers' | 'lifestyle';
-    title: string;
-    value: number;
-    color: string;
-    icon: string;
-    subtitle?: string;
-  };
-  HealthScoreDetail: undefined;
 };
 
 export type AuthStackParamList = {
@@ -32,6 +25,7 @@ export type AuthStackParamList = {
   DeviceConnection: undefined;
   Permissions: undefined;
   FinishOnboarding: undefined;
+  PrivacyNotice: undefined;
 };
 
 export type MainTabParamList = {

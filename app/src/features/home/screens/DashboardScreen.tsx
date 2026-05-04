@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +34,7 @@ import SupportingRings from '../health-metrics/rings/SupportingRings';
 import LabInsightsCard from '../recent-lab-results/LabInsightsCard';
 import TravelHealthSummary from '../travel-health/TravelHealthSummary';
 import MedicalTimeline from '../medical-timeline/MedicalTimeline';
+import { DataService } from '../../../shared/services/data/dataService';
 
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -55,6 +57,16 @@ const DashboardScreen: React.FC = () => {
   const [labResultModalVisible, setLabResultModalVisible] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
+  const [healthAlerts, setHealthAlerts] = useState<Array<{
+    id: string; type: string; severity: string; title: string; body: string;
+  }>>([]);
+
+  useFocusEffect(useCallback(() => {
+    if (!user?.id) return;
+    DataService.getAlerts(user.id)
+      .then(alerts => setHealthAlerts(alerts.slice(0, 3)))
+      .catch(() => {});
+  }, [user?.id]));
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -146,6 +158,12 @@ const DashboardScreen: React.FC = () => {
 
   const handleTravelPress = () => {};
 
+  const handleDismissAlert = async (alertId: string) => {
+    if (!user?.id) return;
+    setHealthAlerts(prev => prev.filter(a => a.id !== alertId));
+    DataService.dismissAlert(user.id, alertId).catch(() => {});
+  };
+
   const handleMedicalEventPress = (_event: unknown) => {};
 
   const handleJetLagEventPress = (_event: unknown) => {};
@@ -189,6 +207,25 @@ const DashboardScreen: React.FC = () => {
         scrollEnabled={true}
         nestedScrollEnabled={true}
       >
+        {healthAlerts.length > 0 && (
+          <View style={styles.alertsContainer}>
+            {healthAlerts.map(alert => {
+              const borderColor = alert.severity === 'critical' ? '#FF3B30' : alert.severity === 'warning' ? '#FF9500' : '#3AABF0';
+              return (
+                <View key={alert.id} style={[styles.alertCard, { borderLeftColor: borderColor }]}>
+                  <View style={styles.alertContent}>
+                    <Text style={styles.alertTitle}>{alert.title}</Text>
+                    <Text style={styles.alertBody}>{alert.body}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => handleDismissAlert(alert.id)} style={styles.alertDismiss} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+                    <Ionicons name="close" size={16} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         <View style={styles.firstComponent}>
           <HeroHealthScore
             score={overallHealthScore}
@@ -305,6 +342,37 @@ const styles = StyleSheet.create({
   },
   firstComponent: {
     marginTop: 20,
+  },
+  alertsContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 8,
+  },
+  alertCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  alertContent: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  alertBody: {
+    fontSize: 12,
+    color: '#A0A0A0',
+    lineHeight: 17,
+  },
+  alertDismiss: {
+    marginLeft: 8,
+    paddingTop: 2,
   },
 });
 

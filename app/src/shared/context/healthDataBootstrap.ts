@@ -122,15 +122,61 @@ export const BOOTSTRAP_BIOMARKERS: Biomarker[] = [
     riskLevel: 'low',
     lastUpdated: new Date(),
   },
+  {
+    id: '13',
+    name: 'HbA1c',
+    value: 5.1,
+    unit: '%',
+    category: 'metabolic',
+    trend: 'stable',
+    riskLevel: 'low',
+    lastUpdated: new Date(),
+  },
+  {
+    id: '14',
+    name: 'Triglycerides',
+    value: 85,
+    unit: 'mg/dL',
+    category: 'metabolic',
+    trend: 'improving',
+    riskLevel: 'low',
+    lastUpdated: new Date(),
+  },
+  {
+    id: '15',
+    name: 'ApoB',
+    value: 70,
+    unit: 'mg/dL',
+    category: 'cardiovascular',
+    trend: 'stable',
+    riskLevel: 'medium',
+    lastUpdated: new Date(),
+  },
+  {
+    id: '16',
+    name: 'Homocysteine',
+    value: 9.2,
+    unit: 'μmol/L',
+    category: 'inflammatory',
+    trend: 'stable',
+    riskLevel: 'low',
+    lastUpdated: new Date(),
+  },
 ];
 
+// Scores calculated by the new framework:
+// Biomarkers ring (45%): metabolic ~82, cardiovascular ~77, inflammation ~78, organ ~81 → 79
+// Recovery ring (35%):   resting HR 58 → 81, sleep default 78 → combined 79
+// Lifestyle ring (20%):  72
+// Overall: (79 × 0.45) + (79 × 0.35) + (72 × 0.20) = 77
 export const BOOTSTRAP_HEALTH_SCORE: HealthScore = {
-  overall: 82,
+  overall: 77,
+  biomarkers: 79,
+  recovery: 79,
+  activity: 72,
   sleep: 78,
-  activity: 85,
   stress: 70,
-  recovery: 88,
-  nutrition: 75,
+  nutrition: 81,
 };
 
 export const BOOTSTRAP_DAILY_INSIGHTS: DailyInsight[] = [

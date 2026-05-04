@@ -26,11 +26,13 @@ import {
   JetLagPlanningEvent,
   DerivedRiskFeature,
 } from '../types';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import familyService from '../services/user/familyService';
 import { deriveFeaturesFromSignals } from '../services/user/familyRiskService';
 import { generateJetLagData } from '../services/travel/jetLagService';
 import { useSettings } from './SettingsContext';
 import { useAuth } from './AuthContext';
+import { api } from '../services/data/apiClient';
 import { DataService } from '../services/data/dataService';
 import { validateApiKeys } from '../config/api';
 import { updateTravelHealthData as _updateTravelHealthData } from './updateTravelHealthData';
@@ -63,6 +65,7 @@ interface HealthDataContextType {
   isLoading: boolean;
   derivedRiskFeatures?: DerivedRiskFeature[];
   refreshFamilyRiskFeatures?: () => Promise<void>;
+  refreshAllHealthData: () => Promise<void>;
 
   // Profile methods
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
@@ -156,6 +159,29 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     }, user?.id);
   }, [user?.id]);
 
+  // Sync location health to backend whenever travelHealth updates (fire-and-forget)
+  // Only syncs if the user has given explicit location-health consent (Fix 14 — GDPR Art. 6/9)
+  useEffect(() => {
+    if (!travelHealth || !user?.id) return;
+    AsyncStorage.getItem('@corehealth_location_consent').then(consented => {
+      if (consented !== 'true') return; // no consent — do not sync to backend
+      const payload = {
+        location: travelHealth.location,
+        airQuality: travelHealth.airQuality,
+        uvIndex: travelHealth.uvIndex,
+        pollenLevels: travelHealth.pollenLevels,
+        waterSafety: travelHealth.waterSafety,
+        diseaseRisk: travelHealth.diseaseRisk,
+        overallRiskLevel: travelHealth.overallRiskLevel,
+        lastUpdated: travelHealth.lastUpdated,
+      };
+      fetchAuthSession().then(session => {
+        const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+        if (userId) api.put(`/users/${userId}/location-health`, payload).catch(() => {});
+      }).catch(() => {});
+    }).catch(() => {});
+  }, [travelHealth, user?.id]);
+
   const refreshFamilyRiskFeatures = useCallback(async () => {
     try {
       const signals = await familyService.listIncomingSignals();
@@ -185,6 +211,8 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
           heightCm: profileUpdates.height,
           weightKg: profileUpdates.weight,
         });
+        // Sync full profile so Toto knows everything (fire-and-forget)
+        DataService.syncProfileData(user.id, updatedProfile).catch(() => {});
       }
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -227,6 +255,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   const addLabResult = useCallback(async (labResult: LabResult) => {
     try {
       setLabResults(prev => [...prev, labResult]);
+      setHealthScoreCalculated(false);
       await recalculateHealthScore(biomarkers);
     } catch (error) {
       console.error('Failed to add lab result:', error);
@@ -370,6 +399,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
     isLoading,
     derivedRiskFeatures,
     refreshFamilyRiskFeatures,
+    refreshAllHealthData: loadHealthData,
     updateProfile,
     addBiomarker,
     updateBiomarker,
@@ -389,7 +419,7 @@ export const HealthDataProvider: React.FC<HealthDataProviderProps> = ({
   }), [
     profile, biomarkers, labResults, deviceData, dailyInsights, healthScore,
     travelHealth, bodySystems, jetLagPlanningEvents, isLoading, derivedRiskFeatures,
-    refreshFamilyRiskFeatures, updateProfile, addBiomarker, updateBiomarker,
+    refreshFamilyRiskFeatures, loadHealthData, updateProfile, addBiomarker, updateBiomarker,
     addLabResult, syncDeviceData, generateDailyInsights, updateLocation,
     getCurrentLocation, updateTravelHealthData, setOriginTimezone, calculateJetLag,
     addJetLagPlanningEvent, updateJetLagPlanningEvent, deleteJetLagPlanningEvent,

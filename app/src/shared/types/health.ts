@@ -117,10 +117,11 @@ export interface DailyInsight {
 
 export interface HealthScore {
   overall: number;
+  biomarkers: number;  // 45% weight — blood marker ring
+  recovery: number;    // 35% weight — HRV, sleep, VO2 max ring
+  activity: number;    // 20% weight — lifestyle ring
   sleep: number;
-  activity: number;
   stress: number;
-  recovery: number;
   nutrition: number;
 }
 

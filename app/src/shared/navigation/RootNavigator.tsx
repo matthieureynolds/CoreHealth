@@ -13,7 +13,7 @@ import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
 import LoadingScreen from '../components/feedback/LoadingScreen';
 import EnvironmentalMetricScreen from '../../features/home/travel-health/current-location/EnvironmentalMetricScreen';
-import ScoreDetailScreen from '../../features/home/score/ScoreDetailScreen';
+import RingDetailScreen from '../../features/home/health-metrics/detail/RingDetailScreen';
 import HealthScoreDetailScreen from '../../features/home/score/HealthScoreDetailScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -30,9 +30,9 @@ const RootNavigator: React.FC = () => {
       {user ? (
         <>
           <Stack.Screen name="Main" component={MainNavigator} />
-          <Stack.Screen name="EnvironmentalMetric" component={EnvironmentalMetricScreen} />
-          <Stack.Screen name="ScoreDetail" component={ScoreDetailScreen} />
+          <Stack.Screen name="RingDetail" component={RingDetailScreen} />
           <Stack.Screen name="HealthScoreDetail" component={HealthScoreDetailScreen} />
+          <Stack.Screen name="EnvironmentalMetric" component={EnvironmentalMetricScreen} />
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
