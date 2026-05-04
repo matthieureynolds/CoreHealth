@@ -8,10 +8,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Rect, Polyline, Path, Defs, LinearGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { RootStackParamList } from '../../../../shared/types';
 import {
-  RING_CONFIGS, PERIOD_LABELS, PERIOD_SHORT_LABELS, PERIOD_DEFAULT_INDEX,
+  PERIOD_LABELS, PERIOD_SHORT_LABELS, PERIOD_DEFAULT_INDEX,
   PERIOD_COMPARISON, getScores, getStatData, getTrend,
   RingId, StatDef, Period,
 } from './ringConfig';
+import { useRingData } from './useRingData';
 
 type Route = RouteProp<RootStackParamList, 'RingDetail'>;
 const { width: W } = Dimensions.get('window');
@@ -308,7 +309,8 @@ const RingDetailScreen: React.FC = () => {
   const route      = useRoute<Route>();
   const navigation = useNavigation();
   const { id }     = route.params;
-  const config     = RING_CONFIGS[id as RingId];
+  const { configs } = useRingData();
+  const config     = configs[id as RingId];
 
   const [period, setPeriod]       = useState<Period>('week');
   const [selectedIdx, setSelectedIdx] = useState(PERIOD_DEFAULT_INDEX['week']);

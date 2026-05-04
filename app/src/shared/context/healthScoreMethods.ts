@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Biomarker, DailyInsight, HealthScore } from '../types';
 import { refreshUserSnapshot } from '../services/user/userSnapshotService';
+import { DataService } from '../services/data/dataService';
 
 // ─── Scoring philosophy ───────────────────────────────────────────────────────
 // "Normal" clinical ranges → ~65. Optimal longevity ranges → 90+.
@@ -413,7 +414,32 @@ export const generateDailyInsights = async (
   setDailyInsights: (insights: DailyInsight[]) => void,
 ): Promise<void> => {
   try {
-    const insights = buildBiomarkerInsights(biomarkers, healthScore);
+    // Try backend first — GPT-4o with full user context, API key stays server-side
+    let insights: DailyInsight[] = [];
+    try {
+      const serverInsights = await DataService.getDailyInsights();
+      if (serverInsights.length > 0) {
+        insights = serverInsights.map(s => ({
+          id: s.id ?? `insight-${Date.now()}-${Math.random()}`,
+          title: s.title,
+          description: s.description,
+          category: (s.category ?? 'recovery') as DailyInsight['category'],
+          priority: (s.priority ?? 'medium') as DailyInsight['priority'],
+          actionable: s.actionable ?? false,
+          action: s.action ?? undefined,
+          date: new Date(),
+          type: 'recommendation' as const,
+        }));
+      }
+    } catch {
+      // Backend unavailable — fall through to local logic
+    }
+
+    // Local fallback: rule-based insights from biomarkers (no API key needed)
+    if (insights.length === 0) {
+      insights = buildBiomarkerInsights(biomarkers, healthScore);
+    }
+
     setDailyInsights(insights);
     await AsyncStorage.setItem('dailyInsights', JSON.stringify(insights));
     try { await refreshUserSnapshot(); } catch (e) { console.error(e); }
