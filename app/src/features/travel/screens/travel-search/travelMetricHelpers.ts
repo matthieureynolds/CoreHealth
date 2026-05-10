@@ -54,41 +54,16 @@ export function getMetricFixedIconColor(metricId: string, status?: string): stri
   }
 }
 
-export function getScoreColor(metricId: string, status: string, score?: number): string {
-  const st = (status || '').toLowerCase();
-  switch (metricId) {
-    case 'air_quality':
-      if (st === 'good' || (typeof score === 'number' && score <= 50)) return '#30D158';
-      if (st === 'moderate' || (typeof score === 'number' && score <= 100)) return '#FF9F0A';
-      if (typeof score === 'number' && score <= 150) return '#FF6B35';
-      if (st === 'poor' || st === 'unhealthy' || (typeof score === 'number' && score <= 200)) return '#FF3B30';
-      return '#AF52DE';
-    case 'uv_index':
-      if (st === 'good' || (typeof score === 'number' && score <= 30)) return '#30D158';
-      if (st === 'moderate' || (typeof score === 'number' && score <= 60)) return '#FF9F0A';
-      if (st === 'poor' || (typeof score === 'number' && score <= 80)) return '#FF3B30';
-      return '#AF52DE';
-    case 'food_safety':
-      if (st === 'good' || (typeof score === 'number' && score >= 70)) return '#32D74B';
-      if (st === 'moderate' || (typeof score === 'number' && score >= 40)) return '#FF9F0A';
-      return '#FF3B30';
-    case 'pollen':
-      if (st === 'good') return '#FFD60A';
-      if (st === 'moderate') return '#FF9F0A';
-      return '#FF3B30';
-    case 'altitude':
-      if (st === 'good') return '#A7DBFF';
-      if (st === 'moderate') return '#409CFF';
-      return '#0047AB';
-    case 'outbreaks':
-      if (st === 'good') return '#FF9AA2';
-      if (st === 'moderate') return '#FF6B6B';
-      if (st === 'poor') return '#FF3B30';
-      return '#8B0000';
-    case 'water_safety':
-    case 'water_quality':
-      if (st === 'good' || (typeof score === 'number' && score >= 80)) return '#32D74B';
-      if (st === 'moderate' || (typeof score === 'number' && score >= 60)) return '#FF9F0A';
+export function getScoreColor(_metricId: string, status: string, _score?: number): string {
+  switch ((status || '').toLowerCase()) {
+    case 'excellent':
+    case 'good':
+      return '#30D158';
+    case 'moderate':
+      return '#FF9F0A';
+    case 'poor':
+      return '#FF6B35';
+    case 'hazardous':
       return '#FF3B30';
     default:
       return '#8E8E93';

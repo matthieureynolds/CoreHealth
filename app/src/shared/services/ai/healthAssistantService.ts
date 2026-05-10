@@ -4,7 +4,6 @@ import type { UserSettings } from '../../types/settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { formatDateBySetting, formatTimeBySetting } from '../../utils/dateFormat';
 import { loadUserSnapshot } from '../user/userSnapshotService';
-import { getUserChart } from '../data/chartApi';
 import { buildSystemPrompt, formatHealthDataForPrompt } from './healthAssistantPrompt';
 import {
   generateHealthInsights as _generateHealthInsights,
@@ -28,6 +27,7 @@ import {
   deleteChatSession,
   updateChatSession,
 } from './healthAssistantSessionService';
+import { DataService } from '../data/dataService';
 
 // OpenAI API Configuration
 export const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || 'your-openai-api-key-here';
@@ -534,8 +534,12 @@ export class HealthAssistantService {
       }
     } catch { /* graceful degradation */ }
 
-    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
-      return "I need an OpenAI API key to provide intelligent health insights. Please add your OpenAI API key to the .env file as EXPO_PUBLIC_OPENAI_API_KEY to unlock my full capabilities.";
+    try {
+      const { reply } = await DataService.sendChatMessage(message);
+      return this.stripEmojis(reply);
+    } catch (error) {
+      console.error('Backend AI chat error:', error);
+      return "I'm having trouble connecting right now. Please try again in a moment.";
     }
 
     try {
@@ -579,20 +583,7 @@ export class HealthAssistantService {
         }
       } catch { /* graceful degradation */ }
 
-      try {
-        const uid = ((healthData?.profile as any)?.userId || (healthData?.profile as any)?.user_id || 'demo');
-        const chart = await getUserChart(String(uid));
-        if (chart) {
-          if (!mergedHealthData.profile && chart.profile) mergedHealthData.profile = chart.profile;
-          if ((!mergedHealthData.biomarkers || mergedHealthData.biomarkers.length === 0) && chart.biomarkers) mergedHealthData.biomarkers = chart.biomarkers;
-          if (!mergedHealthData.healthScore && chart.healthScore) mergedHealthData.healthScore = chart.healthScore;
-          if ((!mergedHealthData.deviceData || mergedHealthData.deviceData.length === 0) && chart.deviceData) mergedHealthData.deviceData = chart.deviceData;
-          if (!mergedHealthData.settings && chart.settings) mergedHealthData.settings = chart.settings;
-          if (!mergedHealthData.labResults && chart.labResults) mergedHealthData.labResults = chart.labResults;
-        }
-      } catch { /* graceful degradation */ }
-
-      const systemPrompt = buildSystemPrompt(updatedContext, mergedHealthData, intent);
+const systemPrompt = buildSystemPrompt(updatedContext, mergedHealthData, intent);
       const isDirect = intent === 'direct_question' || intent === 'medication_info';
       const historyForModel = isDirect ? history.slice(-2) : history.slice(-maxMessages);
 
@@ -667,10 +658,16 @@ export class HealthAssistantService {
     },
     onDelta?: (accumulatedText: string) => void
   ): Promise<string> {
-    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
-      const msg = "I need an OpenAI API key to provide intelligent health insights. Please add your OpenAI API key to the .env file as EXPO_PUBLIC_OPENAI_API_KEY to unlock my full capabilities.";
-      onDelta?.(msg);
-      return msg;
+    try {
+      const { reply } = await DataService.sendChatMessage(message);
+      const cleaned = this.stripEmojis(reply);
+      onDelta?.(cleaned);
+      return cleaned;
+    } catch (error) {
+      console.error('Backend AI chat error:', error);
+      const fallback = "I'm having trouble connecting right now. Please try again in a moment.";
+      onDelta?.(fallback);
+      return fallback;
     }
 
     try {

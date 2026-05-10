@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,38 +6,74 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
-import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 import { Allergy } from '../../../../../../shared/types';
 import AllergyFormModal from './AllergyFormModal';
 import { useFileViewer } from '../hooks/useFileViewer';
+import { DataService } from '../../../../../../shared/services/data/dataService';
 
 const AllergiesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { profile, updateProfile } = useHealthData();
+  const { user } = useAuth();
+  const [allergies, setAllergies] = useState<Allergy[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAllergy, setEditingAllergy] = useState<Allergy | null>(null);
   const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
-  const handleSave = (allergy: Allergy) => {
-    const existing = profile?.allergies || [];
-    const isEdit = existing.some(a => a.id === allergy.id);
-    updateProfile({
-      ...profile,
-      allergies: isEdit ? existing.map(a => a.id === allergy.id ? allergy : a) : [...existing, allergy],
-    });
+  const loadAllergies = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const rows = await DataService.getAllergies(user.id);
+      setAllergies(rows);
+    } catch (e) {
+      console.error('Failed to load allergies:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(useCallback(() => { loadAllergies(); }, [loadAllergies]));
+
+  const handleSave = async (allergy: Allergy) => {
+    if (!user?.id) return;
+    try {
+      const isEdit = allergies.some(a => a.id === allergy.id);
+      if (isEdit) {
+        const saved = await DataService.updateAllergy(user.id, allergy.id, allergy);
+        setAllergies(prev => prev.map(a => a.id === allergy.id ? saved : a));
+      } else {
+        const saved = await DataService.addAllergy(user.id, allergy);
+        setAllergies(prev => [...prev, saved]);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to save allergy. Please try again.');
+    }
     setShowAddModal(false);
     setEditingAllergy(null);
   };
 
   const handleDelete = (id: string) => {
     Alert.alert('Delete Allergy', 'Are you sure you want to delete this allergy?', [
-        { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => updateProfile({ ...profile, allergies: profile?.allergies?.filter(a => a.id !== id) || [] }) },
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          if (!user?.id) return;
+          try {
+            await DataService.deleteAllergy(user.id, id);
+            setAllergies(prev => prev.filter(a => a.id !== id));
+          } catch (e) {
+            Alert.alert('Error', 'Failed to delete allergy. Please try again.');
+          }
+        },
+      },
     ]);
   };
 
@@ -69,8 +105,10 @@ const AllergiesScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {profile?.allergies?.length ? (
-            profile.allergies.map((allergy) => (
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          ) : allergies.length ? (
+            allergies.map((allergy) => (
               <View key={allergy.id} style={styles.allergyCard}>
                 <View style={styles.allergyHeader}>
                   <View style={styles.allergyInfo}>
@@ -114,6 +152,7 @@ const AllergiesScreen: React.FC = () => {
                 <Text style={styles.addFirstButtonText}>Add Allergy</Text>
               </TouchableOpacity>
             </View>
+
           )}
         </View>
       </ScrollView>

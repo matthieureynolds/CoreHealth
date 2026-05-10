@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'flex-start',
-    paddingHorizontal: 0,
+    marginHorizontal: -20,
   },
 });
 

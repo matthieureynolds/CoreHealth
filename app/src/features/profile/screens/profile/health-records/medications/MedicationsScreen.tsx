@@ -6,44 +6,89 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 import { Medication } from '../../../../../../shared/types';
 import { getAdherence, getLastNDays, type AdherenceData } from '../../../../../../shared/utils/medicationAdherence';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import MedicationFormModal from './MedicationFormModal';
 import { useFileViewer } from '../hooks/useFileViewer';
+import { DataService } from '../../../../../../shared/services/data/dataService';
 
 const TIMELINE_MEDICATION_NAMES = ['Vitamin D Supplement'];
 
 const MedicationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { profile, updateProfile } = useHealthData();
+  const { user } = useAuth();
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
   const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
   const [adherenceData, setAdherenceData] = useState<AdherenceData>({});
   const [expandedAdherenceMed, setExpandedAdherenceMed] = useState<string | null>(null);
 
-  const loadAdherence = useCallback(async () => {
-    const data = await getAdherence();
-    setAdherenceData(data);
-  }, []);
+  const loadData = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const [adherence, rows] = await Promise.all([
+        getAdherence(),
+        DataService.getMedications(user.id),
+      ]);
+      setAdherenceData(adherence);
+      setMedications(rows.map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        dosage: m.dosage ?? undefined,
+        frequency: m.frequency ?? undefined,
+        startDate: m.start_date ?? undefined,
+        endDate: m.end_date ?? undefined,
+        notes: m.notes ?? undefined,
+      })));
+    } catch (e) {
+      console.error('Failed to load medications:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
 
-  useFocusEffect(useCallback(() => { loadAdherence(); }, [loadAdherence]));
+  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
   const adherenceMedicationNames = [...TIMELINE_MEDICATION_NAMES, ...Object.keys(adherenceData)].filter((name, i, arr) => arr.indexOf(name) === i);
 
-  const handleSave = (medication: Medication) => {
-    const existing = profile?.medications || [];
-    const isEdit = existing.some(m => m.id === medication.id);
-    updateProfile({
-      ...profile,
-      medications: isEdit ? existing.map(m => m.id === medication.id ? medication : m) : [...existing, medication],
-    });
+  const handleSave = async (medication: Medication) => {
+    if (!user?.id) return;
+    try {
+      const isEdit = medications.some(m => m.id === medication.id);
+      if (isEdit) {
+        await DataService.updateMedication(user.id, medication.id, {
+          name: medication.name,
+          dosage: medication.dosage,
+          frequency: medication.frequency,
+          startDate: medication.startDate,
+          endDate: medication.endDate,
+          notes: medication.notes,
+        });
+        setMedications(prev => prev.map(m => m.id === medication.id ? medication : m));
+      } else {
+        const saved = await DataService.addMedication(user.id, {
+          name: medication.name,
+          dosage: medication.dosage,
+          frequency: medication.frequency,
+          startDate: medication.startDate,
+          endDate: medication.endDate,
+          notes: medication.notes,
+        });
+        setMedications(prev => [...prev, { ...medication, id: saved.id }]);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not save medication.');
+    }
     setShowAddModal(false);
     setEditingMedication(null);
   };
@@ -51,7 +96,15 @@ const MedicationsScreen: React.FC = () => {
   const handleDelete = (id: string) => {
     Alert.alert('Delete Medication', 'Are you sure you want to delete this medication?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => updateProfile({ ...profile, medications: profile?.medications?.filter(m => m.id !== id) || [] }) },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          if (!user?.id) return;
+          try {
+            await DataService.deleteMedication(user.id, id);
+            setMedications(prev => prev.filter(m => m.id !== id));
+          } catch (e) { Alert.alert('Error', 'Could not delete medication.'); }
+        },
+      },
     ]);
   };
 
@@ -121,8 +174,10 @@ const MedicationsScreen: React.FC = () => {
         </View>
 
         <View style={styles.content}>
-          {profile?.medications?.length ? (
-            profile.medications.map((medication) => (
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          ) : medications.length ? (
+            medications.map((medication) => (
               <View key={medication.id} style={styles.medicationCard}>
                 <View style={styles.medicationHeader}>
                   <View style={styles.medicationInfo}>

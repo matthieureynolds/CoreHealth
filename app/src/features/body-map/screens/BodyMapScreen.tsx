@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,11 @@ import {
   Animated,
   Alert,
   StatusBar,
+  TouchableWithoutFeedback,
+  StyleSheet,
 } from 'react-native';
+import { useHealthData } from '../../../shared/context/HealthDataContext';
+import { enrichOrganPanel } from '../utils/organBiomarkers';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import BodyMap from '../organs/components/BodyMap';
 import {
@@ -31,6 +35,7 @@ import { useDocumentHandlers } from './components/useDocumentHandlers';
 import styles from './components/BodyMapStyles';
 
 const BodyMapScreen: React.FC = () => {
+  const { biomarkers } = useHealthData();
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
   const [selectedOrganData, setSelectedOrganData] = useState<PanelPayload | null>(null);
   const [panelAnim] = useState(new Animated.Value(0));
@@ -44,6 +49,8 @@ const BodyMapScreen: React.FC = () => {
   const [selectedSystem, setSelectedSystem] = useState<BodySystemType>('organs');
   const [slideAnim] = useState(new Animated.Value(0));
   const [showAddDataModal, setShowAddDataModal] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const [isHeadZoomed, setIsHeadZoomed] = useState(false);
 
   const systems: BodySystemType[] = ['organs', 'skeleton', 'circulation', 'nutrition'];
 
@@ -62,7 +69,8 @@ const BodyMapScreen: React.FC = () => {
   });
 
   const handleOrganSelect = (organ: PanelPayload) => {
-    setSelectedOrganData(organ);
+    const enriched = enrichOrganPanel(organ, biomarkers);
+    setSelectedOrganData(enriched);
     setSelectedOrgan(organ.id ?? null);
     Animated.spring(panelAnim, { toValue: 1, useNativeDriver: true }).start();
   };
@@ -127,9 +135,11 @@ const BodyMapScreen: React.FC = () => {
 
       <PanGestureHandler onHandlerStateChange={handleSwipeGesture} minDist={10}>
         <ScrollView
+          ref={scrollRef}
           style={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          scrollEnabled={!isHeadZoomed}
         >
           <View style={styles.bodyMapContainer}>
             <Animated.View
@@ -144,7 +154,16 @@ const BodyMapScreen: React.FC = () => {
               ]}
             >
               {selectedSystem === 'organs' && (
-                <BodyMap onOrganPress={handleOrganPress} onOrganSelect={handleOrganSelect} />
+                <BodyMap
+                  onOrganPress={handleOrganPress}
+                  onOrganSelect={handleOrganSelect}
+                  onZoomChange={(zoomed) => {
+                    setIsHeadZoomed(zoomed);
+                    if (zoomed) {
+                      scrollRef.current?.scrollTo({ y: 0, animated: true });
+                    }
+                  }}
+                />
               )}
               {selectedSystem === 'skeleton' && (
                 <SkeletonBodyMap
@@ -172,6 +191,21 @@ const BodyMapScreen: React.FC = () => {
           <View style={styles.bottomSpacing} />
         </ScrollView>
       </PanGestureHandler>
+
+      {selectedOrganData && (
+        <TouchableWithoutFeedback onPress={handleClosePanel}>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                zIndex: 999,
+                opacity: panelAnim,
+              },
+            ]}
+          />
+        </TouchableWithoutFeedback>
+      )}
 
       <BiomarkerDetailPanel
         selectedOrganData={selectedOrganData}

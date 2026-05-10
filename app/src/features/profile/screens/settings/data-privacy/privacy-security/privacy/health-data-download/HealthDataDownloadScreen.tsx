@@ -2,31 +2,38 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../../../shared/context/HealthDataContext';
+import { useAuth } from '../../../../../../../../shared/context/AuthContext';
+import { DataService } from '../../../../../../../../shared/services/data/dataService';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 
 const HealthDataDownloadScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { profile, biomarkers, labResults, deviceData, dailyInsights, healthScore, travelHealth, bodySystems, jetLagPlanningEvents } = useHealthData();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
 
   const handleDownload = async () => {
+    if (!user?.id) {
+      Alert.alert('Error', 'Please sign in to export your data.');
+      return;
+    }
     try {
       setIsLoading(true);
-      Alert.alert('Health Data Download', 'Preparing your health data for download. This may take a few moments...', [{ text: 'OK' }]);
+      const exportData = await DataService.exportUserData(user.id);
 
-      const exportData = {
-        exportInfo: {
-          exportDate: new Date().toISOString(),
-          appVersion: '1.0.0',
-          dataVersion: '1.0',
-          user: { id: profile?.userId || 'anonymous', name: 'Not Provided' },
-        },
-        profile,
-        healthData: { biomarkers, labResults, deviceData, dailyInsights, healthScore, travelHealth, bodySystems, jetLagPlanningEvents },
+      const p = exportData.profile ?? {};
+      const counts = {
+        biomarkers: exportData.biomarkers?.length ?? 0,
+        labResults: exportData.labResults?.length ?? 0,
+        allergies: exportData.allergies?.length ?? 0,
+        medications: exportData.medications?.length ?? 0,
+        conditions: exportData.conditions?.length ?? 0,
+        vaccinations: exportData.vaccinations?.length ?? 0,
+        appointments: exportData.appointments?.length ?? 0,
+        symptoms: exportData.symptoms?.length ?? 0,
+        chatMessages: exportData.chatHistory?.length ?? 0,
       };
 
       const htmlContent = `
@@ -34,40 +41,46 @@ const HealthDataDownloadScreen: React.FC = () => {
         <html>
         <head>
           <meta charset="utf-8">
-          <title>TOTO Data Export</title>
+          <title>CoreHealth Data Export</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
             .header { text-align: center; border-bottom: 2px solid #3AABF0; padding-bottom: 20px; margin-bottom: 30px; }
             .section { margin-bottom: 25px; page-break-inside: avoid; }
             .section-title { font-size: 18px; font-weight: bold; color: #3AABF0; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
             .info-item { margin-bottom: 8px; padding: 5px 0; }
-            .label { font-weight: 600; color: #555; display: inline-block; width: 150px; }
+            .label { font-weight: 600; color: #555; display: inline-block; width: 160px; }
             .value { color: #333; }
-            .json-data { background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+            .json-data { background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
             .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #eee; padding-top: 20px; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>TOTO Data Export</h1>
+            <h1>CoreHealth Data Export</h1>
+            <p>GDPR Article 20 — Right to Data Portability</p>
             <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
           </div>
           <div class="section">
-            <div class="section-title">Profile Information</div>
-            <div class="info-item"><span class="label">User ID:</span><span class="value">${profile?.userId || 'Not Provided'}</span></div>
-            <div class="info-item"><span class="label">Age:</span><span class="value">${profile?.age || 'Not Provided'}</span></div>
-            <div class="info-item"><span class="label">Gender:</span><span class="value">${profile?.gender || 'Not Provided'}</span></div>
-            <div class="info-item"><span class="label">Height:</span><span class="value">${profile?.height ? `${profile.height} cm` : 'Not Provided'}</span></div>
-            <div class="info-item"><span class="label">Weight:</span><span class="value">${profile?.weight ? `${profile.weight} kg` : 'Not Provided'}</span></div>
-            <div class="info-item"><span class="label">Blood Type:</span><span class="value">${profile?.bloodType || 'Not Provided'}</span></div>
+            <div class="section-title">Profile</div>
+            <div class="info-item"><span class="label">Name:</span><span class="value">${[p.first_name, p.surname].filter(Boolean).join(' ') || 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Email:</span><span class="value">${p.email || 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Date of Birth:</span><span class="value">${p.date_of_birth || 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Gender:</span><span class="value">${p.gender || 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Height:</span><span class="value">${p.height_cm ? p.height_cm + ' cm' : 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Weight:</span><span class="value">${p.weight_kg ? p.weight_kg + ' kg' : 'Not provided'}</span></div>
+            <div class="info-item"><span class="label">Account created:</span><span class="value">${p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Not provided'}</span></div>
           </div>
           <div class="section">
-            <div class="section-title">Complete Data Export (JSON)</div>
-            <div class="json-data">${JSON.stringify(exportData, null, 2)}</div>
+            <div class="section-title">Data Summary</div>
+            ${Object.entries(counts).map(([k, v]) => `<div class="info-item"><span class="label">${k}:</span><span class="value">${v} records</span></div>`).join('')}
+          </div>
+          <div class="section">
+            <div class="section-title">Complete Data (JSON)</div>
+            <div class="json-data">${JSON.stringify(exportData, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
           </div>
           <div class="footer">
-            <p>This document contains your personal health data from TOTO.</p>
-            <p>Please keep this information secure and private.</p>
+            <p>This document contains all personal data held by CoreHealth for this account.</p>
+            <p>Keep this file secure and private.</p>
           </div>
         </body>
         </html>

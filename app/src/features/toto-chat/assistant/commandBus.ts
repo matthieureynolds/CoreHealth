@@ -12,10 +12,6 @@ import type {
   TravelChangeInput,
   TravelChangeResult,
 } from './slots';
-import { supabase } from '../../../shared/config/supabase';
-
-const HAS_API = !!process.env.EXPO_PUBLIC_API_BASE_URL;
-
 export type Command =
   | { type: 'SUPPLEMENT_VITC_RECOMMEND'; payload: SupplementAdviceInput }
   | { type: 'APPT_RESCHEDULE_DENTIST'; payload: AppointmentRescheduleInput }
@@ -42,17 +38,11 @@ async function http<T>(path: string, body: any, method: 'POST'|'PUT' = 'POST'): 
 
 async function postTimeline(entry: { type: string; title: string; description?: string; occurredAt?: string; meta?: Record<string, any> }) {
   const occurredAt = entry.occurredAt || new Date().toISOString();
-  if (HAS_API) return http('/api/timeline', { ...entry, occurredAt });
-  const { data, error } = await supabase.rpc('timeline_insert', { entry: { ...entry, occurredAt } as any });
-  if (error) throw error;
-  return data as any;
+  return http('/api/timeline', { ...entry, occurredAt });
 }
 
 async function recommendVitC(payload: SupplementAdviceInput): Promise<SupplementAdviceResult> {
-  if (HAS_API) return http<SupplementAdviceResult>('/api/supplements/advice', payload);
-  const { data, error } = await supabase.rpc('supplement_vitc_advice', { payload });
-  if (error) throw error;
-  return data as any;
+  return http<SupplementAdviceResult>('/api/supplements/advice', payload);
 }
 
 async function rescheduleDentist(payload: AppointmentRescheduleInput): Promise<AppointmentRescheduleResult> {
@@ -60,46 +50,28 @@ async function rescheduleDentist(payload: AppointmentRescheduleInput): Promise<A
     throw new Error('appointmentId or providerName required');
   }
   const id = payload.appointmentId || 'provider';
-  if (HAS_API) return http<AppointmentRescheduleResult>(`/api/appointments/${encodeURIComponent(id)}/reschedule`, payload);
-  const { data, error } = await supabase.rpc('appointment_reschedule', { id, payload });
-  if (error) throw error;
-  return data as any;
+  return http<AppointmentRescheduleResult>(`/api/appointments/${encodeURIComponent(id)}/reschedule`, payload);
 }
 
 async function logLegPain(payload: SymptomLegPainInput): Promise<{ symptomId: string; plan: SymptomPlan }> {
-  if (HAS_API) return http('/api/symptoms/leg', payload);
-  const { data, error } = await supabase.rpc('symptom_leg_pain', { payload });
-  if (error) throw error;
-  return data as any;
+  return http('/api/symptoms/leg', payload);
 }
 
 async function updatePeanutAllergy(payload: AllergyUpdateInput): Promise<{ allergyId: string; status: string }> {
-  if (HAS_API) return http('/api/allergies', payload);
-  const { data, error } = await supabase.rpc('allergy_update_peanut', { payload });
-  if (error) throw error;
-  return data as any;
+  return http('/api/allergies', payload);
 }
 
 async function addCountryCard(payload: CountryCardInput): Promise<{ cardId: string }> {
-  if (HAS_API) return http('/api/travel/country-card', payload);
-  const { data, error } = await supabase.rpc('travel_add_country_card', { payload });
-  if (error) throw error;
-  return data as any;
+  return http('/api/travel/country-card', payload);
 }
 
 async function submitLabResults(payload: LabSubmitInput): Promise<LabSubmitResult> {
-  if (HAS_API) return http<LabSubmitResult>('/api/labs/submit', payload);
-  const { data, error } = await supabase.rpc('labs_submit', { payload });
-  if (error) throw error;
-  return data as any;
+  return http<LabSubmitResult>('/api/labs/submit', payload);
 }
 
 async function changeTripDates(payload: TravelChangeInput): Promise<TravelChangeResult> {
   const id = payload.tripId || 'by-destination';
-  if (HAS_API) return http<TravelChangeResult>(`/api/travel/trips/${encodeURIComponent(id)}/change`, payload);
-  const { data, error } = await supabase.rpc('travel_change_dates', { id, payload });
-  if (error) throw error;
-  return data as any;
+  return http<TravelChangeResult>(`/api/travel/trips/${encodeURIComponent(id)}/change`, payload);
 }
 
 export async function dispatch(cmd: Command) {
@@ -117,16 +89,7 @@ export async function dispatch(cmd: Command) {
 export { postTimeline };
 
 export async function togglesMark(args: { toggleKey: string; completed: boolean; symptomId?: string }) {
-  if (HAS_API) {
-    return http('/api/toggles', { toggleKey: args.toggleKey, completed: !!args.completed, symptomId: args.symptomId });
-  }
-  const { data, error } = await supabase.rpc('toggles_mark', {
-    toggle_key: args.toggleKey,
-    completed: args.completed,
-    symptom_id: args.symptomId || null,
-  });
-  if (error) throw error;
-  return data as any;
+  return http('/api/toggles', { toggleKey: args.toggleKey, completed: !!args.completed, symptomId: args.symptomId });
 }
 
 

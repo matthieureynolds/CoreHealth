@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import * as WebBrowser from 'expo-web-browser';
 import ConnectedDeviceItem, { Device } from './components/ConnectedDeviceItem';
 import AvailableDeviceItem from './components/AvailableDeviceItem';
+import { DataService } from '../../../../../../shared/services/data/dataService';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
+import { initHealthKit, fetchHealthSnapshot } from '../../../../../../shared/services/device/healthKitService';
 
 const AVAILABLE_DEVICES: Device[] = [
   { id: 'whoop',           name: 'WHOOP',           logo: require('../../../../../../../assets/device-logos/WHOOP.webp'),            color: '#000000', description: 'Activity & recovery tracking' },
@@ -29,7 +33,9 @@ const sortAlpha = (devices: Device[]) =>
 
 const ConnectedDevicesScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { user } = useAuth();
   const [connectedDevices, setConnectedDevices] = useState<Device[]>(DEFAULT_CONNECTED);
+  const [connectingDevice, setConnectingDevice] = useState<string | null>(null);
 
   const filteredAvailable = sortAlpha(
     AVAILABLE_DEVICES.filter(avail =>
@@ -58,19 +64,96 @@ const ConnectedDevicesScreen: React.FC = () => {
     catch (e) { console.error(e); }
   };
 
+  const connectWithOAuth = async (device: Device, oauthType: 'whoop' | 'oura') => {
+    if (!user?.id) { Alert.alert('Error', 'Not signed in.'); return; }
+    setConnectingDevice(device.id);
+    try {
+      const { authUrl, redirectUri } = await DataService.getDeviceAuthUrl(user.id, oauthType);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      if (result.type === 'success') {
+        const url = new URL(result.url);
+        const code = url.searchParams.get('code');
+        if (code) {
+          await DataService.exchangeDeviceCode(user.id, oauthType, code, redirectUri);
+          const newDevice: Device = {
+            id: Date.now().toString(),
+            name: device.name,
+            logo: device.logo,
+            color: device.color,
+            status: 'Connected',
+            lastSync: 'Just now',
+          };
+          const updated = sortAlpha([...connectedDevices, newDevice]);
+          setConnectedDevices(updated);
+          await persist(updated);
+          Alert.alert('Connected', `${device.name} connected successfully!`);
+        }
+      }
+    } catch (e: any) {
+      Alert.alert('Connection Failed', e.message || 'Could not connect. Please try again.');
+    } finally {
+      setConnectingDevice(null);
+    }
+  };
+
+  const connectAppleHealth = async (device: Device) => {
+    if (!user?.id) { Alert.alert('Error', 'Not signed in.'); return; }
+    setConnectingDevice(device.id);
+    try {
+      const granted = await initHealthKit();
+      if (!granted) {
+        Alert.alert('Permission Denied', 'Please allow CoreHealth to access Apple Health in Settings.');
+        return;
+      }
+      const snapshot = await fetchHealthSnapshot();
+      await DataService.ingestDeviceData(user.id, {
+        deviceType: 'apple_health',
+        deviceName: 'Apple Health',
+        metrics: snapshot,
+        timestamp: new Date().toISOString(),
+      });
+      const newDevice: Device = {
+        id: Date.now().toString(),
+        name: device.name,
+        logo: device.logo,
+        color: device.color,
+        status: 'Connected',
+        lastSync: 'Just now',
+      };
+      const updated = sortAlpha([...connectedDevices, newDevice]);
+      setConnectedDevices(updated);
+      await persist(updated);
+      Alert.alert('Connected', 'Apple Health data synced successfully!');
+    } catch (e: any) {
+      Alert.alert('Connection Failed', e.message || 'Could not connect Apple Health.');
+    } finally {
+      setConnectingDevice(null);
+    }
+  };
+
   const handleConnect = (device: Device) => {
+    if (device.id === 'whoop') {
+      connectWithOAuth(device, 'whoop');
+      return;
+    }
+    if (device.id === 'oura') {
+      connectWithOAuth(device, 'oura');
+      return;
+    }
+    if (device.id === 'apple-health') {
+      connectAppleHealth(device);
+      return;
+    }
     Alert.alert(`Connect ${device.name}`, `Would you like to connect your ${device.name} account?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Connect',
-        onPress: () => {
-          setTimeout(async () => {
-            const newDevice: Device = { id: Date.now().toString(), name: device.name, logo: device.logo, color: device.color, status: 'Connected', lastSync: 'Just now' };
-            const updated = sortAlpha([...connectedDevices, newDevice]);
-            setConnectedDevices(updated);
-            await persist(updated);
-            Alert.alert('Success', `${device.name} connected successfully!`);
-          }, 1000);
+        onPress: async () => {
+          const newDevice: Device = { id: Date.now().toString(), name: device.name, logo: device.logo, color: device.color, status: 'Connected', lastSync: 'Just now' };
+          const updated = sortAlpha([...connectedDevices, newDevice]);
+          setConnectedDevices(updated);
+          await persist(updated);
+          Alert.alert('Success', `${device.name} connected successfully!`);
         },
       },
     ]);

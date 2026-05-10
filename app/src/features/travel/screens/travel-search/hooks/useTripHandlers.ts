@@ -1,6 +1,24 @@
 import { Alert } from 'react-native';
 import { Animated } from 'react-native';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { api } from '../../../../../shared/services/data/apiClient';
 import { FlightLookupService } from '../../../../../shared/services/travel/enhancedJetLagService';
+
+function syncTripToBackend(trip: Trip) {
+  fetchAuthSession().then(session => {
+    const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+    if (!userId) return;
+    api.post(`/users/${userId}/trips`, {
+      departureLocation: trip.departureLocation,
+      destination: trip.destination,
+      departureDate: trip.departureDate instanceof Date ? trip.departureDate.toISOString() : trip.departureDate,
+      returnDate: trip.returnDate ? (trip.returnDate instanceof Date ? trip.returnDate.toISOString() : trip.returnDate) : undefined,
+      timezone: trip.timezone,
+      notes: trip.notes,
+      tripData: trip.jetLagPlanner ? { jetLagPlanner: trip.jetLagPlanner, checklist: trip.checklist } : undefined,
+    }).catch(() => {});
+  }).catch(() => {});
+}
 
 export interface Trip {
   id: string;
@@ -139,6 +157,7 @@ export function createTripHandlers(params: TripHandlersParams) {
       jetLagPlanner: buildJetLagPlanner(newTripReturnDate),
     };
     setTrips(prev => [...prev, newTrip]);
+    syncTripToBackend(newTrip);
     setNewTripDepartureLocation(''); setNewTripDestination('');
     setNewTripDepartureDate(new Date()); setNewTripReturnDate(undefined);
     setShowAddTripModal(false); setTripSuggestions([]); setDepartureSuggestions([]);
@@ -159,6 +178,7 @@ export function createTripHandlers(params: TripHandlersParams) {
       },
     };
     setTrips(prev => [...prev, newTrip]);
+    syncTripToBackend(newTrip);
     setShowAddTripModal(false); setFlightCarrier(''); setFlightNumber(''); setDetectedAirline(null);
     setFlightLookupResult(null); setFlightSegments(() => []); setFlightDetailsExpanded(false);
     setNewTripDepartureLocation(''); setNewTripDestination('');

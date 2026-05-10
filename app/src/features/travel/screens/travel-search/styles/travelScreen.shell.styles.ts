@@ -87,7 +87,7 @@ export const travelShellStyles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   // Detailed modal styles to match dashboard
   modalContainerDetailed: {

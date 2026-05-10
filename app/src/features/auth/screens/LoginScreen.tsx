@@ -187,6 +187,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity style={styles.privacyLink} onPress={() => navigation.navigate('PrivacyNotice')}>
+            <Text style={styles.privacyLinkText}>Privacy Notice</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -345,6 +349,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  privacyLink: { alignItems: 'center', marginTop: 16 },
+  privacyLinkText: { color: '#555', fontSize: 12, textDecorationLine: 'underline' },
 });
 
 export default LoginScreen;

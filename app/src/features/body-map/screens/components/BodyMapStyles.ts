@@ -1,4 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const IMG_W = width * (471 / 390);
+const IMG_H = IMG_W * (706 / 471);
 
 const styles = StyleSheet.create({
   container: {
@@ -45,6 +49,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     overflow: 'hidden',
+    minHeight: IMG_H + 24,
   },
   bodyMapWrapper: {
     width: '100%',
@@ -153,7 +158,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   panelTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 4,
@@ -176,6 +181,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A3C',
     minHeight: 48,
@@ -215,7 +221,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   biomarkerList: {
-    paddingHorizontal: 20,
   },
 });
 

@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { SymptomEntry, StateOfMindEntry, SymptomStats, StateOfMindChartData, QuickLogData } from '../../types/symptoms';
+import { api } from '../data/apiClient';
 
 const SYMPTOMS_STORAGE_KEY = 'symptom_entries';
 const STATE_OF_MIND_STORAGE_KEY = 'state_of_mind_entries';
@@ -66,6 +68,25 @@ export class SymptomService {
 
     this.symptoms.push(symptom);
     await this.saveSymptoms();
+
+    // Sync to backend so Toto knows about symptoms (fire-and-forget)
+    fetchAuthSession().then(session => {
+      const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+      if (userId) {
+        api.post(`/users/${userId}/symptoms`, {
+          type: symptom.type,
+          category: symptom.category,
+          severity: symptom.severity,
+          duration: symptom.duration,
+          location: symptom.location,
+          notes: symptom.notes,
+          medications: symptom.medications,
+          factors: symptom.factors,
+          loggedAt: symptom.timestamp,
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+
     return symptom;
   }
 

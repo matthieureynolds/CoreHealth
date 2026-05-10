@@ -15,6 +15,7 @@ import DeviceConnectionScreen from '../../features/onboarding/screens/DeviceConn
 import PermissionsScreen from '../../features/onboarding/screens/PermissionsScreen';
 import FinishOnboardingScreen from '../../features/onboarding/screens/FinishOnboardingScreen';
 import OnboardingScreen from '../../features/onboarding/screens/OnboardingScreen';
+import PrivacyNoticeScreen from '../../features/auth/screens/PrivacyNoticeScreen';
 
 const Stack = createStackNavigator<AuthStackParamList>();
 
@@ -79,6 +80,7 @@ const AuthNavigator: React.FC = () => {
               />
             )}
           </Stack.Screen>
+          <Stack.Screen name="PrivacyNotice" component={PrivacyNoticeScreen} />
         </>
       )}
     </Stack.Navigator>

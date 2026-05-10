@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AIRLINE_CODES } from '../travelMetricHelpers';
 import { searchAllLocations, getPopularCities, CitySearchResult } from '../../../../../shared/services/travel/citySearchService';
 import { Trip } from './useTravelHandlers';
@@ -38,8 +39,26 @@ export function useTravelState() {
     airQuality?: string; pollen?: string; weather?: string; healthcare?: string; general?: string;
   }>({});
 
-  // Trip state
+  // Trip state — persisted to AsyncStorage
   const [trips, setTrips] = useState<Trip[]>([]);
+  const tripsInitialized = useRef(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('planned_trips').then(stored => {
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setTrips(parsed.map((t: any) => ({ ...t, departureDate: new Date(t.departureDate), returnDate: t.returnDate ? new Date(t.returnDate) : undefined })));
+        } catch {}
+      }
+      tripsInitialized.current = true;
+    }).catch(() => { tripsInitialized.current = true; });
+  }, []);
+
+  useEffect(() => {
+    if (!tripsInitialized.current) return;
+    AsyncStorage.setItem('planned_trips', JSON.stringify(trips)).catch(() => {});
+  }, [trips]);
   const [showAddTripModal, setShowAddTripModal] = useState(false);
   const [flightCarrier, setFlightCarrier] = useState('');
   const [flightNumber, setFlightNumber] = useState('');

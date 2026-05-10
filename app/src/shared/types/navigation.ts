@@ -3,6 +3,18 @@ export type RootStackParamList = {
   Main: undefined;
   RingDetail: { id: 'recovery' | 'biomarkers' | 'lifestyle' };
   HealthScoreDetail: undefined;
+  LabResultDetail: {
+    labResult: {
+      id: string;
+      name: string;
+      value: number;
+      unit: string;
+      trend: 'up' | 'down' | 'stable';
+      trendPercent: number;
+      status: 'optimal' | 'normal' | 'borderline' | 'high' | 'low';
+      lastUpdated: string;
+    };
+  };
   EnvironmentalMetric: {
     metricId: 'air_quality' | 'pollen' | 'water_quality' | 'uv_index' | 'food_safety' | 'altitude' | 'outbreaks';
     label: string;

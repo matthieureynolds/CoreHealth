@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FileViewerModal from '../../../shared/components/modals/FileViewerModal';
 import EmptyState from '../../../shared/components/feedback/EmptyState';
 import { useSettings } from '../../../shared/context/SettingsContext';
 import { useHealthData } from '../../../shared/context/HealthDataContext';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { recordAdherence, getDateKey } from '../../../shared/utils/medicationAdherence';
 import type { Screening } from '../../../shared/types';
 import type { MedicalEvent } from './types';
@@ -12,6 +14,7 @@ import AddAppointmentModal from './components/AddAppointmentModal';
 import EventDetailsModal from './components/EventDetailsModal';
 import TimelineEventCard from './components/TimelineEventCard';
 import BpReadingModal from './components/BpReadingModal';
+import { DataService } from '../../../shared/services/data/dataService';
 
 type GroupKey = 'today' | 'tomorrow' | 'thisWeek' | 'nextMonth' | 'future';
 
@@ -53,9 +56,28 @@ interface MedicalTimelineProps {
   onEventPress?: (event: MedicalEvent) => void;
 }
 
+function rowToEvent(row: any, is12h: boolean): MedicalEvent {
+  const date = new Date(row.event_date);
+  const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: is12h });
+  return {
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle ?? row.doctor ?? 'Appointment',
+    time: `${dateStr} • ${timeStr}`,
+    status: new Date(row.event_date) > new Date() ? 'UPCOMING' : 'PAST',
+    icon: 'medical' as any,
+    iconColor: '#3AABF0',
+    doctor: row.doctor ?? undefined,
+    location: row.location ?? undefined,
+    notes: row.notes ?? undefined,
+  };
+}
+
 const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
   const { settings } = useSettings();
   const { profile, updateProfile } = useHealthData();
+  const { user } = useAuth();
 
   const [events, setEvents]     = useState<MedicalEvent[]>([]);
   const [showMore, setShowMore] = useState(false);
@@ -75,6 +97,13 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
   const [currentFileType, setCurrentFileType]         = useState('');
 
   const is12h = settings?.general?.timeFormat === '12h';
+
+  useFocusEffect(useCallback(() => {
+    if (!user?.id) return;
+    DataService.getAppointments(user.id)
+      .then(rows => setEvents(rows.map(r => rowToEvent(r, is12h))))
+      .catch(() => {});
+  }, [user?.id, is12h]));
 
   const formatEventTimeForDisplay = (label: string): string => {
     if (is12h) return label;
@@ -98,6 +127,9 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
     const dateKey = getDateKey(new Date());
     recordAdherence(event.title, dateKey, action === 'done' ? 'took' : 'skipped').catch(() => {});
     setEvents(prev => prev.filter(e => e.id !== eventId));
+    if (action === 'ignore' && user?.id) {
+      DataService.deleteAppointment(user.id, eventId).catch(() => {});
+    }
   };
 
   const closeBpModal = () => {
@@ -200,11 +232,54 @@ const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
         visible={addModalVisible}
         editingEvent={editingEvent}
         onClose={() => { setAddModalVisible(false); setEditingEvent(null); }}
-        onSave={event => {
-          setEvents(prev => {
-            const exists = prev.some(e => e.id === event.id);
-            return exists ? prev.map(e => e.id === event.id ? event : e) : [event, ...prev];
-          });
+        onSave={async event => {
+          if (!user?.id) return;
+          // Parse the formatted time string back to ISO for storage
+          // Format is "DD Mon YYYY • HH:MM" or "Today • HH:MM"
+          try {
+            const parts = event.time.split(' • ');
+            const datePart = parts[0]?.trim() ?? '';
+            const timePart = parts[1]?.trim() ?? '09:00';
+            let baseDate = new Date();
+            if (datePart.toLowerCase() !== 'today' && datePart.toLowerCase() !== 'tomorrow') {
+              const parsed = new Date(datePart);
+              if (!isNaN(parsed.getTime())) baseDate = parsed;
+            } else if (datePart.toLowerCase() === 'tomorrow') {
+              baseDate.setDate(baseDate.getDate() + 1);
+            }
+            // Merge time
+            const timeMatch = timePart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+            if (timeMatch) {
+              let h = parseInt(timeMatch[1], 10);
+              const m = parseInt(timeMatch[2], 10);
+              if (timeMatch[3]) {
+                if (/pm/i.test(timeMatch[3]) && h < 12) h += 12;
+                if (/am/i.test(timeMatch[3]) && h === 12) h = 0;
+              }
+              baseDate.setHours(h, m, 0, 0);
+            }
+            const payload = {
+              title: event.title,
+              subtitle: event.subtitle,
+              eventDate: baseDate.toISOString(),
+              doctor: event.doctor,
+              location: event.location,
+              notes: event.notes,
+            };
+            const isEdit = events.some(e => e.id === event.id);
+            if (isEdit) {
+              await DataService.updateAppointment(user.id, event.id, payload);
+              setEvents(prev => prev.map(e => e.id === event.id ? event : e));
+            } else {
+              const saved = await DataService.addAppointment(user.id, payload);
+              setEvents(prev => [rowToEvent(saved, is12h), ...prev]);
+            }
+          } catch {
+            setEvents(prev => {
+              const exists = prev.some(e => e.id === event.id);
+              return exists ? prev.map(e => e.id === event.id ? event : e) : [event, ...prev];
+            });
+          }
           setEditingEvent(null);
           setAddModalVisible(false);
         }}

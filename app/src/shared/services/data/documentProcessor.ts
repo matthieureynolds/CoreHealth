@@ -30,7 +30,7 @@ export interface ExtractedBiomarker {
 
 // Google Cloud Vision API Configuration
 const GOOGLE_CLOUD_VISION_API_KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_VISION_API_KEY || 'AIzaSyAPV0pl1cmA44s-3CJ441vVxPMMpB_HEIk';
+  process.env.EXPO_PUBLIC_GOOGLE_VISION_API_KEY ?? '';
 const GOOGLE_VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
 
 // OpenAI API Configuration

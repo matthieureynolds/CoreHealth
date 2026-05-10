@@ -1,34 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../../../../../../../shared/context/AuthContext';
+import { DataService } from '../../../../../../../../shared/services/data/dataService';
 
 const DeleteAccountScreen: React.FC = () => {
   const navigation = useNavigation();
-
-  const openMail = async () => {
-    const url = `mailto:privacy@corehealth.com?subject=${encodeURIComponent('Data Deletion Request')}`;
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      Linking.openURL(url);
-    } else {
-      Alert.alert('Email not configured', 'Please set up a mail app or email privacy@corehealth.com directly.');
-    }
-  };
+  const { user, signOut } = useAuth();
+  const [deleting, setDeleting] = useState(false);
 
   const handleDeleteRequest = () => {
     Alert.alert(
       'Delete Account & Data',
-      'This will permanently delete your TOTO account and all associated health data. This action cannot be undone.\n\nAre you sure you want to proceed?',
+      'This will permanently delete your account and all associated health data. This cannot be undone.\n\nAre you absolutely sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Send Deletion Request',
+          text: 'Delete Forever',
           style: 'destructive',
-          onPress: openMail,
+          onPress: confirmDelete,
         },
       ]
     );
+  };
+
+  const confirmDelete = async () => {
+    if (!user?.id) return;
+    setDeleting(true);
+    try {
+      await DataService.deleteAccount(user.id);
+      await signOut();
+    } catch (e: any) {
+      setDeleting(false);
+      Alert.alert('Error', e.message || 'Could not delete account. Please try again or contact support.');
+    }
   };
 
   return (
@@ -88,13 +94,17 @@ const DeleteAccountScreen: React.FC = () => {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteRequest} activeOpacity={0.8}>
-            <Ionicons name="trash-outline" size={20} color="#fff" style={styles.cardIcon} />
-            <Text style={styles.deleteButtonText}>Delete Account & Data</Text>
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteRequest} activeOpacity={0.8} disabled={deleting}>
+            {deleting ? (
+              <ActivityIndicator color="#fff" style={styles.cardIcon} />
+            ) : (
+              <Ionicons name="trash-outline" size={20} color="#fff" style={styles.cardIcon} />
+            )}
+            <Text style={styles.deleteButtonText}>{deleting ? 'Deleting…' : 'Delete Account & Data'}</Text>
           </TouchableOpacity>
 
           <Text style={styles.footerNote}>
-            A deletion request email will be sent to privacy@corehealth.com. Our team will verify your identity and process the request within 30 days.
+            Your account and all health data will be permanently deleted immediately. This cannot be undone.
           </Text>
         </View>
       </ScrollView>

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Alert, Animated, Easing } from 'react-native';
 import { Audio } from 'expo-av';
-import { OPENAI_API_KEY } from '../../../shared/services/ai/healthAssistantService';
+import * as FileSystem from 'expo-file-system';
+import { DataService } from '../../../shared/services/data/dataService';
 
 export interface UseVoiceRecordingResult {
   isRecording: boolean;
@@ -85,18 +86,9 @@ export function useVoiceRecording(): UseVoiceRecordingResult {
 
             if (uri) {
               try {
-                const form = new FormData();
-                form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' } as unknown as Blob);
-                form.append('model', 'gpt-4o-transcribe');
-                form.append('response_format', 'json');
-                const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-                  body: form as any,
-                });
-                if (!res.ok) throw new Error(await res.text());
-                const data = await res.json();
-                onTranscribed((data.text ?? '').trim());
+                const audioBase64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+                const { transcript } = await DataService.transcribeAudio(audioBase64, 'audio/m4a');
+                onTranscribed(transcript.trim());
               } catch (txErr) {
                 console.error('Transcription error:', txErr);
                 Alert.alert('Transcription failed', 'Could not transcribe audio. Please try again.');

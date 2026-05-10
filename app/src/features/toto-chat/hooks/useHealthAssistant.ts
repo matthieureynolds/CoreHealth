@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Alert, Animated, Easing, ScrollView, View } from 'react-native';
-import { OPENAI_API_KEY, HealthAssistantService } from '../../../shared/services/ai/healthAssistantService';
+import { HealthAssistantService } from '../../../shared/services/ai/healthAssistantService';
 import type { ChatSession } from '../../../shared/services/ai/healthAssistantService';
+import { api } from '../../../shared/services/data/apiClient';
+import { DataService } from '../../../shared/services/data/dataService';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { useSendAnimation } from '../../../shared/hooks/useSendAnimation';
 import { parseAssistantCommand } from '../assistant/parser';
 import { dispatch as dispatchCommand, postTimeline, togglesMark } from '../assistant/commandBus';
@@ -14,7 +17,7 @@ import { useVoiceRecording } from './useVoiceRecording';
 import { useMediaInput, usePlanHistory } from './useMediaInput';
 
 export function useHealthAssistant() {
-  const { profile, biomarkers, healthScore, deviceData, labResults, bodySystems, travelHealth } = useHealthData();
+  const { profile, biomarkers, healthScore, deviceData, labResults, bodySystems, travelHealth, refreshAllHealthData } = useHealthData();
   const { settings } = useSettings();
   const { user } = useAuth();
 
@@ -67,7 +70,7 @@ export function useHealthAssistant() {
   const dot2Anim = useRef(new Animated.Value(0)).current;
   const dot3Anim = useRef(new Animated.Value(0)).current;
 
-  const mediaInput = useMediaInput({ profile, biomarkers, healthScore, setMessages, setIsLoading, generateId, stripEmojis });
+  const mediaInput = useMediaInput({ profile, biomarkers, healthScore, setMessages, setIsLoading, generateId, stripEmojis, onBiomarkersAdded: refreshAllHealthData });
   const planHistoryHook = usePlanHistory({ setPlanHistory, setShowPlanHistory, setPlanHistoryLoading, setTimelineHistory, setShowTimelineHistory, setTimelineHistoryLoading, setTimelineHistoryTitle });
 
   useEffect(() => {
@@ -94,9 +97,29 @@ export function useHealthAssistant() {
     const initializeConversation = async () => {
       if (!isInitialized) {
         try {
-          const history = await HealthAssistantService.loadConversationHistory();
+          // Backend is the source of truth — works on fresh install / new device.
+          // Fall back to AsyncStorage if unauthenticated or the call fails.
+          let history: ChatMessage[] = [];
+          if (user) {
+            try {
+              const backendHistory = await DataService.getChatHistory();
+              if (backendHistory.length > 0) {
+                history = backendHistory.map((m, i) => ({
+                  id: String(i),
+                  role: m.role as 'user' | 'assistant',
+                  content: m.content,
+                  timestamp: new Date(m.created_at),
+                }));
+                await HealthAssistantService.saveConversationHistory(history as any);
+              }
+            } catch { /* fall through to AsyncStorage */ }
+          }
+          if (history.length === 0) {
+            history = await HealthAssistantService.loadConversationHistory() as ChatMessage[];
+          }
+
           if (history.length > 0) {
-            setMessages(history as ChatMessage[]);
+            setMessages(history);
           } else {
             const profileForAI = profile ? { ...profile, displayName: (user as any)?.displayName ?? (profile as any)?.displayName, preferredName: (user as any)?.preferredName ?? (profile as any)?.preferredName, firstName: (user as any)?.firstName ?? (profile as any)?.firstName, surname: (user as any)?.surname ?? (profile as any)?.surname } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName } as any : null);
             const greeting = await HealthAssistantService.getPersonalizedGreeting(profileForAI as any, biomarkers || [], healthScore);
@@ -150,16 +173,18 @@ export function useHealthAssistant() {
     setStreamingMessageId(assistantMessageId);
     let currentContent = '';
     setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date() }]);
-    const profileForAI = profile ? { ...profile, displayName: (user as any)?.displayName ?? (profile as any)?.displayName, preferredName: (user as any)?.preferredName ?? (profile as any)?.preferredName, firstName: (user as any)?.firstName ?? (profile as any)?.firstName, surname: (user as any)?.surname ?? (profile as any)?.surname, email: (user as any)?.email ?? (profile as any)?.email } : (user ? { displayName: (user as any)?.displayName, preferredName: (user as any)?.preferredName, email: (user as any)?.email } as any : null);
     try {
-      currentContent = await HealthAssistantService.streamChatWithAssistant(userMessage.content, [...messages, userMessage] as any, { profile: profileForAI as any, biomarkers, healthScore, deviceData, settings, labResults, bodySystems, travelHealth }, (acc) => {
-        const now = Date.now();
-        if ((now - lastStreamUpdateAtRef.current) > 80) {
-          lastStreamUpdateAtRef.current = now;
-          setMessages(prev => prev.map(m => m.id === assistantMessageId ? { ...m, content: acc } : m));
-          if ((now - lastAutoScrollAtRef.current) > 120) { lastAutoScrollAtRef.current = now; scrollViewRef.current?.scrollToEnd({ animated: true }); }
-        }
-      });
+      const session = await fetchAuthSession();
+      const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+      if (!userId) throw new Error('Not authenticated');
+      const response = await api.post<{ reply: string; biomarkersAdded: number; recordsAdded: number }>(
+        '/ai/chat',
+        { message: userMessage.content },
+      );
+      currentContent = response.reply || '';
+      if (response.recordsAdded > 0) {
+        refreshAllHealthData().catch(e => console.warn('Health data refresh failed:', e));
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
       Alert.alert('Error', 'Failed to get response from health assistant. Please try again.');

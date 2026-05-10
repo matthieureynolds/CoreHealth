@@ -56,30 +56,6 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
 
   return (
     <>
-      {/* Jet Lag Planning */}
-      <View style={{ marginTop: 17 }}>
-        <Text style={sectionTitleStyle}>Jet Lag Planning</Text>
-        {jetLagPlanningEvents.length > 0 ? (
-          jetLagPlanningEvents.map((event, index) => (
-            <JetLagPlanningCard
-              key={event.id || index}
-              event={event}
-              onPress={() => onJetLagEventPress?.(event)}
-            />
-          ))
-        ) : (
-          <EmptyState
-            icon="airplane-outline"
-            title="No Upcoming Trips"
-            subtitle="Add your travel plans to get personalized jet lag preparation schedules"
-            buttonText="Add Trip"
-            onButtonPress={onTravelPress}
-            iconColor="#8E8E93"
-            buttonColor="#3AABF0"
-          />
-        )}
-      </View>
-
       {/* Nearby Medical Facilities */}
       <View style={{ marginTop: 17 }}>
         <Text style={sectionTitleStyle}>Nearby Medical Facilities</Text>
@@ -108,6 +84,30 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
       ))}
+
+      {/* Jet Lag Planning */}
+      <View style={{ marginTop: 17 }}>
+        <Text style={sectionTitleStyle}>Jet Lag Planning</Text>
+        {jetLagPlanningEvents.length > 0 ? (
+          jetLagPlanningEvents.map((event, index) => (
+            <JetLagPlanningCard
+              key={event.id || index}
+              event={event}
+              onPress={() => onJetLagEventPress?.(event)}
+            />
+          ))
+        ) : (
+          <EmptyState
+            icon="airplane-outline"
+            title="No Upcoming Trips"
+            subtitle="Add your travel plans to get personalized jet lag preparation schedules"
+            buttonText="Add Trip"
+            onButtonPress={onTravelPress}
+            iconColor="#8E8E93"
+            buttonColor="#3AABF0"
+          />
+        )}
+      </View>
 
       <TouchableOpacity onPress={onShowLess} style={styles.lessTab}>
         <Text style={styles.lessTabText}>Show Less</Text>

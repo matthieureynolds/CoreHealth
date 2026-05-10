@@ -1,6 +1,40 @@
 import * as Location from 'expo-location';
+import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { geocodeAddress, reverseGeocode } from '../services/travel/geocodingService';
 import { LocationData } from '../types';
+
+const LOCATION_CONSENT_KEY = '@corehealth_location_consent';
+
+async function ensureLocationConsent(): Promise<boolean> {
+  const existing = await AsyncStorage.getItem(LOCATION_CONSENT_KEY);
+  if (existing === 'true') return true;
+  if (existing === 'false') return false;
+  // First time — ask
+  return new Promise(resolve => {
+    Alert.alert(
+      'Location Health Insights',
+      'CoreHealth can use your location to provide travel health insights — air quality, UV index, disease risk, and pollen levels for where you are.\n\nYour location data will be stored on our servers to personalise your health context. You can withdraw this consent at any time in Profile → Settings → Data & Privacy.',
+      [
+        {
+          text: 'No Thanks',
+          style: 'cancel',
+          onPress: () => {
+            AsyncStorage.setItem(LOCATION_CONSENT_KEY, 'false').catch(() => {});
+            resolve(false);
+          },
+        },
+        {
+          text: 'Allow',
+          onPress: () => {
+            AsyncStorage.setItem(LOCATION_CONSENT_KEY, 'true').catch(() => {});
+            resolve(true);
+          },
+        },
+      ],
+    );
+  });
+}
 
 export const updateLocation = async (
   location: string,
@@ -31,6 +65,9 @@ export const updateLocation = async (
 
 export const getCurrentLocation = async (): Promise<LocationData | null> => {
   try {
+    const consented = await ensureLocationConsent();
+    if (!consented) return null;
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return null;
 

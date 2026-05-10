@@ -3,7 +3,7 @@ export interface Biomarker {
   value: number;
   unit: string;
   range: string;
-  status: 'normal' | 'borderline' | 'abnormal';
+  status: 'optimal' | 'normal' | 'borderline' | 'abnormal';
 }
 
 export interface OrganData {

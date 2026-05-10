@@ -1,13 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import DateOfBirthPickerModal from './DateOfBirthPickerModal';
-import GenderPickerModal from './GenderPickerModal';
 import StickyHeader from './components/StickyHeader';
 import ScrollableProfileHeader from './components/ScrollableProfileHeader';
 import InfoCard, { CardRowConfig } from './components/InfoCard';
 import ProfilePicturePicker from '../../../../../shared/components/profile/ProfilePicturePicker';
-import { useProfileDetails, genderOptions, AVATAR_LARGE, COLLAPSE_DISTANCE } from './useProfileDetails';
+import { useProfileDetails, AVATAR_LARGE, COLLAPSE_DISTANCE } from './useProfileDetails';
 
 const ProfileDetailsScreen: React.FC = () => {
   const { width: screenWidth } = useWindowDimensions();
@@ -15,15 +13,9 @@ const ProfileDetailsScreen: React.FC = () => {
     navigation,
     user,
     profile,
-    showDatePicker,
-    setShowDatePicker,
-    showGenderPicker,
-    setShowGenderPicker,
     isHeaderVisible,
     scrollY,
     handlePhotoSelected,
-    handleDateConfirm,
-    handleGenderSelect,
     avatarScale,
     avatarOpacity,
     avatarTranslateY,
@@ -38,42 +30,14 @@ const ProfileDetailsScreen: React.FC = () => {
     profileCompletion,
   } = useProfileDetails();
 
-  const personalInfoRows: CardRowConfig[] = [
-    {
-      icon: 'calendar-outline',
-      iconColor: '#4CD964',
-      label: 'Date of Birth',
-      value: profile?.age ? `${profile.age} years old` : 'Not set',
-      onPress: () => setShowDatePicker(true),
-    },
+  const healthRecordsRows: CardRowConfig[] = [
     {
       icon: 'body-outline',
       iconColor: '#3AABF0',
-      label: 'Gender',
-      value: profile?.gender
-        ? genderOptions.find(opt => opt.value === profile.gender)?.label || profile.gender
-        : 'Not set',
-      onPress: () => setShowGenderPicker(true),
+      label: 'Physical Stats',
+      value: profile?.height ? `${profile.height} cm` : 'Not set',
+      onPress: () => navigation.navigate('EditPhysicalStats'),
     },
-    {
-      icon: 'bed-outline',
-      iconColor: '#5856D6',
-      label: 'Lifestyle Info',
-      value: 'Sleep Schedule',
-      onPress: () => navigation.navigate('LifestyleInfo'),
-    },
-    {
-      icon: 'card-outline',
-      iconColor: '#8E44AD',
-      label: 'Linked Health ID',
-      value: profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set',
-      onPress: () => navigation.navigate('HealthIDs'),
-      isLast: true,
-      tallRow: true,
-    },
-  ];
-
-  const healthRecordsRows: CardRowConfig[] = [
     {
       icon: 'medical-outline',
       iconColor: '#FF9500',
@@ -108,9 +72,14 @@ const ProfileDetailsScreen: React.FC = () => {
       label: 'Vaccinations',
       value: profile?.vaccinations?.length ? `${profile.vaccinations.length} vaccines` : 'Not set',
       onPress: () => navigation.navigate('Vaccinations'),
+      isLast: true,
+      tallRow: true,
     },
+  ];
+
+  const medicalHistoryRows: CardRowConfig[] = [
     {
-      icon: 'medical-outline',
+      icon: 'pulse-outline',
       iconColor: '#FF6B6B',
       label: 'Symptoms',
       value: 'Track & Analyze',
@@ -249,56 +218,11 @@ const ProfileDetailsScreen: React.FC = () => {
           profileCompletion={profileCompletion}
         />
 
-        {/* Name row — custom layout with two-line value */}
-        <View style={[styles.card, styles.cardTightBottom]}>
-          <Text style={styles.cardHeader}>PERSONAL INFO</Text>
-          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
-            <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
-            <Text style={styles.cardLabel}>Personal Info</Text>
-            <Text style={styles.cardValue}>
-              {user?.firstName && user?.surname
-                ? `${user.firstName} ${user.surname}`
-                : user?.displayName || 'Not set'}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-          </TouchableOpacity>
-          {personalInfoRows.map((row, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.cardRow,
-                row.tallRow && styles.tallRow50,
-                row.isLast && styles.lastRow,
-              ]}
-              onPress={row.onPress}
-            >
-              <Ionicons name={row.icon} size={22} color={row.iconColor} style={styles.cardIcon} />
-              <Text style={styles.cardLabel}>{row.label}</Text>
-              {row.value !== undefined && (
-                <Text style={styles.cardValue}>{row.value}</Text>
-              )}
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <InfoCard title="HEALTH RECORDS" rows={healthRecordsRows} />
+        <InfoCard title="MEDICAL HISTORY" rows={medicalHistoryRows} />
         <InfoCard title="RECORD MANAGEMENT" rows={recordManagementRows} />
         <InfoCard title="EMERGENCY INFO" rows={emergencyInfoRows} />
 
-        <DateOfBirthPickerModal
-          visible={showDatePicker}
-          currentBirthDate={profile?.birthDate}
-          onConfirm={handleDateConfirm}
-          onClose={() => setShowDatePicker(false)}
-        />
-
-        <GenderPickerModal
-          visible={showGenderPicker}
-          currentGender={profile?.gender}
-          onSelect={handleGenderSelect}
-          onClose={() => setShowGenderPicker(false)}
-        />
       </Animated.ScrollView>
     </View>
   );

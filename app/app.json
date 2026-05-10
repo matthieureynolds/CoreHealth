@@ -15,12 +15,16 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.totohealth.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.",
         "NSCameraUsageDescription": "CoreHealth needs access to your camera to take profile pictures and document health records.",
         "NSPhotoLibraryUsageDescription": "CoreHealth needs access to your photo library to select profile pictures and upload medical documents.",
-        "NSContactsUsageDescription": "CoreHealth needs access to contacts to help you import emergency contacts from your device."
+        "NSContactsUsageDescription": "CoreHealth needs access to contacts to help you import emergency contacts from your device.",
+        "NSHealthShareUsageDescription": "CoreHealth reads your Apple Health data — steps, heart rate, HRV, and sleep — to calculate your health score and personalise your insights.",
+        "NSHealthUpdateUsageDescription": "CoreHealth may write summarised health data back to Apple Health."
       }
     },
     "android": {
@@ -43,7 +47,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "scheme": "corehealth"
   }

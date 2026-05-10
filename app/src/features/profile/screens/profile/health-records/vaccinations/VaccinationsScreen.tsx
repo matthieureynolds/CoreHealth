@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 import { Vaccination, AttachedFile } from '../../../../../../shared/types';
 import * as DocumentPicker from 'expo-document-picker';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import VaccinationCard from './components/VaccinationCard';
 import VaccinationEmptyState from './components/VaccinationEmptyState';
 import VaccinationFormModal from './components/VaccinationFormModal';
+import { DataService } from '../../../../../../shared/services/data/dataService';
 
 const commonVaccines = [
   'COVID-19', 'Influenza (Flu)', 'Tetanus', 'Diphtheria', 'Pertussis (Whooping Cough)',
@@ -21,7 +22,9 @@ const commonVaccines = [
 
 const VaccinationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { profile, updateProfile } = useHealthData();
+  const { user } = useAuth();
+  const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [vaccineName, setVaccineName] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -41,6 +44,29 @@ const VaccinationsScreen: React.FC = () => {
   const [currentFileName, setCurrentFileName] = useState('');
   const [currentFileType, setCurrentFileType] = useState('');
 
+  const loadVaccinations = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const rows = await DataService.getVaccinations(user.id);
+      setVaccinations(rows.map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        date: new Date(v.date),
+        nextDue: v.next_due ? new Date(v.next_due) : undefined,
+        location: v.location ?? undefined,
+        batchNumber: v.batch_number ?? undefined,
+        notes: v.notes ?? undefined,
+      })));
+    } catch (e) {
+      console.error('Failed to load vaccinations:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(useCallback(() => { loadVaccinations(); }, [loadVaccinations]));
+
   const resetForm = () => {
     setVaccineName('');
     setDateReceived(null);
@@ -52,40 +78,57 @@ const VaccinationsScreen: React.FC = () => {
     setAttachments([]);
   };
 
-  const addVaccination = () => {
+  const addVaccination = async () => {
     if (!vaccineName.trim()) {
       Alert.alert('Error', 'Please enter a vaccine name');
       return;
     }
+    if (!user?.id) return;
 
-    if (editingVaccination) {
-      const updated: Vaccination = {
-        id: editingVaccination.id,
-        name: vaccineName.trim(),
-        date: dateReceived || new Date(),
-        nextDue: nextDueDate || undefined,
-        location: location.trim() || undefined,
-        batchNumber: batchNumber.trim() || undefined,
-        notes: notes.trim() || undefined,
-        attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedVaccinations = (profile?.vaccinations || []).map(v =>
-        v.id === editingVaccination.id ? updated : v,
-      );
-      updateProfile({ ...profile, vaccinations: updatedVaccinations });
-    } else {
-      const newVaccination: Vaccination = {
-        id: Date.now().toString(),
-        name: vaccineName.trim(),
-        date: dateReceived || new Date(),
-        nextDue: nextDueDate || undefined,
-        location: location.trim() || undefined,
-        batchNumber: batchNumber.trim() || undefined,
-        notes: notes.trim() || undefined,
-        attachments: attachments.length ? attachments : undefined,
-      };
-      const updatedVaccinations = [...(profile?.vaccinations || []), newVaccination];
-      updateProfile({ ...profile, vaccinations: updatedVaccinations });
+    try {
+      const dateStr = (dateReceived || new Date()).toISOString().split('T')[0];
+      const nextDueStr = nextDueDate ? nextDueDate.toISOString().split('T')[0] : undefined;
+
+      if (editingVaccination) {
+        await DataService.updateVaccination(user.id, editingVaccination.id, {
+          name: vaccineName.trim(),
+          date: dateStr,
+          nextDue: nextDueStr,
+          location: location.trim() || undefined,
+          batchNumber: batchNumber.trim() || undefined,
+          notes: notes.trim() || undefined,
+        });
+        setVaccinations(prev => prev.map(v => v.id === editingVaccination.id ? {
+          ...v,
+          name: vaccineName.trim(),
+          date: dateReceived || new Date(),
+          nextDue: nextDueDate || undefined,
+          location: location.trim() || undefined,
+          batchNumber: batchNumber.trim() || undefined,
+          notes: notes.trim() || undefined,
+        } : v));
+      } else {
+        const saved = await DataService.addVaccination(user.id, {
+          name: vaccineName.trim(),
+          date: dateStr,
+          nextDue: nextDueStr,
+          location: location.trim() || undefined,
+          batchNumber: batchNumber.trim() || undefined,
+          notes: notes.trim() || undefined,
+        });
+        setVaccinations(prev => [...prev, {
+          id: saved.id,
+          name: vaccineName.trim(),
+          date: dateReceived || new Date(),
+          nextDue: nextDueDate || undefined,
+          location: location.trim() || undefined,
+          batchNumber: batchNumber.trim() || undefined,
+          notes: notes.trim() || undefined,
+          attachments: attachments.length ? attachments : undefined,
+        }]);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not save vaccination.');
     }
 
     setShowAddModal(false);
@@ -98,9 +141,12 @@ const VaccinationsScreen: React.FC = () => {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => {
-          const updatedVaccinations = profile?.vaccinations?.filter(v => v.id !== id) || [];
-          updateProfile({ ...profile, vaccinations: updatedVaccinations });
+        onPress: async () => {
+          if (!user?.id) return;
+          try {
+            await DataService.deleteVaccination(user.id, id);
+            setVaccinations(prev => prev.filter(v => v.id !== id));
+          } catch (e) { Alert.alert('Error', 'Could not delete vaccination.'); }
         },
       },
     ]);
@@ -168,8 +214,10 @@ const VaccinationsScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
-          {profile?.vaccinations?.length ? (
-            profile.vaccinations.map((vaccination) => (
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          ) : vaccinations.length ? (
+            vaccinations.map((vaccination) => (
               <VaccinationCard
                 key={vaccination.id}
                 vaccination={vaccination}

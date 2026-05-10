@@ -151,6 +151,10 @@ export class DataService {
     });
   }
 
+  static async getLabResultStatus(labResultId: string): Promise<{ processing_status: string }> {
+    return api.get(`/lab-results/${labResultId}`);
+  }
+
   static async deleteLabResultDocument(labResultId: string): Promise<void> {
     await api.delete(`/lab-results/${labResultId}`);
   }

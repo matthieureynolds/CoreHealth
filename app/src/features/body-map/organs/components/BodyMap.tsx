@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { Dimensions, ImageBackground } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Animated, Dimensions, Easing, ImageBackground } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
 import { organsList } from '../../organs';
 import { Organ } from '../../organs/types';
+import { useHealthData } from '../../../../shared/context/HealthDataContext';
 
 interface BodyMapProps {
   onOrganPress: (organId: string) => void;
   onOrganSelect?: (organ: Organ) => void;
   onHeadPress?: () => void;
+  onZoomChange?: (zoomed: boolean) => void;
 }
 
 const BODY_IMAGE = require('../../../../../assets/images/body-map/body-map.png');
@@ -93,18 +95,18 @@ const ORGAN_SHAPES: OrganShape[] = [
     path: 'M30 10.5C29.872 14.5788 29.3473 16.6204 27 19.5C30.8474 24.6004 32.1549 28.4392 33 37L32.5 78.5C33.5844 86.9714 35.5994 91.2253 41.5 98C32.9917 93.1739 30.2679 88.132 29 75L29.5 40L27 32.5C28.1995 42.9051 26.0231 45.9867 17.5 47C4.38156 43.4331 0.838136 38.1494 0 24C2.0024 9.82584 5.9163 4.26725 19.5 0C26.9914 0.567984 29.0816 3.08486 30 10.5Z',
   },
   {
-    id: 'small_intestine', organDataId: 'smallIntestine',
-    color: '#FF9F0A',
-    cx: 50, cy: 77, targetW: 16, targetH: 12,
-    svgW: 73, svgH: 57,
-    path: 'M1 49C7.27634 55.0877 12.1629 56.8037 24 56C28.7171 48.6696 31.4738 45.2509 37.5 46C39.347 44.2697 40.8734 43.8346 44 43.5C47.1784 43.8763 49.041 44.5324 52.5 46.5C56.7179 42.2252 59.652 41.3999 66 43C68.0354 41.4176 69.1367 40.3519 71 38C67.9063 33.2594 67.8453 30.5313 71.5 25.5C68.0219 20.2485 68.2447 17.1895 73 11.5C71.1885 7.60843 71.0941 5.03817 72 0C66.6795 2.52138 63.3454 2.82031 56.5 0.5C47.1941 7.31087 43.6238 6.76595 38.5 2.5C32.5008 6.00769 28.8718 5.76044 22 2C16.8655 3.55078 14.2802 3.44503 10.5 0.5C8.58517 5.17036 6.92823 7.06546 2 8C2.85255 11.1898 2.15794 12.7907 0 15.5C4.44933 20.1793 4.66748 23.413 2 30C6.25446 37.0178 6.331 41.1515 1 49Z',
-  },
-  {
     id: 'large_intestine', organDataId: 'largeIntestine',
     color: '#FF6B35',
     cx: 50, cy: 84, targetW: 26, targetH: 18,
     svgW: 119, svgH: 122,
     path: 'M16.0844 75.5227C17.4754 80.8143 19.3212 82.9289 24.0844 85.5227C21.7831 81.577 20.8507 79.2534 21.0844 74.5227L24.0844 72.5227C28.7711 65.8696 28.7705 61.9192 24.5844 54.5227C27.3927 48.1336 27.0393 44.8221 22.0844 39.5227C24.5756 38.4649 25.2667 36.9088 24.5844 31.5227C29.6819 30.9638 31.7003 29.2898 33.5844 23.5227C37.8551 26.8671 40.5963 27.2774 46.0844 25.5227C52.2078 29.128 55.7079 29.2955 62.0844 26.0227C64.361 27.9869 65.8511 28.7171 69.0844 29.0227C74.1115 28.0815 76.4624 26.7824 80.0844 23.5227C86.7828 26.1871 90.3911 26.0279 96.5844 23.0227C95.652 28.6422 95.7851 31.5227 97.5844 36.0227C93.2304 41.4394 92.9399 44.507 96.0844 50.0227C92.8299 54.421 92.8592 57.1795 95.5844 62.5227C93.6525 65.9064 92.21 67.1871 89.0844 68.5227C83.34 67.0407 80.5682 68.1252 76.0844 72.0227C69.6001 68.5215 66.263 67.7591 61.5844 71.5227H57.0844C50.4618 76.6773 47.9194 80.2794 45.5844 88.0227C45.1973 91.5099 45.1649 93.2912 45.5844 96.0227C46.5529 100.6 47.6508 103.655 50.0844 109.523C50.4555 113.384 50.7918 115.107 51.5844 117.523C52.7028 120.172 53.8085 121.061 57.0844 121.023C59.3508 121.093 60.2997 120.595 61.5844 119.023C62.5997 116.336 63.0846 114.25 63.5844 108.023C66.9098 101.991 68.2755 97.9769 70.0844 90.0227C74.1849 92.3505 76.4839 92.2992 80.5844 90.0227C86.472 92.8342 89.4012 92.4774 94.0844 89.0227C103.872 90.2676 106.925 88.3874 108.584 81.0227C115.061 77.7122 116.64 74.6481 114.084 66.0227C117.409 60.2211 117.571 56.9357 115.084 51.0227C119.491 44.9728 118.704 41.7294 115.584 36.0227C118.845 31.3498 118.73 28.7214 116.084 24.0227C118.774 22.8864 118.268 10.8833 113.584 8.52267C108.901 6.16199 111.537 2.221 107.084 1.02267C101.412 -0.656026 98.3673 -0.230399 93.0844 2.02267C85.7471 2.19505 82.7868 3.51782 78.5844 7.02267C71.8912 3.75038 68.4971 4.0906 63.0844 8.52267C55.7696 4.71147 52.3534 4.45816 48.0844 9.02267C46.9719 9.19456 46.538 9.09158 46.0844 8.52267C45.601 7.97879 45.5797 7.63754 45.5844 7.02267C41.2385 3.97902 38.7212 3.73367 34.0844 6.02267C26.7342 2.81817 17.0335 7.15047 17.0844 7.52267C17.1353 7.89487 7.97453 8.24553 4.5844 12.5227C0.517381 17.6867 0.216178 20.7523 3.0844 26.5227C-1.36886 32.4835 -0.823302 35.7583 3.5844 41.5227C2.13595 43.517 1.46762 44.714 0.584395 47.0227C0.223818 49.3658 0.267775 50.6795 0.584395 53.0227C1.24429 55.4254 1.91515 56.6219 3.5844 58.5227C1.43428 60.9959 1.09635 62.8637 1.08439 66.5227C1.21407 71.0068 2.4723 72.8904 6.0844 75.5227C10.0256 77.4558 12.2114 77.4552 16.0844 75.5227Z',
+  },
+  {
+    id: 'small_intestine', organDataId: 'smallIntestine',
+    color: '#30D158',
+    cx: 50, cy: 77, targetW: 16, targetH: 12,
+    svgW: 73, svgH: 57,
+    path: 'M1 49C7.27634 55.0877 12.1629 56.8037 24 56C28.7171 48.6696 31.4738 45.2509 37.5 46C39.347 44.2697 40.8734 43.8346 44 43.5C47.1784 43.8763 49.041 44.5324 52.5 46.5C56.7179 42.2252 59.652 41.3999 66 43C68.0354 41.4176 69.1367 40.3519 71 38C67.9063 33.2594 67.8453 30.5313 71.5 25.5C68.0219 20.2485 68.2447 17.1895 73 11.5C71.1885 7.60843 71.0941 5.03817 72 0C66.6795 2.52138 63.3454 2.82031 56.5 0.5C47.1941 7.31087 43.6238 6.76595 38.5 2.5C32.5008 6.00769 28.8718 5.76044 22 2C16.8655 3.55078 14.2802 3.44503 10.5 0.5C8.58517 5.17036 6.92823 7.06546 2 8C2.85255 11.1898 2.15794 12.7907 0 15.5C4.44933 20.1793 4.66748 23.413 2 30C6.25446 37.0178 6.331 41.1515 1 49Z',
   },
 ];
 
@@ -120,12 +122,136 @@ const LUNGS_PLACEHOLDER: Organ = {
   },
 };
 
-const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPress }) => {
+// ─── Beating heart component ──────────────────────────────────────────────
+const DEFAULT_BPM = 72;
+
+const HeartBeat: React.FC<{
+  shape: OrganShape;
+  selected: boolean;
+  getTransform: (s: OrganShape, mult?: number) => string;
+  onPress: () => void;
+  bpm: number;
+}> = ({ shape, selected, getTransform, onPress, bpm }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    // Time for one full beat cycle in ms (60000 / bpm)
+    const beatInterval = 60000 / bpm;
+    // The pump animation takes ~440ms, rest is the pause
+    const pumpDuration = 440;
+    const pauseDuration = Math.max(beatInterval - pumpDuration, 100);
+
+    animRef.current?.stop();
+
+    const beat = Animated.loop(
+      Animated.sequence([
+        // First beat (systole)
+        Animated.timing(pulse, { toValue: 1.12, duration: 120, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: false }),
+        // Second beat (diastole)
+        Animated.timing(pulse, { toValue: 1.08, duration: 100, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 1, duration: 120, easing: Easing.in(Easing.ease), useNativeDriver: false }),
+        // Pause — adapts to BPM
+        Animated.delay(pauseDuration),
+      ]),
+    );
+    animRef.current = beat;
+    beat.start();
+    return () => beat.stop();
+  }, [pulse, bpm]);
+
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const id = pulse.addListener(({ value }) => setScale(value));
+    return () => pulse.removeListener(id);
+  }, [pulse]);
+
+  return (
+    <G onPress={onPress}>
+      {selected && (
+        <Path
+          d={shape.path}
+          transform={getTransform(shape, 1.4)}
+          fill={shape.color}
+          fillOpacity={0.15}
+        />
+      )}
+      <Path
+        d={shape.path}
+        transform={getTransform(shape, scale)}
+        fill={shape.color}
+        fillOpacity={selected ? 1.0 : 0.9}
+      />
+    </G>
+  );
+};
+
+const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPress, onZoomChange }) => {
   const [selectedDataId, setSelectedDataId] = useState<string | null>(null);
+  const [isZoomedToHead, setIsZoomedToHead] = useState(false);
+  const { deviceData } = useHealthData();
+
+  // Zoom animation values
+  const zoomScale = useRef(new Animated.Value(1)).current;
+  const zoomX = useRef(new Animated.Value(0)).current;
+  const zoomY = useRef(new Animated.Value(0)).current;
+
+  // Get real heart rate from connected device, or fall back to default
+  const heartRateBpm = useMemo(() => {
+    const sorted = [...deviceData]
+      .filter(d => d.metrics?.heartRate != null)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return sorted.length > 0 ? sorted[0].metrics.heartRate : DEFAULT_BPM;
+  }, [deviceData]);
+
+  const handleHeadZoom = () => {
+    const zooming = !isZoomedToHead;
+    setIsZoomedToHead(zooming);
+    onZoomChange?.(zooming);
+    onHeadPress?.();
+
+    const targetScale = 2.5;
+
+    // Head center in image coordinates
+    const headCenterX = (50 / 100) * IMG_W;
+    const headCenterY = (13.5 / 150) * IMG_H;
+
+    // After scale S around view center, head lands at:
+    //   center + (head - center) * S
+    // Then we translate to bring it back to center:
+    //   offset = (center - head) * S
+    const tx = (IMG_W / 2 - headCenterX) * targetScale;
+    const ty = (IMG_H / 2 - headCenterY) * targetScale;
+
+    const config = {
+      duration: 800,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true,
+    };
+
+    Animated.parallel([
+      Animated.timing(zoomScale, { ...config, toValue: zooming ? targetScale : 1 }),
+      Animated.timing(zoomX, { ...config, toValue: zooming ? tx : 0 }),
+      Animated.timing(zoomY, { ...config, toValue: zooming ? ty : 0 }),
+    ]).start();
+  };
 
   const handleShapePress = (shape: OrganShape) => {
     if (shape.isHeadZone) {
-      onHeadPress?.();
+      handleHeadZoom();
+      return;
+    }
+    // If zoomed in, zoom out first
+    if (isZoomedToHead) {
+      setIsZoomedToHead(false);
+      onZoomChange?.(false);
+      const outConfig = { duration: 600, easing: Easing.bezier(0.25, 0.1, 0.25, 1), useNativeDriver: true };
+      Animated.parallel([
+        Animated.timing(zoomScale, { ...outConfig, toValue: 1 }),
+        Animated.timing(zoomX, { ...outConfig, toValue: 0 }),
+        Animated.timing(zoomY, { ...outConfig, toValue: 0 }),
+      ]).start();
       return;
     }
     if (!shape.organDataId) return;
@@ -153,37 +279,64 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
   };
 
   return (
-    <ImageBackground
-      source={BODY_IMAGE}
-      style={{ width: IMG_W, height: IMG_H }}
-      imageStyle={{ resizeMode: 'contain' }}
+    <Animated.View
+      style={{
+        width: IMG_W,
+        height: IMG_H,
+        transform: [
+          { translateX: zoomX },
+          { translateY: zoomY },
+          { scale: zoomScale },
+        ],
+      }}
     >
-      <Svg width={IMG_W} height={IMG_H}>
-        {ORGAN_SHAPES.map(shape => {
-          const selected = selectedDataId === shape.organDataId && !shape.isHeadZone;
-          return (
-            <G key={shape.id} onPress={() => handleShapePress(shape)}>
-              {/* Glow ring — slightly larger, low opacity */}
-              {selected && (
+      <ImageBackground
+        source={BODY_IMAGE}
+        style={{ width: IMG_W, height: IMG_H }}
+        imageStyle={{ resizeMode: 'contain' }}
+      >
+        <Svg width={IMG_W} height={IMG_H}>
+          {ORGAN_SHAPES.map(shape => {
+            const selected = selectedDataId === shape.organDataId && !shape.isHeadZone;
+
+            // Heart gets a beating animation
+            if (shape.id === 'heart') {
+              return (
+                <HeartBeat
+                  key={shape.id}
+                  shape={shape}
+                  selected={selected}
+                  getTransform={getTransform}
+                  onPress={() => handleShapePress(shape)}
+                  bpm={heartRateBpm}
+                />
+              );
+            }
+
+            return (
+              <G key={shape.id} onPress={() => handleShapePress(shape)}>
+                {/* Glow ring — slightly larger, low opacity */}
+                {selected && (
+                  <Path
+                    d={shape.path}
+                    transform={getTransform(shape, 1.4)}
+                    fill={shape.color}
+                    fillOpacity={0.15}
+                  />
+                )}
+                {/* Main organ shape */}
                 <Path
                   d={shape.path}
-                  transform={getTransform(shape, 1.4)}
+                  transform={getTransform(shape)}
                   fill={shape.color}
-                  fillOpacity={0.15}
+                  fillOpacity={selected ? 1.0 : 0.9}
                 />
-              )}
-              {/* Main organ shape */}
-              <Path
-                d={shape.path}
-                transform={getTransform(shape)}
-                fill={shape.color}
-                fillOpacity={selected ? 1.0 : 0.9}
-              />
-            </G>
-          );
-        })}
-      </Svg>
-    </ImageBackground>
+              </G>
+            );
+          })}
+        </Svg>
+      </ImageBackground>
+    </Animated.View>
   );
 };
 

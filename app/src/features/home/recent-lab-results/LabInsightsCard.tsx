@@ -15,26 +15,43 @@ import {
   getTrendLabel,
   isGoodTrend,
 } from './utils';
+import { useHealthData } from '../../../shared/context/HealthDataContext';
+import { Biomarker } from '../../../shared/types';
+
+function biomarkerToLabResult(b: Biomarker): LabResult {
+  const id = b.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  const status: LabResult['status'] =
+    b.riskLevel === 'high' ? 'high' : b.riskLevel === 'medium' ? 'borderline' : 'normal';
+  const lastUpdated = b.lastUpdated instanceof Date
+    ? b.lastUpdated.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : String(b.lastUpdated);
+  return { id, name: b.name, value: b.value, unit: b.unit, trend: 'stable', trendPercent: 0, status, lastUpdated };
+}
 
 interface LabInsightsCardProps {
   onViewAllPress?: () => void;
   onLabResultPress?: (labResult: LabResult) => void;
 }
 
-const LabInsightsCard: React.FC<LabInsightsCardProps> = ({ 
-  onViewAllPress, 
-  onLabResultPress 
+const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
+  onViewAllPress,
+  onLabResultPress
 }) => {
   const [showCount, setShowCount] = useState(3);
   const [viewAll, setViewAll] = useState(false);
+  const { biomarkers } = useHealthData();
+
+  const labResults: LabResult[] = biomarkers.length > 0
+    ? biomarkers.map(biomarkerToLabResult)
+    : recentLabResults;
 
   const visibleResults = viewAll
-    ? recentLabResults
-    : recentLabResults.slice(0, showCount);
-  const hasMore = !viewAll && showCount < 6 && recentLabResults.length > 3;
+    ? labResults
+    : labResults.slice(0, showCount);
+  const hasMore = !viewAll && showCount < 6 && labResults.length > 3;
   const canShowLess = !viewAll && showCount > 3;
-  const canViewAll = !viewAll && showCount >= 6 && recentLabResults.length > 6;
-  const canShowLessFromAll = viewAll && recentLabResults.length > 3;
+  const canViewAll = !viewAll && showCount >= 6 && labResults.length > 6;
+  const canShowLessFromAll = viewAll && labResults.length > 3;
 
   const renderLabResult = (result: LabResult) => {
     const good = isGoodTrend(result.id, result.trend);
@@ -62,15 +79,10 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
               {result.value} {result.unit}
             </Text>
             <View style={styles.trendContainer}>
-              <Ionicons 
-                name={getTrendIcon(result.trend)} 
-                size={12} 
-                color={trendColor} 
-              />
               {result.trend !== 'stable' && (
-                <Text style={[styles.trendPercent, { color: trendColor }]}> {result.trendPercent}% </Text>
+                <Text style={[styles.trendPercent, { color: trendColor }]}>{result.trendPercent} </Text>
               )}
-              <Text style={[styles.trendLabel, { color: trendColor, marginLeft: 4 }]}> {trendLabel} </Text>
+              <Text style={[styles.trendLabel, { color: trendColor }]}>{trendLabel}</Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
@@ -87,7 +99,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
           <Text style={styles.title}>Recent Lab Results</Text>
         </View>
         {/* View All button top right, like Travel Health */}
-        {recentLabResults.length > 6 && !viewAll && (
+        {labResults.length > 6 && !viewAll && (
           <TouchableOpacity onPress={() => setViewAll(true)}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import IOSDatePicker from '../../../../../../shared/components/ui/IOSDatePicker';
 import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
-import { MedicalRecord } from '../../../../../../shared/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import TypePickerModal from './components/TypePickerModal';
 import UploadOptionsSection from './components/UploadOptionsSection';
 import FilePreviewSection from './components/FilePreviewSection';
 import RecordDetailsSection from './components/RecordDetailsSection';
+import { DataService } from '../../../../../../shared/services/data/dataService';
+import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 
 const recordTypes = [
   { value: 'lab_result', label: 'Lab Result', icon: 'flask-outline', color: '#34C759' },
@@ -21,10 +21,14 @@ const recordTypes = [
   { value: 'other', label: 'Other', icon: 'document-outline', color: '#8E8E93' },
 ];
 
+const POLL_INTERVAL_MS = 3000;
+const POLL_MAX_ATTEMPTS = 20; // 1 minute max
+
 const UploadMedicalRecordScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { profile, updateProfile } = useHealthData();
+  const { refreshAllHealthData } = useHealthData();
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedType, setSelectedType] = useState<'lab_result' | 'imaging' | 'prescription' | 'consultation' | 'procedure' | 'other'>('lab_result');
   const [name, setName] = useState('');
   const [recordDate, setRecordDate] = useState<Date | null>(null);
@@ -73,7 +77,7 @@ const UploadMedicalRecordScreen: React.FC = () => {
     }
   };
 
-  const addMedicalRecord = () => {
+  const addMedicalRecord = async () => {
     if (!name.trim()) {
       Alert.alert('Error', 'Please enter a record name');
       return;
@@ -82,19 +86,81 @@ const UploadMedicalRecordScreen: React.FC = () => {
       Alert.alert('Error', 'Please select a photo or document');
       return;
     }
-    const newMedicalRecord: MedicalRecord = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      type: selectedType,
-      date: recordDate ?? new Date(),
-      fileUrl: selectedFile.uri,
-      fileSize: 1024,
-      notes: notes.trim() || undefined,
-      tags: tags.trim() ? tags.split(',').map(tag => tag.trim()) : undefined,
-    };
-    const updatedRecords = [...(profile?.medicalRecords || []), newMedicalRecord];
-    updateProfile({ ...profile, medicalRecords: updatedRecords });
-    Alert.alert('Success', 'Medical record uploaded successfully');
+
+    setIsUploading(true);
+    try {
+      const fileName = selectedFile.name || name.trim().replace(/\s+/g, '_') + '.pdf';
+      const fileType = selectedFile.type || 'application/pdf';
+      const reportDateStr = recordDate ? recordDate.toISOString().split('T')[0] : undefined;
+
+      // Step 1: Get presigned S3 URL from backend
+      const { labResultId, uploadUrl } = await DataService.requestLabResultUpload({
+        fileName,
+        fileType,
+        labName: name.trim(),
+        reportDate: reportDateStr,
+      });
+
+      // Step 2: Upload file directly to S3 using presigned URL
+      const fileResponse = await fetch(selectedFile.uri);
+      const fileBlob = await fileResponse.blob();
+      const s3Response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': fileType },
+        body: fileBlob,
+      });
+
+      if (!s3Response.ok) {
+        throw new Error(`S3 upload failed: ${s3Response.status}`);
+      }
+
+      // Step 3: Poll for processing completion
+      let attempts = 0;
+      const poll = async (): Promise<void> => {
+        attempts += 1;
+        try {
+          const { processing_status } = await DataService.getLabResultStatus(labResultId);
+          if (processing_status === 'complete') {
+            refreshAllHealthData().catch(e => console.warn('Health data refresh failed:', e));
+            Alert.alert(
+              'Processed',
+              'Your lab result has been analysed and biomarkers have been added to your profile.',
+              [{ text: 'OK', onPress: () => (navigation as any).goBack() }]
+            );
+            return;
+          }
+          if (processing_status === 'failed') {
+            Alert.alert(
+              'Processing failed',
+              'We could not extract biomarkers from this document. You can add them manually.',
+              [{ text: 'OK', onPress: () => (navigation as any).goBack() }]
+            );
+            return;
+          }
+        } catch {
+          // swallow polling errors — keep trying
+        }
+        if (attempts < POLL_MAX_ATTEMPTS) {
+          setTimeout(poll, POLL_INTERVAL_MS);
+        } else {
+          // Timed out — navigate away anyway, processing may still complete in background
+          Alert.alert(
+            'Uploaded',
+            'Your lab result is being processed. Biomarkers will appear in your profile shortly.',
+            [{ text: 'OK', onPress: () => (navigation as any).goBack() }]
+          );
+        }
+      };
+
+      setIsUploading(false);
+      poll();
+      return; // don't hit the finally setIsUploading(false) again
+    } catch (e: any) {
+      console.error('Upload error:', e);
+      Alert.alert('Upload failed', e?.message || 'Could not upload the file. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const getTypeIcon = (type: string) => recordTypes.find(t => t.value === type)?.icon || 'document-outline';
@@ -131,8 +197,10 @@ const UploadMedicalRecordScreen: React.FC = () => {
           <Ionicons name="close" size={22} color="#FF3B30" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upload Medical Record</Text>
-        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Ionicons name="checkmark" size={22} color="#34C759" />
+        <TouchableOpacity onPress={addMedicalRecord} style={styles.saveButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} disabled={isUploading}>
+          {isUploading
+            ? <ActivityIndicator size="small" color="#34C759" />
+            : <Ionicons name="checkmark" size={22} color="#34C759" />}
         </TouchableOpacity>
       </View>
 

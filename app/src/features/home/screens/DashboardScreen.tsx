@@ -25,7 +25,6 @@ import BiomarkerModal, {
 } from '../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
 import HealthChatModal from '../travel-health/nearby-medical/HealthChatModal';
-import LabResultDetailModal from '../recent-lab-results/LabResultDetailModal';
 import TwitterLoadingIndicator from '../../../shared/components/feedback/TwitterLoadingIndicator';
 import QuickSymptomLogModal from '../../../shared/components/modals/QuickSymptomLogModal';
 
@@ -53,8 +52,6 @@ const DashboardScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedLabResult, setSelectedLabResult] = useState<LabResult | null>(null);
-  const [labResultModalVisible, setLabResultModalVisible] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
   const [healthAlerts, setHealthAlerts] = useState<Array<{
@@ -152,8 +149,7 @@ const DashboardScreen: React.FC = () => {
   const handleRingPress = (_ringId: string) => {};
 
   const handleLabResultPress = (labResult: LabResult) => {
-    setSelectedLabResult(labResult);
-    setLabResultModalVisible(true);
+    navigation.navigate('LabResultDetail', { labResult });
   };
 
   const handleTravelPress = () => {};
@@ -279,14 +275,6 @@ const DashboardScreen: React.FC = () => {
         onClose={() => setChatModalVisible(false)}
       />
 
-      <LabResultDetailModal
-        visible={labResultModalVisible}
-        labResult={selectedLabResult}
-        onClose={() => {
-          setLabResultModalVisible(false);
-          setSelectedLabResult(null);
-        }}
-      />
 
       <QuickSymptomLogModal
         visible={showSymptomModal}

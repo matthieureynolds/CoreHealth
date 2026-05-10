@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../../../../shared/types';
+import { api } from '../../../../../shared/services/data/apiClient';
 import { ALL_CIRCLES, TABS, Circle, TabKey } from './components/leaderboardData';
 import LeaguesTab from './components/LeaguesTab';
 import CountriesTab from './components/CountriesTab';
@@ -17,6 +20,20 @@ const CommunityLeaderboardScreen: React.FC = () => {
   const [joinedCircles, setJoinedCircles] = useState<Record<string, boolean>>({ c1: true, c2: true });
   const [joinedLeagues, setJoinedLeagues] = useState<Record<string, boolean>>({});
   const [leagueCategory, setLeagueCategory] = useState('All');
+
+  useEffect(() => {
+    AsyncStorage.getItem('joined_leagues').then(stored => {
+      if (stored) { try { setJoinedLeagues(JSON.parse(stored)); } catch {} }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem('joined_leagues', JSON.stringify(joinedLeagues)).catch(() => {});
+    fetchAuthSession().then(session => {
+      const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+      if (userId) api.put(`/users/${userId}/joined-leagues`, joinedLeagues).catch(() => {});
+    }).catch(() => {});
+  }, [joinedLeagues]);
   const [circles, setCircles]             = useState<Circle[]>(ALL_CIRCLES);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal]     = useState(false);

@@ -5,16 +5,30 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ProfileTabParamList } from '../../../../shared/types';
+import { useAuth } from '../../../../shared/context/AuthContext';
+import { useHealthData } from '../../../../shared/context/HealthDataContext';
+import { genderOptions } from '../profile/personal-info/useProfileDetails';
 
 type SettingsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
-const SettingsScreen: React.FC = () => {
+const showLockedAlert = (field: string) => {
+  Alert.alert(
+    `${field} Locked`,
+    `To change your ${field.toLowerCase()}, please contact our support team at support@corehealth.ai`,
+    [{ text: 'OK' }]
+  );
+};
+
+const SettingsScreen = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
+  const { user } = useAuth();
+  const { profile } = useHealthData();
 
   return (
     <View style={styles.container}>
@@ -30,6 +44,49 @@ const SettingsScreen: React.FC = () => {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       {/* Content */}
       <View style={styles.content}>
+        {/* Personal Info Card */}
+        <View style={[styles.card, styles.cardTightBottom]}>
+          <Text style={styles.cardHeader}>PERSONAL INFO</Text>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('EditName')}>
+            <Ionicons name="person-outline" size={22} color="#FF9500" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Personal Info</Text>
+            <Text style={styles.cardValue}>
+              {user?.firstName && user?.surname
+                ? `${user.firstName} ${user.surname}`
+                : user?.displayName || 'Not set'}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cardRow} onPress={() => showLockedAlert('Date of Birth')}>
+            <Ionicons name="calendar-outline" size={22} color="#4CD964" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Date of Birth</Text>
+            <Text style={styles.cardValue}>{profile?.age ? `${profile.age} years old` : 'Not set'}</Text>
+            <Ionicons name="lock-closed" size={16} color="#8E8E93" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cardRow} onPress={() => showLockedAlert('Gender')}>
+            <Ionicons name="body-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Gender</Text>
+            <Text style={styles.cardValue}>
+              {profile?.gender
+                ? genderOptions.find(o => o.value === profile.gender)?.label || profile.gender
+                : 'Not set'}
+            </Text>
+            <Ionicons name="lock-closed" size={16} color="#8E8E93" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cardRow} onPress={() => navigation.navigate('LifestyleInfo')}>
+            <Ionicons name="bed-outline" size={22} color="#5856D6" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Lifestyle Info</Text>
+            <Text style={styles.cardValue}>Sleep Schedule</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.cardRow, styles.lastRow]} onPress={() => navigation.navigate('HealthIDs')}>
+            <Ionicons name="card-outline" size={22} color="#8E44AD" style={styles.cardIcon} />
+            <Text style={styles.cardLabel}>Linked Health ID</Text>
+            <Text style={styles.cardValue}>{profile?.healthIDs?.length ? `${profile.healthIDs.length} IDs` : 'Not set'}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
+          </TouchableOpacity>
+        </View>
+
         {/* Account & Preferences Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>ACCOUNT & PREFERENCES</Text>
@@ -91,6 +148,7 @@ const SettingsScreen: React.FC = () => {
         </View>
       </View>
       </ScrollView>
+
     </View>
   );
 };
@@ -168,6 +226,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
     flex: 1,
+  },
+  cardValue: {
+    color: '#8E8E93',
+    fontSize: 15,
+    marginRight: 8,
   },
   chevron: {
     marginLeft: 'auto',

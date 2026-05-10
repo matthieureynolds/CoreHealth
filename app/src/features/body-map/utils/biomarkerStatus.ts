@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 
 const BIOMARKER_STATUS_COLORS: Record<string, string> = {
-  normal:   '#30D158',
-  low:      '#FF9F0A',
-  high:     '#FF6B35',
-  critical: '#FF3B30',
+  optimal:    '#30D158',
+  normal:     '#30D158',
+  borderline: '#FF9F0A',
+  abnormal:   '#FF3B30',
+  low:        '#FF9F0A',
+  high:       '#FF6B35',
+  critical:   '#FF3B30',
 };
 
 export const getBiomarkerStatusColor = (status?: string): string =>

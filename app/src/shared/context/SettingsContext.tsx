@@ -7,6 +7,8 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance, ColorSchemeName } from 'react-native';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { api } from '../services/data/apiClient';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
 import {
@@ -92,6 +94,11 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
   const saveSettings = async (newSettings: UserSettings) => {
     try {
       await AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings));
+      // Sync to backend so Toto has full context (fire-and-forget)
+      fetchAuthSession().then(session => {
+        const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+        if (userId) api.put(`/users/${userId}/settings`, newSettings as any).catch(() => {});
+      }).catch(() => {});
       try {
         await HealthAssistantService.syncSettingsSnapshot(newSettings);
         await refreshUserSnapshot();

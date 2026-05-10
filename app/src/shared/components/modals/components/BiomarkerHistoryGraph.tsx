@@ -13,12 +13,12 @@ const BiomarkerHistoryGraph: React.FC<BiomarkerHistoryGraphProps> = ({ historyDa
   const data = historyData || [0.8, 0.85, 0.9, 0.88, 0.93, 0.95, 0.92, 0.89, 0.91, 0.93, 0.94, 0.93];
   const maxValue = Math.max(...data);
   const minValue = Math.min(...data);
-  const range = maxValue - minValue;
+  const range = maxValue - minValue || 1;
   const graphWidth = width - 80;
   const graphHeight = 80;
 
   const points = data.map((value, index) => ({
-    x: (index / (data.length - 1)) * graphWidth,
+    x: data.length <= 1 ? graphWidth / 2 : (index / (data.length - 1)) * graphWidth,
     y: graphHeight - ((value - minValue) / range) * graphHeight,
   }));
 

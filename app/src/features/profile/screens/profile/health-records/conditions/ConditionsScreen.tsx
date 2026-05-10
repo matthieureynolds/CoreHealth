@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,32 +6,78 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
-import { useNavigation } from '@react-navigation/native';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../../../../../shared/context/AuthContext';
 import { MedicalCondition } from '../../../../../../shared/types';
 import ConditionFormModal from './ConditionFormModal';
 import { useFileViewer } from '../hooks/useFileViewer';
+import { DataService } from '../../../../../../shared/services/data/dataService';
 
 const ConditionsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { profile, updateProfile } = useHealthData();
+  const { user } = useAuth();
+  const [conditions, setConditions] = useState<MedicalCondition[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCondition, setEditingCondition] = useState<MedicalCondition | null>(null);
   const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
-  const handleSave = (condition: MedicalCondition) => {
-    const existing = profile?.medicalHistory || [];
-    const isEdit = existing.some(c => c.id === condition.id);
-    updateProfile({
-      ...profile,
-      medicalHistory: isEdit
-        ? existing.map(c => c.id === condition.id ? condition : c)
-        : [...existing, condition],
-    });
+  const loadConditions = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const rows = await DataService.getConditions(user.id);
+      setConditions(rows.map((c: any) => ({
+        id: c.id,
+        condition: c.name,
+        severity: (c.severity ?? 'mild') as MedicalCondition['severity'],
+        status: (c.status ?? 'active') as MedicalCondition['status'],
+        diagnosedDate: c.diagnosed_date ?? new Date().toISOString(),
+        resolvedDate: c.resolved_date ?? undefined,
+        notes: c.notes ?? undefined,
+      })));
+    } catch (e) {
+      console.error('Failed to load conditions:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(useCallback(() => { loadConditions(); }, [loadConditions]));
+
+  const handleSave = async (condition: MedicalCondition) => {
+    if (!user?.id) return;
+    try {
+      const isEdit = conditions.some(c => c.id === condition.id);
+      if (isEdit) {
+        await DataService.updateCondition(user.id, condition.id, {
+          name: condition.condition,
+          severity: condition.severity,
+          status: condition.status,
+          diagnosedDate: condition.diagnosedDate,
+          resolvedDate: condition.resolvedDate,
+          notes: condition.notes,
+        });
+        setConditions(prev => prev.map(c => c.id === condition.id ? condition : c));
+      } else {
+        const saved = await DataService.addCondition(user.id, {
+          name: condition.condition,
+          severity: condition.severity,
+          status: condition.status,
+          diagnosedDate: condition.diagnosedDate,
+          resolvedDate: condition.resolvedDate,
+          notes: condition.notes,
+        });
+        setConditions(prev => [...prev, { ...condition, id: saved.id }]);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not save condition.');
+    }
     setShowAddModal(false);
     setEditingCondition(null);
   };
@@ -46,7 +92,13 @@ const ConditionsScreen: React.FC = () => {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
-        onPress: () => updateProfile({ ...profile, medicalHistory: profile?.medicalHistory?.filter(c => c.id !== id) || [] }),
+        onPress: async () => {
+          if (!user?.id) return;
+          try {
+            await DataService.deleteCondition(user.id, id);
+            setConditions(prev => prev.filter(c => c.id !== id));
+          } catch (e) { Alert.alert('Error', 'Could not delete condition.'); }
+        },
       },
     ]);
   };
@@ -93,8 +145,10 @@ const ConditionsScreen: React.FC = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
         <View style={styles.content}>
-          {profile?.medicalHistory?.length ? (
-            profile.medicalHistory.map((condition) => (
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+          ) : conditions.length ? (
+            conditions.map((condition) => (
               <View key={condition.id} style={styles.conditionCard}>
                 <View style={styles.conditionHeader}>
                   <View style={styles.conditionHeaderLeft}>

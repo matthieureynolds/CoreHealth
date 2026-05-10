@@ -17,8 +17,8 @@ import { useHealthData } from '../../../../shared/context/HealthDataContext';
 import {
   HealthAssistantService,
   HealthChatMessage,
-  OPENAI_API_KEY,
 } from '../../../../shared/services/ai/healthAssistantService';
+import { DataService } from '../../../../shared/services/data/dataService';
 import ChatHeader from './components/ChatHeader';
 import HealthContextBar from './components/HealthContextBar';
 import MessageList from './components/MessageList';
@@ -196,19 +196,11 @@ const HealthChatModal: React.FC<HealthChatModalProps> = ({ visible, onClose }) =
           if (recordingTimer.current) { clearInterval(recordingTimer.current); recordingTimer.current = null; }
           setRecordingDuration(0);
           if (uri) {
-            const form = new FormData();
-            form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' } as unknown as Blob);
-            form.append('model', 'gpt-4o-transcribe');
-            form.append('response_format', 'json');
             try {
-              const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-                body: form as any,
-              });
-              if (!res.ok) throw new Error(await res.text());
-              const data = await res.json();
-              setInputText((data.text ?? '').trim());
+              const { readAsStringAsync, EncodingType } = await import('expo-file-system');
+              const audioBase64 = await readAsStringAsync(uri, { encoding: EncodingType.Base64 });
+              const { transcript } = await DataService.transcribeAudio(audioBase64, 'audio/m4a');
+              setInputText(transcript.trim());
             } catch (txErr) {
               console.error('Transcription error:', txErr);
               Alert.alert('Transcription failed', 'Could not transcribe audio.');

@@ -628,6 +628,14 @@ export class ApiStack extends cdk.Stack {
     // /users/{userId}/joined-leagues — community league membership
     user.addResource('joined-leagues').addMethod('PUT', new apigateway.LambdaIntegration(usersLambda), authOptions);
 
+    // /users/{userId}/health-memory — GDPR Art. 22 right to inspect + erase AI memory
+    const healthMemory = user.addResource('health-memory');
+    healthMemory.addMethod('GET', new apigateway.LambdaIntegration(usersLambda), authOptions);
+    healthMemory.addMethod('DELETE', new apigateway.LambdaIntegration(usersLambda), authOptions);
+
+    // /users/{userId}/data-export — GDPR Art. 20 data portability
+    user.addResource('data-export').addMethod('GET', new apigateway.LambdaIntegration(usersLambda), authOptions);
+
     // /ai — Toto chat + media proxies
     const ai = api.root.addResource('ai');
     const chat = ai.addResource('chat');

@@ -51,18 +51,8 @@ const AnimatedRing: React.FC<AnimatedRingProps> = ({ metric, animatedValue, onRi
   return (
     <TouchableOpacity
       style={styles.ringContainer}
-      onPress={() => {
-        navigation.navigate('ScoreDetail', {
-          id: metric.id as 'recovery' | 'biomarkers' | 'lifestyle',
-          title: metric.title.charAt(0) + metric.title.slice(1).toLowerCase(),
-          value: metric.value,
-          color: metric.color,
-          icon: metric.icon,
-          subtitle: metric.subtitle,
-        });
-        onRingPress?.(metric.id);
-      }}
-      activeOpacity={0.8}
+      onPress={() => navigation.navigate('RingDetail', { id: metric.id as 'recovery' | 'biomarkers' | 'lifestyle' })}
+      activeOpacity={0.7}
     >
       <View style={styles.ringContent}>
         <Svg width={ringSize} height={ringSize} style={styles.svg}>
