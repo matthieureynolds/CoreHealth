@@ -137,6 +137,7 @@ interface FlightLookupStepProps {
   flightNumber: string;
   detectedAirline: string | null;
   isLookingUpFlight: boolean;
+  flightNotFound: boolean;
   flightLookupResult: any;
   flightSegments: any[];
   flightDetailsExpanded: boolean;
@@ -153,6 +154,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
   flightNumber,
   detectedAirline,
   isLookingUpFlight,
+  flightNotFound,
   flightLookupResult,
   flightSegments,
   flightDetailsExpanded,
@@ -240,6 +242,18 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#3AABF0" />
           <Text style={styles.loadingText}>Looking up flight...</Text>
+        </View>
+      )}
+
+      {flightNotFound && !isLookingUpFlight && (
+        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+          <Ionicons name="airplane-outline" size={32} color="#8E8E93" />
+          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginTop: 10 }}>
+            No flight found
+          </Text>
+          <Text style={{ color: '#8E8E93', fontSize: 14, marginTop: 4, textAlign: 'center' }}>
+            Try a different flight number or enter details manually
+          </Text>
         </View>
       )}
 

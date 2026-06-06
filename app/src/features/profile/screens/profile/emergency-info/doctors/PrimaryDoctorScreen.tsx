@@ -8,10 +8,12 @@ import {
   Alert,
   StatusBar,
   Linking,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import * as Contacts from 'expo-contacts';
 import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
 import { ProfileTabParamList, Doctor } from '../../../../../../shared/types';
 import DoctorsHeader from './components/DoctorsHeader';
@@ -41,12 +43,62 @@ const PrimaryDoctorScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [formData, setFormData] = useState<DoctorFormData>(EMPTY_FORM);
+  const [addOptionsVisible, setAddOptionsVisible] = useState(false);
+  const [deviceContacts, setDeviceContacts] = useState<{ id: string; name: string; phoneNumbers: Contacts.PhoneNumber[]; emails: Contacts.Email[] }[]>([]);
+  const [selectionModalVisible, setSelectionModalVisible] = useState(false);
 
   const doctors = profile?.doctors || [];
 
+  const showAddOptions = () => setAddOptionsVisible(true);
+
   const handleAdd = () => {
+    setAddOptionsVisible(false);
     setFormData(EMPTY_FORM);
     setEditingDoctor(null);
+    setModalVisible(true);
+  };
+
+  const handleImportFromContacts = async () => {
+    setAddOptionsVisible(false);
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant contacts permission to import from your device.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        ]);
+        return;
+      }
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+        sort: Contacts.SortTypes.FirstName,
+      });
+      const filtered = data
+        .filter(c => c.phoneNumbers?.length)
+        .map(c => ({ id: c.id, name: c.name || 'Unknown', phoneNumbers: c.phoneNumbers || [], emails: c.emails || [] }));
+      if (filtered.length) {
+        setDeviceContacts(filtered);
+        setSelectionModalVisible(true);
+      } else {
+        Alert.alert('No Contacts', 'No contacts with phone numbers found.');
+      }
+    } catch {
+      Alert.alert('Error', 'Failed to load contacts from your device.');
+    }
+  };
+
+  const applyDeviceContact = (c: { name: string; phoneNumbers: Contacts.PhoneNumber[]; emails: Contacts.Email[] }) => {
+    setFormData({
+      name: c.name,
+      specialty: '',
+      phone: c.phoneNumbers[0]?.number || '',
+      email: c.emails[0]?.email || '',
+      office: '',
+      address: '',
+      notes: '',
+    });
+    setEditingDoctor(null);
+    setSelectionModalVisible(false);
     setModalVisible(true);
   };
 
@@ -151,7 +203,7 @@ const PrimaryDoctorScreen: React.FC = () => {
             <Text style={styles.emptyStateText}>
               Add your doctors for quick access during emergencies
             </Text>
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+            <TouchableOpacity style={styles.addButton} onPress={showAddOptions}>
               <Ionicons name="add" size={20} color="#FFFFFF" />
               <Text style={styles.addButtonText}>Add Doctor</Text>
             </TouchableOpacity>
@@ -167,7 +219,7 @@ const PrimaryDoctorScreen: React.FC = () => {
                 onOptions={openDoctorOptions}
               />
             ))}
-            <TouchableOpacity style={styles.addMoreButton} onPress={handleAdd}>
+            <TouchableOpacity style={styles.addMoreButton} onPress={showAddOptions}>
               <Ionicons name="add" size={20} color="#3AABF0" />
               <Text style={styles.addMoreButtonText}>Add Another Doctor</Text>
             </TouchableOpacity>
@@ -183,6 +235,53 @@ const PrimaryDoctorScreen: React.FC = () => {
         onClose={() => setModalVisible(false)}
         onSave={handleSave}
       />
+
+      {/* Add Options Modal */}
+      <Modal visible={addOptionsVisible} transparent animationType="fade" onRequestClose={() => setAddOptionsVisible(false)}>
+        <TouchableOpacity style={styles.optionsOverlay} activeOpacity={1} onPress={() => setAddOptionsVisible(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}} style={styles.optionsSheet}>
+            <View style={styles.optionsHeader}>
+              <TouchableOpacity onPress={() => setAddOptionsVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={20} color="#FF3B30" />
+              </TouchableOpacity>
+              <Text style={styles.optionsTitle}>Add Doctor</Text>
+              <View style={{ width: 20 }} />
+            </View>
+            <TouchableOpacity style={styles.optionRow} onPress={handleImportFromContacts}>
+              <Ionicons name="people-outline" size={20} color="#AF52DE" />
+              <Text style={styles.optionRowText}>Import from Contacts</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.optionRow} onPress={handleAdd}>
+              <Ionicons name="create-outline" size={20} color="#FF9500" />
+              <Text style={styles.optionRowText}>Add Manually</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Device Contact Selection Modal */}
+      <Modal visible={selectionModalVisible} animationType="slide" presentationStyle="pageSheet">
+        <View style={styles.selectionContainer}>
+          <View style={styles.selectionHeader}>
+            <TouchableOpacity onPress={() => setSelectionModalVisible(false)}>
+              <Text style={styles.selectionCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.selectionTitle}>Select Contact</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {deviceContacts.map(c => (
+              <TouchableOpacity key={c.id} style={styles.contactSelectRow} onPress={() => applyDeviceContact(c)}>
+                <View style={styles.contactSelectInfo}>
+                  <Text style={styles.contactSelectName}>{c.name}</Text>
+                  <Text style={styles.contactSelectMeta}>{c.phoneNumbers[0]?.number || 'No phone'}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -247,6 +346,89 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#3AABF0',
     marginLeft: 8,
+  },
+  optionsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  optionsSheet: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 44,
+  },
+  optionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  optionsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  optionRowText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+    marginLeft: 14,
+  },
+  selectionContainer: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+  },
+  selectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  selectionCancelText: {
+    fontSize: 16,
+    color: '#3AABF0',
+  },
+  selectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  contactSelectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  contactSelectInfo: {
+    flex: 1,
+  },
+  contactSelectName: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  contactSelectMeta: {
+    fontSize: 14,
+    color: '#8E8E93',
   },
 });
 

@@ -610,9 +610,11 @@ jetLagTitle: {
     color: '#3AABF0',
   },
   datePickerTitle: {
+    flex: 1,
     fontSize: 20,
     fontWeight: 'bold',
-  color: '#FFFFFF',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   datePickerDoneText: {
     fontSize: 16,

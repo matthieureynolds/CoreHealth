@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,47 @@ import { styles } from '../TravelScreen.styles';
 import FlightLookupStep from './components/FlightLookupStep';
 import ManualTripForm from './components/ManualTripForm';
 
+/**
+ * Isolates the DateTimePicker from parent re-renders.
+ * The iOS inline picker is fully controlled — any re-render with a `value` prop
+ * snaps the calendar back to that date's month. This wrapper never re-renders
+ * after mount so the native picker keeps full control of its visual state.
+ */
+const StableDatePicker = React.memo(({
+  initialValue,
+  minimumDate,
+  pickerMode = 'date',
+  onDateSelected,
+}: {
+  initialValue: Date;
+  minimumDate?: Date;
+  pickerMode?: 'date' | 'time';
+  onDateSelected: (date: Date) => void;
+}) => {
+  // Freeze initial props — never update from parent
+  const frozenValue = useRef(initialValue).current;
+  const frozenMinDate = useRef(minimumDate).current;
+  const callbackRef = useRef(onDateSelected);
+  callbackRef.current = onDateSelected;
+
+  const handleChange = useCallback((_event: any, selectedDate?: Date) => {
+    if (selectedDate) callbackRef.current(selectedDate);
+  }, []);
+
+  return (
+    <DateTimePicker
+      value={frozenValue}
+      mode={pickerMode}
+      display={Platform.OS === 'ios' ? (pickerMode === 'time' ? 'spinner' : 'inline') : 'default'}
+      themeVariant="dark"
+      textColor="#FFFFFF"
+      onChange={handleChange}
+      {...(frozenMinDate ? { minimumDate: frozenMinDate } : {})}
+      style={styles.datePicker}
+    />
+  );
+}, () => true); // Never re-render — props are captured in refs
+
 interface AddTripModalProps {
   visible: boolean;
   tripModalTranslateY: Animated.Value;
@@ -26,6 +67,7 @@ interface AddTripModalProps {
   flightNumber: string;
   detectedAirline: string | null;
   isLookingUpFlight: boolean;
+  flightNotFound: boolean;
   flightLookupResult: any;
   flightSegments: any[];
   flightDetailsExpanded: boolean;
@@ -34,9 +76,11 @@ interface AddTripModalProps {
   // New trip state
   newTripDepartureLocation: string;
   newTripDestination: string;
-  newTripDepartureDate: Date;
+  newTripDepartureDate: Date | undefined;
   newTripReturnDate: Date | undefined;
-  showDatePicker: 'departure' | 'return' | null;
+  newTripDepartureTime: Date | undefined;
+  newTripReturnTime: Date | undefined;
+  showDatePicker: 'departure' | 'return' | 'departureTime' | 'returnTime' | null;
   tempDatePickerValue: Date | undefined;
   tripSuggestions: string[];
   departureSuggestions: string[];
@@ -51,12 +95,13 @@ interface AddTripModalProps {
   onAddAnotherFlight: () => void;
   onConfirmFlightTrip: () => void;
   onShowManualEntry: () => void;
+  onHideManualEntry: () => void;
   onAddTrip: () => void;
   onDepartureLocationChange: (v: string) => void;
   onDestinationChange: (v: string) => void;
   onSetDepartureLocation: (v: string) => void;
   onSetDestination: (v: string) => void;
-  onShowDatePicker: (v: 'departure' | 'return') => void;
+  onShowDatePicker: (v: 'departure' | 'return' | 'departureTime' | 'returnTime') => void;
   onDateChange: (event: any, date?: Date) => void;
   onDateConfirm: () => void;
   onDateCancel: () => void;
@@ -70,6 +115,7 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   flightNumber,
   detectedAirline,
   isLookingUpFlight,
+  flightNotFound,
   flightLookupResult,
   flightSegments,
   flightDetailsExpanded,
@@ -78,6 +124,8 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   newTripDestination,
   newTripDepartureDate,
   newTripReturnDate,
+  newTripDepartureTime,
+  newTripReturnTime,
   showDatePicker,
   tempDatePickerValue,
   tripSuggestions,
@@ -91,6 +139,7 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   onAddAnotherFlight,
   onConfirmFlightTrip,
   onShowManualEntry,
+  onHideManualEntry,
   onAddTrip,
   onDepartureLocationChange,
   onDestinationChange,
@@ -103,7 +152,6 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   onGetCurrentLocation,
 }) => {
   const insets = useSafeAreaInsets();
-
   const canSubmit = showManualEntry
     ? newTripDepartureLocation.trim().length > 0 && newTripDestination.trim().length > 0
     : flightCarrier.trim().length > 0 && flightNumber.trim().length > 0 && !isLookingUpFlight;
@@ -121,11 +169,19 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   return (
     <Modal
       visible={visible}
-      transparent
       animationType="none"
-      presentationStyle="overFullScreen"
+      transparent
+      onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <View style={styles.bottomSheetOverlay}>
+      <Animated.View style={[styles.bottomSheetOverlay, {
+        opacity: tripModalTranslateY.interpolate({
+          inputRange: [0, 1000],
+          outputRange: [1, 0],
+          extrapolate: 'clamp',
+        }),
+        backgroundColor: 'rgba(0,0,0,0.7)',
+      }]}>
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
@@ -137,20 +193,15 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
               { transform: [{ translateY: tripModalTranslateY }] },
             ]}
           >
-            {/* Handle bar */}
-            <View style={styles.bottomSheetHandleContainer}>
-              <View style={styles.bottomSheetHandle} />
-            </View>
-
             {/* Header */}
-            <View style={styles.bottomSheetHeader} pointerEvents="box-none">
+            <View style={[styles.bottomSheetHeader, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
               <TouchableOpacity
-                onPress={(e) => { e.stopPropagation(); onClose(); }}
+                onPress={(e) => { e.stopPropagation(); showManualEntry ? onHideManualEntry() : onClose(); }}
                 style={styles.bottomSheetCloseButton}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close" size={20} color="#FF3B30" />
+                <Ionicons name={showManualEntry ? "chevron-back" : "close"} size={showManualEntry ? 24 : 20} color={showManualEntry ? "#FFFFFF" : "#FF3B30"} />
               </TouchableOpacity>
               <Text style={styles.bottomSheetTitle}>Add New Trip</Text>
               <TouchableOpacity
@@ -180,6 +231,7 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
                   flightNumber={flightNumber}
                   detectedAirline={detectedAirline}
                   isLookingUpFlight={isLookingUpFlight}
+                  flightNotFound={flightNotFound}
                   flightLookupResult={flightLookupResult}
                   flightSegments={flightSegments}
                   flightDetailsExpanded={flightDetailsExpanded}
@@ -196,6 +248,8 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
                   newTripDestination={newTripDestination}
                   newTripDepartureDate={newTripDepartureDate}
                   newTripReturnDate={newTripReturnDate}
+                  newTripDepartureTime={newTripDepartureTime}
+                  newTripReturnTime={newTripReturnTime}
                   tripSuggestions={tripSuggestions}
                   departureSuggestions={departureSuggestions}
                   isGettingLocation={isGettingLocation}
@@ -221,25 +275,26 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                 <View>
                   <View style={styles.datePickerHeader}>
-                    <TouchableOpacity onPress={onDateCancel}>
-                      <Ionicons name="close" size={22} color="#FF3B30" />
+                    <TouchableOpacity onPress={onDateCancel} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                      <Ionicons name="close-circle" size={28} color="#FF3B30" />
                     </TouchableOpacity>
                     <Text style={styles.datePickerTitle}>
-                      {showDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
+                      {showDatePicker === 'departure' ? 'Departure Date' : showDatePicker === 'return' ? 'Return Date' : showDatePicker === 'departureTime' ? 'Departure Time' : 'Return Time'}
                     </Text>
-                    <TouchableOpacity onPress={onDateConfirm}>
-                      <Ionicons name="checkmark" size={22} color="#34C759" />
+                    <TouchableOpacity onPress={onDateConfirm} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                      <Ionicons name="checkmark-circle" size={28} color="#34C759" />
                     </TouchableOpacity>
                   </View>
-                  <DateTimePicker
-                    value={tempDatePickerValue ?? (showDatePicker === 'departure' ? newTripDepartureDate : (newTripReturnDate || new Date()))}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                    themeVariant="dark"
-                    textColor="#FFFFFF"
-                    onChange={onDateChange}
-                    minimumDate={showDatePicker === 'return' ? newTripDepartureDate : new Date()}
-                    style={styles.datePicker}
+                  <StableDatePicker
+                    initialValue={tempDatePickerValue ?? (() => {
+                      if (showDatePicker === 'departure') return newTripDepartureDate || new Date();
+                      if (showDatePicker === 'return') return newTripReturnDate || new Date();
+                      if (showDatePicker === 'departureTime') return newTripDepartureTime || new Date();
+                      return newTripReturnTime || new Date();
+                    })()}
+                    minimumDate={showDatePicker === 'return' ? (newTripDepartureDate || new Date()) : showDatePicker === 'departure' ? new Date() : undefined}
+                    pickerMode={showDatePicker === 'departureTime' || showDatePicker === 'returnTime' ? 'time' : 'date'}
+                    onDateSelected={(date) => onDateChange(null, date)}
                     key={showDatePicker}
                   />
                 </View>
@@ -247,7 +302,7 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
             </View>
           </View>
         )}
-      </View>
+      </Animated.View>
     </Modal>
   );
 };

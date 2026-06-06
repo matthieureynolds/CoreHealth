@@ -1,8 +1,37 @@
 import { useState, useRef, useEffect } from 'react';
-import { Alert, Animated, Easing } from 'react-native';
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import { Alert, Animated, Easing, Platform } from 'react-native';
+import { Audio, type RecordingOptions } from 'expo-av';
+import * as FileSystem from 'expo-file-system/legacy';
 import { DataService } from '../../../shared/services/data/dataService';
+
+// Speech-optimised: low bitrate AAC mono keeps files small for the 10 MB API Gateway limit.
+// Whisper transcribes speech well at 32 kbps / 16 kHz mono.
+const SPEECH_RECORDING_OPTIONS: RecordingOptions = {
+  isMeteringEnabled: true,
+  android: {
+    extension: '.m4a',
+    outputFormat: 2, // MPEG_4
+    audioEncoder: 3, // AAC
+    sampleRate: 16_000,
+    numberOfChannels: 1,
+    bitRate: 32_000,
+  },
+  ios: {
+    extension: '.m4a',
+    outputFormat: 'aac ' as any, // IOSOutputFormat.MPEG4AAC
+    audioQuality: 32 as any,     // IOSAudioQuality.LOW
+    sampleRate: 16_000,
+    numberOfChannels: 1,
+    bitRate: 32_000,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+  },
+  web: {
+    mimeType: 'audio/webm',
+    bitsPerSecond: 32_000,
+  },
+};
 
 export interface UseVoiceRecordingResult {
   isRecording: boolean;
@@ -69,6 +98,31 @@ export function useVoiceRecording(): UseVoiceRecordingResult {
         return;
       }
 
+      // Pre-configure audio mode before any recording attempt
+      // Retry once if the session fails to activate (simulator timing issue)
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: false,
+            interruptionModeIOS: 1,
+            shouldDuckAndroid: true,
+            interruptionModeAndroid: 1,
+            playThroughEarpieceAndroid: false,
+          });
+          break;
+        } catch (modeErr) {
+          if (attempt === 1) {
+            console.warn('Audio mode setup failed:', modeErr);
+            Alert.alert('Microphone Unavailable', 'Voice input is not available right now. Please make sure the app is in the foreground and try again.');
+            return;
+          }
+          // Wait briefly and retry
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+
       if (isRecording) {
         // Stop recording
         if (recording) {
@@ -87,11 +141,14 @@ export function useVoiceRecording(): UseVoiceRecordingResult {
             if (uri) {
               try {
                 const audioBase64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+                const sizeKB = Math.round((audioBase64.length * 3) / 4 / 1024);
+                console.log(`Audio file size: ${sizeKB} KB (base64 length: ${audioBase64.length})`);
                 const { transcript } = await DataService.transcribeAudio(audioBase64, 'audio/m4a');
                 onTranscribed(transcript.trim());
-              } catch (txErr) {
+              } catch (txErr: any) {
                 console.error('Transcription error:', txErr);
-                Alert.alert('Transcription failed', 'Could not transcribe audio. Please try again.');
+                const detail = txErr?.message || String(txErr);
+                Alert.alert('Transcription failed', `Could not transcribe audio. ${detail}`);
               }
             }
           } catch (stopError) {
@@ -102,10 +159,7 @@ export function useVoiceRecording(): UseVoiceRecordingResult {
       } else {
         // Start recording
         try {
-          await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-          const recordingOptions: any = { ...(Audio.RecordingOptionsPresets.HIGH_QUALITY as any) };
-          if (recordingOptions.ios) recordingOptions.ios.meteringEnabled = true;
-          const { recording: newRecording } = await Audio.Recording.createAsync(recordingOptions as any);
+          const { recording: newRecording } = await Audio.Recording.createAsync(SPEECH_RECORDING_OPTIONS as any);
           setRecording(newRecording);
           setIsRecording(true);
           setRecordingDuration(0);

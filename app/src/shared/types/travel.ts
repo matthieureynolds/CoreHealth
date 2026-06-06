@@ -239,6 +239,7 @@ export interface TravelMedicationKit {
 
 export interface TravelHealth {
   location: string;
+  country?: string;
   coordinates?: { latitude: number; longitude: number };
   lastUpdated: Date;
   airQuality: HealthMetric;

@@ -2,11 +2,6 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
-  telegramBackground: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000000', opacity: 0.3 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16, backgroundColor: 'rgba(11, 11, 15, 0.95)', borderBottomWidth: 0.5, borderBottomColor: 'rgba(255, 255, 255, 0.1)' },
-  headerContent: { flex: 1 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 2 },
-  headerSubtitle: { fontSize: 16, color: '#8E8E93', fontWeight: '500', marginBottom: 8 },
   keyboardContainer: { flex: 1 },
   messagesContainer: { flex: 1, backgroundColor: 'transparent' },
   messagesContent: { paddingHorizontal: 4, paddingBottom: 20 },

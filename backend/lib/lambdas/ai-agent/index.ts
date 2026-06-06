@@ -482,11 +482,17 @@ ${deviceSummary}${memorySummary}`;
     const { audio, mimeType } = body;
     if (!audio) return err(400, 'audio (base64) is required');
 
-    const client = await getOpenAI();
-    const buffer = Buffer.from(audio, 'base64');
-    const file = await toFile(buffer, 'audio.m4a', { type: mimeType || 'audio/m4a' });
-    const result = await client.audio.transcriptions.create({ file, model: 'whisper-1' });
-    return ok({ transcript: result.text });
+    try {
+      const client = await getOpenAI();
+      const buffer = Buffer.from(audio, 'base64');
+      console.log(`Transcribe: ${buffer.length} bytes, mime=${mimeType || 'audio/m4a'}`);
+      const file = await toFile(buffer, 'audio.m4a', { type: mimeType || 'audio/m4a' });
+      const result = await client.audio.transcriptions.create({ file, model: 'whisper-1' });
+      return ok({ transcript: result.text });
+    } catch (txErr: any) {
+      console.error('Transcription failed:', txErr);
+      return err(500, txErr?.message ?? 'Transcription failed');
+    }
   }
 
   // POST /ai/analyze-image

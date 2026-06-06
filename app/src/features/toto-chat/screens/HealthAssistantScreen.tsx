@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { MessageComposer } from '../components/MessageComposer';
 import { ChatList } from '../components/ChatList';
 import { TelegramMediaPicker } from '../components/TelegramMediaPicker';
@@ -52,6 +53,7 @@ const HealthAssistantScreen: React.FC = () => {
     messagesContainerLayout,
     setMessagesContainerLayout,
     waveformAnimValues,
+    isRecording,
     streamingMessageId,
     pendingCommand,
     setPendingCommand,
@@ -91,19 +93,17 @@ const HealthAssistantScreen: React.FC = () => {
     loadSession,
     retryLoadHistory,
     handleLoadPlanHistory,
+    currentChatHasMemory,
+    toggleIncognito,
   } = useHealthAssistant();
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      <View style={styles.telegramBackground} />
-
       <ChatHeader
-        isLoading={isLoading}
-        streamingMessageId={streamingMessageId}
         onMenuPress={() => setShowChatHistory(true)}
-        onNewChatPress={() => setShowNewChatModal(true)}
-        styles={styles}
+        isIncognito={!currentChatHasMemory}
+        onIncognitoToggle={toggleIncognito}
       />
 
       <ChatHistoryDrawer
@@ -115,6 +115,7 @@ const HealthAssistantScreen: React.FC = () => {
         onLoadSession={loadSession}
         onSessionDeleted={(id) => setChatSessions(prev => prev.filter(s => s.id !== id))}
         onRetry={retryLoadHistory}
+        onNewChat={() => startNewChat(true)}
         styles={styles}
       />
 
@@ -149,6 +150,17 @@ const HealthAssistantScreen: React.FC = () => {
         )}
 
         <View ref={messagesContainerRef} onLayout={(e) => { const { x, y, width, height } = e.nativeEvent.layout; setMessagesContainerLayout({ x, y, width, height }); }} style={{ flex: 1, position: 'relative' }}>
+          {!currentChatHasMemory && !messages.some(m => m.role === 'user') ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 }}>
+              <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255, 255, 255, 0.08)', borderWidth: 0.5, borderColor: 'rgba(255, 255, 255, 0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+                <Ionicons name="eye-off-outline" size={28} color="#8E8E93" />
+              </View>
+              <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '600', marginBottom: 12, textAlign: 'center' }}>Temporary chat</Text>
+              <Text style={{ color: '#8E8E93', fontSize: 14, lineHeight: 20, textAlign: 'center' }}>
+                This conversation won't appear in your chat history and won't be used to improve Toto's memory. Messages are not stored.
+              </Text>
+            </View>
+          ) : (
           <Animated.View style={{ flex: 1, opacity: messagesFadeAnim }}>
             <ScrollView ref={scrollViewRef} style={styles.messagesContainer} contentContainerStyle={styles.messagesContent} onContentSizeChange={() => { if (autoScrollEnabledRef.current) scrollViewRef.current?.scrollToEnd({ animated: true }); }} onScrollBeginDrag={() => { autoScrollEnabledRef.current = false; }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <ChatList
@@ -158,6 +170,7 @@ const HealthAssistantScreen: React.FC = () => {
               />
             </ScrollView>
           </Animated.View>
+          )}
           {showMessagesAshAnimation && (
             <View style={[styles.ashOverlay, { position: 'absolute', top: 0, left: 0, width: messagesContainerLayout.width || '100%', height: messagesContainerLayout.height || '100%' }]}>
               <AshParticles visible={showMessagesAshAnimation} onComplete={() => {}} />
@@ -226,6 +239,8 @@ const HealthAssistantScreen: React.FC = () => {
           disabled={isLoading}
           onAttachPress={() => setShowMediaPicker(true)}
           onMicPress={handleVoiceInput}
+          isRecording={isRecording}
+          waveformAnimValues={waveformAnimValues}
           hasChatted={messages.some(m => m.role === 'user')}
         />
       </KeyboardAvoidingView>

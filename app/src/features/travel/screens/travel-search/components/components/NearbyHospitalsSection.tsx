@@ -1,19 +1,25 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../TravelScreen.styles';
+
+const openMapsAlert = (destination: string) => {
+  Alert.alert('Open Maps', `Navigate to ${destination}?`, [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Apple Maps', onPress: () => Linking.openURL(`http://maps.apple.com/?daddr=${encodeURIComponent(destination)}`) },
+    { text: 'Google Maps', onPress: () => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`) },
+  ]);
+};
 
 interface NearbyHospitalsSectionProps {
   selectedLocation: string;
   getRowAnim: (key: string) => { opacity: Animated.Value; translate: Animated.Value };
-  onOpenMaps: (destination: string) => void;
   onEmergencyContactPress: () => void;
 }
 
 const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
   selectedLocation,
   getRowAnim,
-  onOpenMaps,
   onEmergencyContactPress,
 }) => (
   <Animated.View
@@ -27,7 +33,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
   >
     <View style={styles.sectionGroupCard}>
       <Text style={styles.sectionTitle}>Nearby Hospitals</Text>
-      <TouchableOpacity style={styles.hospitalCard} onPress={() => onOpenMaps('Central Hospital')}>
+      <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('Central Hospital')}>
         <View style={styles.hospitalHeader}>
           <Ionicons name="medical" size={20} color="#FF3B30" />
           <Text style={styles.hospitalTitle}>Central Hospital</Text>
@@ -38,7 +44,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
         <Text style={styles.hospitalInfo}>24/7 Emergency Services • ICU Available</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.hospitalCard} onPress={() => onOpenMaps('City Medical Center')}>
+      <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('City Medical Center')}>
         <View style={styles.hospitalHeader}>
           <Ionicons name="medical" size={20} color="#FF3B30" />
           <Text style={styles.hospitalTitle}>City Medical Center</Text>
@@ -49,7 +55,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
         <Text style={styles.hospitalInfo}>General Practice • Emergency Care</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.hospitalCard} onPress={() => onOpenMaps('Emergency Clinic')}>
+      <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('Emergency Clinic')}>
         <View style={styles.hospitalHeader}>
           <Ionicons name="medical" size={20} color="#FF3B30" />
           <Text style={styles.hospitalTitle}>Emergency Clinic</Text>

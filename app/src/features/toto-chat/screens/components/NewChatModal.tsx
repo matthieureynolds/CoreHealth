@@ -64,13 +64,6 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             >
               <Text style={styles.newChatButtonText}>With Memory</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.newChatButtonNoMemory}
-              onPress={onStartWithoutMemory}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.newChatButtonText}>No Memory</Text>
-            </TouchableOpacity>
           </View>
         </Animated.View>
       </View>

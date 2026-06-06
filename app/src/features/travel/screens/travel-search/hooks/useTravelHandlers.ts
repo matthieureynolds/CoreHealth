@@ -1,3 +1,4 @@
+import React from 'react';
 import { Alert, Keyboard } from 'react-native';
 import { Animated } from 'react-native';
 import { LocationData } from '../../../../../shared/types';
@@ -15,7 +16,7 @@ type SetDate = (v: Date) => void;
 type SetDateOpt = (v: Date | undefined) => void;
 type SetAny = (v: any) => void;
 type SetAnyFn = (fn: (prev: any) => any) => void;
-type SetPicker = (v: 'departure' | 'return' | null) => void;
+type SetPicker = (v: 'departure' | 'return' | 'departureTime' | 'returnTime' | null) => void;
 
 export interface TravelHandlersParams {
   travelHealth: any; inputText: string; searchLocation: string;
@@ -23,7 +24,7 @@ export interface TravelHandlersParams {
   contentMeasuredHeight: number;
   flightCarrier: string; flightNumber: string; flightLookupResult: any;
   flightSegments: any[]; showDatePicker: 'departure' | 'return' | null;
-  tempDatePickerValue: Date | undefined; newTripDepartureDate: Date;
+  tempDatePickerValue: Date | undefined; newTripDepartureDate: Date | undefined;
   newTripReturnDate: Date | undefined; newTripDepartureLocation: string;
   newTripDestination: string; editingTrip: Trip | null;
   editTripDepartureLocation: string; editTripDestination: string;
@@ -37,10 +38,11 @@ export interface TravelHandlersParams {
   setSearchLocation: SetStr; setInputText: SetStr; setFilteredCities: (v: string[]) => void;
   setIsLoading: SetBool; setSelectedLocation: SetStr; setCitySearchResults: (v: any[]) => void;
   setShowInlineSuggestions: SetBool; setApiErrors: SetAnyFn; setIsRefreshing: SetBool;
-  setIsGettingLocation: SetBool; setIsLookingUpFlight: SetBool; setFlightLookupResult: SetAny;
+  setIsGettingLocation: SetBool; setIsLookingUpFlight: SetBool; setFlightNotFound: SetBool; setFlightLookupResult: SetAny;
   setNewTripDepartureLocation: SetStr; setNewTripDestination: SetStr;
   setNewTripDepartureDate: SetDate; setShowManualEntry: SetBool;
   setTrips: (fn: (prev: Trip[]) => Trip[]) => void; setNewTripReturnDate: SetDateOpt;
+  setNewTripDepartureTime: SetDateOpt; setNewTripReturnTime: SetDateOpt;
   setShowAddTripModal: SetBool; setTripSuggestions: (v: string[]) => void;
   setDepartureSuggestions: (v: string[]) => void; setFlightCarrier: SetStr;
   setFlightNumber: SetStr; setDetectedAirline: (v: string | null) => void;
@@ -50,6 +52,7 @@ export interface TravelHandlersParams {
   setEditTripReturnDate: SetDateOpt; setEditTripNotes: SetStr; setShowEditTripModal: SetBool;
   setEditTripSuggestions: (v: string[]) => void; setEditTripDepartureSuggestions: (v: string[]) => void;
   setShowDatePicker: SetPicker; setTempDatePickerValue: SetDateOpt;
+  pendingDateRef: React.MutableRefObject<Date | undefined>;
   setShowEditDatePicker: SetPicker; setTempEditDatePickerValue: SetDateOpt;
   setContentMeasuredHeight: (v: number) => void;
   setShowDirectionsModal: (v: string | null) => void; setShowEmergencyModal: SetBool;
@@ -63,7 +66,9 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     setSearchLocation, setInputText, setFilteredCities, setIsLoading,
     setSelectedLocation, setShowInlineSuggestions, setApiErrors,
     setIsRefreshing, setIsGettingLocation, setNewTripDepartureDate,
-    setNewTripReturnDate, setShowDatePicker, setTempDatePickerValue,
+    setNewTripReturnDate, setNewTripDepartureTime, setNewTripReturnTime,
+    setShowDatePicker, setTempDatePickerValue,
+    pendingDateRef,
     setShowEditDatePicker, setTempEditDatePickerValue,
     setEditTripDepartureDate, setEditTripReturnDate, setEditTripDepartureSuggestions,
   } = params;
@@ -85,7 +90,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     setDepartureSuggestions: params.setDepartureSuggestions, setFlightCarrier: params.setFlightCarrier,
     setFlightNumber: params.setFlightNumber, setDetectedAirline: params.setDetectedAirline,
     setFlightSegments: params.setFlightSegments, setFlightDetailsExpanded: params.setFlightDetailsExpanded,
-    setFlightLookupResult: params.setFlightLookupResult, setIsLookingUpFlight: params.setIsLookingUpFlight,
+    setFlightLookupResult: params.setFlightLookupResult, setIsLookingUpFlight: params.setIsLookingUpFlight, setFlightNotFound: params.setFlightNotFound,
     setShowManualEntry: params.setShowManualEntry, setEditingTrip: params.setEditingTrip,
     setEditTripDepartureLocation: params.setEditTripDepartureLocation,
     setEditTripDestination: params.setEditTripDestination,
@@ -101,7 +106,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
       setApiErrors(() => ({}));
       try {
         if (travelHealth.coordinates) {
-          await updateTravelHealthData({ name: travelHealth.location, country: 'Unknown', coordinates: travelHealth.coordinates, timezone: 'UTC', elevation: 0 });
+          await updateTravelHealthData({ name: travelHealth.location, country: travelHealth.country || 'Unknown', coordinates: travelHealth.coordinates, timezone: 'UTC', elevation: 0 });
         }
       } catch {
         setApiErrors(prev => ({ ...prev, general: 'Failed to refresh data. Please check your internet connection.' }));
@@ -115,7 +120,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     try {
       const matchedCity = citySearchResults.find(r => `${r.name}, ${r.country}` === city || r.name === city);
       const locationData = matchedCity
-        ? { name: matchedCity.name, country: matchedCity.country, coordinates: { latitude: 0, longitude: 0 }, timezone: 'UTC', elevation: 0 }
+        ? { name: matchedCity.name, country: matchedCity.country, coordinates: matchedCity.coordinates, timezone: matchedCity.timezone || 'UTC', elevation: 0 }
         : { name: city, country: 'Unknown', coordinates: { latitude: 0, longitude: 0 }, timezone: 'UTC', elevation: 0 };
       await updateTravelHealthData(locationData);
       setSelectedLocation(city);
@@ -139,10 +144,13 @@ export function createTravelHandlers(params: TravelHandlersParams) {
       if (selectedDate) {
         if (showDatePicker === 'departure') setNewTripDepartureDate(selectedDate);
         else if (showDatePicker === 'return') setNewTripReturnDate(selectedDate);
+        else if (showDatePicker === 'departureTime') setNewTripDepartureTime(selectedDate);
+        else if (showDatePicker === 'returnTime') setNewTripReturnTime(selectedDate);
       }
       setShowDatePicker(null); return;
     }
-    if (selectedDate) setTempDatePickerValue(new Date(selectedDate));
+    // On iOS inline mode, only store in ref — no state update to avoid re-render snapping the calendar
+    if (selectedDate) pendingDateRef.current = new Date(selectedDate);
   };
 
   const handleGetCurrentLocationForSearch = async () => {
@@ -150,9 +158,20 @@ export function createTravelHandlers(params: TravelHandlersParams) {
       setIsGettingLocation(true);
       const location = await getCurrentLocation();
       if (location) {
-        const cityName = 'Current Location';
+        const cityName = location.name;
         setShowInlineSuggestions(false); setSearchLocation(cityName); setFilteredCities([]);
-        await handleLocationSelect(cityName); Keyboard.dismiss();
+        setInputText(cityName); setIsLoading(true);
+        resultsOpacity.setValue(1); resultsTranslateY.setValue(0);
+        try {
+          await updateTravelHealthData(location);
+          setSelectedLocation(cityName);
+        } catch {
+          setApiErrors(prev => ({ ...prev, general: 'Failed to fetch health data. Please try again.' }));
+        } finally {
+          setIsLoading(false); setShowInlineSuggestions(false);
+          resultsOpacity.setValue(1); resultsTranslateY.setValue(0);
+        }
+        Keyboard.dismiss();
       }
     } catch {
       Alert.alert('Location Permission Required', 'Please enable location access in Settings to use this feature.', [
@@ -163,23 +182,33 @@ export function createTravelHandlers(params: TravelHandlersParams) {
 
   const handleGetCurrentLocationForTrip = async () => {
     const location = await getCurrentLocation();
-    if (location) { params.setNewTripDepartureLocation('Current Location'); params.setDepartureSuggestions([]); Keyboard.dismiss(); }
+    if (location) {
+      const name = location.country && location.country !== 'Unknown' ? `${location.name}, ${location.country}` : location.name;
+      params.setNewTripDepartureLocation(name); params.setDepartureSuggestions([]); Keyboard.dismiss();
+    }
   };
 
   const handleGetCurrentLocationForEdit = async () => {
     const location = await getCurrentLocation();
-    if (location) { params.setEditTripDepartureLocation('Current Location'); setEditTripDepartureSuggestions([]); Keyboard.dismiss(); }
+    if (location) {
+      const name = location.country && location.country !== 'Unknown' ? `${location.name}, ${location.country}` : location.name;
+      params.setEditTripDepartureLocation(name); setEditTripDepartureSuggestions([]); Keyboard.dismiss();
+    }
   };
 
   const handleDateConfirm = () => {
-    if (tempDatePickerValue) {
-      if (showDatePicker === 'departure') setNewTripDepartureDate(tempDatePickerValue);
-      else if (showDatePicker === 'return') setNewTripReturnDate(tempDatePickerValue);
+    const picked = pendingDateRef.current;
+    if (picked) {
+      if (showDatePicker === 'departure') setNewTripDepartureDate(picked);
+      else if (showDatePicker === 'return') setNewTripReturnDate(picked);
+      else if (showDatePicker === 'departureTime') setNewTripDepartureTime(picked);
+      else if (showDatePicker === 'returnTime') setNewTripReturnTime(picked);
     }
+    pendingDateRef.current = undefined;
     setTempDatePickerValue(undefined); setShowDatePicker(null);
   };
 
-  const handleDateCancel = () => { setTempDatePickerValue(undefined); setShowDatePicker(null); };
+  const handleDateCancel = () => { pendingDateRef.current = undefined; setTempDatePickerValue(undefined); setShowDatePicker(null); };
 
   const handleEditDateChange = (_event: any, selectedDate?: Date) => {
     if (selectedDate) setTempEditDatePickerValue(new Date(selectedDate));

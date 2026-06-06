@@ -230,6 +230,7 @@ export async function updateTravelHealthData({
 
   const mockTravelHealth: TravelHealth = {
     location: locationData.name,
+    country: locationData.country,
     coordinates: locationData.coordinates,
     lastUpdated: new Date(),
     airQuality: airQualityMetric,

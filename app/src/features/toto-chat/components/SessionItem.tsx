@@ -9,15 +9,21 @@ interface SessionItemProps {
   session: ChatSession;
   onPress: (session: ChatSession) => void;
   onDeleted: (id: string) => void;
+  onAshStart?: (pageY: number) => void;
 }
 
-export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDeleted }) => {
+export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDeleted, onAshStart }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [itemLayout, setItemLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const viewRef = useRef<View>(null);
 
   const handleDelete = () => {
     setIsDeleting(true);
+    // Measure position on screen and notify parent to render ash at drawer root
+    viewRef.current?.measureInWindow((_x, pageY, _w, h) => {
+      onAshStart?.(pageY + h / 2);
+    });
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 600,
@@ -50,6 +56,7 @@ export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDe
 
   return (
     <View
+      ref={viewRef}
       onLayout={(e) => {
         const { x, y, width, height } = e.nativeEvent.layout;
         setItemLayout({ x, y, width, height });
@@ -66,16 +73,6 @@ export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDe
           </TouchableOpacity>
         </Swipeable>
       </Animated.View>
-      {isDeleting && (
-        <View
-          style={[
-            styles.ashOverlay,
-            { position: 'absolute', top: 0, left: 0, width: itemLayout.width || '100%', height: itemLayout.height || 64 },
-          ]}
-        >
-          <AshParticles visible={isDeleting} onComplete={() => {}} />
-        </View>
-      )}
     </View>
   );
 };

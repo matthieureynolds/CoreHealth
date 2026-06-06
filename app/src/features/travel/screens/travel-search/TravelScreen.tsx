@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Keyboard, StatusBar } from 'react-native';
+import { View, Keyboard, StatusBar, Animated } from 'react-native';
 import { styles } from './TravelScreen.styles';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -13,7 +13,6 @@ import SearchTab from './components/SearchTab';
 import TripPlanningTab from './components/TripPlanningTab';
 import AddTripModal from './components/AddTripModal';
 import EditTripModal from './components/EditTripModal';
-import DirectionsModal from './components/DirectionsModal';
 import EmergencyModal from './components/EmergencyModal';
 import MetricDetailModal from './components/MetricDetailModal';
 import { createTravelHandlers } from './hooks/useTravelHandlers';
@@ -92,6 +91,7 @@ const TravelScreen: React.FC = () => {
     setIsRefreshing: s.setIsRefreshing,
     setIsGettingLocation: s.setIsGettingLocation,
     setIsLookingUpFlight: s.setIsLookingUpFlight,
+    setFlightNotFound: s.setFlightNotFound,
     setFlightLookupResult: s.setFlightLookupResult,
     setNewTripDepartureLocation: s.setNewTripDepartureLocation,
     setNewTripDestination: s.setNewTripDestination,
@@ -99,6 +99,8 @@ const TravelScreen: React.FC = () => {
     setShowManualEntry: s.setShowManualEntry,
     setTrips: s.setTrips,
     setNewTripReturnDate: s.setNewTripReturnDate,
+    setNewTripDepartureTime: s.setNewTripDepartureTime,
+    setNewTripReturnTime: s.setNewTripReturnTime,
     setShowAddTripModal: s.setShowAddTripModal,
     setTripSuggestions: s.setTripSuggestions,
     setDepartureSuggestions: s.setDepartureSuggestions,
@@ -118,6 +120,7 @@ const TravelScreen: React.FC = () => {
     setEditTripDepartureSuggestions: s.setEditTripDepartureSuggestions,
     setShowDatePicker: s.setShowDatePicker,
     setTempDatePickerValue: s.setTempDatePickerValue,
+    pendingDateRef: s.pendingDateRef,
     setShowEditDatePicker: s.setShowEditDatePicker,
     setTempEditDatePickerValue: s.setTempEditDatePickerValue,
     setContentMeasuredHeight: curtain.setContentMeasuredHeight,
@@ -136,6 +139,16 @@ const TravelScreen: React.FC = () => {
         onTabPress={(tab, pageIndex) => {
           s.setActiveTab(tab);
           try { s.pagerRef.current?.setPage?.(pageIndex); } catch { /* pager navigation failure is non-fatal */ }
+        }}
+        onAddTrip={() => {
+          s.tripModalTranslateY.setValue(1000);
+          Animated.spring(s.tripModalTranslateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 65,
+            friction: 11,
+          }).start();
+          s.setShowAddTripModal(true);
         }}
       />
 
@@ -181,7 +194,6 @@ const TravelScreen: React.FC = () => {
                 curtain.setContentMeasuredHeight(height);
               }
             }}
-            onOpenMaps={(dest) => s.setShowDirectionsModal(dest)}
             onEmergencyContactPress={h.handleEmergencyContactPress}
             onDismissSuggestions={() => s.setShowInlineSuggestions(false)}
             onInputEndEditing={() => {
@@ -218,7 +230,6 @@ const TravelScreen: React.FC = () => {
         </View>
       </PagerView>
 
-      <DirectionsModal destination={s.showDirectionsModal} onClose={() => s.setShowDirectionsModal(null)} />
       <EmergencyModal visible={s.showEmergencyModal} onClose={() => s.setShowEmergencyModal(false)} />
 
       <AddTripModal
@@ -228,6 +239,7 @@ const TravelScreen: React.FC = () => {
         flightNumber={s.flightNumber}
         detectedAirline={s.detectedAirline}
         isLookingUpFlight={s.isLookingUpFlight}
+        flightNotFound={s.flightNotFound}
         flightLookupResult={s.flightLookupResult}
         flightSegments={s.flightSegments}
         flightDetailsExpanded={s.flightDetailsExpanded}
@@ -236,14 +248,16 @@ const TravelScreen: React.FC = () => {
         newTripDestination={s.newTripDestination}
         newTripDepartureDate={s.newTripDepartureDate}
         newTripReturnDate={s.newTripReturnDate}
+        newTripDepartureTime={s.newTripDepartureTime}
+        newTripReturnTime={s.newTripReturnTime}
         showDatePicker={s.showDatePicker}
         tempDatePickerValue={s.tempDatePickerValue}
         tripSuggestions={s.tripSuggestions}
         departureSuggestions={s.departureSuggestions}
         isGettingLocation={s.isGettingLocation}
         onClose={h.handleCloseAddTrip}
-        onFlightCarrierChange={s.setFlightCarrier}
-        onFlightNumberChange={s.setFlightNumber}
+        onFlightCarrierChange={(v: string) => { s.setFlightCarrier(v); s.setFlightNotFound(false); }}
+        onFlightNumberChange={(v: string) => { s.setFlightNumber(v); s.setFlightNotFound(false); }}
         onFlightLookup={h.handleFlightLookup}
         onFlightDetailsExpand={s.setFlightDetailsExpanded}
         onAddAnotherFlight={() => {
@@ -255,12 +269,21 @@ const TravelScreen: React.FC = () => {
         }}
         onConfirmFlightTrip={h.handleConfirmFlightTrip}
         onShowManualEntry={() => s.setShowManualEntry(true)}
+        onHideManualEntry={() => s.setShowManualEntry(false)}
         onAddTrip={h.handleAddTrip}
         onDepartureLocationChange={s.setNewTripDepartureLocation}
         onDestinationChange={s.setNewTripDestination}
         onSetDepartureLocation={(v) => { s.setNewTripDepartureLocation(v); s.setDepartureSuggestions([]); }}
         onSetDestination={(v) => { s.setNewTripDestination(v); s.setTripSuggestions([]); }}
-        onShowDatePicker={s.setShowDatePicker}
+        onShowDatePicker={(type) => {
+          let initial: Date;
+          if (type === 'departure') initial = s.newTripDepartureDate || new Date();
+          else if (type === 'return') initial = s.newTripReturnDate || new Date();
+          else if (type === 'departureTime') initial = s.newTripDepartureTime || new Date();
+          else initial = s.newTripReturnTime || new Date();
+          s.setTempDatePickerValue(initial);
+          s.setShowDatePicker(type);
+        }}
         onDateChange={h.handleDateChange}
         onDateConfirm={h.handleDateConfirm}
         onDateCancel={h.handleDateCancel}

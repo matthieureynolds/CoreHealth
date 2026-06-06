@@ -64,6 +64,7 @@ export function useTravelState() {
   const [flightNumber, setFlightNumber] = useState('');
   const [detectedAirline, setDetectedAirline] = useState<string | null>(null);
   const [isLookingUpFlight, setIsLookingUpFlight] = useState(false);
+  const [flightNotFound, setFlightNotFound] = useState(false);
   const [flightLookupResult, setFlightLookupResult] = useState<Record<string, unknown> | null>(null);
   const [flightSegments, setFlightSegments] = useState<any[]>([]);
   const [flightDetailsExpanded, setFlightDetailsExpanded] = useState(false);
@@ -72,10 +73,13 @@ export function useTravelState() {
 
   const [newTripDepartureLocation, setNewTripDepartureLocation] = useState('');
   const [newTripDestination, setNewTripDestination] = useState('');
-  const [newTripDepartureDate, setNewTripDepartureDate] = useState(new Date());
+  const [newTripDepartureDate, setNewTripDepartureDate] = useState<Date | undefined>(undefined);
   const [newTripReturnDate, setNewTripReturnDate] = useState<Date | undefined>(undefined);
-  const [showDatePicker, setShowDatePicker] = useState<'departure' | 'return' | null>(null);
+  const [newTripDepartureTime, setNewTripDepartureTime] = useState<Date | undefined>(undefined);
+  const [newTripReturnTime, setNewTripReturnTime] = useState<Date | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState<'departure' | 'return' | 'departureTime' | 'returnTime' | null>(null);
   const [tempDatePickerValue, setTempDatePickerValue] = useState<Date | undefined>(undefined);
+  const pendingDateRef = useRef<Date | undefined>(undefined);
   const datePickerInitializedRef = useRef(false);
   const [tripSuggestions, setTripSuggestions] = useState<string[]>([]);
   const [departureSuggestions, setDepartureSuggestions] = useState<string[]>([]);
@@ -105,12 +109,22 @@ export function useTravelState() {
     setDetectedAirline(AIRLINE_CODES[code] ?? null);
   }, [flightCarrier]);
 
-  // Date picker init (add trip)
+  // Date/time picker init (add trip)
   useEffect(() => {
     if (showDatePicker) {
       if (!datePickerInitializedRef.current) {
-        if (showDatePicker === 'departure') setTempDatePickerValue(new Date(newTripDepartureDate));
-        else if (showDatePicker === 'return') setTempDatePickerValue(new Date(newTripReturnDate || new Date()));
+        let d: Date;
+        if (showDatePicker === 'departure') {
+          d = newTripDepartureDate ? new Date(newTripDepartureDate) : new Date();
+        } else if (showDatePicker === 'return') {
+          d = new Date(newTripReturnDate || new Date());
+        } else if (showDatePicker === 'departureTime') {
+          d = newTripDepartureTime ? new Date(newTripDepartureTime) : new Date();
+        } else {
+          d = newTripReturnTime ? new Date(newTripReturnTime) : new Date();
+        }
+        setTempDatePickerValue(d);
+        pendingDateRef.current = d;
         datePickerInitializedRef.current = true;
       }
     } else {
@@ -160,66 +174,80 @@ export function useTravelState() {
 
   // Search trip destination suggestions
   useEffect(() => {
-    const search = async () => {
-      if (newTripDestination.trim() && newTripDestination.length >= 2) {
+    if (newTripDestination.trim() && newTripDestination.length >= 2) {
+      // Show local matches immediately while API loads
+      const localMatches = popularCities.filter(city => city.toLowerCase().includes(newTripDestination.toLowerCase()));
+      if (localMatches.length > 0) setTripSuggestions(localMatches);
+      const id = setTimeout(async () => {
         try {
           const results = await searchAllLocations(newTripDestination, 12);
-          setTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          if (results.length > 0) {
+            setTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          }
         } catch {
-          setTripSuggestions(popularCities.filter(city => city.toLowerCase().includes(newTripDestination.toLowerCase())));
+          setTripSuggestions(localMatches);
         }
-      } else { setTripSuggestions([]); }
-    };
-    const id = setTimeout(search, 300);
-    return () => clearTimeout(id);
+      }, 300);
+      return () => clearTimeout(id);
+    } else { setTripSuggestions([]); }
   }, [newTripDestination]);
 
   // Search departure location suggestions
   useEffect(() => {
-    const search = async () => {
-      if (newTripDepartureLocation.trim() && newTripDepartureLocation.length >= 2) {
+    if (newTripDepartureLocation.trim() && newTripDepartureLocation.length >= 2) {
+      // Show local matches immediately while API loads
+      const localMatches = popularCities.filter(city => city.toLowerCase().includes(newTripDepartureLocation.toLowerCase()));
+      if (localMatches.length > 0) setDepartureSuggestions(localMatches);
+      const id = setTimeout(async () => {
         try {
           const results = await searchAllLocations(newTripDepartureLocation, 12);
-          setDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          if (results.length > 0) {
+            setDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          }
         } catch {
-          setDepartureSuggestions(popularCities.filter(city => city.toLowerCase().includes(newTripDepartureLocation.toLowerCase())));
+          setDepartureSuggestions(localMatches);
         }
-      } else { setDepartureSuggestions([]); }
-    };
-    const id = setTimeout(search, 300);
-    return () => clearTimeout(id);
+      }, 300);
+      return () => clearTimeout(id);
+    } else { setDepartureSuggestions([]); }
   }, [newTripDepartureLocation]);
 
   // Search edit trip destination suggestions
   useEffect(() => {
-    const search = async () => {
-      if (editTripDestination.trim() && editTripDestination.length >= 2) {
+    if (editTripDestination.trim() && editTripDestination.length >= 2) {
+      const localMatches = popularCities.filter(city => city.toLowerCase().includes(editTripDestination.toLowerCase()));
+      if (localMatches.length > 0) setEditTripSuggestions(localMatches);
+      const id = setTimeout(async () => {
         try {
           const results = await searchAllLocations(editTripDestination, 12);
-          setEditTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          if (results.length > 0) {
+            setEditTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          }
         } catch {
-          setEditTripSuggestions(popularCities.filter(city => city.toLowerCase().includes(editTripDestination.toLowerCase())));
+          setEditTripSuggestions(localMatches);
         }
-      } else { setEditTripSuggestions([]); }
-    };
-    const id = setTimeout(search, 300);
-    return () => clearTimeout(id);
+      }, 300);
+      return () => clearTimeout(id);
+    } else { setEditTripSuggestions([]); }
   }, [editTripDestination]);
 
   // Search edit trip departure location suggestions
   useEffect(() => {
-    const search = async () => {
-      if (editTripDepartureLocation.trim() && editTripDepartureLocation.length >= 2) {
+    if (editTripDepartureLocation.trim() && editTripDepartureLocation.length >= 2) {
+      const localMatches = popularCities.filter(city => city.toLowerCase().includes(editTripDepartureLocation.toLowerCase()));
+      if (localMatches.length > 0) setEditTripDepartureSuggestions(localMatches);
+      const id = setTimeout(async () => {
         try {
           const results = await searchAllLocations(editTripDepartureLocation, 12);
-          setEditTripDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          if (results.length > 0) {
+            setEditTripDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
+          }
         } catch {
-          setEditTripDepartureSuggestions(popularCities.filter(city => city.toLowerCase().includes(editTripDepartureLocation.toLowerCase())));
+          setEditTripDepartureSuggestions(localMatches);
         }
-      } else { setEditTripDepartureSuggestions([]); }
-    };
-    const id = setTimeout(search, 300);
-    return () => clearTimeout(id);
+      }, 300);
+      return () => clearTimeout(id);
+    } else { setEditTripDepartureSuggestions([]); }
   }, [editTripDepartureLocation]);
 
   return {
@@ -248,6 +276,7 @@ export function useTravelState() {
     flightNumber, setFlightNumber,
     detectedAirline, setDetectedAirline,
     isLookingUpFlight, setIsLookingUpFlight,
+    flightNotFound, setFlightNotFound,
     flightLookupResult, setFlightLookupResult,
     flightSegments, setFlightSegments,
     flightDetailsExpanded, setFlightDetailsExpanded,
@@ -256,8 +285,10 @@ export function useTravelState() {
     newTripDestination, setNewTripDestination,
     newTripDepartureDate, setNewTripDepartureDate,
     newTripReturnDate, setNewTripReturnDate,
+    newTripDepartureTime, setNewTripDepartureTime,
+    newTripReturnTime, setNewTripReturnTime,
     showDatePicker, setShowDatePicker,
-    tempDatePickerValue, setTempDatePickerValue,
+    tempDatePickerValue, setTempDatePickerValue, pendingDateRef,
     tripSuggestions, setTripSuggestions,
     departureSuggestions, setDepartureSuggestions,
     // Modal state

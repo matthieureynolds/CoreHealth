@@ -20,6 +20,7 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.",
+        "NSMicrophoneUsageDescription": "CoreHealth uses the microphone for voice input so you can speak to Toto instead of typing.",
         "NSCameraUsageDescription": "CoreHealth needs access to your camera to take profile pictures and document health records.",
         "NSPhotoLibraryUsageDescription": "CoreHealth needs access to your photo library to select profile pictures and upload medical documents.",
         "NSContactsUsageDescription": "CoreHealth needs access to contacts to help you import emergency contacts from your device.",
@@ -39,8 +40,15 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_CONTACTS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_CONTACTS"
-      ]
+      ],
+      "package": "com.totohealth.app"
     },
     "web": {
       "favicon": "./assets/icon.png"

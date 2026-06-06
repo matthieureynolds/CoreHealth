@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { JetLagPlanningEvent } from '../../../../shared/types/jetlag';
 import JetLagPlanningCard from '../jet-lag-planning/JetLagPlanningCard';
@@ -31,27 +31,11 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
   sectionTitleStyle,
 }) => {
   const handleFacilityPress = (facility: Facility) => {
-    Alert.alert(
-      'Open Maps',
-      `How would you like to navigate to ${facility.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Apple Maps',
-          onPress: () => {
-            const destination = encodeURIComponent(facility.name);
-            Linking.openURL(`http://maps.apple.com/?daddr=${destination}`);
-          },
-        },
-        {
-          text: 'Google Maps',
-          onPress: () => {
-            const destination = encodeURIComponent(facility.name);
-            Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${destination}`);
-          },
-        },
-      ]
-    );
+    Alert.alert('Open Maps', `Navigate to ${facility.name}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Apple Maps', onPress: () => Linking.openURL(`http://maps.apple.com/?daddr=${encodeURIComponent(facility.name)}`) },
+      { text: 'Google Maps', onPress: () => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(facility.name)}`) },
+    ]);
   };
 
   return (

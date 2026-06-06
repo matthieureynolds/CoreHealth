@@ -277,6 +277,28 @@ export function useHealthAssistant() {
     if (withMemory) { setMessages([{ id: '1', role: 'assistant', content: "Hello! I'm your health assistant. How can I help you today?", timestamp: new Date() }]); }
   };
 
+  const toggleIncognito = async () => {
+    if (currentChatHasMemory) {
+      // Entering incognito — save current session, start fresh
+      try { if (messages.length > 0) { await persistSession(messages); } } catch {}
+      setCurrentChatId(`chat_${Date.now()}`);
+      setCurrentChatHasMemory(false);
+      setMessages([]);
+    } else {
+      // Exiting incognito — ash animation then start normal chat
+      if (messages.length > 0) {
+        setShowMessagesAshAnimation(true);
+        Animated.timing(messagesFadeAnim, { toValue: 0, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
+        await new Promise(resolve => setTimeout(resolve, 1600));
+      }
+      setShowMessagesAshAnimation(false);
+      messagesFadeAnim.setValue(1);
+      setCurrentChatId(`chat_${Date.now()}`);
+      setCurrentChatHasMemory(true);
+      setMessages([{ id: '1', role: 'assistant', content: "Hello! I'm your health assistant. How can I help you today?", timestamp: new Date() }]);
+    }
+  };
+
   const loadSession = async (session: ChatSession) => {
     setCurrentChatId(session.id); setCurrentChatHasMemory(true);
     setMessages((session.messages || []) as ChatMessage[]);
@@ -296,7 +318,7 @@ export function useHealthAssistant() {
     messages, isInitialized, inputText, setInputText, sendAnim, showMediaPicker, setShowMediaPicker,
     isLoading, scrollViewRef, autoScrollEnabledRef, isRecording, showChatHistory, setShowChatHistory,
     showNewChatModal, setShowNewChatModal, newChatModalTranslateY, chatSessions, setChatSessions,
-    currentChatId, currentChatHasMemory, historyLoading, historyError, showMessagesAshAnimation,
+    currentChatId, currentChatHasMemory, toggleIncognito, historyLoading, historyError, showMessagesAshAnimation,
     messagesFadeAnim, messagesContainerRef, messagesContainerLayout, setMessagesContainerLayout,
     recordingDuration, waveformAnimValues, recordingPulseAnim, streamingMessageId,
     pendingCommand, setPendingCommand, isDispatching, activeSymptomPlan, activeSymptomId,

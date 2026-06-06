@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,10 @@ import { styles } from '../../TravelScreen.styles';
 interface ManualTripFormProps {
   newTripDepartureLocation: string;
   newTripDestination: string;
-  newTripDepartureDate: Date;
+  newTripDepartureDate: Date | undefined;
   newTripReturnDate: Date | undefined;
+  newTripDepartureTime: Date | undefined;
+  newTripReturnTime: Date | undefined;
   tripSuggestions: string[];
   departureSuggestions: string[];
   isGettingLocation: boolean;
@@ -23,7 +25,7 @@ interface ManualTripFormProps {
   onDestinationChange: (v: string) => void;
   onSetDepartureLocation: (v: string) => void;
   onSetDestination: (v: string) => void;
-  onShowDatePicker: (v: 'departure' | 'return') => void;
+  onShowDatePicker: (v: 'departure' | 'return' | 'departureTime' | 'returnTime') => void;
   onGetCurrentLocation: () => Promise<void>;
 }
 
@@ -32,6 +34,8 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
   newTripDestination,
   newTripDepartureDate,
   newTripReturnDate,
+  newTripDepartureTime,
+  newTripReturnTime,
   tripSuggestions,
   departureSuggestions,
   isGettingLocation,
@@ -41,18 +45,30 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
   onSetDestination,
   onShowDatePicker,
   onGetCurrentLocation,
-}) => (
+}) => {
+  const [departureFocused, setDepartureFocused] = useState(false);
+  const [destinationFocused, setDestinationFocused] = useState(false);
+
+  const showDepartureSuggestions = departureFocused && (departureSuggestions.length > 0 || newTripDepartureLocation.trim() === '');
+  const showDestinationSuggestions = destinationFocused && tripSuggestions.length > 0;
+
+  return (
   <>
     <Text style={styles.inputLabel}>Departure Location:</Text>
-    <View style={styles.inputContainer}>
+    <View style={[styles.inputContainer, { zIndex: 2 }]}>
       <TextInput
-        style={styles.textInput}
+        style={[
+          styles.textInput,
+          showDepartureSuggestions && { marginBottom: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
+        ]}
         value={newTripDepartureLocation}
         onChangeText={onDepartureLocationChange}
-        placeholder="Enter departure location (e.g., New York, USA)"
+        onFocus={() => setDepartureFocused(true)}
+        onBlur={() => setTimeout(() => setDepartureFocused(false), 200)}
+        placeholder="Enter departure location"
         placeholderTextColor="#8E8E93"
       />
-      {departureSuggestions.length > 0 && (
+      {showDepartureSuggestions && (
         <View style={styles.suggestionsContainer}>
           {newTripDepartureLocation.trim() === '' && (
             <TouchableOpacity
@@ -60,6 +76,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
               onPress={async () => {
                 try {
                   await onGetCurrentLocation();
+                  setDepartureFocused(false);
                 } catch {
                   Alert.alert('Location Permission Required', 'Please enable location access in Settings.', [
                     { text: 'Cancel', style: 'cancel' },
@@ -78,11 +95,11 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
               )}
             </TouchableOpacity>
           )}
-          {departureSuggestions.slice(0, 5).map((city, index) => (
+          {departureSuggestions.slice(0, 5).map((city, index, arr) => (
             <TouchableOpacity
               key={index}
-              style={styles.suggestionItem}
-              onPress={() => { onSetDepartureLocation(city); Keyboard.dismiss(); }}
+              style={[styles.suggestionItem, index < arr.length - 1 && styles.suggestionItemDivider]}
+              onPress={() => { onSetDepartureLocation(city); setDepartureFocused(false); Keyboard.dismiss(); }}
             >
               <Ionicons name="location" size={16} color="#3AABF0" />
               <Text style={styles.suggestionText}>{city}</Text>
@@ -93,21 +110,26 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
     </View>
 
     <Text style={styles.inputLabel}>Destination:</Text>
-    <View style={styles.inputContainer}>
+    <View style={[styles.inputContainer, { zIndex: 1 }]}>
       <TextInput
-        style={styles.textInput}
+        style={[
+          styles.textInput,
+          showDestinationSuggestions && { marginBottom: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
+        ]}
         value={newTripDestination}
         onChangeText={onDestinationChange}
-        placeholder="Enter destination (e.g., Tokyo, Japan)"
+        onFocus={() => setDestinationFocused(true)}
+        onBlur={() => setTimeout(() => setDestinationFocused(false), 200)}
+        placeholder="Enter destination"
         placeholderTextColor="#8E8E93"
       />
-      {tripSuggestions.length > 0 && (
+      {showDestinationSuggestions && (
         <View style={styles.suggestionsContainer}>
-          {tripSuggestions.slice(0, 5).map((city, index) => (
+          {tripSuggestions.slice(0, 5).map((city, index, arr) => (
             <TouchableOpacity
               key={index}
-              style={styles.suggestionItem}
-              onPress={() => { onSetDestination(city); Keyboard.dismiss(); }}
+              style={[styles.suggestionItem, index < arr.length - 1 && styles.suggestionItemDivider]}
+              onPress={() => { onSetDestination(city); setDestinationFocused(false); Keyboard.dismiss(); }}
             >
               <Ionicons name="location" size={16} color="#3AABF0" />
               <Text style={styles.suggestionText}>{city}</Text>
@@ -117,30 +139,69 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
       )}
     </View>
 
-    <Text style={styles.inputLabel}>Departure Date:</Text>
-    <TouchableOpacity
-      style={styles.dateButton}
-      onPress={() => onShowDatePicker('departure')}
-      activeOpacity={0.7}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-    >
-      <Text style={styles.dateButtonText}>{newTripDepartureDate.toLocaleDateString()}</Text>
-      <Ionicons name="calendar" size={16} color="#8E8E93" />
-    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', gap: 12 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.inputLabel}>Departure Date:</Text>
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => onShowDatePicker('departure')}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.dateButtonText}>
+            {newTripDepartureDate ? newTripDepartureDate.toLocaleDateString() : 'Select date'}
+          </Text>
+          <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.inputLabel}>Return Date:</Text>
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => onShowDatePicker('return')}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.dateButtonText}>
+            {newTripReturnDate ? newTripReturnDate.toLocaleDateString() : 'Select date'}
+          </Text>
+          <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+        </TouchableOpacity>
+      </View>
+    </View>
 
-    <Text style={styles.inputLabel}>Return Date: (Optional)</Text>
-    <TouchableOpacity
-      style={styles.dateButton}
-      onPress={() => onShowDatePicker('return')}
-      activeOpacity={0.7}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-    >
-      <Text style={styles.dateButtonText}>
-        {newTripReturnDate ? newTripReturnDate.toLocaleDateString() : 'Select date'}
-      </Text>
-      <Ionicons name="calendar" size={16} color="#8E8E93" />
-    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', gap: 12 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.inputLabel}>Departure Time:</Text>
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => onShowDatePicker('departureTime')}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.dateButtonText}>
+            {newTripDepartureTime ? newTripDepartureTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Select time'}
+          </Text>
+          <Ionicons name="time-outline" size={16} color="#8E8E93" />
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.inputLabel}>Return Time:</Text>
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => onShowDatePicker('returnTime')}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.dateButtonText}>
+            {newTripReturnTime ? newTripReturnTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Select time'}
+          </Text>
+          <Ionicons name="time-outline" size={16} color="#8E8E93" />
+        </TouchableOpacity>
+      </View>
+    </View>
   </>
-);
+  );
+};
 
 export default ManualTripForm;

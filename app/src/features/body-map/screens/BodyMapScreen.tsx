@@ -126,8 +126,7 @@ const BodyMapScreen: React.FC = () => {
 
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>My Body</Text>
-          <Text style={styles.headerSubtitle}>Explore your organs and track your biomarkers</Text>
+          <Text style={styles.headerTitle}>Body Map</Text>
         </View>
       </View>
 

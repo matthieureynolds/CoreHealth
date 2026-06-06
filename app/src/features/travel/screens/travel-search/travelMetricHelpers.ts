@@ -342,7 +342,18 @@ export function getCountryFromCity(city: string): string {
     'Rome': 'Italy', 'Amsterdam': 'Netherlands', 'Vienna': 'Austria',
     'Prague': 'Czech Republic', 'Budapest': 'Hungary', 'Copenhagen': 'Denmark',
     'Stockholm': 'Sweden', 'Oslo': 'Norway', 'Helsinki': 'Finland',
-    'Reykjavik': 'Iceland', 'Current Location': 'Your Location',
+    'Reykjavik': 'Iceland', 'San Francisco': 'USA', 'Los Angeles': 'USA',
+    'Chicago': 'USA', 'Miami': 'USA', 'Seattle': 'USA', 'Boston': 'USA',
+    'Berlin': 'Germany', 'Munich': 'Germany', 'Toronto': 'Canada',
+    'Vancouver': 'Canada', 'Montreal': 'Canada', 'Seoul': 'South Korea',
+    'Shanghai': 'China', 'Beijing': 'China', 'Mumbai': 'India',
+    'Delhi': 'India', 'Mexico City': 'Mexico', 'São Paulo': 'Brazil',
+    'Rio de Janeiro': 'Brazil', 'Buenos Aires': 'Argentina',
+    'Lisbon': 'Portugal', 'Dublin': 'Ireland', 'Zurich': 'Switzerland',
+    'Brussels': 'Belgium', 'Warsaw': 'Poland', 'Athens': 'Greece',
+    'Istanbul': 'Turkey', 'Cairo': 'Egypt', 'Cape Town': 'South Africa',
+    'Nairobi': 'Kenya', 'Lagos': 'Nigeria', 'Marrakech': 'Morocco',
+    'Current Location': 'Your Location',
   };
   if (cityCountryMap[city]) return cityCountryMap[city];
   const partialMatch = Object.keys(cityCountryMap).find(
@@ -353,11 +364,16 @@ export function getCountryFromCity(city: string): string {
 
 export function getCountryFlag(country: string): string {
   const flags: Record<string, string> = {
-    'Japan': '🇯🇵', 'France': '🇫🇷', 'USA': '🇺🇸', 'UK': '🇬🇧',
+    'Japan': '🇯🇵', 'France': '🇫🇷', 'USA': '🇺🇸', 'United States': '🇺🇸', 'UK': '🇬🇧', 'United Kingdom': '🇬🇧',
     'Australia': '🇦🇺', 'Thailand': '🇹🇭', 'Singapore': '🇸🇬', 'UAE': '🇦🇪',
     'Hong Kong': '🇭🇰', 'Spain': '🇪🇸', 'Italy': '🇮🇹', 'Netherlands': '🇳🇱',
     'Austria': '🇦🇹', 'Czech Republic': '🇨🇿', 'Hungary': '🇭🇺', 'Denmark': '🇩🇰',
     'Sweden': '🇸🇪', 'Norway': '🇳🇴', 'Finland': '🇫🇮', 'Iceland': '🇮🇸',
+    'Germany': '🇩🇪', 'Canada': '🇨🇦', 'South Korea': '🇰🇷', 'China': '🇨🇳',
+    'India': '🇮🇳', 'Mexico': '🇲🇽', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷',
+    'Portugal': '🇵🇹', 'Ireland': '🇮🇪', 'Switzerland': '🇨🇭', 'Belgium': '🇧🇪',
+    'Poland': '🇵🇱', 'Greece': '🇬🇷', 'Turkey': '🇹🇷', 'Egypt': '🇪🇬',
+    'South Africa': '🇿🇦', 'Kenya': '🇰🇪', 'Nigeria': '🇳🇬', 'Morocco': '🇲🇦',
     'Your Location': '📍', 'Unknown': '🌍',
   };
   return flags[country] ?? '🌍';

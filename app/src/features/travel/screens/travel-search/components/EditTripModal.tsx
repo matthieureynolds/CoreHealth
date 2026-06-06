@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,38 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from '../TravelScreen.styles';
+
+const StableEditDatePicker = React.memo(({
+  initialValue,
+  minimumDate,
+  onDateSelected,
+}: {
+  initialValue: Date;
+  minimumDate: Date;
+  onDateSelected: (date: Date) => void;
+}) => {
+  const frozenValue = useRef(initialValue).current;
+  const frozenMinDate = useRef(minimumDate).current;
+  const callbackRef = useRef(onDateSelected);
+  callbackRef.current = onDateSelected;
+
+  const handleChange = useCallback((_event: any, selectedDate?: Date) => {
+    if (selectedDate) callbackRef.current(selectedDate);
+  }, []);
+
+  return (
+    <DateTimePicker
+      value={frozenValue}
+      mode="date"
+      display="inline"
+      themeVariant="dark"
+      textColor="#FFFFFF"
+      onChange={handleChange}
+      minimumDate={frozenMinDate}
+      style={styles.datePicker}
+    />
+  );
+}, () => true);
 
 interface EditTripModalProps {
   visible: boolean;
@@ -198,25 +230,20 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
           <View style={styles.datePickerModalOverlay}>
             <View style={styles.datePickerModalContent}>
               <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={onEditDateCancel}>
-                  <Ionicons name="close" size={22} color="#FF3B30" />
+                <TouchableOpacity onPress={onEditDateCancel} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                  <Ionicons name="close-circle" size={28} color="#FF3B30" />
                 </TouchableOpacity>
                 <Text style={styles.datePickerTitle}>
                   {showEditDatePicker === 'departure' ? 'Departure Date' : 'Return Date'}
                 </Text>
-                <TouchableOpacity onPress={onEditDateConfirm}>
-                  <Ionicons name="checkmark" size={22} color="#34C759" />
+                <TouchableOpacity onPress={onEditDateConfirm} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                  <Ionicons name="checkmark-circle" size={28} color="#34C759" />
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
-                value={tempEditDatePickerValue ?? (showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date()))}
-                mode="date"
-                display="inline"
-                themeVariant="dark"
-                textColor="#FFFFFF"
-                onChange={onEditDateChange}
+              <StableEditDatePicker
+                initialValue={tempEditDatePickerValue ?? (showEditDatePicker === 'departure' ? editTripDepartureDate : (editTripReturnDate || new Date()))}
                 minimumDate={showEditDatePicker === 'return' ? editTripDepartureDate : new Date()}
-                style={styles.datePicker}
+                onDateSelected={(date) => onEditDateChange(null, date)}
                 key={showEditDatePicker}
               />
             </View>

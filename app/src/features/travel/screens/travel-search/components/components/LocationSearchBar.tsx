@@ -48,9 +48,14 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
   onGetCurrentLocation,
   onLocationSelect,
   onDismissSuggestions,
-}) => (
+}) => {
+  const hasSuggestionContent = showInlineSuggestions && (
+    !searchLocation.trim() || citySearchResults.length > 0 || filteredCities.length > 0
+  );
+
+  return (
   <View style={styles.locationSearchContainer}>
-    <View style={styles.locationSearchButton}>
+    <View style={[styles.locationSearchButton, hasSuggestionContent && { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
       <TextInput
         style={styles.locationSearchInput}
         value={inputText}
@@ -73,7 +78,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
       )}
     </View>
 
-    {showInlineSuggestions && (
+    {hasSuggestionContent && (
       <View style={styles.suggestionsContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {!searchLocation.trim() && (
@@ -140,6 +145,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
       </View>
     )}
   </View>
-);
+  );
+};
 
 export default LocationSearchBar;

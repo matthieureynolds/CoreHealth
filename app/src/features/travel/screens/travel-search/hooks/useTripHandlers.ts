@@ -84,7 +84,7 @@ export const buildJetLagPlanner = (returnDate?: Date) => ({
 
 export interface TripHandlersParams {
   flightCarrier: string; flightNumber: string; flightLookupResult: any;
-  flightSegments: any[]; newTripDepartureDate: Date; newTripReturnDate: Date | undefined;
+  flightSegments: any[]; newTripDepartureDate: Date | undefined; newTripReturnDate: Date | undefined;
   newTripDepartureLocation: string; newTripDestination: string;
   editingTrip: Trip | null; editTripDepartureLocation: string;
   editTripDestination: string; editTripDepartureDate: Date;
@@ -97,7 +97,7 @@ export interface TripHandlersParams {
   setDepartureSuggestions: (v: string[]) => void; setFlightCarrier: (v: string) => void;
   setFlightNumber: (v: string) => void; setDetectedAirline: (v: string | null) => void;
   setFlightSegments: (fn: (prev: any[]) => any[]) => void; setFlightDetailsExpanded: (v: boolean) => void;
-  setFlightLookupResult: (v: any) => void; setIsLookingUpFlight: (v: boolean) => void;
+  setFlightLookupResult: (v: any) => void; setIsLookingUpFlight: (v: boolean) => void; setFlightNotFound: (v: boolean) => void;
   setShowManualEntry: (v: boolean) => void; setEditingTrip: (v: Trip | null) => void;
   setEditTripDepartureLocation: (v: string) => void; setEditTripDestination: (v: string) => void;
   setEditTripDepartureDate: (v: Date) => void; setEditTripReturnDate: (v: Date | undefined) => void;
@@ -115,7 +115,7 @@ export function createTripHandlers(params: TripHandlersParams) {
     setNewTripDepartureDate, setNewTripReturnDate, setShowAddTripModal,
     setTripSuggestions, setDepartureSuggestions, setFlightCarrier, setFlightNumber,
     setDetectedAirline, setFlightSegments, setFlightDetailsExpanded, setFlightLookupResult,
-    setIsLookingUpFlight, setShowManualEntry, setEditingTrip, setEditTripDepartureLocation,
+    setIsLookingUpFlight, setFlightNotFound, setShowManualEntry, setEditingTrip, setEditTripDepartureLocation,
     setEditTripDestination, setEditTripDepartureDate, setEditTripReturnDate, setEditTripNotes,
     setShowEditTripModal, setEditTripSuggestions, setEditTripDepartureSuggestions,
   } = params;
@@ -131,19 +131,21 @@ export function createTripHandlers(params: TripHandlersParams) {
     }
     try {
       setIsLookingUpFlight(true);
+      setFlightNotFound(false);
       const result = await FlightLookupService.lookupFlight(
         flightCarrier.toUpperCase().trim(), flightNumber.trim(), new Date().toISOString().split('T')[0],
       );
       if (result) {
+        setFlightNotFound(false);
         setFlightLookupResult(result); setNewTripDepartureLocation(result.origin_iata);
         setNewTripDestination(result.dest_iata); setNewTripDepartureDate(new Date(result.dep_local));
         setShowManualEntry(true);
         Alert.alert('Flight Found', 'Flight details loaded. Please review and confirm.');
       } else {
-        Alert.alert('Flight Not Found', "We couldn't find that flight. Please enter the details manually.", [{ text: 'OK', onPress: () => setShowManualEntry(true) }]);
+        setFlightNotFound(true);
       }
     } catch {
-      Alert.alert('Error', 'Failed to lookup flight. Please enter details manually.', [{ text: 'OK', onPress: () => setShowManualEntry(true) }]);
+      setFlightNotFound(true);
     } finally { setIsLookingUpFlight(false); }
   };
 

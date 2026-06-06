@@ -1,185 +1,75 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, ScrollView } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useReduceMotion } from '../../../shared/utils/reduceMotion';
 
 interface MessageComposerProps {
   onSend: (text: string, clientId: string) => void;
   disabled?: boolean;
-  onCameraPress?: () => void; // backward compatibility
+  onCameraPress?: () => void;
   onAttachPress?: () => void;
   onMicPress?: () => void;
-  hasChatted?: boolean; // when true, disable rotating suggestions
+  isRecording?: boolean;
+  waveformAnimValues?: Animated.Value[];
+  hasChatted?: boolean;
 }
 
-export const MessageComposer: React.FC<MessageComposerProps> = ({ 
-  onSend, 
+export const MessageComposer: React.FC<MessageComposerProps> = ({
+  onSend,
   disabled = false,
   onCameraPress,
   onAttachPress,
   onMicPress,
-  hasChatted: hasChattedProp,
+  isRecording = false,
+  waveformAnimValues = [],
 }) => {
   const [text, setText] = useState('');
-  const [placeholder, setPlaceholder] = useState('');
-  const [hasChattedLocal, setHasChattedLocal] = useState(false);
   const inputRef = useRef<TextInput>(null);
-  const reduceMotion = useReduceMotion();
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!text.trim() || disabled) return;
-
     const messageText = text.trim();
     const clientId = `c_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Clear text instantly
     setText('');
-    
-    // Light haptic feedback
-    // haptics.light();
-
-    // Send the message
     onSend(messageText, clientId);
-
-    // After first user message, stop placeholder animation for the session
-    if (!hasChattedLocal) setHasChattedLocal(true);
-  };
-
-  const handleTextChange = (newText: string) => {
-    setText(newText);
-    if (newText.trim().length > 0 && chipsVisible && !hasChatted) {
-      Animated.timing(chipsOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-        setChipsVisible(false);
-      });
-    }
   };
 
   const hasText = text.trim().length > 0;
 
-  // Chip fade animation
-  const chipsOpacity = useRef(new Animated.Value(1)).current;
-  const [chipsVisible, setChipsVisible] = useState(true);
-
-  const CHIPS = [
-    'How are my biomarkers?',
-    'Summarize my sleep',
-    'What should I eat today?',
-    "How's my recovery?",
-  ];
-
-  const handleChipPress = (chip: string) => {
-    Animated.timing(chipsOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start(() => {
-      setChipsVisible(false);
-    });
-    const clientId = `c_${Date.now()}_chip`;
-    onSend(chip, clientId);
-    if (!hasChattedLocal) setHasChattedLocal(true);
-  };
-
-  // Rotating typewriter placeholder when no text is entered
-  const hasChatted = hasChattedProp || hasChattedLocal;
-
-  useEffect(() => {
-    if (reduceMotion || hasChatted) {
-      setPlaceholder('Ask me about health...');
-      return;
-    }
-
-    const suggestions = [
-      'Ask me about health...',
-      'Summarize my sleep last night',
-      'What workouts should I do today?',
-      'Explain my biomarker trends',
-      'How can I improve recovery this week?',
-    ];
-
-    let suggestionIndex = 0;
-    let charIndex = 0;
-    let isUnmounted = false;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const TYPE_DELAY_MS = 45;
-    const PAUSE_FULL_MS = 1400;
-
-    const typeNext = () => {
-      if (isUnmounted) return;
-      if (text.trim().length > 0) {
-        // User started typing: freeze placeholder
-        setPlaceholder('');
-        return;
-      }
-      const current = suggestions[suggestionIndex];
-      if (charIndex <= current.length) {
-        setPlaceholder(current.slice(0, charIndex));
-        charIndex += 1;
-        timeoutId = setTimeout(typeNext, TYPE_DELAY_MS);
-      } else {
-        timeoutId = setTimeout(() => {
-          charIndex = 0;
-          suggestionIndex = (suggestionIndex + 1) % suggestions.length;
-          setPlaceholder('');
-          typeNext();
-        }, PAUSE_FULL_MS);
-      }
-    };
-
-    typeNext();
-
-    return () => {
-      isUnmounted = true;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [text, reduceMotion, hasChatted]);
-
   return (
     <View style={styles.container}>
-      {/* Suggestion chips — shown before first message */}
-      {chipsVisible && !hasChatted && (
-        <Animated.View style={{ opacity: chipsOpacity, marginBottom: 10 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-            keyboardShouldPersistTaps="handled"
-          >
-            {CHIPS.map((chip) => (
-              <TouchableOpacity
-                key={chip}
-                style={styles.chip}
-                onPress={() => handleChipPress(chip)}
-                disabled={disabled}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.chipText}>{chip}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      )}
-      <View style={styles.row}>
-        {(onAttachPress || onCameraPress) && (
-          <TouchableOpacity 
-            onPress={onAttachPress || onCameraPress}
-            style={[styles.attachContainer, disabled && { opacity: 0.6 }]}
-            disabled={disabled}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            activeOpacity={0.8}
-          >
-            <View style={styles.attachIconWrap}>
-              <Ionicons name="attach" size={34} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-        )}
+      <View style={styles.bar}>
+        {/* Plus / attach button */}
+        <TouchableOpacity
+          onPress={onAttachPress || onCameraPress}
+          disabled={disabled || isRecording}
+          activeOpacity={0.6}
+          style={styles.iconBtn}
+        >
+          <Ionicons name="add" size={26} color={disabled || isRecording ? '#555' : '#999'} />
+        </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
+        {isRecording ? (
+          /* Waveform visualisation while recording */
+          <View style={styles.waveformContainer}>
+            {waveformAnimValues.map((animVal, i) => (
+              <Animated.View
+                key={i}
+                style={[
+                  styles.waveformBar,
+                  { transform: [{ scaleY: animVal }] },
+                ]}
+              />
+            ))}
+          </View>
+        ) : (
+          /* Text input */
           <TextInput
             ref={inputRef}
             value={text}
-            onChangeText={handleTextChange}
-            placeholder={hasText ? '' : placeholder}
-            placeholderTextColor="#8E8E93"
-            style={styles.textInput}
+            onChangeText={setText}
+            placeholder="Ask Toto"
+            placeholderTextColor="#666"
+            style={styles.input}
             multiline={false}
             numberOfLines={1}
             returnKeyType="send"
@@ -188,33 +78,61 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             maxLength={1000}
             editable={!disabled}
           />
-          {hasText && (
-            <TouchableOpacity 
-              onPress={handleSend}
-              style={[styles.inlineSend, disabled && styles.actionButtonDisabled]}
-              disabled={disabled}
-            >
-              <Ionicons name="arrow-up" size={18} color={disabled ? "#8E8E93" : "#FFFFFF"} />
-            </TouchableOpacity>
-          )}
-        </View>
+        )}
 
-        {!hasText && (
-          <TouchableOpacity 
-            onPress={onMicPress}
-            style={[styles.actionButtonWrapper, disabled && styles.actionButtonWrapperDisabled]}
-            disabled={disabled}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={disabled ? ['#2C2C2E', '#2C2C2E'] : ['#3AABF0', '#2997FF']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.actionButton}
+        {isRecording ? (
+          /* Stop button + send while recording */
+          <View style={styles.rightIcons}>
+            <TouchableOpacity
+              onPress={onMicPress}
+              activeOpacity={0.7}
+              style={styles.stopBtn}
             >
-              <Ionicons name="mic" size={28} color={disabled ? "#8E8E93" : "#FFFFFF"} />
-            </LinearGradient>
+              <View style={styles.stopSquare} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSend}
+              disabled
+              activeOpacity={0.7}
+              style={[styles.sendBtn, styles.sendBtnDisabled]}
+            >
+              <Ionicons name="arrow-up" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ) : hasText ? (
+          /* Send button — replaces mic+voice when typing */
+          <TouchableOpacity
+            onPress={handleSend}
+            disabled={disabled}
+            activeOpacity={0.7}
+            style={styles.sendBtn}
+          >
+            <Ionicons name="arrow-up" size={18} color="#fff" />
           </TouchableOpacity>
+        ) : (
+          /* Mic + voice buttons */
+          <View style={styles.rightIcons}>
+            <TouchableOpacity
+              onPress={onMicPress}
+              disabled={disabled}
+              activeOpacity={0.6}
+              style={styles.iconBtn}
+            >
+              <Ionicons name="mic-outline" size={24} color={disabled ? '#555' : '#999'} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onMicPress}
+              disabled={disabled}
+              activeOpacity={0.6}
+              style={styles.voiceBtn}
+            >
+              <View style={styles.voiceLines}>
+                <View style={[styles.voiceLine, { height: 14 }]} />
+                <View style={[styles.voiceLine, { height: 8 }]} />
+                <View style={[styles.voiceLine, { height: 14 }]} />
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -223,105 +141,93 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingTop: 8,
     paddingBottom: 12,
-    backgroundColor: '#000000',
-    borderTopWidth: 1,
-    borderTopColor: '#1C1C1E',
   },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 2,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: '#2C2C2E',
-  },
-  chipText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  row: {
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 28,
+    height: 56,
+    paddingHorizontal: 6,
   },
-  attachContainer: {
+  iconBtn: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
-    borderWidth: 1.25,
-    borderColor: '#2C2C2E',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 2.5,
-    elevation: 2,
   },
-  attachIconWrap: {
-    transform: [{ rotate: '-22.5deg' }],
-  },
-  inputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#16181C',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#2C2C2E',
-  },
-  textInput: {
+  input: {
     flex: 1,
     fontSize: 16,
     color: '#FFFFFF',
-    maxHeight: 100,
     paddingVertical: 0,
-    lineHeight: 20,
   },
-  inlineSend: {
-    marginLeft: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  rightIcons: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
+  },
+  sendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#3AABF0',
-  },
-  actionButtonWrapper: {
-    marginLeft: 8,
-    borderRadius: 20,
-    shadowColor: '#3AABF0',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  actionButtonWrapperDisabled: {
-    shadowOpacity: 0,
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    marginRight: 4,
   },
-  actionButtonDisabled: {
-    opacity: 0.4,
+  sendBtnDisabled: {
+    backgroundColor: '#2C2C2E',
+  },
+  voiceBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  voiceLines: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  voiceLine: {
+    width: 2.5,
+    borderRadius: 1.5,
+    backgroundColor: '#999',
+  },
+  // Waveform
+  waveformContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+    gap: 2.5,
+  },
+  waveformBar: {
+    width: 3,
+    height: 28,
+    borderRadius: 1.5,
+    backgroundColor: '#FFFFFF',
+  },
+  stopBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stopSquare: {
+    width: 14,
+    height: 14,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
   },
 });

@@ -697,6 +697,10 @@ export class ApiStack extends cdk.Stack {
             managedRuleGroupStatement: {
               vendorName: 'AWS',
               name: 'AWSManagedRulesCommonRuleSet',
+              excludedRules: [
+                // Large base64 payloads for /ai/transcribe and /ai/analyze-image
+                { name: 'SizeRestrictions_BODY' },
+              ],
             },
           },
           visibilityConfig: {

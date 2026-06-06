@@ -6,8 +6,6 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>CoreHealth</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -19,25 +17,13 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>corehealth</string>
-				<string>com.corehealth.app</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>exp+corehealth</string>
-			</array>
-		</dict>
-	</array>
+	<string>1.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -47,16 +33,22 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>CoreHealth needs access to your camera to take profile pictures and document health records.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>CoreHealth uses Face ID to protect your sensitive health data from unauthorised access.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>CoreHealth needs access to your location to provide travel health features, emergency services, and location-specific health insights.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CoreHealth uses the microphone for voice input so you can speak to Toto instead of typing.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CoreHealth needs access to your camera to take profile pictures and document health records.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>CoreHealth needs access to your photo library to select profile pictures and upload medical documents.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>CoreHealth needs access to contacts to help you import emergency contacts from your device.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>CoreHealth reads your Apple Health data — steps, heart rate, HRV, and sleep — to calculate your health score and personalise your insights.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>CoreHealth may write summarised health data back to Apple Health.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -65,24 +57,14 @@
 	<array>
 		<string>arm64</string>
 	</array>
-	<key>UIRequiresFullScreen</key>
-	<false/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

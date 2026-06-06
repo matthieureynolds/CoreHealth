@@ -33,43 +33,14 @@ export const travelShellStyles = StyleSheet.create({
     flexWrap: 'wrap',
   },
 
-  tabContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 0,
-    backgroundColor: '#000000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
-  },
-  tabScrollContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 8,
-    justifyContent: 'space-between',
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 8,
-    borderRadius: 8,
-    flex: 1,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#3AABF0',
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#8E8E93',
-  },
-  activeTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
-  },
+  // Tab styles now live inside TravelTabBar component (Glass Island design).
+  // These are kept as empty stubs so any leftover references don't crash.
+  tabContainer: {},
+  tabScrollContainer: {},
+  tab: {},
+  activeTab: {},
+  tabText: {},
+  activeTabText: {},
   scrollContainer: {
     flex: 1,
   },
@@ -80,7 +51,7 @@ export const travelShellStyles = StyleSheet.create({
     padding: 20,
   },
   contentTrips: {
-    paddingTop: 8,
+    paddingTop: 0,
     paddingHorizontal: 4,
   },
   sectionTitle: {
