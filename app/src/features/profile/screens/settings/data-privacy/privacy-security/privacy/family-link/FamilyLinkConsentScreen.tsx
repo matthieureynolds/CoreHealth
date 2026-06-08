@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
 
 type Toggle = {
   key: string;
@@ -21,7 +22,6 @@ const defaultToggles: Toggle[] = [
 ];
 
 const FamilyLinkConsentScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [toggles, setToggles] = useState<Toggle[]>(defaultToggles);
 
@@ -42,15 +42,9 @@ const FamilyLinkConsentScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Consent & Broadcast</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <SettingsHeader title="Consent & Broadcast" />
 
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingTop: SETTINGS_SCROLL_PT }]}>
         <View style={styles.card}>
           <Text style={styles.cardHeader}>WHAT IS SHARED</Text>
           <Text style={styles.body}>
@@ -86,15 +80,6 @@ const FamilyLinkConsentScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
-  header: {
-    paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818',
-    borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between',
-  },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: {
-    fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center',
-    position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8,
-  },
   content: { paddingHorizontal: 20, paddingTop: 20 },
   card: { backgroundColor: '#181818', borderRadius: 12, marginBottom: 20, paddingVertical: 16, paddingHorizontal: 16 },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 12, letterSpacing: 0.5 },

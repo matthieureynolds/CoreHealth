@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -20,11 +20,6 @@ import { deriveDashboardScores } from '../score/utils';
 import { LabResult } from '../recent-lab-results/results/types';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
-import BiomarkerModal, {
-  BiomarkerInfo,
-} from '../../../shared/components/modals/BiomarkerModal';
-import { getBiomarkerInfo } from '../../../shared/data/biomarkerDatabase';
-import HealthChatModal from '../travel-health/nearby-medical/HealthChatModal';
 import TwitterLoadingIndicator from '../../../shared/components/feedback/TwitterLoadingIndicator';
 import QuickSymptomLogModal from '../../../shared/components/modals/QuickSymptomLogModal';
 
@@ -35,25 +30,55 @@ import TravelHealthSummary from '../travel-health/TravelHealthSummary';
 import MedicalTimeline from '../medical-timeline/MedicalTimeline';
 import { DataService } from '../../../shared/services/data/dataService';
 
+const PULL_TO_REFRESH_THRESHOLD = -100;
+const LOCATION_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_VISIBLE_ALERTS = 3;
+
+const ALERT_SEVERITY_COLORS: Record<string, string> = {
+  critical: '#FF3B30',
+  warning: '#FF9500',
+};
+const ALERT_DEFAULT_COLOR = '#3AABF0';
+
+function getTimeOfDay(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+}
+
+const AlertCard: React.FC<{
+  alert: { id: string; type: string; severity: string; title: string; body: string };
+  onDismiss: (id: string) => void;
+}> = React.memo(({ alert, onDismiss }) => {
+  const borderColor = ALERT_SEVERITY_COLORS[alert.severity] ?? ALERT_DEFAULT_COLOR;
+  return (
+    <View style={[styles.alertCard, { borderLeftColor: borderColor }]}>
+      <View style={styles.alertContent}>
+        <Text style={styles.alertTitle}>{alert.title}</Text>
+        <Text style={styles.alertBody}>{alert.body}</Text>
+      </View>
+      <TouchableOpacity onPress={() => onDismiss(alert.id)} style={styles.alertDismiss} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <Ionicons name="close" size={16} color="#8E8E93" />
+      </TouchableOpacity>
+    </View>
+  );
+});
+
 const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const {
     healthScore,
-    dailyInsights,
-    biomarkers,
     travelHealth,
     generateDailyInsights,
     getUpcomingJetLagEvents,
     getCurrentLocation,
     updateTravelHealthData
   } = useHealthData();
-  const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [chatModalVisible, setChatModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
-  const [lastLocationUpdate, setLastLocationUpdate] = useState<number>(0);
+  const lastLocationUpdateRef = useRef<number>(0);
   const [healthAlerts, setHealthAlerts] = useState<Array<{
     id: string; type: string; severity: string; title: string; body: string;
   }>>([]);
@@ -61,7 +86,7 @@ const DashboardScreen: React.FC = () => {
   useFocusEffect(useCallback(() => {
     if (!user?.id) return;
     DataService.getAlerts(user.id)
-      .then(alerts => setHealthAlerts(alerts.slice(0, 3)))
+      .then(alerts => setHealthAlerts(alerts.slice(0, MAX_VISIBLE_ALERTS)))
       .catch(() => {});
   }, [user?.id]));
 
@@ -69,14 +94,13 @@ const DashboardScreen: React.FC = () => {
     const initializeLocation = async () => {
       try {
         const now = Date.now();
-        const timeSinceLastUpdate = now - lastLocationUpdate;
-        const shouldRefreshLocation = !travelHealth?.location || timeSinceLastUpdate > 300000;
+        const shouldRefreshLocation = !travelHealth?.location || now - lastLocationUpdateRef.current > LOCATION_REFRESH_INTERVAL_MS;
 
         if (shouldRefreshLocation) {
           const locationData = await getCurrentLocation();
           if (locationData) {
             await updateTravelHealthData(locationData);
-            setLastLocationUpdate(now);
+            lastLocationUpdateRef.current = now;
           }
         }
       } catch (error) {
@@ -85,22 +109,15 @@ const DashboardScreen: React.FC = () => {
     };
 
     initializeLocation();
-  }, [travelHealth?.location, getCurrentLocation, updateTravelHealthData, lastLocationUpdate]);
+  }, [travelHealth?.location, getCurrentLocation, updateTravelHealthData]);
 
-  const getTimeOfDay = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'morning';
-    if (hour < 18) return 'afternoon';
-    return 'evening';
-  };
-
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const locationData = await getCurrentLocation();
       if (locationData) {
         await updateTravelHealthData(locationData);
-        setLastLocationUpdate(Date.now());
+        lastLocationUpdateRef.current = Date.now();
       }
       await generateDailyInsights();
     } catch (error) {
@@ -108,68 +125,30 @@ const DashboardScreen: React.FC = () => {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [getCurrentLocation, updateTravelHealthData, generateDailyInsights]);
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (event.nativeEvent.contentOffset.y < -100 && !isRefreshing) {
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (event.nativeEvent.contentOffset.y < PULL_TO_REFRESH_THRESHOLD && !isRefreshing) {
       handleRefresh();
     }
-  };
+  }, [isRefreshing, handleRefresh]);
 
-  const handleBiomarkerPress = (biomarkerName: string, value: number) => {
-    const getStatus = (
-      name: string,
-      val: number,
-    ): 'normal' | 'low' | 'high' | 'critical' => {
-      const normalRanges: { [key: string]: { min: number; max: number } } = {
-        'Heart Rate Variability': { min: 30, max: 60 },
-        'Resting Heart Rate': { min: 50, max: 100 },
-        'Blood Glucose': { min: 70, max: 99 },
-        Creatinine: { min: 0.6, max: 1.2 },
-        ALT: { min: 7, max: 56 },
-        AST: { min: 10, max: 40 },
-      };
-
-      const range = normalRanges[name];
-      if (!range) return 'normal';
-      if (val < range.min) return 'low';
-      if (val > range.max) return 'high';
-      return 'normal';
-    };
-
-    const status = getStatus(biomarkerName, value);
-    const biomarkerInfo = getBiomarkerInfo(biomarkerName, value, status);
-
-    if (biomarkerInfo) {
-      setSelectedBiomarker(biomarkerInfo);
-      setModalVisible(true);
-    }
-  };
-
-  const handleRingPress = (_ringId: string) => {};
-
-  const handleLabResultPress = (labResult: LabResult) => {
+  const handleLabResultPress = useCallback((labResult: LabResult) => {
     navigation.navigate('LabResultDetail', { labResult });
-  };
+  }, [navigation]);
 
-  const handleTravelPress = () => {};
-
-  const handleDismissAlert = async (alertId: string) => {
+  const handleDismissAlert = useCallback(async (alertId: string) => {
     if (!user?.id) return;
     setHealthAlerts(prev => prev.filter(a => a.id !== alertId));
     DataService.dismissAlert(user.id, alertId).catch(() => {});
-  };
-
-  const handleMedicalEventPress = (_event: unknown) => {};
-
-  const handleJetLagEventPress = (_event: unknown) => {};
+  }, [user?.id]);
 
   const {
     overallHealthScore,
     finalRecoveryScore,
     finalBiomarkersScore,
     finalLifestyleScore,
-  } = deriveDashboardScores(healthScore);
+  } = useMemo(() => deriveDashboardScores(healthScore), [healthScore]);
 
   return (
     <View style={styles.container}>
@@ -205,20 +184,9 @@ const DashboardScreen: React.FC = () => {
       >
         {healthAlerts.length > 0 && (
           <View style={styles.alertsContainer}>
-            {healthAlerts.map(alert => {
-              const borderColor = alert.severity === 'critical' ? '#FF3B30' : alert.severity === 'warning' ? '#FF9500' : '#3AABF0';
-              return (
-                <View key={alert.id} style={[styles.alertCard, { borderLeftColor: borderColor }]}>
-                  <View style={styles.alertContent}>
-                    <Text style={styles.alertTitle}>{alert.title}</Text>
-                    <Text style={styles.alertBody}>{alert.body}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => handleDismissAlert(alert.id)} style={styles.alertDismiss} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-                    <Ionicons name="close" size={16} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+            {healthAlerts.map(alert => (
+              <AlertCard key={alert.id} alert={alert} onDismiss={handleDismissAlert} />
+            ))}
           </View>
         )}
 
@@ -233,20 +201,16 @@ const DashboardScreen: React.FC = () => {
           recovery={finalRecoveryScore}
           biomarkers={finalBiomarkersScore}
           lifestyle={finalLifestyleScore}
-          onRingPress={handleRingPress}
         />
 
         <LabInsightsCard
-          onViewAllPress={() => {}}
           onLabResultPress={handleLabResultPress}
         />
 
         <TravelHealthSummary
           currentLocation={travelHealth?.location || 'Getting location...'}
           jetLagHours={0}
-          onTravelPress={handleTravelPress}
           jetLagPlanningEvents={getUpcomingJetLagEvents()}
-          onJetLagEventPress={handleJetLagEventPress}
           nearestHospital={travelHealth?.nearestHospital}
           nearestPharmacy={travelHealth?.nearestPharmacy}
           nearestHospitalData={travelHealth?.nearestHospitalData}
@@ -254,27 +218,10 @@ const DashboardScreen: React.FC = () => {
           travelHealth={travelHealth}
         />
 
-        <MedicalTimeline
-          onEventPress={handleMedicalEventPress}
-        />
+        <MedicalTimeline />
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-
-      <BiomarkerModal
-        visible={modalVisible}
-        biomarker={selectedBiomarker}
-        onClose={() => {
-          setModalVisible(false);
-          setSelectedBiomarker(null);
-        }}
-      />
-
-      <HealthChatModal
-        visible={chatModalVisible}
-        onClose={() => setChatModalVisible(false)}
-      />
-
 
       <QuickSymptomLogModal
         visible={showSymptomModal}

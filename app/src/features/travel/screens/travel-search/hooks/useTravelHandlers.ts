@@ -7,62 +7,29 @@ import { createTripHandlers } from './useTripHandlers';
 export type { Trip } from './useTripHandlers';
 export { buildJetLagPlanner } from './useTripHandlers';
 
-// Re-export Trip for backward compatibility
 import type { Trip } from './useTripHandlers';
 
-type SetStr = (v: string) => void;
-type SetBool = (v: boolean) => void;
-type SetDate = (v: Date) => void;
-type SetDateOpt = (v: Date | undefined) => void;
-type SetAny = (v: any) => void;
-type SetAnyFn = (fn: (prev: any) => any) => void;
-type SetPicker = (v: 'departure' | 'return' | 'departureTime' | 'returnTime' | null) => void;
-
+/**
+ * All state from useTravelState(), plus external deps and curtain state.
+ * Accepts the state object directly to avoid 60+ individual params.
+ */
 export interface TravelHandlersParams {
-  travelHealth: any; inputText: string; searchLocation: string;
-  selectedLocation: string; citySearchResults: any[]; popularCities: string[];
-  contentMeasuredHeight: number;
-  flightCarrier: string; flightNumber: string; flightLookupResult: any;
-  flightSegments: any[]; showDatePicker: 'departure' | 'return' | null;
-  tempDatePickerValue: Date | undefined; newTripDepartureDate: Date | undefined;
-  newTripReturnDate: Date | undefined; newTripDepartureLocation: string;
-  newTripDestination: string; editingTrip: Trip | null;
-  editTripDepartureLocation: string; editTripDestination: string;
-  editTripDepartureDate: Date; editTripReturnDate: Date | undefined;
-  editTripNotes: string; showEditDatePicker: 'departure' | 'return' | null;
-  tempEditDatePickerValue: Date | undefined;
-  resultsOpacity: Animated.Value; resultsTranslateY: Animated.Value;
-  tripModalTranslateY: Animated.Value;
+  // The full state object from useTravelState()
+  s: ReturnType<typeof import('./useTravelState').useTravelState>;
+  // External dependencies
+  travelHealth: any;
   updateTravelHealthData: (locationData: LocationData) => Promise<void>;
   getCurrentLocation: () => Promise<any>;
-  setSearchLocation: SetStr; setInputText: SetStr; setFilteredCities: (v: string[]) => void;
-  setIsLoading: SetBool; setSelectedLocation: SetStr; setCitySearchResults: (v: any[]) => void;
-  setShowInlineSuggestions: SetBool; setApiErrors: SetAnyFn; setIsRefreshing: SetBool;
-  setIsGettingLocation: SetBool; setIsLookingUpFlight: SetBool; setFlightNotFound: SetBool; setFlightLookupResult: SetAny;
-  setNewTripDepartureLocation: SetStr; setNewTripDestination: SetStr;
-  setNewTripDepartureDate: SetDate; setShowManualEntry: SetBool;
-  setTrips: (fn: (prev: Trip[]) => Trip[]) => void; setNewTripReturnDate: SetDateOpt;
-  setNewTripDepartureTime: SetDateOpt; setNewTripReturnTime: SetDateOpt;
-  setShowAddTripModal: SetBool; setTripSuggestions: (v: string[]) => void;
-  setDepartureSuggestions: (v: string[]) => void; setFlightCarrier: SetStr;
-  setFlightNumber: SetStr; setDetectedAirline: (v: string | null) => void;
-  setFlightSegments: (fn: (prev: any[]) => any[]) => void; setFlightDetailsExpanded: SetBool;
-  setEditingTrip: (v: Trip | null) => void; setEditTripDepartureLocation: SetStr;
-  setEditTripDestination: SetStr; setEditTripDepartureDate: SetDate;
-  setEditTripReturnDate: SetDateOpt; setEditTripNotes: SetStr; setShowEditTripModal: SetBool;
-  setEditTripSuggestions: (v: string[]) => void; setEditTripDepartureSuggestions: (v: string[]) => void;
-  setShowDatePicker: SetPicker; setTempDatePickerValue: SetDateOpt;
-  pendingDateRef: React.MutableRefObject<Date | undefined>;
-  setShowEditDatePicker: SetPicker; setTempEditDatePickerValue: SetDateOpt;
+  // Curtain state
+  contentMeasuredHeight: number;
   setContentMeasuredHeight: (v: number) => void;
-  setShowDirectionsModal: (v: string | null) => void; setShowEmergencyModal: SetBool;
 }
 
 export function createTravelHandlers(params: TravelHandlersParams) {
+  const { s, travelHealth, updateTravelHealthData, getCurrentLocation } = params;
   const {
-    travelHealth, citySearchResults, showDatePicker, tempDatePickerValue,
+    citySearchResults, showDatePicker, tempDatePickerValue,
     showEditDatePicker, tempEditDatePickerValue, resultsOpacity, resultsTranslateY,
-    updateTravelHealthData, getCurrentLocation,
     setSearchLocation, setInputText, setFilteredCities, setIsLoading,
     setSelectedLocation, setShowInlineSuggestions, setApiErrors,
     setIsRefreshing, setIsGettingLocation, setNewTripDepartureDate,
@@ -71,33 +38,33 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     pendingDateRef,
     setShowEditDatePicker, setTempEditDatePickerValue,
     setEditTripDepartureDate, setEditTripReturnDate, setEditTripDepartureSuggestions,
-  } = params;
+  } = s;
 
   const tripHandlers = createTripHandlers({
-    flightCarrier: params.flightCarrier, flightNumber: params.flightNumber,
-    flightLookupResult: params.flightLookupResult, flightSegments: params.flightSegments,
-    newTripDepartureDate: params.newTripDepartureDate, newTripReturnDate: params.newTripReturnDate,
-    newTripDepartureLocation: params.newTripDepartureLocation, newTripDestination: params.newTripDestination,
-    editingTrip: params.editingTrip, editTripDepartureLocation: params.editTripDepartureLocation,
-    editTripDestination: params.editTripDestination, editTripDepartureDate: params.editTripDepartureDate,
-    editTripReturnDate: params.editTripReturnDate, editTripNotes: params.editTripNotes,
-    tripModalTranslateY: params.tripModalTranslateY, setTrips: params.setTrips,
-    setNewTripDepartureLocation: params.setNewTripDepartureLocation,
-    setNewTripDestination: params.setNewTripDestination,
-    setNewTripDepartureDate: params.setNewTripDepartureDate,
-    setNewTripReturnDate: params.setNewTripReturnDate,
-    setShowAddTripModal: params.setShowAddTripModal, setTripSuggestions: params.setTripSuggestions,
-    setDepartureSuggestions: params.setDepartureSuggestions, setFlightCarrier: params.setFlightCarrier,
-    setFlightNumber: params.setFlightNumber, setDetectedAirline: params.setDetectedAirline,
-    setFlightSegments: params.setFlightSegments, setFlightDetailsExpanded: params.setFlightDetailsExpanded,
-    setFlightLookupResult: params.setFlightLookupResult, setIsLookingUpFlight: params.setIsLookingUpFlight, setFlightNotFound: params.setFlightNotFound,
-    setShowManualEntry: params.setShowManualEntry, setEditingTrip: params.setEditingTrip,
-    setEditTripDepartureLocation: params.setEditTripDepartureLocation,
-    setEditTripDestination: params.setEditTripDestination,
-    setEditTripDepartureDate: params.setEditTripDepartureDate,
-    setEditTripReturnDate: params.setEditTripReturnDate, setEditTripNotes: params.setEditTripNotes,
-    setShowEditTripModal: params.setShowEditTripModal, setEditTripSuggestions: params.setEditTripSuggestions,
-    setEditTripDepartureSuggestions: params.setEditTripDepartureSuggestions,
+    flightCarrier: s.flightCarrier, flightNumber: s.flightNumber,
+    flightLookupResult: s.flightLookupResult, flightSegments: s.flightSegments,
+    newTripDepartureDate: s.newTripDepartureDate, newTripReturnDate: s.newTripReturnDate,
+    newTripDepartureLocation: s.newTripDepartureLocation, newTripDestination: s.newTripDestination,
+    editingTrip: s.editingTrip, editTripDepartureLocation: s.editTripDepartureLocation,
+    editTripDestination: s.editTripDestination, editTripDepartureDate: s.editTripDepartureDate,
+    editTripReturnDate: s.editTripReturnDate, editTripNotes: s.editTripNotes,
+    tripModalTranslateY: s.tripModalTranslateY, setTrips: s.setTrips,
+    setNewTripDepartureLocation: s.setNewTripDepartureLocation,
+    setNewTripDestination: s.setNewTripDestination,
+    setNewTripDepartureDate: s.setNewTripDepartureDate,
+    setNewTripReturnDate: s.setNewTripReturnDate,
+    setShowAddTripModal: s.setShowAddTripModal, setTripSuggestions: s.setTripSuggestions,
+    setDepartureSuggestions: s.setDepartureSuggestions, setFlightCarrier: s.setFlightCarrier,
+    setFlightNumber: s.setFlightNumber, setDetectedAirline: s.setDetectedAirline,
+    setFlightSegments: s.setFlightSegments, setFlightDetailsExpanded: s.setFlightDetailsExpanded,
+    setFlightLookupResult: s.setFlightLookupResult, setIsLookingUpFlight: s.setIsLookingUpFlight, setFlightNotFound: s.setFlightNotFound,
+    setShowManualEntry: s.setShowManualEntry, setEditingTrip: s.setEditingTrip,
+    setEditTripDepartureLocation: s.setEditTripDepartureLocation,
+    setEditTripDestination: s.setEditTripDestination,
+    setEditTripDepartureDate: s.setEditTripDepartureDate,
+    setEditTripReturnDate: s.setEditTripReturnDate, setEditTripNotes: s.setEditTripNotes,
+    setShowEditTripModal: s.setShowEditTripModal, setEditTripSuggestions: s.setEditTripSuggestions,
+    setEditTripDepartureSuggestions: s.setEditTripDepartureSuggestions,
   });
 
   const handleRefresh = async () => {
@@ -184,7 +151,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     const location = await getCurrentLocation();
     if (location) {
       const name = location.country && location.country !== 'Unknown' ? `${location.name}, ${location.country}` : location.name;
-      params.setNewTripDepartureLocation(name); params.setDepartureSuggestions([]); Keyboard.dismiss();
+      s.setNewTripDepartureLocation(name); s.setDepartureSuggestions([]); Keyboard.dismiss();
     }
   };
 
@@ -192,7 +159,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     const location = await getCurrentLocation();
     if (location) {
       const name = location.country && location.country !== 'Unknown' ? `${location.name}, ${location.country}` : location.name;
-      params.setEditTripDepartureLocation(name); setEditTripDepartureSuggestions([]); Keyboard.dismiss();
+      s.setEditTripDepartureLocation(name); setEditTripDepartureSuggestions([]); Keyboard.dismiss();
     }
   };
 

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NowCard as NowCardType } from '../../../shared/types';
-import { NowCardLoading, NowCardEmpty, NowCardNoAction } from './components/NowCardStates';
-import { NowCardAction } from './components/NowCardAction';
+import { NowCardLoading, NowCardEmpty, NowCardNoAction } from './NowCardStates';
+import { NowCardAction } from './NowCardAction';
 
 interface NowCardProps {
   nowCard: NowCardType | null;

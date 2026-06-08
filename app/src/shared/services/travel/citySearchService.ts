@@ -82,19 +82,18 @@ export const searchCities = async (query: string, limit: number = 10): Promise<C
       return [];
     }
 
-    // Get detailed information for each location
-    const locationResults: CitySearchResult[] = [];
-    
-    for (const prediction of data.predictions.slice(0, limit)) {
-      try {
-        const details = await getPlaceDetails(prediction.place_id);
-        if (details) {
-          locationResults.push(details);
+    // Get detailed information for each location — in parallel for speed
+    const predictions = data.predictions.slice(0, limit);
+    const locationResults = await Promise.all(
+      predictions.map(async (prediction) => {
+        try {
+          const details = await getPlaceDetails(prediction.place_id);
+          if (details) return details;
+        } catch (error) {
+          console.warn('Error getting details for place:', prediction.place_id, error);
         }
-      } catch (error) {
-        console.warn('Error getting details for place:', prediction.place_id, error);
-        // Add basic info even if details fail
-        locationResults.push({
+        // Fallback to basic info from autocomplete prediction
+        return {
           name: prediction.structured_formatting.main_text,
           country: prediction.structured_formatting.secondary_text,
           formattedAddress: prediction.description,
@@ -102,9 +101,9 @@ export const searchCities = async (query: string, limit: number = 10): Promise<C
           placeId: prediction.place_id,
           timezone: 'UTC',
           timezoneOffset: '+00:00',
-        });
-      }
-    }
+        } as CitySearchResult;
+      })
+    );
 
     return locationResults;
   } catch (error) {
@@ -206,19 +205,18 @@ export const searchAllLocations = async (query: string, limit: number = 15): Pro
       return [];
     }
 
-    // Get detailed information for each location
-    const locationResults: CitySearchResult[] = [];
-    
-    for (const prediction of data.predictions.slice(0, limit)) {
-      try {
-        const details = await getPlaceDetails(prediction.place_id);
-        if (details) {
-          locationResults.push(details);
+    // Get detailed information for each location — in parallel for speed
+    const predictions = data.predictions.slice(0, limit);
+    const locationResults = await Promise.all(
+      predictions.map(async (prediction) => {
+        try {
+          const details = await getPlaceDetails(prediction.place_id);
+          if (details) return details;
+        } catch (error) {
+          console.warn('Error getting details for place:', prediction.place_id, error);
         }
-      } catch (error) {
-        console.warn('Error getting details for place:', prediction.place_id, error);
-        // Add basic info even if details fail
-        locationResults.push({
+        // Fallback to basic info from autocomplete prediction
+        return {
           name: prediction.structured_formatting.main_text,
           country: prediction.structured_formatting.secondary_text,
           formattedAddress: prediction.description,
@@ -226,9 +224,9 @@ export const searchAllLocations = async (query: string, limit: number = 15): Pro
           placeId: prediction.place_id,
           timezone: 'UTC',
           timezoneOffset: '+00:00',
-        });
-      }
-    }
+        } as CitySearchResult;
+      })
+    );
 
     return locationResults;
   } catch (error) {

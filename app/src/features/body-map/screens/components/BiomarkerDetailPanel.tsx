@@ -22,7 +22,6 @@ interface BiomarkerDetailPanelProps {
   selectedOrganData: PanelPayload | null;
   panelAnim: Animated.Value;
   onClose: () => void;
-  onBiomarkerPress: (info: any) => void;
 }
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -36,24 +35,25 @@ const statusMap: Record<string, LabResult['status']> = {
 
 // ─── Summary ring ──────────────────────────────────────────────────────────
 
+const RING_SIZE = 120;
+const RING_STROKE = 6;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const SEGMENT_GAP = 4;
+
 const SummaryRing: React.FC<{ optimal: number; normal: number; outOfRange: number; total: number }> = ({
   optimal, normal, outOfRange, total,
 }) => {
-  const size = 120;
-  const stroke = 6;
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
   const segmentCount = (optimal > 0 ? 1 : 0) + (normal > 0 ? 1 : 0) + (outOfRange > 0 ? 1 : 0);
-  const gap = segmentCount > 1 ? 4 : 0;
-  const totalGaps = segmentCount;
-  const totalGapLen = gap * totalGaps;
-  const usable = circ - totalGapLen;
+  const gap = segmentCount > 1 ? SEGMENT_GAP : 0;
+  const totalGapLen = gap * segmentCount;
+  const usable = RING_CIRCUMFERENCE - totalGapLen;
 
-  const optLen = total > 0 ? (optimal / total) * usable : 0;
-  const normLen = total > 0 ? (normal / total) * usable : 0;
-  const oorLen = total > 0 ? (outOfRange / total) * usable : 0;
+  const safeTotal = Math.max(total, 1);
+  const optLen = (optimal / safeTotal) * usable;
+  const normLen = (normal / safeTotal) * usable;
+  const oorLen = (outOfRange / safeTotal) * usable;
 
-  // Build segments: each has a dasharray and offset
   const segments: { color: string; len: number }[] = [];
   if (optimal > 0) segments.push({ color: '#30D158', len: optLen });
   if (normal > 0) segments.push({ color: '#FF9F0A', len: normLen });
@@ -62,23 +62,21 @@ const SummaryRing: React.FC<{ optimal: number; normal: number; outOfRange: numbe
   let offset = 0;
 
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', shadowColor: '#30D158', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 10 }}>
-      <Svg width={size} height={size}>
-        {/* Background track */}
+    <View style={ringStyles.container}>
+      <Svg width={RING_SIZE} height={RING_SIZE}>
         <Circle
-          cx={size / 2} cy={size / 2} r={r}
-          stroke="#2C2C2E" strokeWidth={stroke} fill="none"
+          cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS}
+          stroke="#2C2C2E" strokeWidth={RING_STROKE} fill="none"
         />
-        {/* Segments */}
         {segments.map((seg, i) => {
-          const dashOffset = circ * 0.25 + offset; // start from top
+          const dashOffset = RING_CIRCUMFERENCE * 0.25 + offset;
           const el = (
             <Circle
               key={i}
-              cx={size / 2} cy={size / 2} r={r}
-              stroke={seg.color} strokeWidth={stroke} fill="none"
+              cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS}
+              stroke={seg.color} strokeWidth={RING_STROKE} fill="none"
               strokeLinecap="butt"
-              strokeDasharray={`${seg.len} ${circ - seg.len}`}
+              strokeDasharray={`${seg.len} ${RING_CIRCUMFERENCE - seg.len}`}
               strokeDashoffset={-dashOffset}
             />
           );
@@ -86,14 +84,9 @@ const SummaryRing: React.FC<{ optimal: number; normal: number; outOfRange: numbe
           return el;
         })}
       </Svg>
-      {/* Center text */}
-      <View style={{ position: 'absolute', alignItems: 'center' }}>
-        <Text style={{ fontSize: 32, fontWeight: '300', color: '#FFFFFF', letterSpacing: -1 }}>
-          {total}
-        </Text>
-        <Text style={{ fontSize: 11, fontWeight: '400', color: '#8E8E93', marginTop: 1 }}>
-          biomarkers
-        </Text>
+      <View style={ringStyles.centerText}>
+        <Text style={ringStyles.totalValue}>{total}</Text>
+        <Text style={ringStyles.totalLabel}>biomarkers</Text>
       </View>
     </View>
   );
@@ -406,6 +399,35 @@ const s = StyleSheet.create({
   },
   dotInactive: {
     backgroundColor: '#48484A',
+  },
+});
+
+const ringStyles = StyleSheet.create({
+  container: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#30D158',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+  },
+  centerText: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  totalValue: {
+    fontSize: 32,
+    fontWeight: '300',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+  },
+  totalLabel: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: '#8E8E93',
+    marginTop: 1,
   },
 });
 

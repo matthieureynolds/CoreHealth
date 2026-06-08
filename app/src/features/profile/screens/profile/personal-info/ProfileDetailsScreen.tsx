@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import StickyHeader from './components/StickyHeader';
@@ -30,7 +30,7 @@ const ProfileDetailsScreen: React.FC = () => {
     profileCompletion,
   } = useProfileDetails();
 
-  const healthRecordsRows: CardRowConfig[] = [
+  const healthRecordsRows: CardRowConfig[] = useMemo(() => [
     {
       icon: 'body-outline',
       iconColor: '#3AABF0',
@@ -75,9 +75,9 @@ const ProfileDetailsScreen: React.FC = () => {
       isLast: true,
       tallRow: true,
     },
-  ];
+  ], [profile?.height, profile?.medicalHistory?.length, profile?.medications?.length, profile?.allergies?.length, profile?.familyHistory?.length, profile?.vaccinations?.length, navigation]);
 
-  const medicalHistoryRows: CardRowConfig[] = [
+  const medicalHistoryRows: CardRowConfig[] = useMemo(() => [
     {
       icon: 'pulse-outline',
       iconColor: '#FF6B6B',
@@ -101,9 +101,9 @@ const ProfileDetailsScreen: React.FC = () => {
       isLast: true,
       tallRow: true,
     },
-  ];
+  ], [profile?.pastAppointments?.length, profile?.screenings?.length, navigation]);
 
-  const recordManagementRows: CardRowConfig[] = [
+  const recordManagementRows: CardRowConfig[] = useMemo(() => [
     {
       icon: 'folder-outline',
       iconColor: '#4ECDC4',
@@ -125,9 +125,9 @@ const ProfileDetailsScreen: React.FC = () => {
       isLast: true,
       tallRow: true,
     },
-  ];
+  ], [profile?.medicalRecords?.length, navigation]);
 
-  const emergencyInfoRows: CardRowConfig[] = [
+  const emergencyInfoRows: CardRowConfig[] = useMemo(() => [
     {
       icon: 'call-outline',
       iconColor: '#FF3B30',
@@ -148,7 +148,7 @@ const ProfileDetailsScreen: React.FC = () => {
       isLast: true,
       tallRow: true,
     },
-  ];
+  ], [profile?.emergencyContacts?.length, profile?.doctors?.length, navigation]);
 
   return (
     <View style={styles.container}>

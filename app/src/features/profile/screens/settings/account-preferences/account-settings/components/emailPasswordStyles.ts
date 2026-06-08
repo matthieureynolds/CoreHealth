@@ -5,27 +5,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 0,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    flex: 1,
-  },
   content: {
     flex: 1,
     paddingHorizontal: 20,

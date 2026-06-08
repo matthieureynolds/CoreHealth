@@ -1,4 +1,4 @@
-import { Action } from '../../../../shared/types';
+import { Action } from '../../../shared/types';
 
 export const HOUR_HEIGHT = 32;
 export const CHART_HEIGHT = 24 * HOUR_HEIGHT;

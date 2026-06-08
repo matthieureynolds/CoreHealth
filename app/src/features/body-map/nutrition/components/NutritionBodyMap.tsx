@@ -6,15 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import BiomarkerModal from '../../../../shared/components/modals/BiomarkerModal';
-import { BiomarkerInfo } from '../../../../shared/components/modals/BiomarkerModal';
+import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/modals/BiomarkerModal';
 import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
 import { vitamins, majorMinerals, traceMinerals } from '../../nutrition';
 import { NutritionItem } from '../../nutrition/types';
-
-interface NutritionBodyMapProps {
-  onNutritionItemPress?: (item: NutritionItem) => void;
-}
 
 const getStatusColor = (status: string): string => {
   switch (status) {
@@ -26,14 +21,11 @@ const getStatusColor = (status: string): string => {
   }
 };
 
-const NutritionBodyMap: React.FC<NutritionBodyMapProps> = ({
-  onNutritionItemPress,
-}) => {
+const NutritionBodyMap: React.FC = () => {
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleItemPress = (item: NutritionItem) => {
-    onNutritionItemPress?.(item);
     const biomarkerInfo = getBiomarkerInfo(
       item.name,
       item.value,

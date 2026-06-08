@@ -334,27 +334,27 @@ export function getMetricDetails(metricId: string, status: string): MetricDetail
   };
 }
 
+// Derived from the canonical popular cities list in citySearchService.ts
+// to avoid maintaining two separate city lists.
+import { getPopularCities } from '../../../../shared/services/travel/citySearchService';
+
+const _buildCityCountryMap = (): Record<string, string> => {
+  const map: Record<string, string> = { 'Current Location': 'Your Location' };
+  for (const entry of getPopularCities()) {
+    const parts = entry.split(', ');
+    if (parts.length >= 2) {
+      map[parts[0]] = parts.slice(1).join(', ');
+    } else {
+      map[entry] = entry; // e.g. "Singapore"
+    }
+  }
+  return map;
+};
+let _cityCountryMap: Record<string, string> | null = null;
+const getCityCountryMap = () => _cityCountryMap || (_cityCountryMap = _buildCityCountryMap());
+
 export function getCountryFromCity(city: string): string {
-  const cityCountryMap: Record<string, string> = {
-    'Tokyo': 'Japan', 'Paris': 'France', 'New York': 'USA', 'London': 'UK',
-    'Sydney': 'Australia', 'Bangkok': 'Thailand', 'Singapore': 'Singapore',
-    'Dubai': 'UAE', 'Hong Kong': 'Hong Kong', 'Barcelona': 'Spain',
-    'Rome': 'Italy', 'Amsterdam': 'Netherlands', 'Vienna': 'Austria',
-    'Prague': 'Czech Republic', 'Budapest': 'Hungary', 'Copenhagen': 'Denmark',
-    'Stockholm': 'Sweden', 'Oslo': 'Norway', 'Helsinki': 'Finland',
-    'Reykjavik': 'Iceland', 'San Francisco': 'USA', 'Los Angeles': 'USA',
-    'Chicago': 'USA', 'Miami': 'USA', 'Seattle': 'USA', 'Boston': 'USA',
-    'Berlin': 'Germany', 'Munich': 'Germany', 'Toronto': 'Canada',
-    'Vancouver': 'Canada', 'Montreal': 'Canada', 'Seoul': 'South Korea',
-    'Shanghai': 'China', 'Beijing': 'China', 'Mumbai': 'India',
-    'Delhi': 'India', 'Mexico City': 'Mexico', 'São Paulo': 'Brazil',
-    'Rio de Janeiro': 'Brazil', 'Buenos Aires': 'Argentina',
-    'Lisbon': 'Portugal', 'Dublin': 'Ireland', 'Zurich': 'Switzerland',
-    'Brussels': 'Belgium', 'Warsaw': 'Poland', 'Athens': 'Greece',
-    'Istanbul': 'Turkey', 'Cairo': 'Egypt', 'Cape Town': 'South Africa',
-    'Nairobi': 'Kenya', 'Lagos': 'Nigeria', 'Marrakech': 'Morocco',
-    'Current Location': 'Your Location',
-  };
+  const cityCountryMap = getCityCountryMap();
   if (cityCountryMap[city]) return cityCountryMap[city];
   const partialMatch = Object.keys(cityCountryMap).find(
     k => city.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(city.toLowerCase())

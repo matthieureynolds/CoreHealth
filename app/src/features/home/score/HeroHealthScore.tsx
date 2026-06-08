@@ -10,7 +10,6 @@ import {
 import Svg, { Circle } from 'react-native-svg';
 import AnimatedProgressCircle from './components/AnimatedProgressCircle';
 import { AnimatedScoreText, AnimatedScoreLabel } from './components/AnimatedScoreDisplay';
-import DistributionCurve from './components/DistributionCurve';
 
 const { width } = Dimensions.get('window');
 
@@ -91,45 +90,41 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({ score, onPress }) => 
   }, [displayScore, hasAnimated]);
 
   return (
-    <>
-      <TouchableOpacity
-        style={styles.container}
-        onPress={onPress}
-        activeOpacity={0.8}
-      >
-        <View style={styles.scoreContainer}>
-          <View style={[styles.circleWrapper, { width: circleSize, height: circleSize }]}>
-            <Svg width={circleSize} height={circleSize} style={styles.svg}>
-              {/* Background circle */}
-              <Circle
-                stroke="#2C2C2E"
-                fill="none"
-                cx={circleSize / 2}
-                cy={circleSize / 2}
-                r={radius}
-                strokeWidth={strokeWidth}
-              />
-              {/* Progress circle */}
-              <AnimatedProgressCircle
-                animatedProgress={animatedProgress}
-                animatedScore={animatedScore}
-                circumference={circumference}
-                circleSize={circleSize}
-                radius={radius}
-                strokeWidth={strokeWidth}
-              />
-            </Svg>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.scoreContainer}>
+        <View style={[styles.circleWrapper, { width: circleSize, height: circleSize }]}>
+          <Svg width={circleSize} height={circleSize} style={styles.svg}>
+            <Circle
+              stroke="#2C2C2E"
+              fill="none"
+              cx={circleSize / 2}
+              cy={circleSize / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+            />
+            <AnimatedProgressCircle
+              animatedProgress={animatedProgress}
+              animatedScore={animatedScore}
+              circumference={circumference}
+              circleSize={circleSize}
+              radius={radius}
+              strokeWidth={strokeWidth}
+            />
+          </Svg>
 
-            <View style={styles.scoreContent}>
-              <Text style={styles.brandText}>COREHEALTH</Text>
-              <AnimatedScoreText animatedScore={animatedScore} />
-              <AnimatedScoreLabel animatedScore={animatedScore} />
-              <Text style={styles.scoreSubtitle}>HEALTH SCORE</Text>
-            </View>
+          <View style={styles.scoreContent}>
+            <Text style={styles.brandText}>COREHEALTH</Text>
+            <AnimatedScoreText animatedScore={animatedScore} />
+            <AnimatedScoreLabel animatedScore={animatedScore} />
+            <Text style={styles.scoreSubtitle}>HEALTH SCORE</Text>
           </View>
         </View>
-      </TouchableOpacity>
-    </>
+      </View>
+    </TouchableOpacity>
   );
 };
 

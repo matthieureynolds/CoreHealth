@@ -299,15 +299,6 @@ const styles = StyleSheet.create({
   assistantMessageText: {
     color: '#FFFFFF',
   },
-  sendingIndicator: {
-    marginTop: 4,
-    opacity: 0.7,
-  },
-  sendingText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontStyle: 'italic',
-  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Action } from '../../../../shared/types';
+import { Action } from '../../../shared/types';
 import { INFO_BY_TYPE, BAR_WIDTH } from './TimelineConstants';
 
 interface BarData {

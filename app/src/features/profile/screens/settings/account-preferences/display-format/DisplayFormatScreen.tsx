@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useSettings } from '../../../../../../shared/context/SettingsContext';
+import SettingsHeader from '../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../components/settingsLayout';
 
 const unitOptions = [
   { value: 'metric', label: 'Metric', description: 'Celsius, kg, cm' },
@@ -45,7 +46,6 @@ function mapCodeToLanguage(code: string): string {
 type PickerType = 'units' | 'date' | 'time' | 'language' | null;
 
 const DisplayFormatScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { settings, updateGeneralSettings } = useSettings();
   const [activePicker, setActivePicker] = useState<PickerType>(null);
   const translateY = useRef(new Animated.Value(1000)).current;
@@ -131,15 +131,9 @@ const DisplayFormatScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Display & Format</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="Display & Format" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.card}>
           <Text style={styles.cardHeader}>DISPLAY & FORMAT</Text>
           {items.map((item, index) => (
@@ -192,9 +186,6 @@ const DisplayFormatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, backgroundColor: '#000000', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10 },
-  backButton: { padding: 8, marginLeft: -8 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', textAlign: 'center', flex: 1 },
   card: { backgroundColor: '#1C1C1E', borderRadius: 12, marginHorizontal: 20, marginTop: 20, paddingVertical: 16 },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },
   cardRow: { flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#2A2A2A' },

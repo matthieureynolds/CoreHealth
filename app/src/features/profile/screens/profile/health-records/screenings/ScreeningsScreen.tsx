@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -7,44 +7,29 @@ import { useHealthData } from '../../../../../../shared/context/HealthDataContex
 import { Screening } from '../../../../../../shared/types';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import ScreeningFormModal from './ScreeningFormModal';
-import { useFileViewer } from '../hooks/useFileViewer';
+import { useProfileRecordList } from '../hooks/useHealthRecordList';
+
+const RESULT_COLORS: Record<string, string> = {
+  normal: '#34C759',
+  abnormal: '#FF3B30',
+};
+const RESULT_DEFAULT_COLOR = '#FF9500';
 
 const ScreeningsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingScreening, setEditingScreening] = useState<Screening | null>(null);
-  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
-  const handleSave = (screening: Screening) => {
-    const existing = profile?.screenings || [];
-    const isEdit = existing.some(s => s.id === screening.id);
-    updateProfile({
-      ...profile,
-      screenings: isEdit ? existing.map(s => s.id === screening.id ? screening : s) : [...existing, screening],
-    });
-    setShowAddModal(false);
-    setEditingScreening(null);
-  };
+  const config = useMemo(() => ({
+    items: profile?.screenings,
+    updateItems: (screenings: Screening[]) => updateProfile({ ...profile, screenings }),
+    recordName: 'Screening' as const,
+    getItemName: (s: Screening) => s.name,
+  }), [profile, updateProfile]);
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Screening', 'Are you sure you want to delete this screening?', [
-        { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => updateProfile({ ...profile, screenings: profile?.screenings?.filter(s => s.id !== id) || [] }) },
-    ]);
-  };
-
-  const openScreeningOptions = (s: Screening) => {
-    Alert.alert(s.name, undefined, [
-      { text: 'Edit', onPress: () => { setEditingScreening(s); setShowAddModal(true); } },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(s.id) },
-        { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
-
-
-  const getResultColor = (result: string) => result === 'normal' ? '#34C759' : result === 'abnormal' ? '#FF3B30' : '#FF9500';
+  const {
+    items: screenings, showModal, editingItem,
+    handleSave, openOptions, openAddModal, closeModal, fileViewer,
+  } = useProfileRecordList(config);
 
   const formatDate = (date: Date | string) => {
     if (!date) return 'N/A';
@@ -56,36 +41,38 @@ const ScreeningsScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Screenings</Text>
-        <TouchableOpacity onPress={() => { setEditingScreening(null); setShowAddModal(true); }} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-            <Ionicons name="add" size={24} color="#3AABF0" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={openAddModal} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+          <Ionicons name="add" size={24} color="#3AABF0" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110, padding: 20 }}>
-          {profile?.screenings?.length ? (
-            profile.screenings.map((screening) => (
+        {screenings.length ? (
+          screenings.map((screening) => {
+            const resultColor = RESULT_COLORS[screening.result] ?? RESULT_DEFAULT_COLOR;
+            return (
               <View key={screening.id} style={styles.screeningCard}>
                 <View style={styles.screeningHeader}>
                   <View style={styles.screeningInfo}>
                     <Text style={styles.screeningName}>{screening.name}</Text>
-                  <View style={styles.resultBadge}>
-                    <View style={[styles.resultDot, { backgroundColor: getResultColor(screening.result) }]} />
-                        <Text style={[styles.resultText, { color: getResultColor(screening.result) }]}>
-                          {screening.result.charAt(0).toUpperCase() + screening.result.slice(1)}
-                        </Text>
-                      </View>
-                  <Text style={styles.screeningDate}>Date: {formatDate(screening.date)}</Text>
-                  {screening.nextDue && <Text style={styles.nextDue}>Next Due: {formatDate(screening.nextDue as any)}</Text>}
-                  {screening.location && <Text style={styles.location}>{screening.location}</Text>}
+                    <View style={styles.resultBadge}>
+                      <View style={[styles.resultDot, { backgroundColor: resultColor }]} />
+                      <Text style={[styles.resultText, { color: resultColor }]}>
+                        {screening.result.charAt(0).toUpperCase() + screening.result.slice(1)}
+                      </Text>
+                    </View>
+                    <Text style={styles.screeningDate}>Date: {formatDate(screening.date)}</Text>
+                    {screening.nextDue && <Text style={styles.nextDue}>Next Due: {formatDate(screening.nextDue as any)}</Text>}
+                    {screening.location && <Text style={styles.location}>{screening.location}</Text>}
                     {screening.notes && <Text style={styles.notes}>{screening.notes}</Text>}
                     {!!screening.attachments?.length && (
                       <View style={{ marginTop: 10 }}>
                         <View style={styles.attachmentsRow}>
                           {screening.attachments.map(file => (
-                          <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => handleViewFile(file.uri, file.name, file.type)}>
+                            <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => fileViewer.handleViewFile(file.uri, file.name, file.type)}>
                               <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
                               <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
                             </TouchableOpacity>
@@ -94,32 +81,33 @@ const ScreeningsScreen: React.FC = () => {
                       </View>
                     )}
                   </View>
-                <TouchableOpacity onPress={() => openScreeningOptions(screening)} style={styles.editPenButton} accessibilityLabel="Edit screening">
+                  <TouchableOpacity onPress={() => openOptions(screening)} style={styles.editPenButton} accessibilityLabel="Edit screening">
                     <Feather name="edit-2" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
+            );
+          })
+        ) : (
+          <View style={styles.emptyState}>
             <Ionicons name="fitness-outline" size={64} color="#666" />
-              <Text style={styles.emptyTitle}>No Screenings</Text>
+            <Text style={styles.emptyTitle}>No Screenings</Text>
             <Text style={styles.emptySubtitle}>Add your screenings to keep track of your health checks</Text>
-            <TouchableOpacity style={styles.addFirstButton} onPress={() => { setEditingScreening(null); setShowAddModal(true); }}>
-                <Text style={styles.addFirstButtonText}>Add Screening</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            <TouchableOpacity style={styles.addFirstButton} onPress={openAddModal}>
+              <Text style={styles.addFirstButtonText}>Add Screening</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       <ScreeningFormModal
-        visible={showAddModal}
-        editingScreening={editingScreening}
-        onClose={() => { setShowAddModal(false); setEditingScreening(null); }}
+        visible={showModal}
+        editingScreening={editingItem}
+        onClose={closeModal}
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewer.fileViewerVisible} onClose={fileViewer.closeFileViewer} fileUri={fileViewer.currentFileUri} fileName={fileViewer.currentFileName} fileType={fileViewer.currentFileType} />
     </View>
   );
 };
@@ -153,4 +141,4 @@ const styles = StyleSheet.create({
   addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 
-export default ScreeningsScreen; 
+export default ScreeningsScreen;

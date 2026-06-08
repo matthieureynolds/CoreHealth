@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { PlanDay } from '../../../../shared/types';
+import { PlanDay } from '../../../shared/types';
 import { formatDate, getSegmentColor } from './TimelineConstants';
 
 interface DateStripProps {

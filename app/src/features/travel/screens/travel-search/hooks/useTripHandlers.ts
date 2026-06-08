@@ -7,7 +7,10 @@ import { FlightLookupService } from '../../../../../shared/services/travel/enhan
 function syncTripToBackend(trip: Trip) {
   fetchAuthSession().then(session => {
     const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
-    if (!userId) return;
+    if (!userId) {
+      console.warn('[syncTrip] No user ID found in session, skipping sync');
+      return;
+    }
     api.post(`/users/${userId}/trips`, {
       departureLocation: trip.departureLocation,
       destination: trip.destination,
@@ -16,8 +19,12 @@ function syncTripToBackend(trip: Trip) {
       timezone: trip.timezone,
       notes: trip.notes,
       tripData: trip.jetLagPlanner ? { jetLagPlanner: trip.jetLagPlanner, checklist: trip.checklist } : undefined,
-    }).catch(() => {});
-  }).catch(() => {});
+    }).catch((error) => {
+      console.error('[syncTrip] Failed to sync trip to backend:', error);
+    });
+  }).catch((error) => {
+    console.error('[syncTrip] Failed to get auth session:', error);
+  });
 }
 
 export interface Trip {
@@ -152,6 +159,10 @@ export function createTripHandlers(params: TripHandlersParams) {
   const handleAddTrip = () => {
     if (!newTripDepartureLocation.trim()) { Alert.alert('Error', 'Please enter a departure location'); return; }
     if (!newTripDestination.trim()) { Alert.alert('Error', 'Please enter a destination'); return; }
+    if (!newTripDepartureDate) { Alert.alert('Error', 'Please select a departure date'); return; }
+    if (newTripReturnDate && newTripReturnDate < newTripDepartureDate) {
+      Alert.alert('Error', 'Return date must be after departure date'); return;
+    }
     const newTrip: Trip = {
       id: Date.now().toString(), departureLocation: newTripDepartureLocation.trim(),
       destination: newTripDestination.trim(), departureDate: newTripDepartureDate,
@@ -204,6 +215,9 @@ export function createTripHandlers(params: TripHandlersParams) {
   const handleSaveEditTrip = () => {
     if (!editingTrip || !editTripDepartureLocation.trim() || !editTripDestination.trim()) {
       Alert.alert('Error', 'Please enter both departure location and destination'); return;
+    }
+    if (editTripReturnDate && editTripReturnDate < editTripDepartureDate) {
+      Alert.alert('Error', 'Return date must be after departure date'); return;
     }
     const updatedTrip: Trip = {
       ...editingTrip, departureLocation: editTripDepartureLocation.trim(),

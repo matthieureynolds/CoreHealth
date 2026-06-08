@@ -103,12 +103,14 @@ interface TripPlanningTabProps {
   trips: Trip[];
   tripModalTranslateY: Animated.Value;
   onOpenAddTrip: () => void;
+  onScrollOffset?: (offsetY: number) => void;
 }
 
 const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
   trips,
   tripModalTranslateY,
   onOpenAddTrip,
+  onScrollOffset,
 }) => {
   const navigation = useNavigation<Nav>();
 
@@ -129,7 +131,12 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
   );
 
   return (
-    <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+      scrollEventThrottle={16}
+      onScroll={(e) => onScrollOffset?.(e.nativeEvent.contentOffset.y)}
+    >
       <View style={[styles.content, styles.contentTrips]}>
         {sortedTrips.length === 0 ? (
           <View style={styles.emptyState}>

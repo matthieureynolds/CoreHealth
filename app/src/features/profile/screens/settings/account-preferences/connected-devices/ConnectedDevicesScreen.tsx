@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
+import SettingsHeader from '../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../components/settingsLayout';
 import ConnectedDeviceItem, { Device } from './components/ConnectedDeviceItem';
 import AvailableDeviceItem from './components/AvailableDeviceItem';
 import { DataService } from '../../../../../../shared/services/data/dataService';
@@ -32,7 +33,6 @@ const sortAlpha = (devices: Device[]) =>
   [...devices].sort((a, b) => a.name.localeCompare(b.name));
 
 const ConnectedDevicesScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { user } = useAuth();
   const [connectedDevices, setConnectedDevices] = useState<Device[]>(DEFAULT_CONNECTED);
   const [connectingDevice, setConnectingDevice] = useState<string | null>(null);
@@ -177,15 +177,9 @@ const ConnectedDevicesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Connected Devices</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="Connected Devices" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.content}>
           {connectedDevices.length > 0 ? (
             <View style={styles.section}>
@@ -224,31 +218,6 @@ const ConnectedDevicesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   scrollView: { flex: 1 },
-  header: {
-    paddingTop: 56,
-    paddingBottom: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    zIndex: 1000,
-    elevation: 10,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    flex: 1,
-  },
   content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 0 },
   section: { marginBottom: 32 },
   lastSection: { marginBottom: 0 },

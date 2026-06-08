@@ -10,7 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { recentLabResults, LabResult } from './results';
 import {
   getStatusColor,
-  getTrendIcon,
   getTrendColor,
   getTrendLabel,
   isGoodTrend,
@@ -29,12 +28,10 @@ function biomarkerToLabResult(b: Biomarker): LabResult {
 }
 
 interface LabInsightsCardProps {
-  onViewAllPress?: () => void;
   onLabResultPress?: (labResult: LabResult) => void;
 }
 
 const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
-  onViewAllPress,
   onLabResultPress
 }) => {
   const [showCount, setShowCount] = useState(3);
@@ -50,7 +47,6 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     : labResults.slice(0, showCount);
   const hasMore = !viewAll && showCount < 6 && labResults.length > 3;
   const canShowLess = !viewAll && showCount > 3;
-  const canViewAll = !viewAll && showCount >= 6 && labResults.length > 6;
   const canShowLessFromAll = viewAll && labResults.length > 3;
 
   const renderLabResult = (result: LabResult) => {
@@ -263,21 +259,6 @@ const styles = StyleSheet.create({
     color: '#3AABF0',
     fontWeight: '600',
     fontSize: 14,
-  },
-  moreTabContainer: {
-    backgroundColor: '#232323',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 8,
-  },
-  moreTabTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  moreTabList: {
-    maxHeight: 220,
   },
   labResultsListExpanded: {
     maxHeight: 400,

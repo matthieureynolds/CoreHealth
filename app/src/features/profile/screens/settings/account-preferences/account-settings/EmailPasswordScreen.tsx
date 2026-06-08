@@ -9,18 +9,13 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ProfileTabParamList } from '../../../../../../shared/types';
 import { useAuth } from '../../../../../../shared/context/AuthContext';
+import SettingsHeader from '../../components/SettingsHeader';
 import EmailForm from './components/EmailForm';
 import PasswordForm from './components/PasswordForm';
 import styles from './components/emailPasswordStyles';
 
-type EmailPasswordScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
-
 const EmailPasswordScreen: React.FC = () => {
-  const navigation = useNavigation<EmailPasswordScreenNavigationProp>();
   const { user, updateEmail, updatePassword } = useAuth();
 
   const [isEditingEmail, setIsEditingEmail] = useState(false);
@@ -94,13 +89,7 @@ const EmailPasswordScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Email & Password</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="Email & Password" />
 
       <KeyboardAvoidingView
         style={styles.content}

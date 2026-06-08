@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
 
 export interface PlanStep { order: number; title: string; details: string; toggleKey: string }
@@ -10,12 +10,11 @@ export interface PlanModel {
 
 interface Props {
   plan: PlanModel;
+  toggleState: Record<string, boolean>;
   onToggle: (toggleKey: string, completed: boolean) => void;
 }
 
-export const SymptomPlan: React.FC<Props> = ({ plan, onToggle }) => {
-  const [completed, setCompleted] = useState<Record<string, boolean>>({});
-
+export const SymptomPlan: React.FC<Props> = ({ plan, toggleState, onToggle }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recovery Plan</Text>
@@ -26,9 +25,8 @@ export const SymptomPlan: React.FC<Props> = ({ plan, onToggle }) => {
             <Text style={styles.stepDetails}>{step.details}</Text>
           </View>
           <Switch
-            value={!!completed[step.toggleKey]}
+            value={!!toggleState[step.toggleKey]}
             onValueChange={(v) => {
-              setCompleted(prev => ({ ...prev, [step.toggleKey]: v }));
               onToggle(step.toggleKey, v);
             }}
           />

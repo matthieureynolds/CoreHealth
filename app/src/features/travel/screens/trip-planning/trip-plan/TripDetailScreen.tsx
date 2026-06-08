@@ -287,8 +287,12 @@ const TripDetailScreen: React.FC = () => {
           <View style={s.healthList}>
             {VACCINATIONS.map((vax) => (
               <View key={vax.name} style={s.healthRow}>
-                <Text style={s.healthRowName}>{vax.name}</Text>
-                <Text style={[s.healthRowBadge, { color: vax.color }]}>{vax.severity}</Text>
+                <View style={s.healthRowLeft}>
+                  <Text style={s.healthRowName}>{vax.name}</Text>
+                </View>
+                <View style={s.healthRowRight}>
+                  <Text style={[s.healthRowBadge, { color: vax.color }]}>{vax.severity}</Text>
+                </View>
               </View>
             ))}
           </View>
@@ -297,8 +301,12 @@ const TripDetailScreen: React.FC = () => {
           <View style={s.healthList}>
             {MEDICATIONS.map((med) => (
               <View key={med.name} style={s.healthRow}>
-                <Text style={s.healthRowName}>{med.name}</Text>
-                <Text style={s.healthRowNote}>{med.note}</Text>
+                <View style={s.healthRowLeft}>
+                  <Text style={s.healthRowName}>{med.name}</Text>
+                </View>
+                <View style={s.healthRowRight}>
+                  <Text style={s.healthRowNote}>{med.note}</Text>
+                </View>
               </View>
             ))}
           </View>
@@ -390,8 +398,14 @@ const s = StyleSheet.create({
   },
   healthList: { paddingHorizontal: 20 },
   healthRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start',
     backgroundColor: '#2C2C2E', borderRadius: 12, padding: 14, marginBottom: 8,
+  },
+  healthRowLeft: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, width: '50%',
+  },
+  healthRowRight: {
+    width: '50%', alignItems: 'flex-start',
   },
   healthRowName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#FFFFFF' },
   healthRowBadge: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },

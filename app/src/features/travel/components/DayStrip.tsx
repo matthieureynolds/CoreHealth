@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { PlanDay } from '../../../../shared/types';
+import { PlanDay } from '../../../shared/types';
 
 interface DayStripProps {
   planDays: PlanDay[];

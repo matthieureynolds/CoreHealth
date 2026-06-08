@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
 import { useAuth } from '../../../../../../../../shared/context/AuthContext';
 import { DataService } from '../../../../../../../../shared/services/data/dataService';
 
 const DeleteAccountScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { user, signOut } = useAuth();
   const [deleting, setDeleting] = useState(false);
 
@@ -39,15 +39,9 @@ const DeleteAccountScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Delete Account & Data</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <SettingsHeader title="Delete Account & Data" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.content}>
           <View style={styles.warningBanner}>
             <Ionicons name="warning" size={24} color="#FF3B30" style={styles.warningIcon} />
@@ -115,16 +109,6 @@ const DeleteAccountScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: {
-    paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818',
-    borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between',
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10,
-  },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: {
-    fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center',
-    position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8,
-  },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   warningBanner: {
     flexDirection: 'row', alignItems: 'flex-start', backgroundColor: 'rgba(255,59,48,0.1)',

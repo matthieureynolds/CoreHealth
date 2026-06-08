@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DataService } from '../../../../../../../../shared/services/data/dataService';
 import { useAuth } from '../../../../../../../../shared/context/AuthContext';
 
 const DataSharingSettingsScreen: React.FC = () => {
-  const navigation = useNavigation();
   const { user } = useAuth();
   const [lastSyncTime, setLastSyncTime] = useState<string>('Never');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -154,13 +154,7 @@ const DataSharingSettingsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Data Sharing Settings</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <SettingsHeader title="Data Sharing Settings" />
 
       <Modal visible={showMemoryModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowMemoryModal(false)}>
         <View style={styles.modalContainer}>
@@ -179,7 +173,7 @@ const DataSharingSettingsScreen: React.FC = () => {
         </View>
       </Modal>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.content}>
           <View style={styles.card}>
             <Text style={styles.cardHeader}>DATA SYNC</Text>
@@ -279,16 +273,6 @@ const DataSharingSettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: {
-    paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818',
-    borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between',
-    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10,
-  },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: {
-    fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center',
-    position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8,
-  },
   content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 24 },
   card: { backgroundColor: '#1C1C1E', borderRadius: 16, marginBottom: 20, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, letterSpacing: 0.5 },

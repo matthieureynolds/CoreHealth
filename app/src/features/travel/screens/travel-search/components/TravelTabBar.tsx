@@ -143,9 +143,10 @@ const s = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   activeTab: {
-    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

@@ -9,8 +9,8 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CitySearchResult } from '../../../../../../shared/services/travel/citySearchService';
-import { styles } from '../../TravelScreen.styles';
+import { CitySearchResult } from '../../../../../shared/services/travel/citySearchService';
+import { styles } from '../TravelScreen.styles';
 
 interface LocationSearchBarProps {
   inputText: string;
@@ -49,8 +49,12 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
   onLocationSelect,
   onDismissSuggestions,
 }) => {
+  // Popular cities that aren't already covered by API results
+  const apiCityNames = new Set(citySearchResults.map(c => `${c.name}, ${c.country}`.toLowerCase()));
+  const extraPopularCities = filteredCities.filter(city => !apiCityNames.has(city.toLowerCase()));
+
   const hasSuggestionContent = showInlineSuggestions && (
-    !searchLocation.trim() || citySearchResults.length > 0 || filteredCities.length > 0
+    !searchLocation.trim() || citySearchResults.length > 0 || extraPopularCities.length > 0
   );
 
   return (
@@ -97,7 +101,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
             </TouchableOpacity>
           )}
 
-          {(citySearchResults.length > 0 || filteredCities.length > 0) && (
+          {(citySearchResults.length > 0 || extraPopularCities.length > 0) && (
             <View style={styles.suggestionsContainer}>
               {isSearchingCities && (
                 <View style={styles.loadingContainer}>
@@ -106,10 +110,12 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                 </View>
               )}
 
-              {citySearchResults.length > 0 && citySearchResults.map((city, index) => (
+              {citySearchResults.length > 0 && citySearchResults.map((city, index) => {
+                const isLast = index === citySearchResults.length - 1 && extraPopularCities.length === 0;
+                return (
                 <TouchableOpacity
                   key={`api-${city.placeId}`}
-                  style={[styles.suggestionItem, index < citySearchResults.length - 1 ? styles.suggestionItemDivider : null]}
+                  style={[styles.suggestionItem, !isLast ? styles.suggestionItemDivider : null]}
                   onPress={() => {
                     onDismissSuggestions();
                     const cityName = `${city.name}, ${city.country}`;
@@ -123,12 +129,13 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                     <Text style={styles.suggestionSubtext}>{city.country}</Text>
                   </View>
                 </TouchableOpacity>
-              ))}
+                );
+              })}
 
-              {citySearchResults.length === 0 && filteredCities.length > 0 && filteredCities.map((city, index) => (
+              {extraPopularCities.map((city, index) => (
                 <TouchableOpacity
                   key={`popular-${index}`}
-                  style={[styles.suggestionItem, index < filteredCities.length - 1 ? styles.suggestionItemDivider : null]}
+                  style={[styles.suggestionItem, index < extraPopularCities.length - 1 ? styles.suggestionItemDivider : null]}
                   onPress={() => {
                     onDismissSuggestions();
                     onLocationSelect(city);

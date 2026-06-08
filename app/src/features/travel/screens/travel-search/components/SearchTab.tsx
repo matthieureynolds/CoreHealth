@@ -5,10 +5,11 @@ import { CitySearchResult } from '../../../../../shared/services/travel/citySear
 import { styles } from '../TravelScreen.styles';
 import { getCountryFromCity, getCountryFlag } from '../travelMetricHelpers';
 import { useStreamingText } from '../hooks/useStreamingText';
-import LocationSearchBar from './components/LocationSearchBar';
-import HealthMetricsSection from './components/HealthMetricsSection';
-import NearbyHospitalsSection from './components/NearbyHospitalsSection';
-import VaccinationsMedicationsSection from './components/VaccinationsMedicationsSection';
+import LocationSearchBar from './LocationSearchBar';
+import HealthMetricsSection from './HealthMetricsSection';
+import NearbyHospitalsSection from './NearbyHospitalsSection';
+import VaccinationsMedicationsSection from './VaccinationsMedicationsSection';
+import TreadmillCard from './TreadmillCard';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -31,6 +32,7 @@ interface SearchTabProps {
   onEmergencyContactPress: () => void; onDismissSuggestions: () => void;
   onInputEndEditing: () => void; onInputSubmit: () => void;
   onClearSearch: () => void; onFocusSearch: () => void;
+  onScrollOffset?: (offsetY: number) => void;
 }
 
 const SUMMARY_TEXT = 'Overall health risk is low for this destination. All major health metrics are within safe ranges.';
@@ -45,9 +47,14 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
     onInputChange, onLocationSelect, onGetCurrentLocation, onRefresh,
     onContentLayout, onEmergencyContactPress, onDismissSuggestions,
     onInputEndEditing, onInputSubmit, onClearSearch, onFocusSearch,
+    onScrollOffset,
   } = props;
 
   const { displayed: streamedSummary, isStreaming } = useStreamingText(SUMMARY_TEXT, !!selectedLocation && !isLoading);
+
+  // Treadmill effect: track scroll position
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollContentRef = useRef<View>(null);
 
   // Search bar collapse animation
   const hasResults = !!selectedLocation && !isLoading;
@@ -84,6 +91,7 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
   // Handle scroll to reveal search bar when user scrolls past the top
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    onScrollOffset?.(offsetY);
     if (hasResults) {
       if (offsetY < -20 && !isSearchBarVisible.current) {
         // User is pulling down past the top — reveal search bar
@@ -108,42 +116,31 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
 
   // When results exist, the search bar floats on top (absolute) so it overlaps
   // the content instead of pushing it down. Otherwise it's in normal flow.
-  const animatedSearchBarStyle = hasResults
-    ? {
-        position: 'absolute' as const,
-        top: 20,
-        left: 20,
-        right: 20,
-        zIndex: 100,
-        opacity: searchBarHeight,
-        transform: [{
-          translateY: searchBarHeight.interpolate({
-            inputRange: [0, 1],
-            outputRange: [-60, 0],
-          }),
-        }],
-      }
-    : {
-        opacity: searchBarHeight,
-        marginBottom: searchBarHeight.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 20],
-        }),
-        maxHeight: searchBarHeight.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 80],
-        }),
-        overflow: 'hidden' as const,
-      };
+  const animatedSearchBarStyle = {
+      opacity: searchBarHeight,
+      marginBottom: searchBarHeight.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 4],
+      }),
+      maxHeight: searchBarHeight.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 500],
+      }),
+      overflow: 'hidden' as const,
+      zIndex: showInlineSuggestions ? 1002 : (hasResults ? 100 : undefined),
+    };
 
   return (
-    <ScrollView
+    <Animated.ScrollView
       ref={scrollRef}
       style={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       scrollEventThrottle={16}
-      onScroll={handleScroll}
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: false, listener: handleScroll },
+      )}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -152,7 +149,7 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
         />
       }
     >
-      <View style={styles.content}>
+      <View ref={scrollContentRef} style={styles.content}>
         {/* Location Search — overlaps results when revealed via pull-down */}
         <Animated.View style={animatedSearchBarStyle}>
           <LocationSearchBar
@@ -215,33 +212,37 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
               </View>
 
               {/* Health Summary */}
-              <Animated.View
-                style={[
-                  styles.summaryCard,
-                  {
-                    opacity: getRowAnim('summary').opacity,
-                    transform: [{ translateY: getRowAnim('summary').translate }],
-                  },
-                ]}
-              >
-                <View style={styles.summaryHeader}>
-                  <Ionicons name="checkmark-circle" size={24} color="#34C759" />
-                  <Text style={styles.summaryTitle}>Health Summary</Text>
-                </View>
-                <Text style={styles.summaryText}>
-                  {streamedSummary}{isStreaming ? '▍' : ''}
-                </Text>
-              </Animated.View>
+              <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
+                <Animated.View
+                  style={[
+                    styles.summaryCard,
+                    {
+                      opacity: getRowAnim('summary').opacity,
+                      transform: [{ translateY: getRowAnim('summary').translate }],
+                    },
+                  ]}
+                >
+                  <View style={styles.summaryHeader}>
+                    <Ionicons name="checkmark-circle" size={24} color="#34C759" />
+                    <Text style={styles.summaryTitle}>Health Summary</Text>
+                  </View>
+                  <Text style={styles.summaryText}>
+                    {streamedSummary}{isStreaming ? '▍' : ''}
+                  </Text>
+                </Animated.View>
+              </TreadmillCard>
 
-              <HealthMetricsSection getRowAnim={getRowAnim} />
+              <HealthMetricsSection getRowAnim={getRowAnim} scrollY={scrollY} scrollContentRef={scrollContentRef} />
 
               <NearbyHospitalsSection
                 selectedLocation={selectedLocation}
                 getRowAnim={getRowAnim}
                 onEmergencyContactPress={onEmergencyContactPress}
+                scrollY={scrollY}
+                scrollContentRef={scrollContentRef}
               />
 
-              <VaccinationsMedicationsSection getRowAnim={getRowAnim} />
+              <VaccinationsMedicationsSection getRowAnim={getRowAnim} scrollY={scrollY} scrollContentRef={scrollContentRef} />
 
               {/* Curtain overlay */}
               {USE_CURTAIN_REVEAL && contentMeasuredHeight > 0 && (
@@ -302,7 +303,7 @@ const SearchTab: React.FC<SearchTabProps> = (props) => {
           </View>
         ) : null}
       </View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 };
 

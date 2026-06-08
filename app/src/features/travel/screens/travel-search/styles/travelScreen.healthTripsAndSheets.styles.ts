@@ -601,7 +601,7 @@ jetLagTitle: {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-    width: '100%',
+    alignSelf: 'stretch',
     marginBottom: 16,
 },
   datePickerCancelText: {

@@ -13,7 +13,6 @@ import NearbyFacilitiesSection from './components/NearbyFacilitiesSection';
 interface TravelHealthSummaryProps {
   currentLocation?: string;
   jetLagHours?: number;
-  onTravelPress?: () => void;
   jetLagPlanningEvents?: JetLagPlanningEvent[];
   onJetLagEventPress?: (event: JetLagPlanningEvent) => void;
   nearestHospital?: string;
@@ -47,7 +46,6 @@ const getStatusFromRiskLevel = (riskLevel: string): EnvironmentalMetric['status'
 const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   currentLocation = 'New York, NY',
   jetLagHours = 0,
-  onTravelPress,
   jetLagPlanningEvents = [],
   onJetLagEventPress,
   nearestHospital,
@@ -127,10 +125,8 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   ];
 
   return (
-    <TouchableOpacity
+    <View
       style={[styles.container, !showMore && styles.containerCollapsed]}
-      onPress={onTravelPress}
-      activeOpacity={0.8}
     >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -171,7 +167,6 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
             closestFacilities={closestFacilities}
             jetLagPlanningEvents={jetLagPlanningEvents}
             onJetLagEventPress={onJetLagEventPress}
-            onTravelPress={onTravelPress}
             onShowLess={() => setShowMore(false)}
             sectionTitleStyle={styles.sectionTitle}
           />
@@ -184,7 +179,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
         getStatusColor={getStatusColor}
         onClose={() => setModalVisible(false)}
       />
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -193,7 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
     padding: 20,
-    paddingBottom: -25,
+    paddingBottom: 0,
     marginHorizontal: 16,
     marginVertical: 8,
   },

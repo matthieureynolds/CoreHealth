@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
 
 const RequestDataScreen: React.FC = () => {
   const navigation = useNavigation();

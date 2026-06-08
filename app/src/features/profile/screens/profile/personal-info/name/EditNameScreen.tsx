@@ -22,24 +22,31 @@ type EditNameScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 
+interface FormState {
+  firstName: string;
+  surname: string;
+  preferredName: string;
+  username: string;
+  height: string;
+  weight: string;
+  bloodType: string;
+}
+
+const EMPTY_FORM: FormState = { firstName: '', surname: '', preferredName: '', username: '', height: '', weight: '', bloodType: '' };
+const BT_ITEM_HEIGHT = 52;
+
 const EditNameScreen: React.FC = () => {
   const navigation = useNavigation<EditNameScreenNavigationProp>();
   const { user, updateUserName, updateUsername } = useAuth();
   const { profile, updateProfile } = useHealthData();
-  const [firstName, setFirstName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [preferredName, setPreferredName] = useState('');
-  const [username, setUsername] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [bloodType, setBloodType] = useState('');
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [initialValues, setInitialValues] = useState<FormState>(EMPTY_FORM);
   const [showBloodTypePicker, setShowBloodTypePicker] = useState(false);
   const [tempBloodType, setTempBloodType] = useState(BLOOD_TYPES[0]);
   const btScrollRef = useRef<ScrollView>(null);
-  const BT_ITEM_HEIGHT = 52;
 
-  // Track initial values to detect changes
-  const [initialValues, setInitialValues] = useState({ firstName: '', surname: '', preferredName: '', username: '', height: '', weight: '', bloodType: '' });
+  const updateField = (field: keyof FormState) => (value: string) =>
+    setForm(prev => ({ ...prev, [field]: value }));
 
   const sanitize = (raw: string) =>
     raw.toLowerCase().replace(/[^a-z0-9_\.]/g, '').replace(/\.{2,}/g, '.').replace(/^\.|\.$/g, '');
@@ -47,33 +54,32 @@ const EditNameScreen: React.FC = () => {
   useEffect(() => {
     if (user) {
       const baseUsername = user.username || user.preferredName || user.firstName || '';
-      const fn = user.firstName || '';
-      const sn = user.surname || '';
-      const pn = user.preferredName || '';
-      const un = sanitize(baseUsername.replace(/\s+/g, '.'));
-      setFirstName(fn);
-      setSurname(sn);
-      setPreferredName(pn);
-      setUsername(un);
-      setInitialValues(prev => ({ ...prev, firstName: fn, surname: sn, preferredName: pn, username: un }));
+      const patch = {
+        firstName: user.firstName || '',
+        surname: user.surname || '',
+        preferredName: user.preferredName || '',
+        username: sanitize(baseUsername.replace(/\s+/g, '.')),
+      };
+      setForm(prev => ({ ...prev, ...patch }));
+      setInitialValues(prev => ({ ...prev, ...patch }));
     }
   }, [user]);
 
   useEffect(() => {
     if (profile) {
-      const h = profile.height?.toString() || '';
-      const w = profile.weight?.toString() || '';
-      const bt = profile.bloodType || '';
-      setHeight(h);
-      setWeight(w);
-      setBloodType(bt);
-      setInitialValues(prev => ({ ...prev, height: h, weight: w, bloodType: bt }));
+      const patch = {
+        height: profile.height?.toString() || '',
+        weight: profile.weight?.toString() || '',
+        bloodType: profile.bloodType || '',
+      };
+      setForm(prev => ({ ...prev, ...patch }));
+      setInitialValues(prev => ({ ...prev, ...patch }));
     }
   }, [profile]);
 
   useEffect(() => {
     if (showBloodTypePicker) {
-      const idx = Math.max(0, BLOOD_TYPES.indexOf(bloodType));
+      const idx = Math.max(0, BLOOD_TYPES.indexOf(form.bloodType));
       setTempBloodType(BLOOD_TYPES[idx]);
       setTimeout(() => {
         btScrollRef.current?.scrollTo({ y: idx * BT_ITEM_HEIGHT, animated: false });
@@ -81,7 +87,12 @@ const EditNameScreen: React.FC = () => {
     }
   }, [showBloodTypePicker]);
 
-  const hasChanges = firstName !== initialValues.firstName || surname !== initialValues.surname || preferredName !== initialValues.preferredName || username !== initialValues.username || height !== initialValues.height || weight !== initialValues.weight || bloodType !== initialValues.bloodType;
+  const hasChanges = Object.keys(EMPTY_FORM).some(
+    k => form[k as keyof FormState] !== initialValues[k as keyof FormState],
+  );
+
+  // Destructure for template readability
+  const { firstName, surname, preferredName, username, height, weight, bloodType } = form;
 
   const handleSave = async () => {
     if (!firstName.trim() || firstName.trim().length < 2) {
@@ -137,19 +148,19 @@ const EditNameScreen: React.FC = () => {
           <View style={s.row}>
             <Text style={s.rowLabel}>First Name</Text>
             <View style={s.vDivider} />
-            <TextInput style={s.rowInput} value={firstName} onChangeText={setFirstName} placeholder="Required" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
+            <TextInput style={s.rowInput} value={firstName} onChangeText={updateField('firstName')} placeholder="Required" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
           </View>
           <View style={s.hDivider} />
           <View style={s.row}>
             <Text style={s.rowLabel}>Surname</Text>
             <View style={s.vDivider} />
-            <TextInput style={s.rowInput} value={surname} onChangeText={setSurname} placeholder="Required" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
+            <TextInput style={s.rowInput} value={surname} onChangeText={updateField('surname')} placeholder="Required" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
           </View>
           <View style={s.hDivider} />
           <View style={s.row}>
             <Text style={s.rowLabel}>Preferred</Text>
             <View style={s.vDivider} />
-            <TextInput style={s.rowInput} value={preferredName} onChangeText={setPreferredName} placeholder="Optional" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
+            <TextInput style={s.rowInput} value={preferredName} onChangeText={updateField('preferredName')} placeholder="Optional" placeholderTextColor="#555" maxLength={30} autoCapitalize="words" autoCorrect={false} />
           </View>
         </View>
 
@@ -159,14 +170,14 @@ const EditNameScreen: React.FC = () => {
           <View style={s.row}>
             <Text style={s.rowLabel}>Height</Text>
             <View style={s.vDivider} />
-            <TextInput style={s.rowInput} value={height} onChangeText={setHeight} placeholder="cm" placeholderTextColor="#555" keyboardType="decimal-pad" maxLength={6} />
+            <TextInput style={s.rowInput} value={height} onChangeText={updateField('height')} placeholder="cm" placeholderTextColor="#555" keyboardType="decimal-pad" maxLength={6} />
             <Text style={s.unit}>cm</Text>
           </View>
           <View style={s.hDivider} />
           <View style={s.row}>
             <Text style={s.rowLabel}>Weight</Text>
             <View style={s.vDivider} />
-            <TextInput style={s.rowInput} value={weight} onChangeText={setWeight} placeholder="kg" placeholderTextColor="#555" keyboardType="decimal-pad" maxLength={6} />
+            <TextInput style={s.rowInput} value={weight} onChangeText={updateField('weight')} placeholder="kg" placeholderTextColor="#555" keyboardType="decimal-pad" maxLength={6} />
             <Text style={s.unit}>kg</Text>
           </View>
           <View style={s.hDivider} />
@@ -188,7 +199,7 @@ const EditNameScreen: React.FC = () => {
                 <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
               <Text style={s.pickerTitle}>Blood Type</Text>
-              <TouchableOpacity onPress={() => { setBloodType(tempBloodType); setShowBloodTypePicker(false); }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <TouchableOpacity onPress={() => { updateField('bloodType')(tempBloodType); setShowBloodTypePicker(false); }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                 <Ionicons name="checkmark" size={24} color="#34C759" />
               </TouchableOpacity>
             </View>

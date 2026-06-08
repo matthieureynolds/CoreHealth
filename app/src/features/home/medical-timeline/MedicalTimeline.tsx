@@ -52,10 +52,6 @@ const groupEventsByDate = (events: MedicalEvent[]): Record<GroupKey, MedicalEven
   return grouped;
 };
 
-interface MedicalTimelineProps {
-  onEventPress?: (event: MedicalEvent) => void;
-}
-
 function rowToEvent(row: any, is12h: boolean): MedicalEvent {
   const date = new Date(row.event_date);
   const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -74,7 +70,7 @@ function rowToEvent(row: any, is12h: boolean): MedicalEvent {
   };
 }
 
-const MedicalTimeline: React.FC<MedicalTimelineProps> = () => {
+const MedicalTimeline: React.FC = () => {
   const { settings } = useSettings();
   const { profile, updateProfile } = useHealthData();
   const { user } = useAuth();

@@ -51,7 +51,6 @@ export function useHealthAssistant() {
   const scrollToBottomNow = () => { requestAnimationFrame(() => { scrollViewRef.current?.scrollToEnd({ animated: true }); }); };
 
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const lastStreamUpdateAtRef = useRef<number>(0);
   const lastAutoScrollAtRef = useRef<number>(0);
   const [pendingCommand, setPendingCommand] = useState<Command | null>(null);
   const [isDispatching, setIsDispatching] = useState(false);
@@ -137,8 +136,7 @@ export function useHealthAssistant() {
 
   useEffect(() => {
     const keyboardDidShowListener = require('react-native').Keyboard.addListener('keyboardDidShow', scrollToBottomNow);
-    const keyboardDidHideListener = require('react-native').Keyboard.addListener('keyboardDidHide', () => {});
-    return () => { keyboardDidShowListener?.remove(); keyboardDidHideListener?.remove(); };
+    return () => { keyboardDidShowListener?.remove(); };
   }, [showChatHistory]);
 
   useEffect(() => {
@@ -198,8 +196,13 @@ export function useHealthAssistant() {
         const cmd = parseAssistantCommand(finalText);
         if (cmd) setPendingCommand(cmd);
       }
-      try { const latest = [...messages]; await HealthAssistantService.saveConversationHistory(latest as any); await persistSession(latest); }
-      catch (persistErr) { console.warn('Failed to persist conversation/session:', persistErr); }
+      try {
+        setMessages(prev => {
+          HealthAssistantService.saveConversationHistory(prev as any).catch(() => {});
+          persistSession(prev).catch(() => {});
+          return prev;
+        });
+      } catch (persistErr) { console.warn('Failed to persist conversation/session:', persistErr); }
     }
   };
 
@@ -314,13 +317,12 @@ export function useHealthAssistant() {
   };
 
   return {
-    profile, biomarkers, healthScore, deviceData, labResults, bodySystems, travelHealth, settings, user,
-    messages, isInitialized, inputText, setInputText, sendAnim, showMediaPicker, setShowMediaPicker,
+    messages, sendAnim, showMediaPicker, setShowMediaPicker,
     isLoading, scrollViewRef, autoScrollEnabledRef, isRecording, showChatHistory, setShowChatHistory,
     showNewChatModal, setShowNewChatModal, newChatModalTranslateY, chatSessions, setChatSessions,
-    currentChatId, currentChatHasMemory, toggleIncognito, historyLoading, historyError, showMessagesAshAnimation,
+    currentChatHasMemory, toggleIncognito, historyLoading, historyError, showMessagesAshAnimation,
     messagesFadeAnim, messagesContainerRef, messagesContainerLayout, setMessagesContainerLayout,
-    recordingDuration, waveformAnimValues, recordingPulseAnim, streamingMessageId,
+    waveformAnimValues, streamingMessageId,
     pendingCommand, setPendingCommand, isDispatching, activeSymptomPlan, activeSymptomId,
     toggleState, setToggleState, showPlanHistory, setShowPlanHistory, planHistoryLoading, planHistory,
     showTimelineHistory, setShowTimelineHistory, timelineHistoryLoading, timelineHistory, timelineHistoryTitle,
@@ -329,9 +331,8 @@ export function useHealthAssistant() {
     dot1Anim, dot2Anim, dot3Anim,
     handleSendWithAnimation, humanizeCommand, openTimelineHistory: planHistoryHook.openTimelineHistory,
     confirmPendingCommand, handleImageSelected, handleDocumentSelected, handleVoiceInput,
-    handleImageInput: mediaInput.handleImageInput, sendImageWithText: mediaInput.sendImageWithText,
-    handleDocumentInput: mediaInput.handleDocumentInput,
+    sendImageWithText: mediaInput.sendImageWithText,
     dismissNewChatModal, startNewChat, loadSession, retryLoadHistory,
-    handleLoadPlanHistory: planHistoryHook.handleLoadPlanHistory, scrollToBottomNow,
+    handleLoadPlanHistory: planHistoryHook.handleLoadPlanHistory,
   };
 }

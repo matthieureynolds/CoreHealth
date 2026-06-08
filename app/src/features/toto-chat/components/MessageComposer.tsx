@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 interface MessageComposerProps {
   onSend: (text: string, clientId: string) => void;
   disabled?: boolean;
-  onCameraPress?: () => void;
   onAttachPress?: () => void;
   onMicPress?: () => void;
   isRecording?: boolean;
@@ -16,7 +15,6 @@ interface MessageComposerProps {
 export const MessageComposer: React.FC<MessageComposerProps> = ({
   onSend,
   disabled = false,
-  onCameraPress,
   onAttachPress,
   onMicPress,
   isRecording = false,
@@ -28,7 +26,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   const handleSend = () => {
     if (!text.trim() || disabled) return;
     const messageText = text.trim();
-    const clientId = `c_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const clientId = `c_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     setText('');
     onSend(messageText, clientId);
   };
@@ -40,7 +38,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
       <View style={styles.bar}>
         {/* Plus / attach button */}
         <TouchableOpacity
-          onPress={onAttachPress || onCameraPress}
+          onPress={onAttachPress}
           disabled={disabled || isRecording}
           activeOpacity={0.6}
           style={styles.iconBtn}

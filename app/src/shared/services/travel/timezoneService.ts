@@ -10,6 +10,15 @@ export interface TimezoneInfo {
   region?: string;
 }
 
+// In-memory cache for timezone API results (keyed by rounded lat,lng)
+const timezoneCache = new Map<string, { result: TimezoneInfo; timestamp: number }>();
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+function getCacheKey(lat: number, lng: number): string {
+  // Round to 2 decimal places (~1km precision) to increase cache hits
+  return `${lat.toFixed(2)},${lng.toFixed(2)}`;
+}
+
 // Comprehensive timezone database with major timezones
 const TIMEZONE_DATABASE: Record<string, TimezoneInfo> = {
   // UTC
@@ -161,6 +170,13 @@ export const getTimezoneFromAPI = async (latitude: number, longitude: number): P
       return null;
     }
 
+    // Check cache first
+    const cacheKey = getCacheKey(latitude, longitude);
+    const cached = timezoneCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.result;
+    }
+
     const timestamp = Math.floor(Date.now() / 1000);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.TIMEZONE_ENDPOINT}?location=${latitude},${longitude}&timestamp=${timestamp}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
@@ -182,13 +198,18 @@ export const getTimezoneFromAPI = async (latitude: number, longitude: number): P
     const isDst = data.dstOffset !== 0;
     const currentOffset = isDst ? data.rawOffset + data.dstOffset : data.rawOffset;
     
-    return {
+    const result: TimezoneInfo = {
       timezoneId: data.timeZoneId,
       offset: currentOffset,
       offsetString: formatOffsetString(currentOffset),
       dstOffset: data.dstOffset,
       isDst: isDst,
     };
+
+    // Cache the result
+    timezoneCache.set(cacheKey, { result, timestamp: Date.now() });
+
+    return result;
   } catch (error) {
     console.error('Error getting timezone from API:', error);
     return null;

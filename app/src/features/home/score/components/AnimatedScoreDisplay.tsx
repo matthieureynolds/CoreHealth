@@ -39,23 +39,18 @@ interface AnimatedScoreLabelProps {
 }
 
 export const AnimatedScoreLabel: React.FC<AnimatedScoreLabelProps> = ({ animatedScore }) => {
-  const [currentLabel, setCurrentLabel] = useState('CRITICAL');
   const [currentColor, setCurrentColor] = useState('#FF3B30');
-
-  const getScoreLabel = (score: number): string => 'Sleep & HRV';
 
   useEffect(() => {
     const listener = animatedScore.addListener(({ value }) => {
-      const roundedScore = Math.round(value);
-      setCurrentLabel(getScoreLabel(roundedScore));
-      setCurrentColor(getScoreColor(roundedScore));
+      setCurrentColor(getScoreColor(Math.round(value)));
     });
     return () => { animatedScore.removeListener(listener); };
   }, [animatedScore]);
 
   return (
     <Text style={[styles.scoreLabel, { color: currentColor }]}>
-      {currentLabel}
+      Sleep & HRV
     </Text>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../components/settingsLayout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NOTIFICATION_TIME_OPTIONS } from '../constants';
 
@@ -26,7 +27,6 @@ const NotificationReminderScreen: React.FC<NotificationReminderScreenProps> = ({
   title,
   subtitle,
 }) => {
-  const navigation = useNavigation();
   const [enabled, setEnabled] = useState(true);
   const [alerts, setAlerts] = useState<string[]>([defaultAlert]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -53,15 +53,9 @@ const NotificationReminderScreen: React.FC<NotificationReminderScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">{headerTitle}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <SettingsHeader title={headerTitle} />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.card}>
           <View style={styles.toggleRow}>
             <View style={styles.labelGroup}>
@@ -114,9 +108,6 @@ const NotificationReminderScreen: React.FC<NotificationReminderScreenProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   scrollView: { flex: 1 },
-  header: { paddingTop: 72, paddingBottom: 5, backgroundColor: '#181818', borderBottomWidth: 1, borderBottomColor: '#222', justifyContent: 'space-between', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 10 },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center', position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8 },
   card: { backgroundColor: '#1C1C1E', borderRadius: 16, margin: 20, padding: 20, borderWidth: 1, borderColor: '#333' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   labelGroup: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 16 },

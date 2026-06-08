@@ -15,11 +15,12 @@ export function useAsyncStorageToggle(
   useEffect(() => {
     AsyncStorage.getItem(storageKey)
       .then(v => { if (v !== null) setEnabled(v === '1'); })
-      .catch(() => {});
+      .catch(e => console.warn(`Failed to read toggle "${storageKey}":`, e));
   }, [storageKey]);
 
   useEffect(() => {
-    AsyncStorage.setItem(storageKey, enabled ? '1' : '0');
+    AsyncStorage.setItem(storageKey, enabled ? '1' : '0')
+      .catch(e => console.warn(`Failed to persist toggle "${storageKey}":`, e));
   }, [storageKey, enabled]);
 
   return [enabled, setEnabled];

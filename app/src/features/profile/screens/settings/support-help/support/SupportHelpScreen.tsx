@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../components/settingsLayout';
 
 const SupportHelpScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -43,16 +45,10 @@ const SupportHelpScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Support & Help</Text>
-        <View style={{ width: 40 }} />
-      </View>
-      
+      <SettingsHeader title="Support & Help" />
+
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         {/* Support Card */}
         <View style={[styles.card, styles.cardTightBottom]}>
           <Text style={styles.cardHeader}>SUPPORT & HELP</Text>
@@ -90,33 +86,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   scrollView: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: 56,
-    paddingBottom: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    elevation: 10,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
     flex: 1,
   },
   card: {

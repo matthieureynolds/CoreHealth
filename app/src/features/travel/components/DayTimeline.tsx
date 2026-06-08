@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { PlanDay, Action } from '../../../../shared/types';
+import { PlanDay, Action } from '../../../shared/types';
 import { ActivityBar } from './ActivityBar';
 import {
   HOUR_HEIGHT,

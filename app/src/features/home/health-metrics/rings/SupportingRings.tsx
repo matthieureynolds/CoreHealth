@@ -1,24 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import AnimatedRing, { RingMetric } from './components/AnimatedRing';
-import MetricDetailModal from './components/MetricDetailModal';
 
 interface SupportingRingsProps {
   recovery: number;
   biomarkers: number;
   lifestyle: number;
-  onRingPress?: (ringId: string) => void;
 }
 
 const SupportingRings: React.FC<SupportingRingsProps> = ({
   recovery,
   biomarkers,
   lifestyle,
-  onRingPress,
 }) => {
-  const [selectedMetric, setSelectedMetric] = useState<RingMetric | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
   const animatedRecovery = useRef(new Animated.Value(0)).current;
   const animatedBiomarkers = useRef(new Animated.Value(0)).current;
   const animatedLifestyle = useRef(new Animated.Value(0)).current;
@@ -49,27 +43,18 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   };
 
   return (
-    <>
-      <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Health Metrics</Text>
-        <View style={styles.ringsRow}>
-          {metrics.map((metric) => (
-            <AnimatedRing
-              key={metric.id}
-              metric={metric}
-              animatedValue={getAnimatedValue(metric.id)}
-              onRingPress={onRingPress}
-            />
-          ))}
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Health Metrics</Text>
+      <View style={styles.ringsRow}>
+        {metrics.map((metric) => (
+          <AnimatedRing
+            key={metric.id}
+            metric={metric}
+            animatedValue={getAnimatedValue(metric.id)}
+          />
+        ))}
       </View>
-
-      <MetricDetailModal
-        visible={modalVisible}
-        metric={selectedMetric}
-        onClose={() => setModalVisible(false)}
-      />
-    </>
+    </View>
   );
 };
 

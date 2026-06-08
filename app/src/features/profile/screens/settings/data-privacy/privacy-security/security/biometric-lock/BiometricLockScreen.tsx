@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
 import biometricService from '../../../../../../../../shared/services/user/biometricService';
 
 const BiometricLockScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,15 +61,9 @@ const BiometricLockScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header} pointerEvents="box-none">
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Biometric Lock / Face ID</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <SettingsHeader title="Biometric Lock / Face ID" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         <View style={styles.content}>
           <View style={styles.card}>
             <Text style={styles.cardHeader}>BIOMETRIC LOCK</Text>
@@ -134,22 +128,6 @@ const BiometricLockScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
   scrollView: { flex: 1 },
-  header: {
-    paddingTop: 72,
-    paddingBottom: 5,
-    backgroundColor: '#181818',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    zIndex: 1000, elevation: 10,
-  },
-  backButton: { padding: 8, position: 'absolute', left: 20, top: 23.5, zIndex: 1 },
-  headerTitle: {
-    fontSize: 18, fontWeight: 'bold', color: '#fff', textAlign: 'center',
-    position: 'absolute', left: 0, right: 0, paddingTop: 32.2, paddingBottom: 8,
-  },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 0 },
   card: { backgroundColor: '#181818', borderRadius: 12, marginBottom: 20, paddingVertical: 16 },
   cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },

@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'reac
 import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { HealthAssistantService, type ChatSession } from '../../../shared/services/ai/healthAssistantService';
-import { AshParticles } from './AshParticles';
 
 interface SessionItemProps {
   session: ChatSession;
@@ -15,7 +14,6 @@ interface SessionItemProps {
 export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDeleted, onAshStart }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const [itemLayout, setItemLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const viewRef = useRef<View>(null);
 
   const handleDelete = () => {
@@ -57,10 +55,6 @@ export const SessionItem: React.FC<SessionItemProps> = ({ session, onPress, onDe
   return (
     <View
       ref={viewRef}
-      onLayout={(e) => {
-        const { x, y, width, height } = e.nativeEvent.layout;
-        setItemLayout({ x, y, width, height });
-      }}
       style={{ position: 'relative' }}
     >
       <Animated.View style={{ opacity: fadeAnim }}>
@@ -112,12 +106,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginTop: 4,
-  },
-  ashOverlay: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'visible',
-    zIndex: 1000,
   },
 });

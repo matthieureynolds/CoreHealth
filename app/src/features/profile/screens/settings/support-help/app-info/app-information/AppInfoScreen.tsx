@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../../../../../shared/context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import SettingsHeader from '../../../components/SettingsHeader';
+import { SETTINGS_SCROLL_PT } from '../../../components/settingsLayout';
 
 const AppInfoScreen: React.FC = () => {
   const { signOut } = useAuth();
-  const navigation = useNavigation();
 
   const appInfoItems = [
     {
@@ -58,16 +58,10 @@ const AppInfoScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Fixed Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>App Info</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="App Info" />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
         {/* Content */}
         <View style={styles.content}>
           {/* About Card */}
@@ -127,33 +121,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-  },
-  header: {
-    paddingTop: 56,
-    paddingBottom: 12,
-    backgroundColor: '#000000',
-    borderBottomWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    elevation: 10,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    flex: 1,
   },
   card: {
     backgroundColor: '#1C1C1E',

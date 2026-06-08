@@ -6,7 +6,6 @@ import { Organ } from '../../organs/types';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
 
 interface BodyMapProps {
-  onOrganPress: (organId: string) => void;
   onOrganSelect?: (organ: Organ) => void;
   onHeadPress?: () => void;
   onZoomChange?: (zoomed: boolean) => void;
@@ -14,10 +13,28 @@ interface BodyMapProps {
 
 const BODY_IMAGE = require('../../../../../assets/images/body-map/body-map.png');
 const { width } = Dimensions.get('window');
-// Figma body is 471×706 on a 390px iPhone frame — slightly wider than screen,
-// arms clip at edges, giving the full-bleed look.
-const IMG_W = width * (471 / 390);
-const IMG_H = IMG_W * (706 / 471); // preserves exact Figma aspect ratio
+
+// Figma body dimensions and iPhone frame width they were designed for
+const FIGMA_BODY_W = 471;
+const FIGMA_BODY_H = 706;
+const FIGMA_FRAME_W = 390;
+
+// Slightly wider than screen — arms clip at edges, giving the full-bleed look
+const IMG_W = width * (FIGMA_BODY_W / FIGMA_FRAME_W);
+const IMG_H = IMG_W * (FIGMA_BODY_H / FIGMA_BODY_W);
+
+// Coordinate space for organ placement (100 wide × 150 tall)
+const COORD_W = 100;
+const COORD_H = 150;
+
+// Zoom constants
+const HEAD_ZOOM_SCALE = 2.5;
+const ZOOM_IN_DURATION = 800;
+const ZOOM_OUT_DURATION = 600;
+const ZOOM_EASING = Easing.bezier(0.25, 0.1, 0.25, 1);
+
+// Selection glow scale multiplier
+const GLOW_SCALE = 1.4;
 
 // Each organ: center in 100×150 coordinate space, target rendered size
 // in same space, original SVG viewBox dims, and the traced path data.
@@ -124,6 +141,14 @@ const LUNGS_PLACEHOLDER: Organ = {
 
 // ─── Beating heart component ──────────────────────────────────────────────
 const DEFAULT_BPM = 72;
+const MS_PER_MINUTE = 60000;
+const PUMP_DURATION_MS = 440;
+const MIN_PAUSE_MS = 100;
+
+// Heart beat animation scale values
+const SYSTOLE_SCALE = 1.12;
+const DIASTOLE_SCALE = 1.08;
+const RESTING_SCALE = 1;
 
 const HeartBeat: React.FC<{
   shape: OrganShape;
@@ -132,26 +157,24 @@ const HeartBeat: React.FC<{
   onPress: () => void;
   bpm: number;
 }> = ({ shape, selected, getTransform, onPress, bpm }) => {
-  const pulse = useRef(new Animated.Value(1)).current;
+  const pulse = useRef(new Animated.Value(RESTING_SCALE)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const pathRef = useRef<any>(null);
 
   useEffect(() => {
-    // Time for one full beat cycle in ms (60000 / bpm)
-    const beatInterval = 60000 / bpm;
-    // The pump animation takes ~440ms, rest is the pause
-    const pumpDuration = 440;
-    const pauseDuration = Math.max(beatInterval - pumpDuration, 100);
+    const beatInterval = MS_PER_MINUTE / bpm;
+    const pauseDuration = Math.max(beatInterval - PUMP_DURATION_MS, MIN_PAUSE_MS);
 
     animRef.current?.stop();
 
     const beat = Animated.loop(
       Animated.sequence([
         // First beat (systole)
-        Animated.timing(pulse, { toValue: 1.12, duration: 120, easing: Easing.out(Easing.ease), useNativeDriver: false }),
-        Animated.timing(pulse, { toValue: 1, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: SYSTOLE_SCALE, duration: 120, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: RESTING_SCALE, duration: 100, easing: Easing.in(Easing.ease), useNativeDriver: false }),
         // Second beat (diastole)
-        Animated.timing(pulse, { toValue: 1.08, duration: 100, easing: Easing.out(Easing.ease), useNativeDriver: false }),
-        Animated.timing(pulse, { toValue: 1, duration: 120, easing: Easing.in(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: DIASTOLE_SCALE, duration: 100, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: RESTING_SCALE, duration: 120, easing: Easing.in(Easing.ease), useNativeDriver: false }),
         // Pause — adapts to BPM
         Animated.delay(pauseDuration),
       ]),
@@ -161,25 +184,31 @@ const HeartBeat: React.FC<{
     return () => beat.stop();
   }, [pulse, bpm]);
 
-  const [scale, setScale] = useState(1);
+  // Update SVG path transform directly via setNativeProps to avoid
+  // per-frame React re-renders from the animation listener.
   useEffect(() => {
-    const id = pulse.addListener(({ value }) => setScale(value));
+    const id = pulse.addListener(({ value }) => {
+      pathRef.current?.setNativeProps?.({
+        transform: getTransform(shape, value),
+      });
+    });
     return () => pulse.removeListener(id);
-  }, [pulse]);
+  }, [pulse, shape, getTransform]);
 
   return (
-    <G onPress={onPress}>
+    <G onPress={onPress} accessible accessibilityLabel="Heart" accessibilityRole="button">
       {selected && (
         <Path
           d={shape.path}
-          transform={getTransform(shape, 1.4)}
+          transform={getTransform(shape, GLOW_SCALE)}
           fill={shape.color}
           fillOpacity={0.15}
         />
       )}
       <Path
+        ref={pathRef}
         d={shape.path}
-        transform={getTransform(shape, scale)}
+        transform={getTransform(shape, RESTING_SCALE)}
         fill={shape.color}
         fillOpacity={selected ? 1.0 : 0.9}
       />
@@ -187,7 +216,7 @@ const HeartBeat: React.FC<{
   );
 };
 
-const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPress, onZoomChange }) => {
+const BodyMap: React.FC<BodyMapProps> = ({ onOrganSelect, onHeadPress, onZoomChange }) => {
   const [selectedDataId, setSelectedDataId] = useState<string | null>(null);
   const [isZoomedToHead, setIsZoomedToHead] = useState(false);
   const { deviceData } = useHealthData();
@@ -211,27 +240,21 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
     onZoomChange?.(zooming);
     onHeadPress?.();
 
-    const targetScale = 2.5;
-
     // Head center in image coordinates
-    const headCenterX = (50 / 100) * IMG_W;
-    const headCenterY = (13.5 / 150) * IMG_H;
+    const headCenterX = (50 / COORD_W) * IMG_W;
+    const headCenterY = (13.5 / COORD_H) * IMG_H;
 
-    // After scale S around view center, head lands at:
-    //   center + (head - center) * S
-    // Then we translate to bring it back to center:
-    //   offset = (center - head) * S
-    const tx = (IMG_W / 2 - headCenterX) * targetScale;
-    const ty = (IMG_H / 2 - headCenterY) * targetScale;
+    const tx = (IMG_W / 2 - headCenterX) * HEAD_ZOOM_SCALE;
+    const ty = (IMG_H / 2 - headCenterY) * HEAD_ZOOM_SCALE;
 
     const config = {
-      duration: 800,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      duration: ZOOM_IN_DURATION,
+      easing: ZOOM_EASING,
       useNativeDriver: true,
     };
 
     Animated.parallel([
-      Animated.timing(zoomScale, { ...config, toValue: zooming ? targetScale : 1 }),
+      Animated.timing(zoomScale, { ...config, toValue: zooming ? HEAD_ZOOM_SCALE : 1 }),
       Animated.timing(zoomX, { ...config, toValue: zooming ? tx : 0 }),
       Animated.timing(zoomY, { ...config, toValue: zooming ? ty : 0 }),
     ]).start();
@@ -246,7 +269,7 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
     if (isZoomedToHead) {
       setIsZoomedToHead(false);
       onZoomChange?.(false);
-      const outConfig = { duration: 600, easing: Easing.bezier(0.25, 0.1, 0.25, 1), useNativeDriver: true };
+      const outConfig = { duration: ZOOM_OUT_DURATION, easing: ZOOM_EASING, useNativeDriver: true };
       Animated.parallel([
         Animated.timing(zoomScale, { ...outConfig, toValue: 1 }),
         Animated.timing(zoomX, { ...outConfig, toValue: 0 }),
@@ -256,7 +279,6 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
     }
     if (!shape.organDataId) return;
     setSelectedDataId(shape.organDataId);
-    onOrganPress(shape.organDataId);
     const organ =
       shape.organDataId === 'lungs'
         ? LUNGS_PLACEHOLDER
@@ -267,12 +289,12 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
   // Build an SVG transform string that scales the path from its own
   // viewBox coords and centers it at (cx,cy) in screen pixels.
   const getTransform = (shape: OrganShape, scaleMult = 1) => {
-    const targetPxW = (shape.targetW / 100) * IMG_W * scaleMult;
-    const targetPxH = (shape.targetH / 150) * IMG_H * scaleMult;
+    const targetPxW = (shape.targetW / COORD_W) * IMG_W * scaleMult;
+    const targetPxH = (shape.targetH / COORD_H) * IMG_H * scaleMult;
     const sx = targetPxW / shape.svgW;
     const sy = targetPxH / shape.svgH;
-    const centerX = (shape.cx / 100) * IMG_W;
-    const centerY = (shape.cy / 150) * IMG_H;
+    const centerX = (shape.cx / COORD_W) * IMG_W;
+    const centerY = (shape.cy / COORD_H) * IMG_H;
     const tx = centerX - (shape.svgW * sx) / 2;
     const ty = centerY - (shape.svgH * sy) / 2;
     return `translate(${tx}, ${ty}) scale(${sx}, ${sy})`;
@@ -313,13 +335,17 @@ const BodyMap: React.FC<BodyMapProps> = ({ onOrganPress, onOrganSelect, onHeadPr
               );
             }
 
+            const organLabel = shape.organDataId
+              ? shape.organDataId.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase())
+              : shape.id.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
+
             return (
-              <G key={shape.id} onPress={() => handleShapePress(shape)}>
+              <G key={shape.id} onPress={() => handleShapePress(shape)} accessible accessibilityLabel={organLabel} accessibilityRole="button">
                 {/* Glow ring — slightly larger, low opacity */}
                 {selected && (
                   <Path
                     d={shape.path}
-                    transform={getTransform(shape, 1.4)}
+                    transform={getTransform(shape, GLOW_SCALE)}
                     fill={shape.color}
                     fillOpacity={0.15}
                   />

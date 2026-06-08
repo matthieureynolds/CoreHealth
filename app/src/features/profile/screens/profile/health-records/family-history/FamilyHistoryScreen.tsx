@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -8,17 +8,14 @@ import familyService from '../../../../../../shared/services/user/familyService'
 import { FamilyCondition } from '../../../../../../shared/types';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
 import FamilyHistoryFormModal from './FamilyHistoryFormModal';
-import { useFileViewer } from '../hooks/useFileViewer';
+import { useProfileRecordList } from '../hooks/useHealthRecordList';
 
 const FamilyHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { profile, updateProfile } = useHealthData();
   const [linkCount, setLinkCount] = useState<number>(0);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingFamily, setEditingFamily] = useState<FamilyCondition | null>(null);
-  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadLinks = async () => {
       try {
         const links = await familyService.listLinks();
@@ -30,33 +27,17 @@ const FamilyHistoryScreen: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const handleSave = (item: FamilyCondition) => {
-    const existing = profile?.familyHistory || [];
-    const isEdit = existing.some(f => f.id === item.id);
-      updateProfile({
-        ...profile,
-      familyHistory: isEdit ? existing.map(f => f.id === item.id ? item : f) : [...existing, item],
-    });
-    setShowAddModal(false);
-    setEditingFamily(null);
-  };
+  const config = useMemo(() => ({
+    items: profile?.familyHistory,
+    updateItems: (familyHistory: FamilyCondition[]) => updateProfile({ ...profile, familyHistory }),
+    recordName: 'Family History' as const,
+    getItemName: (f: FamilyCondition) => `${f.relation} • ${f.condition}`,
+  }), [profile, updateProfile]);
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Family History', 'Are you sure you want to delete this family condition?', [
-        { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => updateProfile({ ...profile, familyHistory: profile?.familyHistory?.filter(f => f.id !== id) || [] }) },
-    ]);
-  };
-
-  const openFamilyOptions = (f: FamilyCondition) => {
-    Alert.alert(`${f.relation} • ${f.condition}`, undefined, [
-      { text: 'Edit', onPress: () => { setEditingFamily(f); setShowAddModal(true); } },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(f.id) },
-        { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
-
+  const {
+    items: familyHistory, showModal, editingItem,
+    handleSave, openOptions, openAddModal, closeModal, fileViewer,
+  } = useProfileRecordList(config);
 
   return (
     <View style={styles.container}>
@@ -65,72 +46,72 @@ const FamilyHistoryScreen: React.FC = () => {
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Family History</Text>
-        <TouchableOpacity onPress={() => { setEditingFamily(null); setShowAddModal(true); }} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+        <TouchableOpacity onPress={openAddModal} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 110, padding: 20 }}>
         <TouchableOpacity style={[styles.familyCard, { borderColor: '#3AABF0' }]} onPress={() => navigation.navigate('FamilyLink')}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="link-outline" size={22} color="#3AABF0" style={{ marginRight: 10 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.relation}>Family Link (Risk-Only)</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="link-outline" size={22} color="#3AABF0" style={{ marginRight: 10 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.relation}>Family Link (Risk-Only)</Text>
               <Text style={styles.condition}>Leverage family history without sharing anyone's data</Text>
-                <Text style={styles.ageOfOnset}>Active links: {linkCount}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" />
+              <Text style={styles.ageOfOnset}>Active links: {linkCount}</Text>
             </View>
-          </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={20} color="#888" />
+          </View>
+        </TouchableOpacity>
 
-          {profile?.familyHistory?.length ? (
-          profile.familyHistory.map((item) => (
+        {familyHistory.length ? (
+          familyHistory.map((item) => (
             <View key={item.id} style={styles.familyCard}>
-                <View style={styles.familyHeader}>
-                  <View style={styles.familyInfo}>
+              <View style={styles.familyHeader}>
+                <View style={styles.familyInfo}>
                   <Text style={styles.relation}>{item.relation}{(item as any).side ? ` • ${((item as any).side as string).charAt(0).toUpperCase()}${((item as any).side as string).slice(1)}` : ''}</Text>
                   <Text style={styles.condition}>{item.condition}</Text>
                   {item.ageOfOnset && <Text style={styles.ageOfOnset}>Age of onset: {item.ageOfOnset} years old</Text>}
                   {item.notes && <Text style={styles.notes}>{item.notes}</Text>}
                   {!!item.attachments?.length && (
-                      <View style={{ marginTop: 10 }}>
-                        <View style={styles.attachmentsRow}>
+                    <View style={{ marginTop: 10 }}>
+                      <View style={styles.attachmentsRow}>
                         {item.attachments.map(file => (
-                          <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => handleViewFile(file.uri, file.name, file.type)}>
-                              <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
-                              <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
+                          <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => fileViewer.handleViewFile(file.uri, file.name, file.type)}>
+                            <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                            <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                       </View>
-                    )}
-                  </View>
-                <TouchableOpacity onPress={() => openFamilyOptions(item)} style={styles.editPenButton} accessibilityLabel="Edit family history">
-                    <Feather name="edit-2" size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
+                <TouchableOpacity onPress={() => openOptions(item)} style={styles.editPenButton} accessibilityLabel="Edit family history">
+                  <Feather name="edit-2" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
               </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons name="people-outline" size={64} color="#666" />
-              <Text style={styles.emptyTitle}>No Family History</Text>
-              <Text style={styles.emptySubtitle}>Add family medical conditions to help with risk assessment</Text>
-            <TouchableOpacity style={styles.addFirstButton} onPress={() => { setEditingFamily(null); setShowAddModal(true); }}>
-                <Text style={styles.addFirstButtonText}>Add Family History</Text>
-              </TouchableOpacity>
             </View>
-          )}
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="people-outline" size={64} color="#666" />
+            <Text style={styles.emptyTitle}>No Family History</Text>
+            <Text style={styles.emptySubtitle}>Add family medical conditions to help with risk assessment</Text>
+            <TouchableOpacity style={styles.addFirstButton} onPress={openAddModal}>
+              <Text style={styles.addFirstButtonText}>Add Family History</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       <FamilyHistoryFormModal
-        visible={showAddModal}
-        editingFamily={editingFamily}
-        onClose={() => { setShowAddModal(false); setEditingFamily(null); }}
+        visible={showModal}
+        editingFamily={editingItem}
+        onClose={closeModal}
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewer.fileViewerVisible} onClose={fileViewer.closeFileViewer} fileUri={fileViewer.currentFileUri} fileName={fileViewer.currentFileName} fileType={fileViewer.currentFileType} />
     </View>
   );
 };
@@ -160,4 +141,4 @@ const styles = StyleSheet.create({
   addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 
-export default FamilyHistoryScreen; 
+export default FamilyHistoryScreen;

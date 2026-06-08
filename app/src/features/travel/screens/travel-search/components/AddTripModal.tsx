@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from '../TravelScreen.styles';
-import FlightLookupStep from './components/FlightLookupStep';
-import ManualTripForm from './components/ManualTripForm';
+import FlightLookupStep from './FlightLookupStep';
+import ManualTripForm from './ManualTripForm';
 
 /**
  * Isolates the DateTimePicker from parent re-renders.
@@ -275,13 +275,13 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                 <View>
                   <View style={styles.datePickerHeader}>
-                    <TouchableOpacity onPress={onDateCancel} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                    <TouchableOpacity onPress={onDateCancel} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
                       <Ionicons name="close-circle" size={28} color="#FF3B30" />
                     </TouchableOpacity>
                     <Text style={styles.datePickerTitle}>
                       {showDatePicker === 'departure' ? 'Departure Date' : showDatePicker === 'return' ? 'Return Date' : showDatePicker === 'departureTime' ? 'Departure Time' : 'Return Time'}
                     </Text>
-                    <TouchableOpacity onPress={onDateConfirm} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 4 }}>
+                    <TouchableOpacity onPress={onDateConfirm} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
                       <Ionicons name="checkmark-circle" size={28} color="#34C759" />
                     </TouchableOpacity>
                   </View>

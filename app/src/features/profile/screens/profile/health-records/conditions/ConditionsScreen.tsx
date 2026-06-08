@@ -1,133 +1,83 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../../../../../../shared/context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import { MedicalCondition } from '../../../../../../shared/types';
 import ConditionFormModal from './ConditionFormModal';
-import { useFileViewer } from '../hooks/useFileViewer';
+import { useHealthRecordList } from '../hooks/useHealthRecordList';
 import { DataService } from '../../../../../../shared/services/data/dataService';
+
+const SEVERITY_COLORS: Record<string, string> = {
+  mild: '#4CD964',
+  moderate: '#FF9500',
+  severe: '#FF3B30',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  active: '#FF3B30',
+  resolved: '#4CD964',
+  managed: '#3AABF0',
+};
+
+interface ConditionRow {
+  id: string;
+  name: string;
+  severity?: string;
+  status?: string;
+  diagnosed_date?: string;
+  resolved_date?: string;
+  notes?: string;
+}
+
+const conditionConfig = {
+  loadFn: async (userId: string): Promise<MedicalCondition[]> => {
+    const rows: ConditionRow[] = await DataService.getConditions(userId);
+    return rows.map(c => ({
+      id: c.id,
+      condition: c.name,
+      severity: (c.severity ?? 'mild') as MedicalCondition['severity'],
+      status: (c.status ?? 'active') as MedicalCondition['status'],
+      diagnosedDate: c.diagnosed_date ?? new Date().toISOString(),
+      resolvedDate: c.resolved_date ?? undefined,
+      notes: c.notes ?? undefined,
+    }));
+  },
+  saveFn: async (userId: string, condition: MedicalCondition, isEdit: boolean) => {
+    const payload = {
+      name: condition.condition,
+      severity: condition.severity,
+      status: condition.status,
+      diagnosedDate: condition.diagnosedDate,
+      resolvedDate: condition.resolvedDate,
+      notes: condition.notes,
+    };
+    if (isEdit) {
+      await DataService.updateCondition(userId, condition.id, payload);
+      return condition;
+    }
+    const saved = await DataService.addCondition(userId, payload);
+    return { ...condition, id: saved.id };
+  },
+  deleteFn: (userId: string, id: string) => DataService.deleteCondition(userId, id),
+  recordName: 'Condition',
+  getItemName: (c: MedicalCondition) => c.condition,
+};
 
 const ConditionsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { user } = useAuth();
-  const [conditions, setConditions] = useState<MedicalCondition[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCondition, setEditingCondition] = useState<MedicalCondition | null>(null);
-  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
-
-  const loadConditions = useCallback(async () => {
-    if (!user?.id) return;
-    setLoading(true);
-    try {
-      const rows = await DataService.getConditions(user.id);
-      setConditions(rows.map((c: any) => ({
-        id: c.id,
-        condition: c.name,
-        severity: (c.severity ?? 'mild') as MedicalCondition['severity'],
-        status: (c.status ?? 'active') as MedicalCondition['status'],
-        diagnosedDate: c.diagnosed_date ?? new Date().toISOString(),
-        resolvedDate: c.resolved_date ?? undefined,
-        notes: c.notes ?? undefined,
-      })));
-    } catch (e) {
-      console.error('Failed to load conditions:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
-
-  useFocusEffect(useCallback(() => { loadConditions(); }, [loadConditions]));
-
-  const handleSave = async (condition: MedicalCondition) => {
-    if (!user?.id) return;
-    try {
-      const isEdit = conditions.some(c => c.id === condition.id);
-      if (isEdit) {
-        await DataService.updateCondition(user.id, condition.id, {
-          name: condition.condition,
-          severity: condition.severity,
-          status: condition.status,
-          diagnosedDate: condition.diagnosedDate,
-          resolvedDate: condition.resolvedDate,
-          notes: condition.notes,
-        });
-        setConditions(prev => prev.map(c => c.id === condition.id ? condition : c));
-      } else {
-        const saved = await DataService.addCondition(user.id, {
-          name: condition.condition,
-          severity: condition.severity,
-          status: condition.status,
-          diagnosedDate: condition.diagnosedDate,
-          resolvedDate: condition.resolvedDate,
-          notes: condition.notes,
-        });
-        setConditions(prev => [...prev, { ...condition, id: saved.id }]);
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Could not save condition.');
-    }
-    setShowAddModal(false);
-    setEditingCondition(null);
-  };
-
-  const handleEdit = (c: MedicalCondition) => {
-    setEditingCondition(c);
-    setShowAddModal(true);
-  };
-
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Condition', 'Are you sure you want to delete this condition?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => {
-          if (!user?.id) return;
-          try {
-            await DataService.deleteCondition(user.id, id);
-            setConditions(prev => prev.filter(c => c.id !== id));
-          } catch (e) { Alert.alert('Error', 'Could not delete condition.'); }
-        },
-      },
-    ]);
-  };
-
-  const openConditionOptions = (c: MedicalCondition) => {
-    Alert.alert(c.condition, undefined, [
-      { text: 'Edit', onPress: () => handleEdit(c) },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(c.id) },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'mild': return '#4CD964';
-      case 'moderate': return '#FF9500';
-      case 'severe': return '#FF3B30';
-      default: return '#888';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return '#FF3B30';
-      case 'resolved': return '#4CD964';
-      case 'managed': return '#3AABF0';
-      default: return '#888';
-    }
-  };
+  const {
+    items: conditions, loading, showModal, editingItem,
+    handleSave, openOptions, openAddModal, closeModal, fileViewer,
+  } = useHealthRecordList(conditionConfig);
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
@@ -138,7 +88,7 @@ const ConditionsScreen: React.FC = () => {
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">Medical Conditions</Text>
-        <TouchableOpacity onPress={() => { setEditingCondition(null); setShowAddModal(true); }} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
+        <TouchableOpacity onPress={openAddModal} style={styles.addButton} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
           <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
@@ -148,69 +98,73 @@ const ConditionsScreen: React.FC = () => {
           {loading ? (
             <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
           ) : conditions.length ? (
-            conditions.map((condition) => (
-              <View key={condition.id} style={styles.conditionCard}>
-                <View style={styles.conditionHeader}>
-                  <View style={styles.conditionHeaderLeft}>
-                    <View style={styles.conditionIcon}>
-                      <Ionicons name="medkit-outline" size={20} color="#FFFFFF" />
-                    </View>
-                    <View style={styles.conditionInfo}>
-                      <Text style={styles.conditionName}>{condition.condition}</Text>
-                      <View style={styles.conditionTagsRow}>
-                        <View style={[styles.pillTag, { backgroundColor: getSeverityColor(condition.severity) + '20', borderColor: getSeverityColor(condition.severity) }]}>
-                          <Text style={[styles.pillTagText, { color: getSeverityColor(condition.severity) }]}>
-                            {condition.severity.charAt(0).toUpperCase() + condition.severity.slice(1)}
-                          </Text>
-                        </View>
-                        <View style={[styles.pillTag, { backgroundColor: getStatusColor(condition.status) + '20', borderColor: getStatusColor(condition.status) }]}>
-                          <Text style={[styles.pillTagText, { color: getStatusColor(condition.status) }]}>
-                            {condition.status.charAt(0).toUpperCase() + condition.status.slice(1)}
-                          </Text>
+            conditions.map((condition) => {
+              const severityColor = SEVERITY_COLORS[condition.severity] ?? '#888';
+              const statusColor = STATUS_COLORS[condition.status] ?? '#888';
+              return (
+                <View key={condition.id} style={styles.conditionCard}>
+                  <View style={styles.conditionHeader}>
+                    <View style={styles.conditionHeaderLeft}>
+                      <View style={styles.conditionIcon}>
+                        <Ionicons name="medkit-outline" size={20} color="#FFFFFF" />
+                      </View>
+                      <View style={styles.conditionInfo}>
+                        <Text style={styles.conditionName}>{condition.condition}</Text>
+                        <View style={styles.conditionTagsRow}>
+                          <View style={[styles.pillTag, { backgroundColor: severityColor + '20', borderColor: severityColor }]}>
+                            <Text style={[styles.pillTagText, { color: severityColor }]}>
+                              {condition.severity.charAt(0).toUpperCase() + condition.severity.slice(1)}
+                            </Text>
+                          </View>
+                          <View style={[styles.pillTag, { backgroundColor: statusColor + '20', borderColor: statusColor }]}>
+                            <Text style={[styles.pillTagText, { color: statusColor }]}>
+                              {condition.status.charAt(0).toUpperCase() + condition.status.slice(1)}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     </View>
+                    <TouchableOpacity onPress={() => openOptions(condition)} style={styles.editPenButton} accessibilityLabel="Edit condition">
+                      <Feather name="edit-2" size={16} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => openConditionOptions(condition)} style={styles.editPenButton} accessibilityLabel="Edit condition">
-                    <Feather name="edit-2" size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
 
-                <View style={styles.conditionMeta}>
-                  <View style={styles.metaItem}>
-                    <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
-                    <Text style={styles.metaText}>Diagnosed: {formatDate(condition.diagnosedDate)}</Text>
-                  </View>
-                  {condition.resolvedDate && (
+                  <View style={styles.conditionMeta}>
                     <View style={styles.metaItem}>
-                      <Ionicons name="checkmark-done-outline" size={16} color="#8E8E93" />
-                      <Text style={styles.metaText}>Resolved: {formatDate(condition.resolvedDate)}</Text>
+                      <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+                      <Text style={styles.metaText}>Diagnosed: {formatDate(condition.diagnosedDate)}</Text>
+                    </View>
+                    {condition.resolvedDate && (
+                      <View style={styles.metaItem}>
+                        <Ionicons name="checkmark-done-outline" size={16} color="#8E8E93" />
+                        <Text style={styles.metaText}>Resolved: {formatDate(condition.resolvedDate)}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {condition.notes && <Text style={styles.notes}>{condition.notes}</Text>}
+
+                  {!!condition.attachments?.length && (
+                    <View style={[styles.conditionMeta, { marginTop: 10 }]}>
+                      <View style={styles.attachmentsRow}>
+                        {condition.attachments.map((file) => (
+                          <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => fileViewer.handleViewFile(file.uri, file.name, file.type)}>
+                            <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                            <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
                     </View>
                   )}
                 </View>
-
-                {condition.notes && <Text style={styles.notes}>{condition.notes}</Text>}
-
-                {!!condition.attachments?.length && (
-                  <View style={[styles.conditionMeta, { marginTop: 10 }]}>
-                    <View style={styles.attachmentsRow}>
-                      {condition.attachments.map((file) => (
-                        <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => handleViewFile(file.uri, file.name, file.type)}>
-                          <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
-                          <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                )}
-              </View>
-            ))
+              );
+            })
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="medical-outline" size={64} color="#666" />
               <Text style={styles.emptyTitle}>No Conditions</Text>
               <Text style={styles.emptySubtitle}>Add your medical conditions to keep track of your health</Text>
-              <TouchableOpacity style={styles.addFirstButton} onPress={() => { setEditingCondition(null); setShowAddModal(true); }}>
+              <TouchableOpacity style={styles.addFirstButton} onPress={openAddModal}>
                 <Text style={styles.addFirstButtonText}>Add Condition</Text>
               </TouchableOpacity>
             </View>
@@ -219,18 +173,18 @@ const ConditionsScreen: React.FC = () => {
       </ScrollView>
 
       <ConditionFormModal
-        visible={showAddModal}
-        editingCondition={editingCondition}
-        onClose={() => { setShowAddModal(false); setEditingCondition(null); }}
+        visible={showModal}
+        editingCondition={editingItem}
+        onClose={closeModal}
         onSave={handleSave}
       />
 
       <FileViewerModal
-        visible={fileViewerVisible}
-        onClose={closeFileViewer}
-        fileUri={currentFileUri}
-        fileName={currentFileName}
-        fileType={currentFileType}
+        visible={fileViewer.fileViewerVisible}
+        onClose={fileViewer.closeFileViewer}
+        fileUri={fileViewer.currentFileUri}
+        fileName={fileViewer.currentFileName}
+        fileType={fileViewer.currentFileType}
       />
     </View>
   );

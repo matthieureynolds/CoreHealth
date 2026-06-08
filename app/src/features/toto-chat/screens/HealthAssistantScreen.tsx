@@ -30,8 +30,6 @@ import { togglesMark } from '../assistant/commandBus';
 const HealthAssistantScreen: React.FC = () => {
   const {
     messages,
-    inputText,
-    setInputText,
     sendAnim,
     showMediaPicker,
     setShowMediaPicker,
@@ -87,7 +85,6 @@ const HealthAssistantScreen: React.FC = () => {
     handleDocumentSelected,
     handleVoiceInput,
     sendImageWithText,
-    handleDocumentInput,
     dismissNewChatModal,
     startNewChat,
     loadSession,
@@ -221,7 +218,7 @@ const HealthAssistantScreen: React.FC = () => {
               <Text style={styles.planHeaderText}>Leg pain recovery plan</Text>
               <Text style={styles.planCompletion}>{Object.values(toggleState).filter(Boolean).length}/{(activeSymptomPlan.steps || []).length}</Text>
             </View>
-            <SymptomPlan plan={activeSymptomPlan} onToggle={async (toggleKey, completed) => {
+            <SymptomPlan plan={activeSymptomPlan} toggleState={toggleState} onToggle={async (toggleKey, completed) => {
               setToggleState(prev => ({ ...prev, [toggleKey]: completed }));
               try { await togglesMark({ toggleKey, completed, symptomId: activeSymptomId || undefined }); }
               catch { setToggleState(prev => ({ ...prev, [toggleKey]: !completed })); }

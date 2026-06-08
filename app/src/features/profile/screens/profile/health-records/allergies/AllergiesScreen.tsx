@@ -1,170 +1,125 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../../../../../../shared/context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import { Allergy } from '../../../../../../shared/types';
 import AllergyFormModal from './AllergyFormModal';
-import { useFileViewer } from '../hooks/useFileViewer';
+import { useHealthRecordList } from '../hooks/useHealthRecordList';
 import { DataService } from '../../../../../../shared/services/data/dataService';
+
+const SEVERITY_COLORS: Record<string, string> = {
+  mild: '#4CD964',
+  moderate: '#FF9500',
+  severe: '#FF3B30',
+};
+
+const allergyConfig = {
+  loadFn: (userId: string) => DataService.getAllergies(userId) as Promise<Allergy[]>,
+  saveFn: async (userId: string, allergy: Allergy, isEdit: boolean) => {
+    if (isEdit) {
+      return await DataService.updateAllergy(userId, allergy.id, allergy) as Allergy;
+    }
+    return await DataService.addAllergy(userId, allergy) as Allergy;
+  },
+  deleteFn: (userId: string, id: string) => DataService.deleteAllergy(userId, id),
+  recordName: 'Allergy',
+  getItemName: (a: Allergy) => a.name,
+};
 
 const AllergiesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { user } = useAuth();
-  const [allergies, setAllergies] = useState<Allergy[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingAllergy, setEditingAllergy] = useState<Allergy | null>(null);
-  const { fileViewerVisible, currentFileUri, currentFileName, currentFileType, handleViewFile, closeFileViewer } = useFileViewer();
-
-  const loadAllergies = useCallback(async () => {
-    if (!user?.id) return;
-    setLoading(true);
-    try {
-      const rows = await DataService.getAllergies(user.id);
-      setAllergies(rows);
-    } catch (e) {
-      console.error('Failed to load allergies:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
-
-  useFocusEffect(useCallback(() => { loadAllergies(); }, [loadAllergies]));
-
-  const handleSave = async (allergy: Allergy) => {
-    if (!user?.id) return;
-    try {
-      const isEdit = allergies.some(a => a.id === allergy.id);
-      if (isEdit) {
-        const saved = await DataService.updateAllergy(user.id, allergy.id, allergy);
-        setAllergies(prev => prev.map(a => a.id === allergy.id ? saved : a));
-      } else {
-        const saved = await DataService.addAllergy(user.id, allergy);
-        setAllergies(prev => [...prev, saved]);
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Failed to save allergy. Please try again.');
-    }
-    setShowAddModal(false);
-    setEditingAllergy(null);
-  };
-
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete Allergy', 'Are you sure you want to delete this allergy?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive', onPress: async () => {
-          if (!user?.id) return;
-          try {
-            await DataService.deleteAllergy(user.id, id);
-            setAllergies(prev => prev.filter(a => a.id !== id));
-          } catch (e) {
-            Alert.alert('Error', 'Failed to delete allergy. Please try again.');
-          }
-        },
-      },
-    ]);
-  };
-
-  const openAllergyOptions = (a: Allergy) => {
-    Alert.alert(a.name, undefined, [
-      { text: 'Edit', onPress: () => { setEditingAllergy(a); setShowAddModal(true); } },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(a.id) },
-        { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) { case 'mild': return '#4CD964'; case 'moderate': return '#FF9500'; case 'severe': return '#FF3B30'; default: return '#888'; }
-  };
+  const {
+    items: allergies, loading, showModal, editingItem,
+    handleSave, openOptions, openAddModal, closeModal, fileViewer,
+  } = useHealthRecordList(allergyConfig);
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
   return (
     <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Allergies</Text>
-        <TouchableOpacity onPress={() => { setEditingAllergy(null); setShowAddModal(true); }} style={styles.addButton}>
-            <Ionicons name="add" size={24} color="#3AABF0" />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Allergies</Text>
+        <TouchableOpacity onPress={openAddModal} style={styles.addButton}>
+          <Ionicons name="add" size={24} color="#3AABF0" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {loading ? (
             <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
           ) : allergies.length ? (
-            allergies.map((allergy) => (
-              <View key={allergy.id} style={styles.allergyCard}>
-                <View style={styles.allergyHeader}>
-                  <View style={styles.allergyInfo}>
-                    <Text style={styles.allergyName}>{allergy.name}</Text>
-                    <View style={styles.allergyTags}>
-                      <View style={[styles.tag, { backgroundColor: getSeverityColor(allergy.severity) + '20' }]}>
-                        <Text style={[styles.tagText, { color: getSeverityColor(allergy.severity) }]}>
-                          {allergy.severity.charAt(0).toUpperCase() + allergy.severity.slice(1)}
-                        </Text>
-                      </View>
-                    </View>
-                    {allergy.reaction && <Text style={styles.reaction}>Reaction: {allergy.reaction}</Text>}
-                    <Text style={styles.allergyDate}>Started: {formatDate(allergy.startDate)}</Text>
-                    {allergy.endDate && <Text style={styles.allergyDate}>Ended: {formatDate(allergy.endDate)}</Text>}
-                    {allergy.notes && <Text style={styles.notes}>{allergy.notes}</Text>}
-                    {!!allergy.attachments?.length && (
-                      <View style={{ marginTop: 10 }}>
-                        <View style={styles.attachmentsRow}>
-                          {allergy.attachments.map(file => (
-                            <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => handleViewFile(file.uri, file.name, file.type)}>
-                              <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
-                              <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
-                            </TouchableOpacity>
-                          ))}
+            allergies.map((allergy) => {
+              const severityColor = SEVERITY_COLORS[allergy.severity] ?? '#888';
+              return (
+                <View key={allergy.id} style={styles.allergyCard}>
+                  <View style={styles.allergyHeader}>
+                    <View style={styles.allergyInfo}>
+                      <Text style={styles.allergyName}>{allergy.name}</Text>
+                      <View style={styles.allergyTags}>
+                        <View style={[styles.tag, { backgroundColor: severityColor + '20' }]}>
+                          <Text style={[styles.tagText, { color: severityColor }]}>
+                            {allergy.severity.charAt(0).toUpperCase() + allergy.severity.slice(1)}
+                          </Text>
                         </View>
                       </View>
-                    )}
+                      {allergy.reaction && <Text style={styles.reaction}>Reaction: {allergy.reaction}</Text>}
+                      <Text style={styles.allergyDate}>Started: {formatDate(allergy.startDate)}</Text>
+                      {allergy.endDate && <Text style={styles.allergyDate}>Ended: {formatDate(allergy.endDate)}</Text>}
+                      {allergy.notes && <Text style={styles.notes}>{allergy.notes}</Text>}
+                      {!!allergy.attachments?.length && (
+                        <View style={{ marginTop: 10 }}>
+                          <View style={styles.attachmentsRow}>
+                            {allergy.attachments.map(file => (
+                              <TouchableOpacity key={file.uri} style={styles.attachmentChip} onPress={() => fileViewer.handleViewFile(file.uri, file.name, file.type)}>
+                                <Ionicons name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'} size={14} color="#FFFFFF" />
+                                <Text style={styles.attachmentText} numberOfLines={1}>{file.name}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity onPress={() => openOptions(allergy)} style={styles.editPenButton} accessibilityLabel="Edit allergy">
+                      <Feather name="edit-2" size={16} color="#FFFFFF" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => openAllergyOptions(allergy)} style={styles.editPenButton} accessibilityLabel="Edit allergy">
-                    <Feather name="edit-2" size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
                 </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="warning-outline" size={64} color="#666" />
               <Text style={styles.emptyTitle}>No Allergies</Text>
               <Text style={styles.emptySubtitle}>Add your allergies to keep track of your sensitivities</Text>
-              <TouchableOpacity style={styles.addFirstButton} onPress={() => { setEditingAllergy(null); setShowAddModal(true); }}>
+              <TouchableOpacity style={styles.addFirstButton} onPress={openAddModal}>
                 <Text style={styles.addFirstButtonText}>Add Allergy</Text>
               </TouchableOpacity>
             </View>
-
           )}
         </View>
       </ScrollView>
 
       <AllergyFormModal
-        visible={showAddModal}
-        editingAllergy={editingAllergy}
-        onClose={() => { setShowAddModal(false); setEditingAllergy(null); }}
+        visible={showModal}
+        editingAllergy={editingItem}
+        onClose={closeModal}
         onSave={handleSave}
       />
 
-      <FileViewerModal visible={fileViewerVisible} onClose={closeFileViewer} fileUri={currentFileUri} fileName={currentFileName} fileType={currentFileType} />
+      <FileViewerModal visible={fileViewer.fileViewerVisible} onClose={fileViewer.closeFileViewer} fileUri={fileViewer.currentFileUri} fileName={fileViewer.currentFileName} fileType={fileViewer.currentFileType} />
     </View>
   );
 };
@@ -198,4 +153,4 @@ const styles = StyleSheet.create({
   addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 
-export default AllergiesScreen; 
+export default AllergiesScreen;

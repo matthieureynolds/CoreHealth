@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PlanDay } from '../../../shared/types';
-import { DayTimeline } from './components/DayTimeline';
-import { DateStrip } from './components/DateStrip';
-import ActionInfoModal from './components/ActionInfoModal';
-import { formatDate } from './components/TimelineConstants';
+import { DayTimeline } from './DayTimeline';
+import { DateStrip } from './DateStrip';
+import ActionInfoModal from './ActionInfoModal';
+import { formatDate } from './TimelineConstants';
 
 interface PlanTimelineProps {
   planDays: PlanDay[];

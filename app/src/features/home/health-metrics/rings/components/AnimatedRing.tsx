@@ -20,7 +20,6 @@ export interface RingMetric {
 interface AnimatedRingProps {
   metric: RingMetric;
   animatedValue: Animated.Value;
-  onRingPress?: (ringId: string) => void;
 }
 
 const ringSize = (width - 48) / 3 - 16;
@@ -28,7 +27,7 @@ const strokeWidth = 6;
 const radius = (ringSize - strokeWidth) / 2;
 const circumference = radius * 2 * Math.PI;
 
-const AnimatedRing: React.FC<AnimatedRingProps> = ({ metric, animatedValue, onRingPress }) => {
+const AnimatedRing: React.FC<AnimatedRingProps> = ({ metric, animatedValue }) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const valuePct = Math.max(0, Math.min(100, metric.value));
   const initialOffset = circumference - (valuePct / 100) * circumference;

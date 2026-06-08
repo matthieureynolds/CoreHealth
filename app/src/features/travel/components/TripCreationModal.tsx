@@ -10,11 +10,11 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Trip } from '../../../shared/types';
 import { FlightLookupService } from '../../../shared/services/travel/enhancedJetLagService';
-import TripModalHeader from './components/TripModalHeader';
-import TripTabBar from './components/TripTabBar';
-import ManualEntryStep from './components/ManualEntryStep';
-import FlightLookupStep from './components/FlightLookupStep';
-import TripPreferencesSection from './components/TripPreferencesSection';
+import TripModalHeader from './TripModalHeader';
+import TripTabBar from './TripTabBar';
+import ManualEntryStep from './ManualEntryStep';
+import FlightLookupStep from './FlightLookupStep';
+import TripPreferencesSection from './TripPreferencesSection';
 
 interface TripCreationModalProps {
   visible: boolean;

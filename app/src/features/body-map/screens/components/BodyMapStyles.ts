@@ -27,13 +27,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 4,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '400',
-    lineHeight: 20,
-    flexWrap: 'wrap',
-  },
   scrollContainer: {
     flex: 1,
     backgroundColor: '#000000',
@@ -167,16 +160,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
   },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-  },
   biomarkerItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -216,11 +199,6 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 40,
-  },
-  biomarkerScrollView: {
-    flex: 1,
-  },
-  biomarkerList: {
   },
 });
 

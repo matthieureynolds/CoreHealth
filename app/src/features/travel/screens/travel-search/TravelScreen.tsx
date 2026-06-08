@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, Keyboard, StatusBar, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Keyboard, StatusBar, Animated, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './TravelScreen.styles';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -31,6 +32,8 @@ const TravelScreen: React.FC = () => {
   const reduceMotion = useReduceMotion();
   const { travelHealth, getCurrentLocation, updateTravelHealthData } = useHealthData();
 
+  const fadeOpacity = useRef(new Animated.Value(0)).current;
+
   const s = useTravelState();
   const typedCityText = useTypewriter(popularCities.slice(0, 8));
   const curtain = useCurtainReveal({
@@ -50,83 +53,19 @@ const TravelScreen: React.FC = () => {
   }, [travelHealth]);
 
   const h = createTravelHandlers({
+    s,
     travelHealth,
-    inputText: s.inputText,
-    searchLocation: s.searchLocation,
-    selectedLocation: s.selectedLocation,
-    citySearchResults: s.citySearchResults,
-    popularCities,
-    contentMeasuredHeight: curtain.contentMeasuredHeight,
-    flightCarrier: s.flightCarrier,
-    flightNumber: s.flightNumber,
-    flightLookupResult: s.flightLookupResult,
-    flightSegments: s.flightSegments,
-    showDatePicker: s.showDatePicker,
-    tempDatePickerValue: s.tempDatePickerValue,
-    newTripDepartureDate: s.newTripDepartureDate,
-    newTripReturnDate: s.newTripReturnDate,
-    newTripDepartureLocation: s.newTripDepartureLocation,
-    newTripDestination: s.newTripDestination,
-    editingTrip: s.editingTrip,
-    editTripDepartureLocation: s.editTripDepartureLocation,
-    editTripDestination: s.editTripDestination,
-    editTripDepartureDate: s.editTripDepartureDate,
-    editTripReturnDate: s.editTripReturnDate,
-    editTripNotes: s.editTripNotes,
-    showEditDatePicker: s.showEditDatePicker,
-    tempEditDatePickerValue: s.tempEditDatePickerValue,
-    resultsOpacity: s.resultsOpacity,
-    resultsTranslateY: s.resultsTranslateY,
-    tripModalTranslateY: s.tripModalTranslateY,
     updateTravelHealthData,
     getCurrentLocation,
-    setSearchLocation: s.setSearchLocation,
-    setInputText: s.setInputText,
-    setFilteredCities: s.setFilteredCities,
-    setIsLoading: s.setIsLoading,
-    setSelectedLocation: s.setSelectedLocation,
-    setCitySearchResults: s.setCitySearchResults,
-    setShowInlineSuggestions: s.setShowInlineSuggestions,
-    setApiErrors: s.setApiErrors,
-    setIsRefreshing: s.setIsRefreshing,
-    setIsGettingLocation: s.setIsGettingLocation,
-    setIsLookingUpFlight: s.setIsLookingUpFlight,
-    setFlightNotFound: s.setFlightNotFound,
-    setFlightLookupResult: s.setFlightLookupResult,
-    setNewTripDepartureLocation: s.setNewTripDepartureLocation,
-    setNewTripDestination: s.setNewTripDestination,
-    setNewTripDepartureDate: s.setNewTripDepartureDate,
-    setShowManualEntry: s.setShowManualEntry,
-    setTrips: s.setTrips,
-    setNewTripReturnDate: s.setNewTripReturnDate,
-    setNewTripDepartureTime: s.setNewTripDepartureTime,
-    setNewTripReturnTime: s.setNewTripReturnTime,
-    setShowAddTripModal: s.setShowAddTripModal,
-    setTripSuggestions: s.setTripSuggestions,
-    setDepartureSuggestions: s.setDepartureSuggestions,
-    setFlightCarrier: s.setFlightCarrier,
-    setFlightNumber: s.setFlightNumber,
-    setDetectedAirline: s.setDetectedAirline,
-    setFlightSegments: s.setFlightSegments,
-    setFlightDetailsExpanded: s.setFlightDetailsExpanded,
-    setEditingTrip: s.setEditingTrip,
-    setEditTripDepartureLocation: s.setEditTripDepartureLocation,
-    setEditTripDestination: s.setEditTripDestination,
-    setEditTripDepartureDate: s.setEditTripDepartureDate,
-    setEditTripReturnDate: s.setEditTripReturnDate,
-    setEditTripNotes: s.setEditTripNotes,
-    setShowEditTripModal: s.setShowEditTripModal,
-    setEditTripSuggestions: s.setEditTripSuggestions,
-    setEditTripDepartureSuggestions: s.setEditTripDepartureSuggestions,
-    setShowDatePicker: s.setShowDatePicker,
-    setTempDatePickerValue: s.setTempDatePickerValue,
-    pendingDateRef: s.pendingDateRef,
-    setShowEditDatePicker: s.setShowEditDatePicker,
-    setTempEditDatePickerValue: s.setTempEditDatePickerValue,
+    contentMeasuredHeight: curtain.contentMeasuredHeight,
     setContentMeasuredHeight: curtain.setContentMeasuredHeight,
-    setShowDirectionsModal: s.setShowDirectionsModal,
-    setShowEmergencyModal: s.setShowEmergencyModal,
   });
+
+  const handleChildScroll = (offsetY: number) => {
+    // Show gradient only when scrolled past 10px
+    const target = offsetY > 10 ? 1 : 0;
+    fadeOpacity.setValue(target);
+  };
 
   return (
     <View style={styles.container}>
@@ -152,14 +91,21 @@ const TravelScreen: React.FC = () => {
         }}
       />
 
-      <PagerView
-        style={styles.pager}
-        initialPage={0}
-        ref={s.pagerRef}
-        onPageSelected={(e) => {
-          s.setActiveTab(e.nativeEvent.position === 0 ? 'health' : 'trips');
-        }}
-      >
+      <View style={{ flex: 1 }}>
+        <Animated.View style={[fadeStyles.topFade, { opacity: fadeOpacity }]} pointerEvents="none">
+          <LinearGradient
+            colors={['#000000', 'rgba(0,0,0,0)']}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        <PagerView
+          style={styles.pager}
+          initialPage={0}
+          ref={s.pagerRef}
+          onPageSelected={(e) => {
+            s.setActiveTab(e.nativeEvent.position === 0 ? 'health' : 'trips');
+          }}
+        >
         <View key="search">
           <SearchTab
             inputText={s.inputText}
@@ -218,6 +164,7 @@ const TravelScreen: React.FC = () => {
             onFocusSearch={() => {
               if (!s.inputText.trim()) { s.setFilteredCities(popularCities.slice(0, 8)); s.setShowInlineSuggestions(true); }
             }}
+            onScrollOffset={handleChildScroll}
           />
         </View>
 
@@ -226,9 +173,11 @@ const TravelScreen: React.FC = () => {
             trips={s.trips}
             tripModalTranslateY={s.tripModalTranslateY}
             onOpenAddTrip={() => s.setShowAddTripModal(true)}
+            onScrollOffset={handleChildScroll}
           />
         </View>
       </PagerView>
+      </View>
 
       <EmergencyModal visible={s.showEmergencyModal} onClose={() => s.setShowEmergencyModal(false)} />
 
@@ -322,5 +271,16 @@ const TravelScreen: React.FC = () => {
     </View>
   );
 };
+
+const fadeStyles = StyleSheet.create({
+  topFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 32,
+    zIndex: 10,
+  },
+});
 
 export default TravelScreen;

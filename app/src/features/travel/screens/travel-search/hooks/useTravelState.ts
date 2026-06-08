@@ -149,23 +149,26 @@ export function useTravelState() {
 
   // Search cities
   useEffect(() => {
+    if (searchLocation.trim() && searchLocation.length >= 2) {
+      // Show popular city matches immediately while API loads
+      const filtered = popularCities.filter(city => city.toLowerCase().includes(searchLocation.toLowerCase()));
+      setFilteredCities(filtered);
+    } else {
+      setCitySearchResults([]);
+      setFilteredCities([]);
+    }
+
     const searchCitiesAsync = async () => {
       if (searchLocation.trim() && searchLocation.length >= 2) {
         setIsSearchingCities(true);
         try {
           const results = await searchAllLocations(searchLocation, 15);
           setCitySearchResults(results);
-          const filtered = popularCities.filter(city => city.toLowerCase().includes(searchLocation.toLowerCase()));
-          setFilteredCities(filtered);
         } catch {
-          const filtered = popularCities.filter(city => city.toLowerCase().includes(searchLocation.toLowerCase()));
-          setFilteredCities(filtered);
+          // Popular cities are already shown as fallback
         } finally {
           setIsSearchingCities(false);
         }
-      } else {
-        setCitySearchResults([]);
-        setFilteredCities([]);
       }
     };
     const timeoutId = setTimeout(searchCitiesAsync, 300);

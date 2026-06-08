@@ -14,6 +14,7 @@ import { ProfileTabParamList } from '../../../../shared/types';
 import { useAuth } from '../../../../shared/context/AuthContext';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
 import { genderOptions } from '../profile/personal-info/useProfileDetails';
+import SettingsHeader from './components/SettingsHeader';
 
 type SettingsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
 
@@ -33,13 +34,7 @@ const SettingsScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SettingsHeader title="Settings" />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       {/* Content */}
@@ -157,25 +152,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 8,
-    backgroundColor: '#000000',
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    flex: 1,
-    textAlign: 'center',
   },
   content: {
     paddingHorizontal: 20,
