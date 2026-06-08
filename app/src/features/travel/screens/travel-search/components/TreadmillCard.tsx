@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Animated, ViewStyle, LayoutChangeEvent } from 'react-native';
 
 /**
@@ -7,9 +7,8 @@ import { Animated, ViewStyle, LayoutChangeEvent } from 'react-native';
  * as it reaches the top of the viewport — like a step folding back on a
  * stair-stepper machine.
  *
- * Uses the scroll content container ref to measure each card's Y offset
- * within the scrollable area, then builds Animated interpolations from
- * the shared scrollY value.
+ * Uses measureInWindow on both the card and the scroll content container
+ * to reliably compute offset regardless of Animated.View ancestors.
  */
 
 const FOLD_START_OFFSET = 0;   // start folding when card reaches this Y in scroll viewport
@@ -30,24 +29,30 @@ const TreadmillCard: React.FC<TreadmillCardProps> = ({
 }) => {
   const cardRef = useRef<any>(null);
   const [cardOffsetY, setCardOffsetY] = useState<number | null>(null);
+  // Keep a JS-side mirror of the current scroll value for measurement
+  const scrollYValue = useRef(0);
+
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => {
+      scrollYValue.current = value;
+    });
+    return () => scrollY.removeListener(id);
+  }, [scrollY]);
 
   const handleLayout = useCallback((_e: LayoutChangeEvent) => {
-    // Measure this card's position relative to the scroll content container
-    if (cardRef.current && scrollContentRef.current) {
-      try {
-        cardRef.current.measureLayout(
-          scrollContentRef.current,
-          (_x: number, y: number) => {
-            setCardOffsetY(y);
-          },
-          () => {
-            // measureLayout failed — fall back silently (no effect applied)
-          },
-        );
-      } catch {
-        // measureLayout not supported — no effect
-      }
-    }
+    // Use measureInWindow on both views — works reliably through Animated.View ancestors
+    requestAnimationFrame(() => {
+      if (!cardRef.current || !scrollContentRef.current) return;
+      cardRef.current.measureInWindow((_cx: number, cardWindowY: number) => {
+        if (cardWindowY === undefined) return;
+        scrollContentRef.current.measureInWindow((_sx: number, contentWindowY: number) => {
+          if (contentWindowY === undefined) return;
+          // Card's Y in scroll content = window-relative difference + current scroll offset
+          const offset = cardWindowY - contentWindowY + scrollYValue.current;
+          setCardOffsetY(offset);
+        });
+      });
+    });
   }, [scrollContentRef]);
 
   // Build animated style only once we know the card's position
