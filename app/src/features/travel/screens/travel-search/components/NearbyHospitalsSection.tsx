@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, Alert, Linking } from 'react-native';
+import { View, Text, Animated, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../TravelScreen.styles';
 import TreadmillCard from './TreadmillCard';
+import PressPop from './PressPop';
 
 const openMapsAlert = (destination: string) => {
   Alert.alert('Open Maps', `Navigate to ${destination}?`, [
@@ -39,7 +40,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
     <View style={styles.sectionGroupCard}>
       <Text style={styles.sectionTitle}>Nearby Hospitals</Text>
       <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
-        <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('Central Hospital')}>
+        <PressPop style={styles.hospitalCard} onPress={() => openMapsAlert('Central Hospital')}>
           <View style={styles.hospitalHeader}>
             <Ionicons name="medical" size={20} color="#FF3B30" />
             <Text style={styles.hospitalTitle}>Central Hospital</Text>
@@ -48,11 +49,11 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
             )}
           </View>
           <Text style={styles.hospitalInfo}>24/7 Emergency Services • ICU Available</Text>
-        </TouchableOpacity>
+        </PressPop>
       </TreadmillCard>
 
       <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
-        <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('City Medical Center')}>
+        <PressPop style={styles.hospitalCard} onPress={() => openMapsAlert('City Medical Center')}>
           <View style={styles.hospitalHeader}>
             <Ionicons name="medical" size={20} color="#FF3B30" />
             <Text style={styles.hospitalTitle}>City Medical Center</Text>
@@ -61,11 +62,11 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
             )}
           </View>
           <Text style={styles.hospitalInfo}>General Practice • Emergency Care</Text>
-        </TouchableOpacity>
+        </PressPop>
       </TreadmillCard>
 
       <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
-        <TouchableOpacity style={styles.hospitalCard} onPress={() => openMapsAlert('Emergency Clinic')}>
+        <PressPop style={styles.hospitalCard} onPress={() => openMapsAlert('Emergency Clinic')}>
           <View style={styles.hospitalHeader}>
             <Ionicons name="medical" size={20} color="#FF3B30" />
             <Text style={styles.hospitalTitle}>Emergency Clinic</Text>
@@ -74,18 +75,18 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
             )}
           </View>
           <Text style={styles.hospitalInfo}>Urgent Care • Walk-in Available</Text>
-        </TouchableOpacity>
+        </PressPop>
       </TreadmillCard>
 
       <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
-        <TouchableOpacity style={styles.hospitalCard} onPress={onEmergencyContactPress}>
+        <PressPop style={styles.hospitalCard} onPress={onEmergencyContactPress}>
           <View style={styles.hospitalHeader}>
             <Ionicons name="call" size={20} color="#FF3B30" />
             <Text style={styles.hospitalTitle}>Emergency Contact</Text>
             <Text style={styles.hospitalDistance}>112</Text>
           </View>
           <Text style={styles.hospitalInfo}>Tap to call emergency services</Text>
-        </TouchableOpacity>
+        </PressPop>
       </TreadmillCard>
     </View>
   </Animated.View>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LiquidGlass } from '../../../../../shared/components/ui/LiquidGlass';
 
 interface TravelTabBarProps {
   activeTab: 'health' | 'trips';
@@ -12,17 +12,8 @@ interface TravelTabBarProps {
 
 const TravelTabBar: React.FC<TravelTabBarProps> = ({ activeTab, onTabPress, onAddTrip }) => (
   <View style={s.wrapper}>
-    <View style={s.island}>
-      {/* Glass material */}
-      <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-
-      {/* Top highlight — liquid glass refraction */}
-      <LinearGradient
-        colors={['rgba(255,255,255,0.08)', 'transparent']}
-        style={s.topHighlight}
-      />
-
-      {/* Prismatic edge shimmer */}
+    <LiquidGlass glassStyle="regular" style={s.island}>
+      {/* Prismatic edge shimmer — decorative sheen on top of the glass */}
       <LinearGradient
         colors={[
           'rgba(125,249,255,0.12)',
@@ -42,15 +33,6 @@ const TravelTabBar: React.FC<TravelTabBarProps> = ({ activeTab, onTabPress, onAd
           onPress={() => onTabPress('health', 0)}
           activeOpacity={0.7}
         >
-          {activeTab === 'health' && (
-            <>
-              <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-              <LinearGradient
-                colors={['rgba(255,255,255,0.06)', 'transparent']}
-                style={s.activeTabHighlight}
-              />
-            </>
-          )}
           <View style={s.tabContent}>
             <View style={[s.dot, activeTab === 'health' && s.dotActive]} />
             <Text style={[s.tabText, activeTab === 'health' && s.activeTabText]}>
@@ -64,15 +46,6 @@ const TravelTabBar: React.FC<TravelTabBarProps> = ({ activeTab, onTabPress, onAd
           onPress={() => onTabPress('trips', 1)}
           activeOpacity={0.7}
         >
-          {activeTab === 'trips' && (
-            <>
-              <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-              <LinearGradient
-                colors={['rgba(255,255,255,0.06)', 'transparent']}
-                style={s.activeTabHighlight}
-              />
-            </>
-          )}
           <View style={s.tabContent}>
             <View style={[s.dot, activeTab === 'trips' && s.dotActive]} />
             <Text style={[s.tabText, activeTab === 'trips' && s.activeTabText]}>
@@ -92,7 +65,10 @@ const TravelTabBar: React.FC<TravelTabBarProps> = ({ activeTab, onTabPress, onAd
           </TouchableOpacity>
         )}
       </View>
-    </View>
+
+      {/* Even hairline border on top so it reads as a defined glass shape */}
+      <View pointerEvents="none" style={s.borderOverlay} />
+    </LiquidGlass>
   </View>
 );
 
@@ -107,8 +83,6 @@ const s = StyleSheet.create({
   island: {
     borderRadius: 22,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
     // Depth shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -116,21 +90,18 @@ const s = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  topHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-  },
   prismaticEdge: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     height: 1,
+  },
+  borderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   tabRow: {
     flexDirection: 'row',
@@ -147,20 +118,12 @@ const s = StyleSheet.create({
     borderColor: 'transparent',
   },
   activeTab: {
-    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.14)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-  },
-  activeTabHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
   },
   tabContent: {
     flexDirection: 'row',

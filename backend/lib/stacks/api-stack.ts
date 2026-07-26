@@ -277,6 +277,16 @@ export class ApiStack extends cdk.Stack {
       ...vpcConfig,
     });
 
+    // Jet-lag plan engine — pure compute, no DB/VPC (avoids in-VPC cold-start penalty).
+    const jetlagLambda = new nodejs.NodejsFunction(this, 'JetlagLambda', {
+      entry: path.join(__dirname, '../lambdas/jetlag/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      bundling,
+    });
+
     // ─── Lambda: Alerts ────────────────────────────────────────────────────────
     const alertsLambda = new nodejs.NodejsFunction(this, 'AlertsLambda', {
       entry: path.join(__dirname, '../lambdas/alerts/index.ts'),
@@ -621,6 +631,10 @@ export class ApiStack extends cdk.Stack {
     const tripItem = tripsResource.addResource('{tripId}');
     tripItem.addMethod('PUT', new apigateway.LambdaIntegration(tripsLambda), authOptions);
     tripItem.addMethod('DELETE', new apigateway.LambdaIntegration(tripsLambda), authOptions);
+
+    // /jetlag/plan — pure compute jet-lag plan engine
+    const jetlag = api.root.addResource('jetlag');
+    jetlag.addResource('plan').addMethod('POST', new apigateway.LambdaIntegration(jetlagLambda), authOptions);
 
     // /users/{userId}/location-health — live location biomarkers
     user.addResource('location-health').addMethod('PUT', new apigateway.LambdaIntegration(usersLambda), authOptions);

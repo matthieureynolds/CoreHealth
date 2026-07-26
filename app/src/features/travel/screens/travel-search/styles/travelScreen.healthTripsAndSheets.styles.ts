@@ -806,12 +806,15 @@ jetLagTitle: {
     textAlign: 'center',
   },
   resultTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
   resultTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    flexShrink: 1,
   },
   tripDestinationRow: {
     flexDirection: 'row',

@@ -153,7 +153,6 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     marginTop: 20,
     borderWidth: 1,
     borderColor: '#3A3A3C',
-    borderBottomWidth: 0,
   },
   flightSegmentCard: {
     marginTop: 12,
@@ -170,6 +169,15 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   flightDetailsRowsWrapper: {
     position: 'relative',
+  },
+  flightConnectorLine: {
+    position: 'absolute',
+    left: 8,
+    top: '50%',
+    height: 22,
+    marginTop: -11, // center the line on the midpoint between the two planes
+    width: 2,
+    backgroundColor: '#059669',
   },
   flightDetailsRow: {
     flexDirection: 'row',

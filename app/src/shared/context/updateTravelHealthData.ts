@@ -20,7 +20,7 @@ import {
 import {
   generateJetLagData,
   getCurrentDestinationTime
-} from '../services/travel/jetLagService';
+} from '../services/jetlag-brain/jetLagService';
 import {
   generateWeatherHealthAssessment
 } from '../services/travel/weatherService';
@@ -44,12 +44,24 @@ import {
 import {
   LocationData,
   TravelHealth,
+  TravelApiErrors,
   RiskLevel,
   HealthMetric,
   HealthcareFacilities,
   JetLagData,
   TimeZoneInfo,
 } from '../types';
+
+// Maps full country names to the ISO codes the emergency-contacts lookup expects.
+const COUNTRY_CODES: Record<string, string> = {
+  France: 'FR',
+  'United Kingdom': 'UK',
+  Japan: 'JP',
+  Australia: 'AU',
+  Canada: 'CA',
+  Germany: 'DE',
+  'United States': 'US',
+};
 
 interface UpdateTravelHealthDataParams {
   locationData: LocationData;
@@ -76,72 +88,65 @@ export async function updateTravelHealthData({
   };
 
   // Track API errors
-  const apiErrors: { [key: string]: string } = {};
+  const apiErrors: TravelApiErrors = {};
 
-  // Fetch real air quality data with fallback
-  let airQualityData = null;
-  try {
-    airQualityData = await getGoogleAirQualityData(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude
-    );
-  } catch (error) {
-    apiErrors.airQuality = 'Google Air Quality API not enabled';
-  }
+  // Fetch every independent location signal in parallel. This was a 6-call
+  // serial await waterfall; latency is now bounded by the slowest call rather
+  // than the sum of all. Each call keeps its own fallback + apiErrors entry.
+  const { latitude: lat, longitude: lng } = locationData.coordinates;
+  const [
+    airQualityData,
+    pollenData,
+    waterQualityData,
+    medical,
+    weatherHealthAssessment,
+    medicationAvailabilityData,
+  ] = await Promise.all([
+    getGoogleAirQualityData(lat, lng).catch(() => {
+      apiErrors.airQuality = 'Google Air Quality API not enabled';
+      return null;
+    }),
+    getGooglePollenData(lat, lng).catch(() => {
+      apiErrors.pollen = 'Google Pollen API not enabled';
+      return null;
+    }),
+    getWaterQualityData(lat, lng, locationData.name, locationData.country).catch((error) => {
+      console.error('❌ Water Quality Service failed:', error);
+      apiErrors.waterQuality = 'Failed to fetch water quality data';
+      return null;
+    }),
+    (async () => {
+      try {
+        const closest = await getClosestMedicalFacilities(lat, lng, locationData.name);
+        const all = await getAllHealthcareFacilities(lat, lng, 5000); // 5km radius
+        return { closest, all };
+      } catch (error) {
+        console.error('Healthcare facilities API error:', error);
+        apiErrors.healthcare = 'Failed to fetch healthcare facilities';
+        return { closest: null, all: { hospitals: [], pharmacies: [], clinics: [], dentists: [], total: 0 } };
+      }
+    })(),
+    generateWeatherHealthAssessment(lat, lng).catch((error) => {
+      console.error('Weather API error:', error);
+      apiErrors.weather = 'Failed to fetch weather data';
+      return { weatherData: null, heatIndexData: null, extremeHeatWarning: null, uvHeatCombination: null };
+    }),
+    getMultipleMedicationsAvailability(
+      ['ibuprofen', 'amoxicillin', 'lorazepam', 'insulin'],
+      locationData.country,
+      lat,
+      lng,
+    ).catch((error) => {
+      console.error('Medication availability API error:', error);
+      return [] as Awaited<ReturnType<typeof getMultipleMedicationsAvailability>>;
+    }),
+  ]);
 
-  // Fetch real pollen data with fallback
-  let pollenData = null;
-  try {
-    pollenData = await getGooglePollenData(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude
-    );
-  } catch (error) {
-    apiErrors.pollen = 'Google Pollen API not enabled';
-  }
-
-  // Fetch water quality data
-  let waterQualityData = null;
-  try {
-    waterQualityData = await getWaterQualityData(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude,
-      locationData.name,
-      locationData.country
-    );
-  } catch (error) {
-    console.error('❌ Water Quality Service failed:', error);
-    apiErrors.waterQuality = 'Failed to fetch water quality data';
-  }
-
-  // Fetch nearby healthcare facilities using enhanced service
-  let healthcareFacilities: any = null;
-  let closestMedicalFacilities = null;
-  try {
-    closestMedicalFacilities = await getClosestMedicalFacilities(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude,
-      locationData.name
-    );
-    healthcareFacilities = await getAllHealthcareFacilities(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude,
-      5000 // 5km radius
-    );
-  } catch (error) {
-    console.error('Healthcare facilities API error:', error);
-    apiErrors.healthcare = 'Failed to fetch healthcare facilities';
-    healthcareFacilities = { hospitals: [], pharmacies: [], clinics: [], dentists: [], total: 0 };
-  }
+  const closestMedicalFacilities = medical.closest;
+  const healthcareFacilities: any = medical.all;
 
   // Get emergency contacts for the country
-  const countryCode = locationData.country === 'France' ? 'FR' :
-                     locationData.country === 'United Kingdom' ? 'UK' :
-                     locationData.country === 'Japan' ? 'JP' :
-                     locationData.country === 'Australia' ? 'AU' :
-                     locationData.country === 'Canada' ? 'CA' :
-                     locationData.country === 'Germany' ? 'DE' :
-                     locationData.country === 'United States' ? 'US' : 'INTL';
+  const countryCode = COUNTRY_CODES[locationData.country] ?? 'INTL';
 
   const emergencyContacts = getEmergencyContacts(countryCode);
 
@@ -300,24 +305,6 @@ export async function updateTravelHealthData({
     jetLagData: jetLagData,
   };
 
-  // Generate weather health assessment
-  let weatherHealthAssessment;
-  try {
-    weatherHealthAssessment = await generateWeatherHealthAssessment(
-      locationData.coordinates.latitude,
-      locationData.coordinates.longitude
-    );
-  } catch (error) {
-    console.error('Weather API error:', error);
-    apiErrors.weather = 'Failed to fetch weather data';
-    weatherHealthAssessment = {
-      weatherData: null,
-      heatIndexData: null,
-      extremeHeatWarning: null,
-      uvHeatCombination: null,
-    };
-  }
-
   // Generate hydration recommendations
   let hydrationRecommendation;
   if (weatherHealthAssessment.weatherData) {
@@ -346,15 +333,6 @@ export async function updateTravelHealthData({
   mockTravelHealth.hydrationRecommendation = hydrationRecommendation;
   mockTravelHealth.activitySafety = activitySafety;
 
-  // Generate medication availability data
-  const commonMedications = ['ibuprofen', 'amoxicillin', 'lorazepam', 'insulin'];
-  const medicationAvailabilityData = await getMultipleMedicationsAvailability(
-    commonMedications,
-    locationData.country,
-    locationData.coordinates.latitude,
-    locationData.coordinates.longitude
-  );
-
   // Generate travel medication kit recommendations
   const travelMedicationKit = generateTravelMedicationKit(
     locationData.country,
@@ -375,11 +353,11 @@ export async function updateTravelHealthData({
 
   // Add water quality data
   if (waterQualityData) {
-    (mockTravelHealth as any).waterQualityData = waterQualityData;
+    mockTravelHealth.waterQualityData = waterQualityData;
   }
 
   // Store API errors in the travel health data for UI access
-  (mockTravelHealth as any).apiErrors = apiErrors;
+  mockTravelHealth.apiErrors = apiErrors;
 
   return mockTravelHealth;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import {
   HEALTH_METRIC_ROWS,
 } from '../travelMetricHelpers';
 import TreadmillCard from './TreadmillCard';
+import PressPop from './PressPop';
 
 type Nav = CompositeNavigationProp<
   StackNavigationProp<TravelStackParamList, 'TravelList'>,
@@ -41,7 +42,7 @@ const HealthMetricsSection: React.FC<HealthMetricsSectionProps> = ({ getRowAnim,
                 transform: [{ translateY: getRowAnim(animKey).translate }],
               }}
             >
-              <TouchableOpacity
+              <PressPop
                 style={styles.metricRowCard}
                 onPress={() =>
                   navigation.navigate('EnvironmentalMetric', {
@@ -67,7 +68,7 @@ const HealthMetricsSection: React.FC<HealthMetricsSectionProps> = ({ getRowAnim,
                   </Text>
                   <Text style={styles.metricScoreLabelText}>Score</Text>
                 </View>
-              </TouchableOpacity>
+              </PressPop>
             </Animated.View>
           </TreadmillCard>
         ))}

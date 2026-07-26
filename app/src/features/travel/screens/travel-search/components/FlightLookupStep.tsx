@@ -8,9 +8,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../TravelScreen.styles';
+import { FlightOption } from '../../../../../shared/types';
 
 interface FlightDetailsCardProps {
-  flightLookupResult: any;
+  flightLookupResult: FlightOption | null;
   flightDetailsExpanded: boolean;
   onFlightDetailsExpand: (v: boolean) => void;
 }
@@ -33,9 +34,10 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
       </Text>
       <View style={styles.flightDetailsTable}>
         <View style={styles.flightDetailsRowsWrapper}>
+          <View style={styles.flightConnectorLine} />
           <View style={styles.flightDetailsRow}>
             <View style={styles.flightDetailsCellCity}>
-              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '-90deg' }] }} />
+              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
               <Text style={styles.flightCityText} numberOfLines={1}>{flightLookupResult.origin_city}</Text>
             </View>
             <View style={styles.flightDetailsCellDate}>
@@ -52,7 +54,7 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
           </View>
           <View style={styles.flightDetailsRow}>
             <View style={styles.flightDetailsCellCity}>
-              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '-90deg' }] }} />
+              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
               <Text style={styles.flightCityText} numberOfLines={1}>{flightLookupResult.dest_city}</Text>
             </View>
             <View style={styles.flightDetailsCellDate}>
@@ -79,54 +81,132 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
 };
 
 interface FlightSegmentCardsProps {
-  flightSegments: any[];
+  flightSegments: FlightOption[];
+  onEditSegment?: (index: number) => void;
 }
 
-export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({ flightSegments }) => {
+export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({ flightSegments, onEditSegment }) => {
   if (flightSegments.length === 0) return null;
 
   return (
     <View>
       {flightSegments.map((seg, idx) => (
-        <View key={idx} style={[styles.flightDetailsCard, styles.flightSegmentCard]}>
+        <TouchableOpacity
+          key={idx}
+          style={[styles.flightDetailsCard, styles.flightSegmentCard]}
+          activeOpacity={onEditSegment ? 0.7 : 1}
+          disabled={!onEditSegment}
+          onPress={() => onEditSegment?.(idx)}
+        >
           <Text style={styles.flightNumberText}>{seg.carrier} {seg.number}</Text>
           <View style={styles.flightDetailsTable}>
-            <View style={styles.flightDetailsRow}>
-              <View style={styles.flightDetailsCellCity}>
-                <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '-90deg' }] }} />
-                <Text style={styles.flightCityText} numberOfLines={1}>{seg.origin_city}</Text>
+            <View style={styles.flightDetailsRowsWrapper}>
+              <View style={styles.flightConnectorLine} />
+              <View style={styles.flightDetailsRow}>
+                <View style={styles.flightDetailsCellCity}>
+                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
+                  <Text style={styles.flightCityText} numberOfLines={1}>{seg.origin_city}</Text>
+                </View>
+                <View style={styles.flightDetailsCellDate}>
+                  <Text style={styles.flightDate}>
+                    {new Date(seg.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellTime}>
+                  <Text style={styles.flightTime}>
+                    {new Date(seg.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellArrow} />
               </View>
-              <View style={styles.flightDetailsCellDate}>
-                <Text style={styles.flightDate}>
-                  {new Date(seg.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </Text>
+              <View style={styles.flightDetailsRow}>
+                <View style={styles.flightDetailsCellCity}>
+                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
+                  <Text style={styles.flightCityText} numberOfLines={1}>{seg.dest_city}</Text>
+                </View>
+                <View style={styles.flightDetailsCellDate}>
+                  <Text style={styles.flightDate}>
+                    {new Date(seg.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellTime}>
+                  <Text style={styles.flightTime}>
+                    {new Date(seg.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellArrow} />
               </View>
-              <View style={styles.flightDetailsCellTime}>
-                <Text style={styles.flightTime}>
-                  {new Date(seg.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                </Text>
-              </View>
-              <View style={styles.flightDetailsCellArrow} />
-            </View>
-            <View style={styles.flightDetailsRow}>
-              <View style={styles.flightDetailsCellCity}>
-                <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '-90deg' }] }} />
-                <Text style={styles.flightCityText} numberOfLines={1}>{seg.dest_city}</Text>
-              </View>
-              <View style={styles.flightDetailsCellDate}>
-                <Text style={styles.flightDate}>
-                  {new Date(seg.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </Text>
-              </View>
-              <View style={styles.flightDetailsCellTime}>
-                <Text style={styles.flightTime}>
-                  {new Date(seg.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                </Text>
-              </View>
-              <View style={styles.flightDetailsCellArrow} />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
+
+interface FlightSuggestionsListProps {
+  suggestions: FlightOption[];
+  onSelect: (flight: FlightOption) => void;
+}
+
+export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({ suggestions, onSelect }) => {
+  if (suggestions.length === 0) return null;
+
+  return (
+    // marginTop offsets the inputContainer's 16px bottom margin so the gap
+    // above the first card matches the 12px gap between cards (even spacing).
+    <View style={{ marginTop: -4, gap: 12 }}>
+      {suggestions.map((f, idx) => (
+        <TouchableOpacity
+          key={`${f.carrier}${f.number}-${idx}`}
+          style={[styles.flightDetailsCard, { marginTop: 0 }]}
+          activeOpacity={0.7}
+          onPress={() => onSelect(f)}
+        >
+          <Text style={styles.flightNumberText}>{f.carrier} {f.number}</Text>
+          <View style={styles.flightDetailsTable}>
+            <View style={styles.flightDetailsRowsWrapper}>
+              <View style={styles.flightConnectorLine} />
+              <View style={styles.flightDetailsRow}>
+                <View style={styles.flightDetailsCellCity}>
+                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
+                  <Text style={styles.flightCityText} numberOfLines={1}>{f.origin_city}</Text>
+                </View>
+                <View style={styles.flightDetailsCellDate}>
+                  <Text style={styles.flightDate}>
+                    {new Date(f.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellTime}>
+                  <Text style={styles.flightTime}>
+                    {new Date(f.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellArrow} />
+              </View>
+              <View style={styles.flightDetailsRow}>
+                <View style={styles.flightDetailsCellCity}>
+                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
+                  <Text style={styles.flightCityText} numberOfLines={1}>{f.dest_city}</Text>
+                </View>
+                <View style={styles.flightDetailsCellDate}>
+                  <Text style={styles.flightDate}>
+                    {new Date(f.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellTime}>
+                  <Text style={styles.flightTime}>
+                    {new Date(f.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </Text>
+                </View>
+                <View style={styles.flightDetailsCellArrow} />
+              </View>
+              <View style={styles.flightDetailsChevronWrap}>
+                <Ionicons name="chevron-forward" size={20} color="#059669" />
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
@@ -138,15 +218,18 @@ interface FlightLookupStepProps {
   detectedAirline: string | null;
   isLookingUpFlight: boolean;
   flightNotFound: boolean;
-  flightLookupResult: any;
-  flightSegments: any[];
+  flightLookupResult: FlightOption | null;
+  flightSuggestions: FlightOption[];
+  flightSegments: FlightOption[];
   flightDetailsExpanded: boolean;
   onFlightCarrierChange: (v: string) => void;
   onFlightNumberChange: (v: string) => void;
+  onSelectFlightSuggestion: (flight: FlightOption) => void;
   onFlightDetailsExpand: (v: boolean) => void;
   onAddAnotherFlight: () => void;
   onConfirmFlightTrip: () => void;
   onShowManualEntry: () => void;
+  onEditSegment?: (index: number) => void;
 }
 
 const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
@@ -156,20 +239,21 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
   isLookingUpFlight,
   flightNotFound,
   flightLookupResult,
+  flightSuggestions,
   flightSegments,
   flightDetailsExpanded,
   onFlightCarrierChange,
   onFlightNumberChange,
+  onSelectFlightSuggestion,
   onFlightDetailsExpand,
   onAddAnotherFlight,
   onConfirmFlightTrip,
   onShowManualEntry,
+  onEditSegment,
 }) => {
-  const hasFlights = Boolean(flightLookupResult) || flightSegments.length > 0;
-
   return (
     <>
-      <FlightSegmentCards flightSegments={flightSegments} />
+      <FlightSegmentCards flightSegments={flightSegments} onEditSegment={onEditSegment} />
 
       {!flightDetailsExpanded && (
         <>
@@ -209,6 +293,13 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
             </View>
           </View>
 
+          {!flightLookupResult && (
+            <FlightSuggestionsList
+              suggestions={flightSuggestions}
+              onSelect={onSelectFlightSuggestion}
+            />
+          )}
+
           <FlightDetailsCard
             flightLookupResult={flightLookupResult}
             flightDetailsExpanded={flightDetailsExpanded}
@@ -245,7 +336,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
         </View>
       )}
 
-      {flightNotFound && !isLookingUpFlight && (
+      {flightNotFound && !isLookingUpFlight && flightSuggestions.length === 0 && (
         <View style={{ alignItems: 'center', paddingVertical: 20 }}>
           <Ionicons name="airplane-outline" size={32} color="#8E8E93" />
           <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginTop: 10 }}>

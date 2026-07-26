@@ -237,6 +237,15 @@ export interface TravelMedicationKit {
   emergencyContacts: string[];
 }
 
+export interface TravelApiErrors {
+  airQuality?: string;
+  pollen?: string;
+  waterQuality?: string;
+  weather?: string;
+  healthcare?: string;
+  general?: string;
+}
+
 export interface TravelHealth {
   location: string;
   country?: string;
@@ -265,4 +274,6 @@ export interface TravelHealth {
   nearestPharmacy?: string;
   nearestHospitalData?: any;
   nearestPharmacyData?: any;
+  apiErrors?: TravelApiErrors;
+  waterQualityData?: import('../services/travel/waterQualityService').WaterQualityData;
 }

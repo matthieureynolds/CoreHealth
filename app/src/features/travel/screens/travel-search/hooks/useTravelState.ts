@@ -2,8 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AIRLINE_CODES } from '../travelMetricHelpers';
+import { TravelApiErrors, FlightOption } from '../../../../../shared/types';
 import { searchAllLocations, getPopularCities, CitySearchResult } from '../../../../../shared/services/travel/citySearchService';
+import { useCitySuggestions } from './useCitySuggestions';
 import { Trip } from './useTravelHandlers';
+import { MOCK_TRIPS } from '../../../mockTrips';
+import { searchMockFlights } from '../../../mockFlights';
 
 export const popularCities = getPopularCities();
 
@@ -35,9 +39,7 @@ export function useTravelState() {
   const [citySearchResults, setCitySearchResults] = useState<CitySearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchingCities, setIsSearchingCities] = useState(false);
-  const [apiErrors, setApiErrors] = useState<{
-    airQuality?: string; pollen?: string; weather?: string; healthcare?: string; general?: string;
-  }>({});
+  const [apiErrors, setApiErrors] = useState<TravelApiErrors>({});
 
   // Trip state — persisted to AsyncStorage
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -45,14 +47,20 @@ export function useTravelState() {
 
   useEffect(() => {
     AsyncStorage.getItem('planned_trips').then(stored => {
+      let loaded = false;
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          setTrips(parsed.map((t: any) => ({ ...t, departureDate: new Date(t.departureDate), returnDate: t.returnDate ? new Date(t.returnDate) : undefined })));
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setTrips(parsed.map((t: any) => ({ ...t, departureDate: new Date(t.departureDate), returnDate: t.returnDate ? new Date(t.returnDate) : undefined })));
+            loaded = true;
+          }
         } catch {}
       }
+      // Seed mock trips for testing when no real trips exist yet.
+      if (!loaded) setTrips(MOCK_TRIPS);
       tripsInitialized.current = true;
-    }).catch(() => { tripsInitialized.current = true; });
+    }).catch(() => { setTrips(MOCK_TRIPS); tripsInitialized.current = true; });
   }, []);
 
   useEffect(() => {
@@ -65,8 +73,9 @@ export function useTravelState() {
   const [detectedAirline, setDetectedAirline] = useState<string | null>(null);
   const [isLookingUpFlight, setIsLookingUpFlight] = useState(false);
   const [flightNotFound, setFlightNotFound] = useState(false);
-  const [flightLookupResult, setFlightLookupResult] = useState<Record<string, unknown> | null>(null);
-  const [flightSegments, setFlightSegments] = useState<any[]>([]);
+  const [flightLookupResult, setFlightLookupResult] = useState<FlightOption | null>(null);
+  const [flightSuggestions, setFlightSuggestions] = useState<FlightOption[]>([]);
+  const [flightSegments, setFlightSegments] = useState<FlightOption[]>([]);
   const [flightDetailsExpanded, setFlightDetailsExpanded] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const tripModalTranslateY = useRef(new Animated.Value(1000)).current;
@@ -84,10 +93,7 @@ export function useTravelState() {
   const [tripSuggestions, setTripSuggestions] = useState<string[]>([]);
   const [departureSuggestions, setDepartureSuggestions] = useState<string[]>([]);
 
-  const [showDirectionsModal, setShowDirectionsModal] = useState<string | null>(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const [metricModalVisible, setMetricModalVisible] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<any | null>(null);
 
   // Edit trip state
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
@@ -108,6 +114,20 @@ export function useTravelState() {
     const code = flightCarrier.toUpperCase().trim();
     setDetectedAirline(AIRLINE_CODES[code] ?? null);
   }, [flightCarrier]);
+
+  // Live flight suggestions as the user types (Timeshifter-style).
+  // Hidden once a flight is selected/looked up so the result card takes over.
+  useEffect(() => {
+    if (flightLookupResult) {
+      setFlightSuggestions([]);
+      return;
+    }
+    if (flightCarrier.trim() && flightNumber.trim()) {
+      setFlightSuggestions(searchMockFlights(flightCarrier, flightNumber));
+    } else {
+      setFlightSuggestions([]);
+    }
+  }, [flightCarrier, flightNumber, flightLookupResult]);
 
   // Date/time picker init (add trip)
   useEffect(() => {
@@ -175,83 +195,11 @@ export function useTravelState() {
     return () => clearTimeout(timeoutId);
   }, [searchLocation]);
 
-  // Search trip destination suggestions
-  useEffect(() => {
-    if (newTripDestination.trim() && newTripDestination.length >= 2) {
-      // Show local matches immediately while API loads
-      const localMatches = popularCities.filter(city => city.toLowerCase().includes(newTripDestination.toLowerCase()));
-      if (localMatches.length > 0) setTripSuggestions(localMatches);
-      const id = setTimeout(async () => {
-        try {
-          const results = await searchAllLocations(newTripDestination, 12);
-          if (results.length > 0) {
-            setTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
-          }
-        } catch {
-          setTripSuggestions(localMatches);
-        }
-      }, 300);
-      return () => clearTimeout(id);
-    } else { setTripSuggestions([]); }
-  }, [newTripDestination]);
-
-  // Search departure location suggestions
-  useEffect(() => {
-    if (newTripDepartureLocation.trim() && newTripDepartureLocation.length >= 2) {
-      // Show local matches immediately while API loads
-      const localMatches = popularCities.filter(city => city.toLowerCase().includes(newTripDepartureLocation.toLowerCase()));
-      if (localMatches.length > 0) setDepartureSuggestions(localMatches);
-      const id = setTimeout(async () => {
-        try {
-          const results = await searchAllLocations(newTripDepartureLocation, 12);
-          if (results.length > 0) {
-            setDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
-          }
-        } catch {
-          setDepartureSuggestions(localMatches);
-        }
-      }, 300);
-      return () => clearTimeout(id);
-    } else { setDepartureSuggestions([]); }
-  }, [newTripDepartureLocation]);
-
-  // Search edit trip destination suggestions
-  useEffect(() => {
-    if (editTripDestination.trim() && editTripDestination.length >= 2) {
-      const localMatches = popularCities.filter(city => city.toLowerCase().includes(editTripDestination.toLowerCase()));
-      if (localMatches.length > 0) setEditTripSuggestions(localMatches);
-      const id = setTimeout(async () => {
-        try {
-          const results = await searchAllLocations(editTripDestination, 12);
-          if (results.length > 0) {
-            setEditTripSuggestions(results.map(city => `${city.name}, ${city.country}`));
-          }
-        } catch {
-          setEditTripSuggestions(localMatches);
-        }
-      }, 300);
-      return () => clearTimeout(id);
-    } else { setEditTripSuggestions([]); }
-  }, [editTripDestination]);
-
-  // Search edit trip departure location suggestions
-  useEffect(() => {
-    if (editTripDepartureLocation.trim() && editTripDepartureLocation.length >= 2) {
-      const localMatches = popularCities.filter(city => city.toLowerCase().includes(editTripDepartureLocation.toLowerCase()));
-      if (localMatches.length > 0) setEditTripDepartureSuggestions(localMatches);
-      const id = setTimeout(async () => {
-        try {
-          const results = await searchAllLocations(editTripDepartureLocation, 12);
-          if (results.length > 0) {
-            setEditTripDepartureSuggestions(results.map(city => `${city.name}, ${city.country}`));
-          }
-        } catch {
-          setEditTripDepartureSuggestions(localMatches);
-        }
-      }, 300);
-      return () => clearTimeout(id);
-    } else { setEditTripDepartureSuggestions([]); }
-  }, [editTripDepartureLocation]);
+  // Debounced city suggestions for the four trip/edit location fields.
+  useCitySuggestions(newTripDestination, setTripSuggestions);
+  useCitySuggestions(newTripDepartureLocation, setDepartureSuggestions);
+  useCitySuggestions(editTripDestination, setEditTripSuggestions);
+  useCitySuggestions(editTripDepartureLocation, setEditTripDepartureSuggestions);
 
   return {
     pagerRef,
@@ -281,6 +229,7 @@ export function useTravelState() {
     isLookingUpFlight, setIsLookingUpFlight,
     flightNotFound, setFlightNotFound,
     flightLookupResult, setFlightLookupResult,
+    flightSuggestions, setFlightSuggestions,
     flightSegments, setFlightSegments,
     flightDetailsExpanded, setFlightDetailsExpanded,
     showManualEntry, setShowManualEntry,
@@ -295,10 +244,7 @@ export function useTravelState() {
     tripSuggestions, setTripSuggestions,
     departureSuggestions, setDepartureSuggestions,
     // Modal state
-    showDirectionsModal, setShowDirectionsModal,
     showEmergencyModal, setShowEmergencyModal,
-    metricModalVisible, setMetricModalVisible,
-    selectedMetric,
     // Edit trip state
     editingTrip, setEditingTrip,
     showEditTripModal, setShowEditTripModal,

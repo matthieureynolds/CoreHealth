@@ -1,13 +1,14 @@
-import React from 'react';
-import { Alert, Keyboard } from 'react-native';
-import { Animated } from 'react-native';
-import { LocationData } from '../../../../../shared/types';
+import { Alert, Keyboard, Linking, Platform } from 'react-native';
+import { LocationData, TravelHealth } from '../../../../../shared/types';
 import { createTripHandlers } from './useTripHandlers';
 
 export type { Trip } from './useTripHandlers';
-export { buildJetLagPlanner } from './useTripHandlers';
 
-import type { Trip } from './useTripHandlers';
+// The health data is near-instant (mostly mock), so the "analyzing" screen would
+// flash by. Hold the loading state for at least this long so it reads as the AI
+// genuinely working through the destination.
+const MIN_LOAD_MS = 7000;
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 /**
  * All state from useTravelState(), plus external deps and curtain state.
@@ -17,18 +18,15 @@ export interface TravelHandlersParams {
   // The full state object from useTravelState()
   s: ReturnType<typeof import('./useTravelState').useTravelState>;
   // External dependencies
-  travelHealth: any;
+  travelHealth: TravelHealth | null;
   updateTravelHealthData: (locationData: LocationData) => Promise<void>;
   getCurrentLocation: () => Promise<any>;
-  // Curtain state
-  contentMeasuredHeight: number;
-  setContentMeasuredHeight: (v: number) => void;
 }
 
 export function createTravelHandlers(params: TravelHandlersParams) {
   const { s, travelHealth, updateTravelHealthData, getCurrentLocation } = params;
   const {
-    citySearchResults, showDatePicker, tempDatePickerValue,
+    citySearchResults, showDatePicker,
     showEditDatePicker, tempEditDatePickerValue, resultsOpacity, resultsTranslateY,
     setSearchLocation, setInputText, setFilteredCities, setIsLoading,
     setSelectedLocation, setShowInlineSuggestions, setApiErrors,
@@ -57,6 +55,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     setDepartureSuggestions: s.setDepartureSuggestions, setFlightCarrier: s.setFlightCarrier,
     setFlightNumber: s.setFlightNumber, setDetectedAirline: s.setDetectedAirline,
     setFlightSegments: s.setFlightSegments, setFlightDetailsExpanded: s.setFlightDetailsExpanded,
+    setFlightSuggestions: s.setFlightSuggestions,
     setFlightLookupResult: s.setFlightLookupResult, setIsLookingUpFlight: s.setIsLookingUpFlight, setFlightNotFound: s.setFlightNotFound,
     setShowManualEntry: s.setShowManualEntry, setEditingTrip: s.setEditingTrip,
     setEditTripDepartureLocation: s.setEditTripDepartureLocation,
@@ -89,7 +88,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
       const locationData = matchedCity
         ? { name: matchedCity.name, country: matchedCity.country, coordinates: matchedCity.coordinates, timezone: matchedCity.timezone || 'UTC', elevation: 0 }
         : { name: city, country: 'Unknown', coordinates: { latitude: 0, longitude: 0 }, timezone: 'UTC', elevation: 0 };
-      await updateTravelHealthData(locationData);
+      await Promise.all([updateTravelHealthData(locationData), delay(MIN_LOAD_MS)]);
       setSelectedLocation(city);
     } catch {
       setApiErrors(prev => ({ ...prev, general: 'Failed to fetch health data. Please try again.' }));
@@ -102,12 +101,12 @@ export function createTravelHandlers(params: TravelHandlersParams) {
   const handleEmergencyContactPress = () => {
     Alert.alert('Call Emergency Services?', 'Are you sure you want to call 112?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Call', onPress: () => { try { require('react-native').Linking.openURL('tel:112'); } catch { Alert.alert('Unable to call', 'This device cannot place phone calls.'); } } },
+      { text: 'Call', onPress: () => { try { Linking.openURL('tel:112'); } catch { Alert.alert('Unable to call', 'This device cannot place phone calls.'); } } },
     ]);
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (require('react-native').Platform.OS === 'android') {
+    if (Platform.OS === 'android') {
       if (selectedDate) {
         if (showDatePicker === 'departure') setNewTripDepartureDate(selectedDate);
         else if (showDatePicker === 'return') setNewTripReturnDate(selectedDate);
@@ -130,7 +129,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
         setInputText(cityName); setIsLoading(true);
         resultsOpacity.setValue(1); resultsTranslateY.setValue(0);
         try {
-          await updateTravelHealthData(location);
+          await Promise.all([updateTravelHealthData(location), delay(MIN_LOAD_MS)]);
           setSelectedLocation(cityName);
         } catch {
           setApiErrors(prev => ({ ...prev, general: 'Failed to fetch health data. Please try again.' }));

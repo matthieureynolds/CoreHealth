@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Swipeable, RectButton } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, TravelStackParamList, SerializedTrip } from '../../../../../shared/types';
 import { styles } from '../TravelScreen.styles';
+import PressPop from './PressPop';
 
 type Nav = CompositeNavigationProp<
   StackNavigationProp<TravelStackParamList, 'TravelList'>,
@@ -19,6 +21,8 @@ interface Trip {
   departureDate: Date;
   returnDate?: Date;
   timezone: string;
+  originTimezone?: string;
+  layovers?: Array<{ city?: string; tz: string; arr_local: string; dep_local: string }>;
   notes?: string;
   jetLagData?: any;
   isSequential?: boolean;
@@ -51,6 +55,8 @@ function serializeTrip(t: Trip): SerializedTrip {
     departureDate: t.departureDate.toISOString(),
     returnDate: t.returnDate?.toISOString(),
     timezone: t.timezone,
+    originTimezone: t.originTimezone,
+    layovers: t.layovers,
     notes: t.notes,
     jetLagPlanner: t.jetLagPlanner,
   };
@@ -103,6 +109,8 @@ interface TripPlanningTabProps {
   trips: Trip[];
   tripModalTranslateY: Animated.Value;
   onOpenAddTrip: () => void;
+  onEditTrip: (trip: Trip) => void;
+  onDeleteTrip: (tripId: string) => void;
   onScrollOffset?: (offsetY: number) => void;
 }
 
@@ -110,6 +118,8 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
   trips,
   tripModalTranslateY,
   onOpenAddTrip,
+  onEditTrip,
+  onDeleteTrip,
   onScrollOffset,
 }) => {
   const navigation = useNavigation<Nav>();
@@ -157,11 +167,28 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
               const daysLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? '1 day' : daysUntil < 0 ? 'Past' : `${daysUntil} days`;
 
               return (
-                <TouchableOpacity
+                <Swipeable
                   key={trip.id}
+                  friction={2}
+                  rightThreshold={40}
+                  containerStyle={bp.swipeContainer}
+                  renderRightActions={() => (
+                    <View style={bp.swipeActions}>
+                      <RectButton style={[bp.swipeAction, bp.editAction]} onPress={() => onEditTrip(trip)}>
+                        <Ionicons name="pencil" size={20} color="#fff" />
+                        <Text style={bp.swipeActionText}>Edit</Text>
+                      </RectButton>
+                      <RectButton style={[bp.swipeAction, bp.removeAction]} onPress={() => onDeleteTrip(trip.id)}>
+                        <Ionicons name="trash-outline" size={20} color="#fff" />
+                        <Text style={bp.swipeActionText}>Remove</Text>
+                      </RectButton>
+                    </View>
+                  )}
+                >
+                <PressPop
                   style={bp.card}
                   onPress={() => navigation.navigate('TripDetail', { trip: serializeTrip(trip) })}
-                  activeOpacity={0.7}
+                  activeOpacity={1}
                 >
                   {/* Left date strip */}
                   <View style={bp.dateStrip}>
@@ -205,7 +232,8 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
                       </View>
                     </View>
                   </View>
-                </TouchableOpacity>
+                </PressPop>
+                </Swipeable>
               );
             })}
           </View>
@@ -216,13 +244,31 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
 };
 
 const bp = StyleSheet.create({
+  swipeContainer: {
+    marginBottom: 14,
+    borderRadius: 16,
+  },
   card: {
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
-    marginBottom: 14,
     overflow: 'hidden',
     flexDirection: 'row',
   },
+  swipeActions: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 8,
+    paddingLeft: 8,
+  },
+  swipeAction: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    borderRadius: 16,
+  },
+  editAction: { backgroundColor: '#FF9500' },
+  removeAction: { backgroundColor: '#FF3B30' },
+  swipeActionText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', marginTop: 2 },
   // Date strip
   dateStrip: {
     width: 68,

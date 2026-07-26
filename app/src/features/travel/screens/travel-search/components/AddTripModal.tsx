@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from '../TravelScreen.styles';
 import FlightLookupStep from './FlightLookupStep';
 import ManualTripForm from './ManualTripForm';
+import { FlightOption } from '../../../../../shared/types';
 
 /**
  * Isolates the DateTimePicker from parent re-renders.
@@ -68,8 +69,9 @@ interface AddTripModalProps {
   detectedAirline: string | null;
   isLookingUpFlight: boolean;
   flightNotFound: boolean;
-  flightLookupResult: any;
-  flightSegments: any[];
+  flightLookupResult: FlightOption | null;
+  flightSuggestions: FlightOption[];
+  flightSegments: FlightOption[];
   flightDetailsExpanded: boolean;
   showManualEntry: boolean;
 
@@ -90,11 +92,13 @@ interface AddTripModalProps {
   onClose: () => void;
   onFlightCarrierChange: (v: string) => void;
   onFlightNumberChange: (v: string) => void;
+  onSelectFlightSuggestion: (flight: FlightOption) => void;
   onFlightLookup: () => void;
   onFlightDetailsExpand: (v: boolean) => void;
   onAddAnotherFlight: () => void;
   onConfirmFlightTrip: () => void;
   onShowManualEntry: () => void;
+  onEditSegment?: (index: number) => void;
   onHideManualEntry: () => void;
   onAddTrip: () => void;
   onDepartureLocationChange: (v: string) => void;
@@ -117,6 +121,7 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   isLookingUpFlight,
   flightNotFound,
   flightLookupResult,
+  flightSuggestions,
   flightSegments,
   flightDetailsExpanded,
   showManualEntry,
@@ -134,11 +139,13 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
   onClose,
   onFlightCarrierChange,
   onFlightNumberChange,
+  onSelectFlightSuggestion,
   onFlightLookup,
   onFlightDetailsExpand,
   onAddAnotherFlight,
   onConfirmFlightTrip,
   onShowManualEntry,
+  onEditSegment,
   onHideManualEntry,
   onAddTrip,
   onDepartureLocationChange,
@@ -204,19 +211,21 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
                 <Ionicons name={showManualEntry ? "chevron-back" : "close"} size={showManualEntry ? 24 : 20} color={showManualEntry ? "#FFFFFF" : "#FF3B30"} />
               </TouchableOpacity>
               <Text style={styles.bottomSheetTitle}>Add New Trip</Text>
-              <TouchableOpacity
-                onPress={(e) => { e.stopPropagation(); handleSubmitPress(); }}
-                style={styles.bottomSheetCloseButton}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                activeOpacity={0.6}
-                disabled={!canSubmit}
-              >
-                <Ionicons
-                  name={showManualEntry ? 'checkmark' : 'search'}
-                  size={24}
-                  color={canSubmit ? '#34C759' : '#8E8E93'}
-                />
-              </TouchableOpacity>
+              {showManualEntry ? (
+                <TouchableOpacity
+                  onPress={(e) => { e.stopPropagation(); handleSubmitPress(); }}
+                  style={styles.bottomSheetCloseButton}
+                  hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                  activeOpacity={0.6}
+                  disabled={!canSubmit}
+                >
+                  <Ionicons name="checkmark" size={24} color={canSubmit ? '#34C759' : '#8E8E93'} />
+                </TouchableOpacity>
+              ) : (
+                // Flight selection is automatic via suggestions — no manual lookup button needed.
+                // Empty spacer keeps the title centered.
+                <View style={styles.bottomSheetCloseButton} />
+              )}
             </View>
 
             <ScrollView
@@ -233,14 +242,17 @@ const AddTripModal: React.FC<AddTripModalProps> = ({
                   isLookingUpFlight={isLookingUpFlight}
                   flightNotFound={flightNotFound}
                   flightLookupResult={flightLookupResult}
+                  flightSuggestions={flightSuggestions}
                   flightSegments={flightSegments}
                   flightDetailsExpanded={flightDetailsExpanded}
                   onFlightCarrierChange={onFlightCarrierChange}
                   onFlightNumberChange={onFlightNumberChange}
+                  onSelectFlightSuggestion={onSelectFlightSuggestion}
                   onFlightDetailsExpand={onFlightDetailsExpand}
                   onAddAnotherFlight={onAddAnotherFlight}
                   onConfirmFlightTrip={onConfirmFlightTrip}
                   onShowManualEntry={onShowManualEntry}
+                  onEditSegment={onEditSegment}
                 />
               ) : (
                 <ManualTripForm

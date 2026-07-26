@@ -26,16 +26,18 @@ export const calculateJetLagSeverity = (timeZoneDifference: number): JetLagSever
 /**
  * Calculate time zone difference between two timezone strings
  */
-export const calculateTimeZoneDifference = (originTimezone: string, destinationTimezone: string): number => {
+export const calculateTimeZoneDifference = (
+  originTimezone: string,
+  destinationTimezone: string,
+  /** Evaluate offsets on this date so DST is correct for the actual travel day. */
+  referenceDate: Date = new Date(),
+): number => {
   try {
-    const now = new Date();
-    
-    // Get UTC offset for origin timezone in minutes
-    const originOffset = getTimezoneOffsetMinutes(originTimezone, now);
-    
-    // Get UTC offset for destination timezone in minutes
-    const destinationOffset = getTimezoneOffsetMinutes(destinationTimezone, now);
-    
+    // Offsets must be evaluated on the travel date: a trip can cross a DST change
+    // (e.g. London↔New York in late Mar/Oct differ by 4h for ~2 weeks, not 5h).
+    const originOffset = getTimezoneOffsetMinutes(originTimezone, referenceDate);
+    const destinationOffset = getTimezoneOffsetMinutes(destinationTimezone, referenceDate);
+
     const differenceHours = (destinationOffset - originOffset) / 60;
     return Math.round(differenceHours);
   } catch (error) {
@@ -73,12 +75,11 @@ const getTimezoneOffsetMinutes = (timezone: string, date: Date): number => {
     // Create a UTC date representing the timezone's local time
     const tzAsUtc = Date.UTC(tzYear, tzMonth, tzDay, tzHour, tzMinute, tzSecond);
     
-    // Calculate the offset in minutes
+    // Offset from UTC in minutes, east-positive. Interpreting the zone's wall-clock
+    // parts as if they were UTC yields an instant ahead of the real one by exactly
+    // the zone's offset, so (tzAsUtc − realInstant) IS the east-positive offset.
     const offsetMs = tzAsUtc - date.getTime();
-    const offsetMinutes = offsetMs / (1000 * 60);
-    
-    // Return negative offset (west is negative, east is positive)
-    return -offsetMinutes;
+    return offsetMs / (1000 * 60);
   } catch (error) {
     console.error(`Error getting timezone offset for ${timezone}:`, error);
     return 0;
@@ -399,11 +400,20 @@ export interface TripForPlan {
   destination: string;
   departureDate: Date;
   returnDate?: Date;
+  /** IANA tz of the destination (e.g. 'Asia/Tokyo'). */
   timezone: string;
+  /** IANA tz of the origin. When both tz are real, used for accurate tz-diff. */
+  originTimezone?: string;
+  /** Connecting-flight layovers (between segments). */
+  layovers?: Array<{ city?: string; tz: string; arr_local: string; dep_local: string }>;
+  /** Fixed events the traveller must be alert for. */
+  commitments?: Array<{ title: string; date_local: string; start_local: string; end_local: string }>;
   jetLagPlanner?: {
     departureTime: string;
     arrivalTime: string;
   };
+  /** Real return flight times-of-day ('HH:MM'), when captured by the user. */
+  returnFlight?: { departureTime: string; arrivalTime: string };
 }
 
 export interface SleepSchedule {
@@ -412,6 +422,47 @@ export interface SleepSchedule {
 }
 
 /** Returns the UTC offset in hours for a known city name, or null if unknown. */
+/**
+ * Resolve a city/place name to an IANA timezone so manual-entry trips get the same
+ * DST-correct, real-engine treatment as flight-looked-up trips. Substring match over
+ * major cities; returns undefined if unknown (caller falls back to the offset table).
+ */
+export function getCityTimezone(city: string | undefined): string | undefined {
+  if (!city) return undefined;
+  const map: Record<string, string> = {
+    london: 'Europe/London', paris: 'Europe/Paris', madrid: 'Europe/Madrid',
+    barcelona: 'Europe/Madrid', lisbon: 'Europe/Lisbon', rome: 'Europe/Rome',
+    milan: 'Europe/Rome', amsterdam: 'Europe/Amsterdam', berlin: 'Europe/Berlin',
+    munich: 'Europe/Berlin', frankfurt: 'Europe/Berlin', zurich: 'Europe/Zurich',
+    vienna: 'Europe/Vienna', prague: 'Europe/Prague', budapest: 'Europe/Budapest',
+    copenhagen: 'Europe/Copenhagen', stockholm: 'Europe/Stockholm', oslo: 'Europe/Oslo',
+    helsinki: 'Europe/Helsinki', reykjavik: 'Atlantic/Reykjavik', dublin: 'Europe/Dublin',
+    athens: 'Europe/Athens', istanbul: 'Europe/Istanbul', moscow: 'Europe/Moscow',
+    'new york': 'America/New_York', boston: 'America/New_York', washington: 'America/New_York',
+    miami: 'America/New_York', atlanta: 'America/New_York', toronto: 'America/Toronto',
+    chicago: 'America/Chicago', dallas: 'America/Chicago', houston: 'America/Chicago',
+    denver: 'America/Denver', phoenix: 'America/Phoenix', 'los angeles': 'America/Los_Angeles',
+    'san francisco': 'America/Los_Angeles', seattle: 'America/Los_Angeles', vancouver: 'America/Vancouver',
+    'mexico city': 'America/Mexico_City', 'sao paulo': 'America/Sao_Paulo', 'buenos aires': 'America/Argentina/Buenos_Aires',
+    dubai: 'Asia/Dubai', doha: 'Asia/Qatar', 'abu dhabi': 'Asia/Dubai',
+    mumbai: 'Asia/Kolkata', delhi: 'Asia/Kolkata', bangalore: 'Asia/Kolkata',
+    bangkok: 'Asia/Bangkok', singapore: 'Asia/Singapore', 'kuala lumpur': 'Asia/Kuala_Lumpur',
+    jakarta: 'Asia/Jakarta', 'hong kong': 'Asia/Hong_Kong', shanghai: 'Asia/Shanghai',
+    beijing: 'Asia/Shanghai', taipei: 'Asia/Taipei', seoul: 'Asia/Seoul',
+    tokyo: 'Asia/Tokyo', osaka: 'Asia/Tokyo', sydney: 'Australia/Sydney',
+    melbourne: 'Australia/Melbourne', brisbane: 'Australia/Brisbane', perth: 'Australia/Perth',
+    auckland: 'Pacific/Auckland', honolulu: 'Pacific/Honolulu',
+    'cape town': 'Africa/Johannesburg', johannesburg: 'Africa/Johannesburg',
+    cairo: 'Africa/Cairo', nairobi: 'Africa/Nairobi', lagos: 'Africa/Lagos',
+    'tel aviv': 'Asia/Jerusalem',
+  };
+  const c = city.toLowerCase();
+  for (const key of Object.keys(map)) {
+    if (c.includes(key)) return map[key];
+  }
+  return undefined;
+}
+
 export function getCityUtcOffsetHours(city: string): number | null {
   const map: { [key: string]: number } = {
     Tokyo: 9, Paris: 1, 'New York': -4, London: 0, Sydney: 10,
@@ -479,32 +530,69 @@ export function buildJetLagEvent(
   };
 }
 
+export interface JetLagPrefs {
+  chronotype: 'morning' | 'neutral' | 'evening';
+  planStyle: 'gentle' | 'aggressive';
+  caffeine: boolean;
+  melatonin: boolean;
+  naps: boolean;
+}
+
+export interface JetLagExtras {
+  advanceEfficiency?: number;
+  delayEfficiency?: number;
+  /** Mid-trip measured CBTmin (dest-local) for closed-loop re-planning. */
+  measuredNow?: { day_offset: number; cbt_min_local: string };
+}
+
 export function buildEnhancedTrip(
   trip: TripForPlan,
   variant: 'outbound' | 'return',
-  sleepSchedule: SleepSchedule
+  sleepSchedule: SleepSchedule,
+  jetLagPrefs?: JetLagPrefs,
+  cbtMinOverride?: string,
+  adaptationFactor?: number,
+  priorAdaptationHours?: number,
+  extras?: JetLagExtras
 ): EnhancedTrip {
   const isOutbound = variant === 'outbound';
   const originCity = isOutbound ? trip.departureLocation : (trip.destination || 'Origin');
   const destCity = isOutbound ? trip.destination : (trip.departureLocation || 'Destination');
-  const originOffset = getCityUtcOffsetHours(originCity) ?? 0;
-  const destOffset = getCityUtcOffsetHours(destCity) ?? 0;
-  const tzDiff = destOffset - originOffset;
-  const direction: 'east' | 'west' = tzDiff >= 0 ? 'east' : 'west';
+
+  // Prefer the real IANA timezones captured from the flight (DST-correct, works for
+  // any airport). Fall back to the city-name offset table only when they're missing.
+  const realOriginTz = isOutbound ? trip.originTimezone : trip.timezone;
+  const realDestTz = isOutbound ? trip.timezone : trip.originTimezone;
+  const hasRealTz = !!realOriginTz?.includes('/') && !!realDestTz?.includes('/');
 
   const depDateBase = isOutbound ? trip.departureDate : (trip.returnDate || trip.departureDate);
+
+  let tzDiff: number;
+  if (hasRealTz) {
+    // Evaluate offsets on the travel date so DST shifts are handled correctly.
+    tzDiff = calculateTimeZoneDifference(realOriginTz!, realDestTz!, new Date(depDateBase));
+  } else {
+    const originOffset = getCityUtcOffsetHours(originCity) ?? 0;
+    const destOffset = getCityUtcOffsetHours(destCity) ?? 0;
+    tzDiff = destOffset - originOffset;
+  }
+  const direction: 'east' | 'west' = tzDiff >= 0 ? 'east' : 'west';
   let depDate = new Date(depDateBase);
   let arrDate = new Date(depDateBase);
 
-  if (trip.jetLagPlanner?.departureTime) {
-    const [h, m] = trip.jetLagPlanner.departureTime.split(':').map(Number);
+  // The return leg uses the real return flight's times when captured; otherwise it
+  // falls back to the outbound times-of-day (a reasonable approximation).
+  const flightTimes = !isOutbound && trip.returnFlight ? trip.returnFlight : trip.jetLagPlanner;
+
+  if (flightTimes?.departureTime) {
+    const [h, m] = flightTimes.departureTime.split(':').map(Number);
     if (!isNaN(h) && !isNaN(m)) {
       depDate = new Date(depDateBase);
       depDate.setHours(h, m, 0, 0);
     }
   }
-  if (trip.jetLagPlanner?.arrivalTime) {
-    const [h, m] = trip.jetLagPlanner.arrivalTime.split(':').map(Number);
+  if (flightTimes?.arrivalTime) {
+    const [h, m] = flightTimes.arrivalTime.split(':').map(Number);
     if (!isNaN(h) && !isNaN(m)) {
       arrDate = new Date(depDateBase);
       arrDate.setHours(h, m, 0, 0);
@@ -512,6 +600,14 @@ export function buildEnhancedTrip(
     }
   } else {
     arrDate = new Date(depDate);
+  }
+
+  // Nights at the destination — only meaningful for the outbound leg (after the
+  // return flight you're home to stay, so always fully re-adapt then).
+  let stayDays: number | undefined;
+  if (isOutbound && trip.returnDate) {
+    const ms = new Date(trip.returnDate).getTime() - new Date(trip.departureDate).getTime();
+    stayDays = Math.max(0, Math.round(ms / 86_400_000));
   }
 
   return {
@@ -522,19 +618,31 @@ export function buildEnhancedTrip(
     dest_iata: destCity,
     dep_local: depDate.toISOString(),
     arr_local: arrDate.toISOString(),
-    origin_tz: 'UTC',
-    dest_tz: 'UTC',
+    origin_tz: hasRealTz ? realOriginTz! : 'UTC',
+    dest_tz: hasRealTz ? realDestTz! : 'UTC',
     dep_utc: depDate.toISOString(),
     arr_utc: arrDate.toISOString(),
     tz_diff_hours: tzDiff,
     direction,
-    plan_style: 'gentle',
+    stay_days: stayDays,
+    cbt_min_local: cbtMinOverride,
+    adaptation_factor: adaptationFactor,
+    prior_adaptation_hours: priorAdaptationHours,
+    advance_efficiency: extras?.advanceEfficiency,
+    delay_efficiency: extras?.delayEfficiency,
+    // Closed-loop measurement only applies to the leg actually being travelled (outbound).
+    measured_now: isOutbound ? extras?.measuredNow : undefined,
+    // Layovers belong to the outbound itinerary (return-leg legs aren't captured).
+    layovers: isOutbound ? trip.layovers : undefined,
+    // Commitments are date-stamped, so they only match the leg whose days cover them.
+    commitments: trip.commitments,
+    plan_style: jetLagPrefs?.planStyle ?? 'gentle',
     prefs: {
       sleep_window_local: { start: sleepSchedule.bedTime, end: sleepSchedule.wakeUpTime },
-      chronotype: 'neutral',
-      caffeine: true,
-      melatonin: false,
-      naps: false,
+      chronotype: jetLagPrefs?.chronotype ?? 'neutral',
+      caffeine: false,
+      melatonin: jetLagPrefs?.melatonin ?? false,
+      naps: jetLagPrefs?.naps ?? false,
     },
     status: 'active',
     created_at: new Date().toISOString(),

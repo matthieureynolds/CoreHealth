@@ -29,7 +29,7 @@ import {
 import { fetchAuthSession } from 'aws-amplify/auth';
 import familyService from '../services/user/familyService';
 import { deriveFeaturesFromSignals } from '../services/user/familyRiskService';
-import { generateJetLagData } from '../services/travel/jetLagService';
+import { generateJetLagData } from '../services/jetlag-brain/jetLagService';
 import { useSettings } from './SettingsContext';
 import { useAuth } from './AuthContext';
 import { api } from '../services/data/apiClient';

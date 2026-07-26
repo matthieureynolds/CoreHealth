@@ -52,13 +52,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ─── TEMP DEMO BYPASS ──────────────────────────────────────────────────────
+// Set to true to skip Cognito and launch straight into the app with a mock
+// user (for offline demos when AWS is unavailable). REVERT to false before
+// shipping or testing real auth.
+const DEMO_MODE = true;
+const DEMO_USER: User = {
+  id: 'demo-user',
+  email: 'demo@corehealth.app',
+  firstName: 'Matthieu',
+  surname: 'Reynolds',
+  preferredName: 'Matthieu',
+  emailVerified: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(!DEMO_MODE);
 
   // ─── Initialise: restore session on app launch ────────────────────────────
   useEffect(() => {
+    if (DEMO_MODE) return; // demo bypass — no Cognito call
     performGetCurrentUser()
       .then(u => setUser(u))
       .finally(() => setIsInitializing(false));
@@ -113,6 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // ─── Listen for Cognito auth events (token refresh, sign out, social login) ─
   useEffect(() => {
+    if (DEMO_MODE) return; // demo bypass — ignore Cognito auth events that would clear the mock user
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
       switch (payload.event) {
         case 'signedIn':

@@ -9,6 +9,13 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Notifications from 'expo-notifications';
+import { LogBox } from 'react-native';
+
+// ─── TEMP DEMO ──────────────────────────────────────────────────────────────
+// AWS backend is offline, so backend-dependent screens log errors that would
+// otherwise pop the red dev overlay and interrupt a demo. Suppress overlays
+// while demoing. REMOVE this line when the backend is restored.
+LogBox.ignoreAllLogs();
 
 import RootNavigator from './src/shared/navigation/RootNavigator';
 import { AuthProvider } from './src/shared/context/AuthContext';

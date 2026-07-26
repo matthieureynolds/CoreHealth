@@ -379,6 +379,28 @@ export function getCountryFlag(country: string): string {
   return flags[country] ?? '🌍';
 }
 
+/**
+ * ISO 3166-1 alpha-2 code for a country name (lowercase), used to render real
+ * flag images. Returns null for non-country values ("Your Location", "Unknown")
+ * so callers can fall back to a generic glyph. Flag emoji can't render on the
+ * iOS Simulator, so we use images instead — see CountryFlag.
+ */
+export function getCountryCode(country: string): string | null {
+  const codes: Record<string, string> = {
+    'Japan': 'jp', 'France': 'fr', 'USA': 'us', 'United States': 'us', 'UK': 'gb', 'United Kingdom': 'gb',
+    'Australia': 'au', 'Thailand': 'th', 'Singapore': 'sg', 'UAE': 'ae',
+    'Hong Kong': 'hk', 'Spain': 'es', 'Italy': 'it', 'Netherlands': 'nl',
+    'Austria': 'at', 'Czech Republic': 'cz', 'Hungary': 'hu', 'Denmark': 'dk',
+    'Sweden': 'se', 'Norway': 'no', 'Finland': 'fi', 'Iceland': 'is',
+    'Germany': 'de', 'Canada': 'ca', 'South Korea': 'kr', 'China': 'cn',
+    'India': 'in', 'Mexico': 'mx', 'Brazil': 'br', 'Argentina': 'ar',
+    'Portugal': 'pt', 'Ireland': 'ie', 'Switzerland': 'ch', 'Belgium': 'be',
+    'Poland': 'pl', 'Greece': 'gr', 'Turkey': 'tr', 'Egypt': 'eg',
+    'South Africa': 'za', 'Kenya': 'ke', 'Nigeria': 'ng', 'Morocco': 'ma',
+  };
+  return codes[country] ?? null;
+}
+
 export const AIRLINE_CODES: Record<string, string> = {
   'QR': 'Qatar Airways', 'AA': 'American Airlines', 'DL': 'Delta Air Lines',
   'UA': 'United Airlines', 'BA': 'British Airways', 'AF': 'Air France',
@@ -390,6 +412,12 @@ export const AIRLINE_CODES: Record<string, string> = {
   'NZ': 'Air New Zealand', 'AC': 'Air Canada', 'WS': 'WestJet',
   'AS': 'Alaska Airlines', 'B6': 'JetBlue Airways', 'WN': 'Southwest Airlines',
   'F9': 'Frontier Airlines', 'NK': 'Spirit Airlines',
+  'AY': 'Finnair', 'SK': 'SAS', 'TP': 'TAP Air Portugal', 'AZ': 'ITA Airways',
+  'EI': 'Aer Lingus', 'FR': 'Ryanair', 'U2': 'easyJet', 'VY': 'Vueling',
+  'SU': 'Aeroflot', 'CA': 'Air China', 'MU': 'China Eastern', 'CZ': 'China Southern',
+  'KE': 'Korean Air', 'OZ': 'Asiana Airlines', 'TG': 'Thai Airways', 'MH': 'Malaysia Airlines',
+  'GA': 'Garuda Indonesia', 'AI': 'Air India', 'SV': 'Saudia', 'MS': 'EgyptAir',
+  'ET': 'Ethiopian Airlines', 'LA': 'LATAM Airlines', 'AM': 'Aeroméxico', 'AV': 'Avianca',
 };
 
 export const GENERAL_MEDS: Array<{ name: string; note: string }> = [

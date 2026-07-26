@@ -62,6 +62,24 @@ export interface JetLagPlanningEvent {
   updatedAt: string;
 }
 
+export interface Layover {
+  city?: string;
+  tz: string;
+  /** Local arrival at the layover airport (ISO). */
+  arr_local: string;
+  /** Local departure from the layover airport (ISO). */
+  dep_local: string;
+}
+
+export interface Commitment {
+  title: string;
+  /** Destination-local date 'YYYY-MM-DD'. */
+  date_local: string;
+  /** Local start/end 'HH:MM'. */
+  start_local: string;
+  end_local: string;
+}
+
 export interface Trip {
   id: string;
   user_id: string;
@@ -76,6 +94,8 @@ export interface Trip {
   arr_utc: string;
   tz_diff_hours: number;
   direction: 'east' | 'west';
+  /** Nights at the destination (outbound leg). Short stays → stay on home time. */
+  stay_days?: number;
   plan_style: 'gentle' | 'aggressive';
   prefs: {
     sleep_window_local: { start: string; end: string };
@@ -84,18 +104,46 @@ export interface Trip {
     melatonin: boolean;
     naps: boolean;
   };
+  /** Personalised CBTmin ('HH:MM', home/local). Overrides the wake−2h estimate. */
+  cbt_min_local?: string;
+  /** Multiplier on the daily shift rate (<1 = slower adapter, e.g. older). Default 1. */
+  adaptation_factor?: number;
+  /**
+   * Learned per-user efficiency for each direction (default 1). <1 = this person
+   * shifts that way more slowly than average, which also nudges the advance-vs-delay
+   * crossover toward the direction they handle better.
+   */
+  advance_efficiency?: number;
+  delay_efficiency?: number;
+  /**
+   * Closed-loop input: the body's ACTUAL measured CBTmin partway through the trip
+   * (dest-local 'HH:MM') on `day_offset`. The plan re-anchors the remaining days to
+   * where the clock really is, instead of assuming the projected shift happened.
+   */
+  measured_now?: { day_offset: number; cbt_min_local: string };
+  /**
+   * Return leg only: hours the body actually adapted on the outbound trip. The
+   * return plan only needs to undo this much (e.g. 0 if the outbound was anchored).
+   */
+  prior_adaptation_hours?: number;
+  /** Connecting-flight layovers, in order, for layover-aware guidance. */
+  layovers?: Layover[];
+  /** Fixed events the traveller must be alert for (meetings, etc.). */
+  commitments?: Commitment[];
   status: 'draft' | 'active' | 'archived';
   created_at: string;
   updated_at: string;
 }
 
 export interface Action {
-  type: 'sleep' | 'seek_light' | 'avoid_light' | 'caffeine_ok' | 'caffeine_cutoff' | 'melatonin' | 'nap' | 'in_flight';
+  type: 'sleep' | 'seek_light' | 'avoid_light' | 'caffeine_ok' | 'caffeine_cutoff' | 'melatonin' | 'nap' | 'in_flight' | 'meal' | 'commitment';
   start_local: string | null;
   end_local: string | null;
   at_local: string | null;
   intensity?: 'low' | 'moderate' | 'high';
   rationale?: string;
+  /** Custom display title (e.g. the user's commitment name). Falls back to the type's default. */
+  label?: string;
 }
 
 export interface PlanDay {
@@ -134,4 +182,15 @@ export interface FlightLookupResult {
   origin_tz: string;
   dest_tz: string;
   operating_carrier?: string;
+}
+
+/**
+ * A flight as surfaced in the trip picker: a lookup result plus the
+ * human-readable city names when known. Mock suggestions carry city names;
+ * the live lookup service only returns IATA codes, so cities are optional and
+ * callers should fall back to the IATA code when a city is absent.
+ */
+export interface FlightOption extends FlightLookupResult {
+  origin_city?: string;
+  dest_city?: string;
 }

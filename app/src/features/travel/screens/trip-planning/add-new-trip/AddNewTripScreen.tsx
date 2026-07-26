@@ -3,8 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Trip } from '../../../../../shared/types';
-import { FlightLookupService } from '../../../../../shared/services/travel/enhancedJetLagService';
+import { FlightLookupService } from '../../../../../shared/services/jetlag-brain/enhancedJetLagService';
 
 interface TripFormData {
   title: string;

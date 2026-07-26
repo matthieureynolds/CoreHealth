@@ -2,9 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { View, Keyboard, StatusBar, Animated, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { styles } from './TravelScreen.styles';
-import { CompositeNavigationProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList, TravelStackParamList } from '../../../../shared/types';
 import PagerView from 'react-native-pager-view';
 import { useHealthData } from '../../../../shared/context/HealthDataContext';
 import { useReduceMotion } from '../../../../shared/utils/reduceMotion';
@@ -15,18 +12,10 @@ import TripPlanningTab from './components/TripPlanningTab';
 import AddTripModal from './components/AddTripModal';
 import EditTripModal from './components/EditTripModal';
 import EmergencyModal from './components/EmergencyModal';
-import MetricDetailModal from './components/MetricDetailModal';
 import { createTravelHandlers } from './hooks/useTravelHandlers';
 import { useTravelState, popularCities } from './hooks/useTravelState';
-import { useCurtainReveal } from './hooks/useCurtainReveal';
+import { useStaggerReveal } from './hooks/useStaggerReveal';
 import { useTypewriter } from './hooks/useTypewriter';
-
-type Nav = CompositeNavigationProp<
-  StackNavigationProp<TravelStackParamList, 'TravelList'>,
-  StackNavigationProp<RootStackParamList>
->;
-
-const USE_CURTAIN_REVEAL = true;
 
 const TravelScreen: React.FC = () => {
   const reduceMotion = useReduceMotion();
@@ -36,7 +25,7 @@ const TravelScreen: React.FC = () => {
 
   const s = useTravelState();
   const typedCityText = useTypewriter(popularCities.slice(0, 8));
-  const curtain = useCurtainReveal({
+  useStaggerReveal({
     selectedLocation: s.selectedLocation,
     isLoading: s.isLoading,
     reduceMotion,
@@ -45,8 +34,8 @@ const TravelScreen: React.FC = () => {
   });
 
   useEffect(() => {
-    if (travelHealth && (travelHealth as any).apiErrors) {
-      s.setApiErrors((travelHealth as any).apiErrors);
+    if (travelHealth && travelHealth.apiErrors) {
+      s.setApiErrors(travelHealth.apiErrors);
     } else {
       s.setApiErrors({});
     }
@@ -57,8 +46,6 @@ const TravelScreen: React.FC = () => {
     travelHealth,
     updateTravelHealthData,
     getCurrentLocation,
-    contentMeasuredHeight: curtain.contentMeasuredHeight,
-    setContentMeasuredHeight: curtain.setContentMeasuredHeight,
   });
 
   const handleChildScroll = (offsetY: number) => {
@@ -121,13 +108,10 @@ const TravelScreen: React.FC = () => {
             typedCityText={typedCityText}
             popularCities={popularCities}
             travelHealth={travelHealth}
+            apiErrors={s.apiErrors}
             resultsOpacity={s.resultsOpacity}
             resultsTranslateY={s.resultsTranslateY}
-            contentMeasuredHeight={curtain.contentMeasuredHeight}
-            curtainAnimationComplete={curtain.curtainAnimationComplete}
-            coverTranslate={curtain.coverTranslate}
             getRowAnim={s.getRowAnim}
-            USE_CURTAIN_REVEAL={USE_CURTAIN_REVEAL}
             onInputChange={(text) => {
               s.setInputText(text); s.setSearchLocation(text);
               s.setSelectedLocation(''); s.setShowInlineSuggestions(!!text.trim());
@@ -135,11 +119,6 @@ const TravelScreen: React.FC = () => {
             onLocationSelect={h.handleLocationSelect}
             onGetCurrentLocation={h.handleGetCurrentLocationForSearch}
             onRefresh={h.handleRefresh}
-            onContentLayout={(height) => {
-              if (height > 0 && (curtain.contentMeasuredHeight === 0 || Math.abs(height - curtain.contentMeasuredHeight) > 4)) {
-                curtain.setContentMeasuredHeight(height);
-              }
-            }}
             onEmergencyContactPress={h.handleEmergencyContactPress}
             onDismissSuggestions={() => s.setShowInlineSuggestions(false)}
             onInputEndEditing={() => {
@@ -162,7 +141,14 @@ const TravelScreen: React.FC = () => {
               s.setFilteredCities(popularCities.slice(0, 8)); s.setShowInlineSuggestions(true);
             }}
             onFocusSearch={() => {
-              if (!s.inputText.trim()) { s.setFilteredCities(popularCities.slice(0, 8)); s.setShowInlineSuggestions(true); }
+              // Always surface the popular cities on focus. (Previously gated on
+              // an empty input, so after a city was selected its name stayed in
+              // the input and the popular list never came back — leaving only
+              // "Use current location".) Typing still narrows the list live.
+              if (!s.inputText.trim() || s.inputText.trim() === s.selectedLocation) {
+                s.setFilteredCities(popularCities.slice(0, 8));
+              }
+              s.setShowInlineSuggestions(true);
             }}
             onScrollOffset={handleChildScroll}
           />
@@ -173,6 +159,8 @@ const TravelScreen: React.FC = () => {
             trips={s.trips}
             tripModalTranslateY={s.tripModalTranslateY}
             onOpenAddTrip={() => s.setShowAddTripModal(true)}
+            onEditTrip={(trip) => h.handleModifyTripDates(trip)}
+            onDeleteTrip={(tripId) => h.handleDeleteTrip(tripId)}
             onScrollOffset={handleChildScroll}
           />
         </View>
@@ -190,6 +178,7 @@ const TravelScreen: React.FC = () => {
         isLookingUpFlight={s.isLookingUpFlight}
         flightNotFound={s.flightNotFound}
         flightLookupResult={s.flightLookupResult}
+        flightSuggestions={s.flightSuggestions}
         flightSegments={s.flightSegments}
         flightDetailsExpanded={s.flightDetailsExpanded}
         showManualEntry={s.showManualEntry}
@@ -207,16 +196,12 @@ const TravelScreen: React.FC = () => {
         onClose={h.handleCloseAddTrip}
         onFlightCarrierChange={(v: string) => { s.setFlightCarrier(v); s.setFlightNotFound(false); }}
         onFlightNumberChange={(v: string) => { s.setFlightNumber(v); s.setFlightNotFound(false); }}
+        onSelectFlightSuggestion={h.handleSelectFlightSuggestion}
         onFlightLookup={h.handleFlightLookup}
         onFlightDetailsExpand={s.setFlightDetailsExpanded}
-        onAddAnotherFlight={() => {
-          if (s.flightLookupResult) {
-            s.setFlightSegments(prev => [...prev, s.flightLookupResult]);
-            s.setFlightLookupResult(null); s.setFlightCarrier('');
-            s.setFlightNumber(''); s.setFlightDetailsExpanded(false);
-          }
-        }}
+        onAddAnotherFlight={h.handleAddAnotherFlight}
         onConfirmFlightTrip={h.handleConfirmFlightTrip}
+        onEditSegment={h.handleEditSegment}
         onShowManualEntry={() => s.setShowManualEntry(true)}
         onHideManualEntry={() => s.setShowManualEntry(false)}
         onAddTrip={h.handleAddTrip}
@@ -266,8 +251,6 @@ const TravelScreen: React.FC = () => {
         onEditDateCancel={h.handleEditDateCancel}
         onGetCurrentLocation={h.handleGetCurrentLocationForEdit}
       />
-
-      <MetricDetailModal visible={s.metricModalVisible} metric={s.selectedMetric} onClose={() => {}} />
     </View>
   );
 };

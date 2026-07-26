@@ -55,6 +55,9 @@ export type SerializedTrip = {
   departureDate: string;
   returnDate?: string;
   timezone: string;
+  originTimezone?: string;
+  layovers?: Array<{ city?: string; tz: string; arr_local: string; dep_local: string }>;
+  commitments?: Array<{ title: string; date_local: string; start_local: string; end_local: string }>;
   notes?: string;
   jetLagPlanner?: {
     departureTime: string;

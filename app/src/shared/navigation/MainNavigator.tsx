@@ -1,8 +1,10 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { MainTabParamList } from '../types';
 import { colors } from '../theme/colors';
+import { LiquidGlass } from '../components/ui/LiquidGlass';
 
 import DashboardScreen from '../../features/home/screens/DashboardScreen';
 import BodyMapScreen from '../../features/body-map/screens/BodyMapScreen';
@@ -52,9 +54,18 @@ const MainNavigator: React.FC = () => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        tabBarBackground: () => (
+          <LiquidGlass
+            glassStyle="regular"
+            style={StyleSheet.absoluteFill}
+            fallbackTint="dark"
+            fallbackIntensity={50}
+          />
+        ),
         tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.bg,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopColor: 'transparent',
           borderTopWidth: 0,
           height: 90,
           paddingTop: 8,
