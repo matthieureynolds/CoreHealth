@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Vaccination, AttachedFile } from '../../../../../../../shared/types';
-import { DateMode } from './DateModeSelector';
-import VaccineNameField from './VaccineNameField';
-import DateField from './DateField';
-import AttachmentsSection from './AttachmentsSection';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Vaccination, AttachedFile } from "@shared/types";
+import { DateMode } from "./DateModeSelector";
+import VaccineNameField from "./VaccineNameField";
+import DateField from "./DateField";
+import AttachmentsSection from "./AttachmentsSection";
 
 interface VaccinationFormModalProps {
   visible: boolean;
@@ -91,13 +91,19 @@ const VaccinationFormModal: React.FC<VaccinationFormModalProps> = ({
       <TouchableOpacity style={s.sheet} activeOpacity={1} onPress={() => {}}>
         {/* Header */}
         <View style={s.header}>
-          <TouchableOpacity onPress={onCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity
+            onPress={onCancel}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <Ionicons name="close" size={22} color="#FF3B30" />
           </TouchableOpacity>
           <Text style={s.title}>
-            {editingVaccination ? 'Edit Vaccination' : 'Add Vaccination'}
+            {editingVaccination ? "Edit Vaccination" : "Add Vaccination"}
           </Text>
-          <TouchableOpacity onPress={onSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity
+            onPress={onSave}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <Ionicons name="checkmark" size={22} color="#34C759" />
           </TouchableOpacity>
         </View>
@@ -182,28 +188,28 @@ const VaccinationFormModal: React.FC<VaccinationFormModalProps> = ({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
+    maxHeight: "90%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: "#2C2C2E",
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   body: {
     padding: 20,
@@ -211,33 +217,33 @@ const s = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginTop: 20,
     marginBottom: 10,
     marginLeft: 4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   group: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   groupInput: {
     paddingHorizontal: 16,
     paddingVertical: 13,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   divider: {
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     marginLeft: 16,
   },
   textArea: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 });
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, Text, StyleSheet, View } from "react-native";
 import { getCountryCode } from "../travelMetricHelpers";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 interface CountryFlagProps {
   country: string;

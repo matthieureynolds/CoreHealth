@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,12 @@ import {
   StyleSheet,
   Alert,
   Animated,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { performConfirmSignUp, performResendSignUpCode } from '../../../shared/context/authHelpers';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  performConfirmSignUp,
+  performResendSignUpCode,
+} from "@shared/context/authHelpers";
 
 interface Props {
   email: string;
@@ -17,8 +20,12 @@ interface Props {
   onBack: () => void;
 }
 
-const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack }) => {
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+const EmailVerificationStepScreen: React.FC<Props> = ({
+  email,
+  onNext,
+  onBack,
+}) => {
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [showTick, setShowTick] = useState(false);
   const inputRefs = useRef<TextInput[]>([]);
@@ -41,13 +48,13 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
     }
 
     // Check if all digits are filled
-    if (newCode.every(digit => digit !== '') && index === 5) {
-      handleVerifyCode(newCode.join(''));
+    if (newCode.every((digit) => digit !== "") && index === 5) {
+      handleVerifyCode(newCode.join(""));
     }
   };
 
   const handleKeyPress = (key: string, index: number) => {
-    if (key === 'Backspace' && !code[index] && index > 0) {
+    if (key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -63,11 +70,16 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
-        setTimeout(() => { onNext(); }, 1000);
+        setTimeout(() => {
+          onNext();
+        }, 1000);
       });
     } catch (error: any) {
-      Alert.alert('Verification Failed', error.message ?? 'Invalid code. Please try again.');
-      setCode(['', '', '', '', '', '']);
+      Alert.alert(
+        "Verification Failed",
+        error.message ?? "Invalid code. Please try again.",
+      );
+      setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } finally {
       setIsLoading(false);
@@ -77,9 +89,15 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
   const handleResendCode = async () => {
     try {
       await performResendSignUpCode(email);
-      Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
+      Alert.alert(
+        "Code Sent",
+        "A new verification code has been sent to your email.",
+      );
     } catch (error: any) {
-      Alert.alert('Error', error.message ?? 'Failed to resend code. Please try again.');
+      Alert.alert(
+        "Error",
+        error.message ?? "Failed to resend code. Please try again.",
+      );
     }
   };
 
@@ -87,15 +105,12 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Ionicons name="arrow-back" size={24} color="#3AABF0" />
           </TouchableOpacity>
           <Text style={styles.title}>Verify Your Email</Text>
           <Text style={styles.subtitle}>
-            We sent a 6-digit code to{'\n'}
+            We sent a 6-digit code to{"\n"}
             <Text style={styles.emailText}>{email}</Text>
           </Text>
         </View>
@@ -115,7 +130,9 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
                 ]}
                 value={digit}
                 onChangeText={(value) => handleCodeChange(value, index)}
-                onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+                onKeyPress={({ nativeEvent }) =>
+                  handleKeyPress(nativeEvent.key, index)
+                }
                 keyboardType="numeric"
                 maxLength={1}
                 selectTextOnFocus
@@ -169,7 +186,7 @@ const EmailVerificationStepScreen: React.FC<Props> = ({ email, onNext, onBack })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   content: {
     flex: 1,
@@ -185,27 +202,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     lineHeight: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emailText: {
-    fontWeight: '600',
-    color: '#3AABF0',
+    fontWeight: "600",
+    color: "#3AABF0",
   },
   form: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   codeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 40,
     paddingHorizontal: 20,
   },
@@ -213,31 +230,31 @@ const styles = StyleSheet.create({
     width: 45,
     height: 55,
     borderWidth: 2,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
     borderRadius: 12,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-    backgroundColor: '#F8F9FA',
+    fontWeight: "600",
+    color: "#000",
+    backgroundColor: "#F8F9FA",
     marginHorizontal: 4,
   },
   codeInputFilled: {
-    borderColor: '#3AABF0',
-    backgroundColor: '#F0F8FF',
+    borderColor: "#3AABF0",
+    backgroundColor: "#F0F8FF",
   },
   codeInputVerified: {
-    borderColor: '#34C759',
-    backgroundColor: '#F0FFF4',
+    borderColor: "#34C759",
+    backgroundColor: "#F0FFF4",
   },
   tickContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   tickText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#34C759',
+    fontWeight: "600",
+    color: "#34C759",
     marginTop: 8,
   },
   resendButton: {
@@ -246,16 +263,16 @@ const styles = StyleSheet.create({
   },
   resendButtonText: {
     fontSize: 16,
-    color: '#3AABF0',
-    fontWeight: '500',
+    color: "#3AABF0",
+    fontWeight: "500",
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
 });
 

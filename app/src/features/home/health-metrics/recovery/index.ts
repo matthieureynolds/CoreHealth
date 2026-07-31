@@ -1,1 +1,1 @@
-export { default as HealthInsightsCard } from './HealthInsightsCard';
+export { default as HealthInsightsCard } from "./HealthInsightsCard";

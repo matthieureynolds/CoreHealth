@@ -4,16 +4,16 @@ import React, {
   useEffect,
   useState,
   ReactNode,
-} from 'react';
-import { Hub } from 'aws-amplify/utils';
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
-import { User } from '../types';
-import { DataService } from '../services/data/dataService';
-import { clearHealthCache } from '../utils/secureStorage';
+} from "react";
+import { Hub } from "aws-amplify/utils";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import { User } from "../types";
+import { DataService } from "../services/data/dataService";
+import { clearHealthCache } from "../utils/secureStorage";
 
-const CONSENT_PENDING_KEY = '@corehealth_pending_consent';
+const CONSENT_PENDING_KEY = "@corehealth_pending_consent";
 import {
   performGetCurrentUser,
   performSignUp,
@@ -29,23 +29,34 @@ import {
   performUpdateUserName,
   performUpdateUsername,
   performUpdateUserPhoto,
-} from './authHelpers';
+} from "./authHelpers";
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isInitializing: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ needsVerification: boolean; email: string }>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => Promise<{ needsVerification: boolean; email: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: (email?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   updateEmail: (newEmail: string, currentPassword: string) => Promise<void>;
-  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updatePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
   updateUserDisplayName: (displayName: string) => Promise<void>;
-  updateUserName: (firstName: string, surname: string, preferredName: string) => Promise<void>;
+  updateUserName: (
+    firstName: string,
+    surname: string,
+    preferredName: string,
+  ) => Promise<void>;
   updateUsername: (username: string) => Promise<void>;
   updateUserPhoto: (photoURL: string) => Promise<void>;
 }
@@ -58,17 +69,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // shipping or testing real auth.
 const DEMO_MODE = true;
 const DEMO_USER: User = {
-  id: 'demo-user',
-  email: 'demo@corehealth.app',
-  firstName: 'Matthieu',
-  surname: 'Reynolds',
-  preferredName: 'Matthieu',
+  id: "demo-user",
+  email: "demo@corehealth.app",
+  firstName: "Matthieu",
+  surname: "Reynolds",
+  preferredName: "Matthieu",
   emailVerified: true,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(!DEMO_MODE);
@@ -77,7 +90,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (DEMO_MODE) return; // demo bypass — no Cognito call
     performGetCurrentUser()
-      .then(u => setUser(u))
+      .then((u) => setUser(u))
       .finally(() => setIsInitializing(false));
   }, []);
 
@@ -86,18 +99,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user?.id) return;
     (async () => {
       try {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
-        if (existingStatus !== 'granted') {
+        if (existingStatus !== "granted") {
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
         }
-        if (finalStatus !== 'granted') return;
+        if (finalStatus !== "granted") return;
         const tokenData = await Notifications.getExpoPushTokenAsync();
         await DataService.updatePushToken(user.id, tokenData.data);
-        if (Platform.OS === 'android') {
-          Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
+        if (Platform.OS === "android") {
+          Notifications.setNotificationChannelAsync("default", {
+            name: "default",
             importance: Notifications.AndroidImportance.MAX,
           });
         }
@@ -121,36 +135,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       } catch (e) {
         lastError = e;
-        if (attempt < 3) await new Promise(r => setTimeout(r, attempt * 1000));
+        if (attempt < 3)
+          await new Promise((r) => setTimeout(r, attempt * 1000));
       }
     }
     // All retries exhausted — log but keep pending in AsyncStorage for next launch
-    console.error('[GDPR] Failed to record consent after 3 attempts:', lastError);
+    console.error(
+      "[GDPR] Failed to record consent after 3 attempts:",
+      lastError,
+    );
   };
 
   // ─── Listen for Cognito auth events (token refresh, sign out, social login) ─
   useEffect(() => {
     if (DEMO_MODE) return; // demo bypass — ignore Cognito auth events that would clear the mock user
-    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+    const unsubscribe = Hub.listen("auth", ({ payload }) => {
       switch (payload.event) {
-        case 'signedIn':
+        case "signedIn":
           // Fires after social login redirect (C6) and token refresh sign-ins
-          performGetCurrentUser().then(async u => {
+          performGetCurrentUser().then(async (u) => {
             if (u) {
               setUser(u);
-              await DataService.ensureUser(u.id, u.email, u.firstName, u.surname, u.preferredName).catch(() => {});
+              await DataService.ensureUser(
+                u.id,
+                u.email,
+                u.firstName,
+                u.surname,
+                u.preferredName,
+              ).catch(() => {});
               // Flush consent that may have been captured before redirect (covers social login — C6)
-              await flushPendingConsent(u.id).catch(e => console.error('[GDPR] Consent flush error:', e));
+              await flushPendingConsent(u.id).catch((e) =>
+                console.error("[GDPR] Consent flush error:", e),
+              );
             }
           });
           break;
-        case 'signedOut':
+        case "signedOut":
           setUser(null);
           break;
-        case 'tokenRefresh':
+        case "tokenRefresh":
           // Session refreshed silently — no UI update needed
           break;
-        case 'tokenRefresh_failure':
+        case "tokenRefresh_failure":
           // Refresh failed — force sign out
           setUser(null);
           break;
@@ -161,12 +187,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // ─── Auth actions ─────────────────────────────────────────────────────────
 
-  const signUp = async (email: string, password: string, displayName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => {
     setIsLoading(true);
     try {
       return await performSignUp(email, password, displayName);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Sign up failed');
+      throw new Error(error.message ?? "Sign up failed");
     } finally {
       setIsLoading(false);
     }
@@ -178,18 +208,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const u = await performSignIn(email, password);
       setUser(u);
       // Ensure user row exists in DB (idempotent), then flush pending consent (C7 — not silent)
-      DataService.ensureUser(u.id, u.email, u.firstName, u.surname, u.preferredName)
+      DataService.ensureUser(
+        u.id,
+        u.email,
+        u.firstName,
+        u.surname,
+        u.preferredName,
+      )
         .then(() => flushPendingConsent(u.id))
-        .catch(e => console.error('[GDPR] Post-signin setup error:', e));
+        .catch((e) => console.error("[GDPR] Post-signin setup error:", e));
     } catch (error: any) {
-      if (error.name === 'NotAuthorizedException') {
-        throw new Error('Invalid email or password.');
-      } else if (error.name === 'UserNotConfirmedException') {
-        throw new Error('Please verify your email before signing in.');
-      } else if (error.message?.includes('Network')) {
-        throw new Error('Network error. Check your connection and try again.');
+      if (error.name === "NotAuthorizedException") {
+        throw new Error("Invalid email or password.");
+      } else if (error.name === "UserNotConfirmedException") {
+        throw new Error("Please verify your email before signing in.");
+      } else if (error.message?.includes("Network")) {
+        throw new Error("Network error. Check your connection and try again.");
       }
-      throw new Error(error.message ?? 'Sign in failed');
+      throw new Error(error.message ?? "Sign in failed");
     } finally {
       setIsLoading(false);
     }
@@ -200,9 +236,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await performSignOut();
       setUser(null);
       // C14: clear all sensitive health data from local cache on sign-out
-      clearHealthCache().catch(e => console.error('[Security] Failed to clear health cache:', e));
+      clearHealthCache().catch((e) =>
+        console.error("[Security] Failed to clear health cache:", e),
+      );
     } catch (error: any) {
-      throw new Error(error.message ?? 'Sign out failed');
+      throw new Error(error.message ?? "Sign out failed");
     }
   };
 
@@ -210,17 +248,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await performResetPassword(email);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Password reset failed');
+      throw new Error(error.message ?? "Password reset failed");
     }
   };
 
   const resendVerificationEmail = async (email?: string) => {
     const target = email ?? user?.email;
-    if (!target) throw new Error('No email address found');
+    if (!target) throw new Error("No email address found");
     try {
       await performResendSignUpCode(target);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to resend code');
+      throw new Error(error.message ?? "Failed to resend code");
     }
   };
 
@@ -230,7 +268,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await performSignInWithGoogle();
       // Hub listener above handles setUser after redirect completes
     } catch (error: any) {
-      throw new Error(error.message ?? 'Google sign-in failed');
+      throw new Error(error.message ?? "Google sign-in failed");
     } finally {
       setIsLoading(false);
     }
@@ -241,32 +279,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await performSignInWithApple();
     } catch (error: any) {
-      throw new Error(error.message ?? 'Apple sign-in failed');
+      throw new Error(error.message ?? "Apple sign-in failed");
     } finally {
       setIsLoading(false);
     }
   };
 
   const updateEmail = async (newEmail: string, _currentPassword: string) => {
-    if (!user) throw new Error('No authenticated user');
+    if (!user) throw new Error("No authenticated user");
     setIsLoading(true);
     try {
       await performUpdateEmail(newEmail);
       setUser({ ...user, email: newEmail });
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to update email');
+      throw new Error(error.message ?? "Failed to update email");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updatePassword = async (currentPassword: string, newPassword: string) => {
+  const updatePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
     setIsLoading(true);
     try {
       await performUpdatePassword(currentPassword, newPassword);
     } catch (error: any) {
-      if (error.name === 'NotAuthorizedException') throw new Error('Current password is incorrect.');
-      throw new Error(error.message ?? 'Failed to update password');
+      if (error.name === "NotAuthorizedException")
+        throw new Error("Current password is incorrect.");
+      throw new Error(error.message ?? "Failed to update password");
     } finally {
       setIsLoading(false);
     }
@@ -278,17 +320,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updated = await performUpdateDisplayName(user, displayName);
       setUser(updated);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to update display name');
+      throw new Error(error.message ?? "Failed to update display name");
     }
   };
 
-  const updateUserName = async (firstName: string, surname: string, preferredName: string) => {
+  const updateUserName = async (
+    firstName: string,
+    surname: string,
+    preferredName: string,
+  ) => {
     if (!user) return;
     try {
-      const updated = await performUpdateUserName(user, firstName, surname, preferredName);
+      const updated = await performUpdateUserName(
+        user,
+        firstName,
+        surname,
+        preferredName,
+      );
       setUser(updated);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to update name');
+      throw new Error(error.message ?? "Failed to update name");
     }
   };
 
@@ -298,7 +349,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updated = await performUpdateUsername(user, username);
       setUser(updated);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to update username');
+      throw new Error(error.message ?? "Failed to update username");
     }
   };
 
@@ -308,7 +359,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updated = await performUpdateUserPhoto(user, photoURL);
       setUser(updated);
     } catch (error: any) {
-      throw new Error(error.message ?? 'Failed to update photo');
+      throw new Error(error.message ?? "Failed to update photo");
     }
   };
 
@@ -336,6 +387,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

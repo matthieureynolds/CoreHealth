@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from "react";
+import { View, Text, Animated, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface InsightsLoadingIndicatorProps {
   pulseAnim: Animated.Value;
@@ -16,7 +16,7 @@ const InsightsLoadingIndicator: React.FC<InsightsLoadingIndicatorProps> = ({
 }) => {
   const spin = rotateAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ["0deg", "360deg"],
   });
 
   return (
@@ -34,7 +34,7 @@ const InsightsLoadingIndicator: React.FC<InsightsLoadingIndicatorProps> = ({
         ]}
       >
         <LinearGradient
-          colors={['#3AABF0', '#3AABF0', '#3AABF0']}
+          colors={["#3AABF0", "#3AABF0", "#3AABF0"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.loadingGradient}
@@ -42,7 +42,9 @@ const InsightsLoadingIndicator: React.FC<InsightsLoadingIndicatorProps> = ({
           <Ionicons name="sparkles" size={32} color="#FFFFFF" />
         </LinearGradient>
       </Animated.View>
-      <Text style={styles.modernLoadingText}>Analyzing your health data...</Text>
+      <Text style={styles.modernLoadingText}>
+        Analyzing your health data...
+      </Text>
       <View style={styles.loadingDots}>
         <Animated.View style={[styles.loadingDot, { opacity: pulseAnim }]} />
         <Animated.View style={[styles.loadingDot, { opacity: pulseAnim }]} />
@@ -54,18 +56,18 @@ const InsightsLoadingIndicator: React.FC<InsightsLoadingIndicatorProps> = ({
 
 const styles = StyleSheet.create({
   modernLoadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
   },
   loadingIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
-    shadowColor: '#3AABF0',
+    shadowColor: "#3AABF0",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -75,26 +77,26 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   modernLoadingText: {
     fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   loadingDots: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   loadingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     marginHorizontal: 4,
   },
 });

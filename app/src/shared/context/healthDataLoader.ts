@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   UserProfile,
   Biomarker,
@@ -7,16 +7,16 @@ import type {
   DailyInsight,
   HealthScore,
   JetLagPlanningEvent,
-} from '../types';
+} from "../types";
 
 export const DEFAULT_PROFILE: UserProfile = {
-  userId: 'default',
+  userId: "default",
   age: 30,
-  gender: 'other',
+  gender: "other",
   height: 170,
   weight: 70,
-  ethnicity: '',
-  bloodType: 'unknown',
+  ethnicity: "",
+  bloodType: "unknown",
   medicalHistory: [],
   familyHistory: [],
   surgeries: [],
@@ -26,12 +26,16 @@ export const DEFAULT_PROFILE: UserProfile = {
   screenings: [],
   pastAppointments: [],
   lifestyle: {
-    smoking: { status: 'never' },
-    alcohol: { frequency: 'never' },
-    diet: { type: 'omnivore', restrictions: [], supplements: [] },
-    exercise: { frequency: 'never', type: [], intensity: 'low' },
-    sleep: { averageHoursPerNight: 8, sleepQuality: 'good', sleepDisorders: [] },
-    stress: { level: 'low', managementTechniques: [] },
+    smoking: { status: "never" },
+    alcohol: { frequency: "never" },
+    diet: { type: "omnivore", restrictions: [], supplements: [] },
+    exercise: { frequency: "never", type: [], intensity: "low" },
+    sleep: {
+      averageHoursPerNight: 8,
+      sleepQuality: "good",
+      sleepDisorders: [],
+    },
+    stress: { level: "low", managementTechniques: [] },
   },
   organSpecificConditions: [],
 };
@@ -52,11 +56,11 @@ export interface StoredHealthData {
 
 export async function clearCorruptedHealthScore(): Promise<void> {
   try {
-    const stored = await AsyncStorage.getItem('healthScore');
+    const stored = await AsyncStorage.getItem("healthScore");
     if (stored) {
       const parsed = JSON.parse(stored);
       if (parsed.overall === 0) {
-        await AsyncStorage.removeItem('healthScore');
+        await AsyncStorage.removeItem("healthScore");
       }
     }
   } catch {
@@ -77,32 +81,47 @@ export async function loadStoredHealthData(): Promise<StoredHealthData> {
     storedJetLagPlanningEvents,
     storedConnectedDevices,
   ] = await Promise.all([
-    AsyncStorage.getItem('profile'),
-    AsyncStorage.getItem('biomarkers'),
-    AsyncStorage.getItem('labResults'),
-    AsyncStorage.getItem('deviceData'),
-    AsyncStorage.getItem('dailyInsights'),
-    AsyncStorage.getItem('healthScore'),
-    AsyncStorage.getItem('originTimezone'),
-    AsyncStorage.getItem('originLocation'),
-    AsyncStorage.getItem('jetLagPlanningEvents'),
-    AsyncStorage.getItem('connectedDevices'),
+    AsyncStorage.getItem("profile"),
+    AsyncStorage.getItem("biomarkers"),
+    AsyncStorage.getItem("labResults"),
+    AsyncStorage.getItem("deviceData"),
+    AsyncStorage.getItem("dailyInsights"),
+    AsyncStorage.getItem("healthScore"),
+    AsyncStorage.getItem("originTimezone"),
+    AsyncStorage.getItem("originLocation"),
+    AsyncStorage.getItem("jetLagPlanningEvents"),
+    AsyncStorage.getItem("connectedDevices"),
   ]);
 
-  const parsedProfile: UserProfile | null = storedProfile ? JSON.parse(storedProfile) : null;
-  const parsedBiomarkers: Biomarker[] | null = storedBiomarkers ? JSON.parse(storedBiomarkers) : null;
-  const parsedLabResults: LabResult[] | null = storedLabResults ? JSON.parse(storedLabResults) : null;
-  const parsedDeviceData: DeviceData[] | null = storedDeviceData ? JSON.parse(storedDeviceData) : null;
-  const parsedInsights: DailyInsight[] | null = storedInsights ? JSON.parse(storedInsights) : null;
-  const parsedHealthScore: HealthScore | null = storedHealthScore ? JSON.parse(storedHealthScore) : null;
+  const parsedProfile: UserProfile | null = storedProfile
+    ? JSON.parse(storedProfile)
+    : null;
+  const parsedBiomarkers: Biomarker[] | null = storedBiomarkers
+    ? JSON.parse(storedBiomarkers)
+    : null;
+  const parsedLabResults: LabResult[] | null = storedLabResults
+    ? JSON.parse(storedLabResults)
+    : null;
+  const parsedDeviceData: DeviceData[] | null = storedDeviceData
+    ? JSON.parse(storedDeviceData)
+    : null;
+  const parsedInsights: DailyInsight[] | null = storedInsights
+    ? JSON.parse(storedInsights)
+    : null;
+  const parsedHealthScore: HealthScore | null = storedHealthScore
+    ? JSON.parse(storedHealthScore)
+    : null;
   const parsedConnectedDevices: Array<{ name: string; status: string }> | null =
     storedConnectedDevices ? JSON.parse(storedConnectedDevices) : null;
   const parsedJetLagEvents: JetLagPlanningEvent[] = storedJetLagPlanningEvents
     ? JSON.parse(storedJetLagPlanningEvents)
     : [];
 
-  const healthScoreIsValid = !!(parsedHealthScore && parsedHealthScore.overall > 0);
-  const needsBootstrap = !healthScoreIsValid || !parsedBiomarkers || !parsedInsights;
+  const healthScoreIsValid = !!(
+    parsedHealthScore && parsedHealthScore.overall > 0
+  );
+  const needsBootstrap =
+    !healthScoreIsValid || !parsedBiomarkers || !parsedInsights;
 
   return {
     profile: parsedProfile ?? DEFAULT_PROFILE,

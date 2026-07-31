@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../../../../../../shared/context/AuthContext';
-import { useFileViewer } from './useFileViewer';
+import { useState, useCallback } from "react";
+import { Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "@shared/context/AuthContext";
+import { useFileViewer } from "./useFileViewer";
 
 /**
  * Shared CRUD state management for health record list screens.
@@ -29,7 +29,9 @@ interface DataServiceConfig<T extends { id: string }> {
   getItemName: (item: T) => string;
 }
 
-export function useHealthRecordList<T extends { id: string }>(config: DataServiceConfig<T>) {
+export function useHealthRecordList<T extends { id: string }>(
+  config: DataServiceConfig<T>,
+) {
   const { user } = useAuth();
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,49 +52,84 @@ export function useHealthRecordList<T extends { id: string }>(config: DataServic
     }
   }, [user?.id, config]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
-  const handleSave = useCallback(async (item: T) => {
-    if (!user?.id) return;
-    try {
-      const isEdit = items.some(i => i.id === item.id);
-      const saved = await config.saveFn(user.id, item, isEdit);
-      setItems(prev =>
-        isEdit ? prev.map(i => i.id === item.id ? saved : i) : [...prev, saved],
+  const handleSave = useCallback(
+    async (item: T) => {
+      if (!user?.id) return;
+      try {
+        const isEdit = items.some((i) => i.id === item.id);
+        const saved = await config.saveFn(user.id, item, isEdit);
+        setItems((prev) =>
+          isEdit
+            ? prev.map((i) => (i.id === item.id ? saved : i))
+            : [...prev, saved],
+        );
+      } catch (e) {
+        Alert.alert(
+          "Error",
+          `Could not save ${config.recordName.toLowerCase()}.`,
+        );
+      }
+      setShowModal(false);
+      setEditingItem(null);
+    },
+    [user?.id, items, config],
+  );
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      Alert.alert(
+        `Delete ${config.recordName}`,
+        `Are you sure you want to delete this ${config.recordName.toLowerCase()}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              if (!user?.id) return;
+              try {
+                await config.deleteFn(user.id, id);
+                setItems((prev) => prev.filter((i) => i.id !== id));
+              } catch (e) {
+                Alert.alert(
+                  "Error",
+                  `Could not delete ${config.recordName.toLowerCase()}.`,
+                );
+              }
+            },
+          },
+        ],
       );
-    } catch (e) {
-      Alert.alert('Error', `Could not save ${config.recordName.toLowerCase()}.`);
-    }
-    setShowModal(false);
-    setEditingItem(null);
-  }, [user?.id, items, config]);
+    },
+    [user?.id, config],
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    Alert.alert(`Delete ${config.recordName}`, `Are you sure you want to delete this ${config.recordName.toLowerCase()}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          if (!user?.id) return;
-          try {
-            await config.deleteFn(user.id, id);
-            setItems(prev => prev.filter(i => i.id !== id));
-          } catch (e) {
-            Alert.alert('Error', `Could not delete ${config.recordName.toLowerCase()}.`);
-          }
+  const openOptions = useCallback(
+    (item: T) => {
+      Alert.alert(config.getItemName(item), undefined, [
+        {
+          text: "Edit",
+          onPress: () => {
+            setEditingItem(item);
+            setShowModal(true);
+          },
         },
-      },
-    ]);
-  }, [user?.id, config]);
-
-  const openOptions = useCallback((item: T) => {
-    Alert.alert(config.getItemName(item), undefined, [
-      { text: 'Edit', onPress: () => { setEditingItem(item); setShowModal(true); } },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(item.id) },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [handleDelete, config]);
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDelete(item.id),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    },
+    [handleDelete, config],
+  );
 
   const openAddModal = useCallback(() => {
     setEditingItem(null);
@@ -132,41 +169,71 @@ interface ContextConfig<T extends { id: string }> {
   getItemName: (item: T) => string;
 }
 
-export function useProfileRecordList<T extends { id: string }>(config: ContextConfig<T>) {
+export function useProfileRecordList<T extends { id: string }>(
+  config: ContextConfig<T>,
+) {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const fileViewer = useFileViewer();
 
   const items = config.items ?? [];
 
-  const handleSave = useCallback((item: T) => {
-    const existing = config.items ?? [];
-    const isEdit = existing.some(i => i.id === item.id);
-    config.updateItems(
-      isEdit ? existing.map(i => i.id === item.id ? item : i) : [...existing, item],
-    );
-    setShowModal(false);
-    setEditingItem(null);
-  }, [config]);
+  const handleSave = useCallback(
+    (item: T) => {
+      const existing = config.items ?? [];
+      const isEdit = existing.some((i) => i.id === item.id);
+      config.updateItems(
+        isEdit
+          ? existing.map((i) => (i.id === item.id ? item : i))
+          : [...existing, item],
+      );
+      setShowModal(false);
+      setEditingItem(null);
+    },
+    [config],
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    Alert.alert(`Delete ${config.recordName}`, `Are you sure you want to delete this ${config.recordName.toLowerCase()}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => config.updateItems((config.items ?? []).filter(i => i.id !== id)),
-      },
-    ]);
-  }, [config]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      Alert.alert(
+        `Delete ${config.recordName}`,
+        `Are you sure you want to delete this ${config.recordName.toLowerCase()}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () =>
+              config.updateItems(
+                (config.items ?? []).filter((i) => i.id !== id),
+              ),
+          },
+        ],
+      );
+    },
+    [config],
+  );
 
-  const openOptions = useCallback((item: T) => {
-    Alert.alert(config.getItemName(item), undefined, [
-      { text: 'Edit', onPress: () => { setEditingItem(item); setShowModal(true); } },
-      { text: 'Delete', style: 'destructive', onPress: () => handleDelete(item.id) },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [handleDelete, config]);
+  const openOptions = useCallback(
+    (item: T) => {
+      Alert.alert(config.getItemName(item), undefined, [
+        {
+          text: "Edit",
+          onPress: () => {
+            setEditingItem(item);
+            setShowModal(true);
+          },
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDelete(item.id),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    },
+    [handleDelete, config],
+  );
 
   const openAddModal = useCallback(() => {
     setEditingItem(null);

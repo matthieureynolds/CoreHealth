@@ -1,21 +1,26 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect } from "react";
+import { View, Animated, Easing, StyleSheet } from "react-native";
 
 interface AshParticlesProps {
   visible: boolean;
   onComplete: () => void;
 }
 
-export const AshParticles: React.FC<AshParticlesProps> = ({ visible, onComplete }) => {
+export const AshParticles: React.FC<AshParticlesProps> = ({
+  visible,
+  onComplete,
+}) => {
   const particlesRef = useRef<Animated.Value[]>([]);
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    startX: number;
-    startY: number;
-    randomX: number;
-    randomY: number;
-    delay: number;
-  }>>([]);
+  const [particles, setParticles] = useState<
+    Array<{
+      id: number;
+      startX: number;
+      startY: number;
+      randomX: number;
+      randomY: number;
+      delay: number;
+    }>
+  >([]);
 
   useEffect(() => {
     if (visible) {
@@ -37,7 +42,7 @@ export const AshParticles: React.FC<AshParticlesProps> = ({ visible, onComplete 
           delay: particle.delay,
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
-        })
+        }),
       );
 
       Animated.parallel(animations).start(() => {
@@ -76,7 +81,10 @@ export const AshParticles: React.FC<AshParticlesProps> = ({ visible, onComplete 
             key={particle.id}
             style={[
               styles.ashParticle,
-              { opacity, transform: [{ translateX }, { translateY }, { scale }] },
+              {
+                opacity,
+                transform: [{ translateX }, { translateY }, { scale }],
+              },
             ]}
           />
         );
@@ -87,21 +95,21 @@ export const AshParticles: React.FC<AshParticlesProps> = ({ visible, onComplete 
 
 const styles = StyleSheet.create({
   ashContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
     width: 0,
     height: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   ashParticle: {
-    position: 'absolute',
+    position: "absolute",
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: '#6E6E73',
-    shadowColor: '#6E6E73',
+    backgroundColor: "#6E6E73",
+    shadowColor: "#6E6E73",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 3,

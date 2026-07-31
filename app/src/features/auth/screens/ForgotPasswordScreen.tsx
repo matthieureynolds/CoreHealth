@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../shared/context/AuthContext';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '../../../shared/types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@shared/context/AuthContext";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AuthStackParamList } from "@shared/types";
 
 type ForgotPasswordScreenNavigationProp = StackNavigationProp<
   AuthStackParamList,
-  'ForgotPassword'
+  "ForgotPassword"
 >;
 
 interface Props {
@@ -22,13 +22,13 @@ interface Props {
 }
 
 const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { resetPassword } = useAuth();
 
   const handleResetPassword = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert("Error", "Please enter your email address");
       return;
     }
 
@@ -36,12 +36,12 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await resetPassword(email);
       Alert.alert(
-        'Reset Link Sent',
-        'Check your email for password reset instructions',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }],
+        "Reset Link Sent",
+        "Check your email for password reset instructions",
+        [{ text: "OK", onPress: () => navigation.navigate("Login") }],
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to send reset email');
+      Alert.alert("Error", "Failed to send reset email");
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +87,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
           disabled={isLoading}
         >
           <Text style={styles.resetButtonText}>
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+            {isLoading ? "Sending..." : "Send Reset Link"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -98,42 +98,42 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     padding: 20,
     paddingTop: 60,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     padding: 8,
     marginBottom: 20,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#3AABF0',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#3AABF0",
+    textAlign: "center",
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginBottom: 40,
     lineHeight: 24,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
     borderRadius: 12,
     marginBottom: 24,
     paddingHorizontal: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   inputIcon: {
     marginRight: 12,
@@ -142,19 +142,19 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   resetButton: {
     height: 50,
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   resetButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

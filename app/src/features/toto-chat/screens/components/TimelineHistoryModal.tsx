@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface TimelineHistoryItem {
   id: string;
@@ -22,7 +22,7 @@ interface TimelineHistoryModalProps {
   title: string;
   timelineHistory: TimelineHistoryItem[];
   onClose: () => void;
-  styles: typeof import('../HealthAssistantScreen.styles').styles;
+  styles: typeof import("../HealthAssistantScreen.styles").styles;
 }
 
 const TimelineHistoryModal: React.FC<TimelineHistoryModalProps> = ({
@@ -33,7 +33,12 @@ const TimelineHistoryModal: React.FC<TimelineHistoryModalProps> = ({
   onClose,
   styles,
 }) => (
-  <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+  <Modal
+    visible={visible}
+    animationType="slide"
+    transparent
+    onRequestClose={onClose}
+  >
     <View style={styles.historyOverlay}>
       <View style={styles.historyCard}>
         <View style={styles.historyHeader}>
@@ -51,22 +56,39 @@ const TimelineHistoryModal: React.FC<TimelineHistoryModalProps> = ({
           ) : (
             <ScrollView contentContainerStyle={{ paddingVertical: 8 }}>
               {timelineHistory.length === 0 ? (
-                <Text style={[styles.mutedText, { textAlign: 'center', marginTop: 16 }]}>No history yet.</Text>
-              ) : timelineHistory.map(item => (
-                <View key={item.id} style={styles.historyRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.historyRowTitle}>{item.title}</Text>
-                    <Text style={styles.historyRowMeta}>{new Date(item.occurred_at).toLocaleString()}</Text>
+                <Text
+                  style={[
+                    styles.mutedText,
+                    { textAlign: "center", marginTop: 16 },
+                  ]}
+                >
+                  No history yet.
+                </Text>
+              ) : (
+                timelineHistory.map((item) => (
+                  <View key={item.id} style={styles.historyRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.historyRowTitle}>{item.title}</Text>
+                      <Text style={styles.historyRowMeta}>
+                        {new Date(item.occurred_at).toLocaleString()}
+                      </Text>
+                    </View>
+                    {item.meta?.doseMg ? (
+                      <Text style={styles.historyProgress}>
+                        {String(item.meta.doseMg)} mg
+                      </Text>
+                    ) : item.meta?.updatedCount ? (
+                      <Text style={styles.historyProgress}>
+                        {String(item.meta.updatedCount)} upd.
+                      </Text>
+                    ) : item.meta?.new ? (
+                      <Text style={styles.historyProgress}>
+                        → {String(item.meta.new).slice(11, 16)}
+                      </Text>
+                    ) : null}
                   </View>
-                  {item.meta?.doseMg ? (
-                    <Text style={styles.historyProgress}>{String(item.meta.doseMg)} mg</Text>
-                  ) : item.meta?.updatedCount ? (
-                    <Text style={styles.historyProgress}>{String(item.meta.updatedCount)} upd.</Text>
-                  ) : item.meta?.new ? (
-                    <Text style={styles.historyProgress}>→ {String(item.meta.new).slice(11, 16)}</Text>
-                  ) : null}
-                </View>
-              ))}
+                ))
+              )}
             </ScrollView>
           )}
         </View>

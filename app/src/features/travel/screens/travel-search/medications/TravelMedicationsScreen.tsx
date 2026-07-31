@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 const KIT_ITEMS = [
   {

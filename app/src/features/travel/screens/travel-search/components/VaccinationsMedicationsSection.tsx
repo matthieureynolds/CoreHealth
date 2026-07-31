@@ -3,7 +3,7 @@ import { View, Text, Animated } from "react-native";
 import { styles } from "../TravelScreen.styles";
 import { GENERAL_MEDS } from "../travelMetricHelpers";
 import TreadmillCard from "./TreadmillCard";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 interface VaccinationsMedicationsSectionProps {
   getRowAnim: (key: string) => {

@@ -1,9 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import SettingsHeader from '../../components/SettingsHeader';
-import { SETTINGS_SCROLL_PT } from '../../components/settingsLayout';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import SettingsHeader from "../../components/SettingsHeader";
+import { SETTINGS_SCROLL_PT } from "../../components/settingsLayout";
 
 const AccountSettingsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -14,19 +20,35 @@ const AccountSettingsScreen: React.FC = () => {
       <SettingsHeader title="Account Settings" />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}
+      >
         {/* Security Card */}
         <View style={styles.card}>
-        <Text style={styles.cardHeader}>ACCOUNT SECURITY</Text>
-        <TouchableOpacity style={styles.cardRow} onPress={() => (navigation as any).navigate('EmailPassword')}>
-          <Ionicons name="mail-outline" size={22} color="#3AABF0" style={styles.cardIcon} />
-          <Text style={styles.cardLabel}>Email & Password</Text>
-          <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-        </TouchableOpacity>
-        
-      </View>
+          <Text style={styles.cardHeader}>ACCOUNT SECURITY</Text>
+          <TouchableOpacity
+            style={styles.cardRow}
+            onPress={() => (navigation as any).navigate("EmailPassword")}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={22}
+              color="#3AABF0"
+              style={styles.cardIcon}
+            />
+            <Text style={styles.cardLabel}>Email & Password</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color="#888"
+              style={styles.chevron}
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* No destructive actions for now as requested */}
+        {/* No destructive actions for now as requested */}
       </ScrollView>
     </View>
   );
@@ -35,18 +57,18 @@ const AccountSettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   scrollView: {
     flex: 1,
   },
   card: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     marginHorizontal: 20,
     marginTop: 20,
     paddingVertical: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -54,15 +76,15 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginBottom: 16,
     marginHorizontal: 20,
     letterSpacing: 0.5,
   },
   cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
   },
@@ -71,12 +93,12 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     flex: 1,
   },
   chevron: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
 });
 

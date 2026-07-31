@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '../../../shared/types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AuthStackParamList } from "@shared/types";
 
 type PersonalInfoScreenNavigationProp = StackNavigationProp<
   AuthStackParamList,
-  'PersonalInfo'
+  "PersonalInfo"
 >;
 
 interface Props {
@@ -23,23 +23,23 @@ interface Props {
 }
 
 const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
 
   const handleNext = () => {
-    navigation.navigate('MedicalDocuments');
+    navigation.navigate("MedicalDocuments");
   };
 
   const handleSkip = () => {
-    navigation.navigate('MedicalDocuments');
+    navigation.navigate("MedicalDocuments");
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
@@ -72,26 +72,50 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.label}>Gender</Text>
             <View style={styles.genderContainer}>
               <TouchableOpacity
-                style={[styles.genderButton, gender === 'Male' && styles.genderButtonSelected]}
-                onPress={() => setGender('Male')}
+                style={[
+                  styles.genderButton,
+                  gender === "Male" && styles.genderButtonSelected,
+                ]}
+                onPress={() => setGender("Male")}
               >
-                <Text style={[styles.genderText, gender === 'Male' && styles.genderTextSelected]}>
+                <Text
+                  style={[
+                    styles.genderText,
+                    gender === "Male" && styles.genderTextSelected,
+                  ]}
+                >
                   Male
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.genderButton, gender === 'Female' && styles.genderButtonSelected]}
-                onPress={() => setGender('Female')}
+                style={[
+                  styles.genderButton,
+                  gender === "Female" && styles.genderButtonSelected,
+                ]}
+                onPress={() => setGender("Female")}
               >
-                <Text style={[styles.genderText, gender === 'Female' && styles.genderTextSelected]}>
+                <Text
+                  style={[
+                    styles.genderText,
+                    gender === "Female" && styles.genderTextSelected,
+                  ]}
+                >
                   Female
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.genderButton, gender === 'Other' && styles.genderButtonSelected]}
-                onPress={() => setGender('Other')}
+                style={[
+                  styles.genderButton,
+                  gender === "Other" && styles.genderButtonSelected,
+                ]}
+                onPress={() => setGender("Other")}
               >
-                <Text style={[styles.genderText, gender === 'Other' && styles.genderTextSelected]}>
+                <Text
+                  style={[
+                    styles.genderText,
+                    gender === "Other" && styles.genderTextSelected,
+                  ]}
+                >
                   Other
                 </Text>
               </TouchableOpacity>
@@ -142,7 +166,12 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Next</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color="#FFFFFF"
+              style={styles.buttonIcon}
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -153,7 +182,7 @@ const PersonalInfoScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   scrollContent: {
     flexGrow: 1,
@@ -169,13 +198,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     lineHeight: 24,
   },
   form: {
@@ -186,23 +215,23 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#000',
-    backgroundColor: '#F8F9FA',
+    color: "#000",
+    backgroundColor: "#F8F9FA",
   },
   genderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   genderButton: {
     flex: 1,
@@ -210,35 +239,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#F8F9FA',
+    borderColor: "#E5E5EA",
+    backgroundColor: "#F8F9FA",
     marginHorizontal: 4,
-    alignItems: 'center',
+    alignItems: "center",
   },
   genderButtonSelected: {
-    borderColor: '#3AABF0',
-    backgroundColor: '#F0F8FF',
+    borderColor: "#3AABF0",
+    backgroundColor: "#F0F8FF",
   },
   genderText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   genderTextSelected: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
   },
   heightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   heightInput: {
     flex: 1,
     marginRight: 8,
   },
   weightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   weightInput: {
     flex: 1,
@@ -246,13 +275,13 @@ const styles = StyleSheet.create({
   },
   unitText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 20,
   },
   skipButton: {
@@ -261,21 +290,21 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   nextButton: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   nextButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   buttonIcon: {

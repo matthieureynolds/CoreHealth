@@ -1,6 +1,6 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { TravelStackParamList } from "../../../shared/types";
+import { TravelStackParamList } from "@shared/types";
 
 // Main travel screen
 import TravelScreen from "../screens/travel-search/TravelScreen";

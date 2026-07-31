@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ImageInputModalProps {
   visible: boolean;
@@ -18,7 +18,7 @@ interface ImageInputModalProps {
   onTextChange: (text: string) => void;
   onClose: () => void;
   onSend: () => void;
-  styles: typeof import('../HealthAssistantScreen.styles').styles;
+  styles: typeof import("../HealthAssistantScreen.styles").styles;
 }
 
 const ImageInputModal: React.FC<ImageInputModalProps> = ({
@@ -36,7 +36,10 @@ const ImageInputModal: React.FC<ImageInputModalProps> = ({
     transparent
     onRequestClose={onClose}
   >
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <View style={styles.imageModalOverlay}>
         <View style={styles.imageModalCard}>
           <View style={styles.imageModalHeader}>
@@ -47,7 +50,11 @@ const ImageInputModal: React.FC<ImageInputModalProps> = ({
           </View>
           {selectedImage && (
             <View style={{ marginBottom: 20 }}>
-              <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} resizeMode="cover" />
+              <Image
+                source={{ uri: selectedImage.uri }}
+                style={styles.imagePreview}
+                resizeMode="cover"
+              />
             </View>
           )}
           <TextInput
@@ -59,8 +66,11 @@ const ImageInputModal: React.FC<ImageInputModalProps> = ({
             multiline
             maxLength={500}
           />
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <TouchableOpacity style={styles.imageModalCancelBtn} onPress={onClose}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <TouchableOpacity
+              style={styles.imageModalCancelBtn}
+              onPress={onClose}
+            >
               <Text style={styles.imageModalBtnText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.imageModalSendBtn} onPress={onSend}>

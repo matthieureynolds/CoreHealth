@@ -1,11 +1,11 @@
-import type { AttachedFile } from './user';
+import type { AttachedFile } from "./user";
 
 export interface MedicalCondition {
   id: string;
   condition: string;
   diagnosedDate: string;
-  severity: 'mild' | 'moderate' | 'severe';
-  status: 'active' | 'resolved' | 'managed';
+  severity: "mild" | "moderate" | "severe";
+  status: "active" | "resolved" | "managed";
   resolvedDate?: string;
   notes?: string;
   attachments?: AttachedFile[];
@@ -14,8 +14,8 @@ export interface MedicalCondition {
 export interface Allergy {
   id: string;
   name: string;
-  severity: 'mild' | 'moderate' | 'severe';
-  status: 'active' | 'resolved';
+  severity: "mild" | "moderate" | "severe";
+  status: "active" | "resolved";
   reaction?: string;
   startDate: string;
   endDate?: string;
@@ -30,8 +30,8 @@ export interface FamilyCondition {
   ageOfOnset?: number;
   notes?: string;
   attachments?: AttachedFile[];
-  side?: 'maternal' | 'paternal';
-  status?: 'active' | 'resolved';
+  side?: "maternal" | "paternal";
+  status?: "active" | "resolved";
   resolvedDate?: string;
 }
 
@@ -51,7 +51,7 @@ export interface Screening {
   name: string;
   date: Date;
   nextDue?: Date;
-  result: 'normal' | 'abnormal' | 'inconclusive';
+  result: "normal" | "abnormal" | "inconclusive";
   location?: string;
   notes?: string;
   attachments?: AttachedFile[];
@@ -64,18 +64,18 @@ export interface LabResult {
   unit: string;
   referenceRange: string;
   date: Date;
-  category: 'blood' | 'urine' | 'imaging' | 'other';
-  status: 'normal' | 'high' | 'low' | 'critical';
+  category: "blood" | "urine" | "imaging" | "other";
+  status: "normal" | "high" | "low" | "critical";
 }
 
 export interface DeviceData {
   id: string;
   deviceType:
-    | 'whoop'
-    | 'apple_watch'
-    | 'eight_sleep'
-    | 'smart_toothbrush'
-    | 'smart_toilet';
+    | "whoop"
+    | "apple_watch"
+    | "eight_sleep"
+    | "smart_toothbrush"
+    | "smart_toilet";
   timestamp: Date;
   metrics: Record<string, any>;
 }
@@ -86,13 +86,13 @@ export interface Biomarker {
   value: number;
   unit: string;
   category:
-    | 'cardiovascular'
-    | 'metabolic'
-    | 'hormonal'
-    | 'inflammatory'
-    | 'nutritional';
-  trend: 'improving' | 'stable' | 'declining';
-  riskLevel: 'low' | 'medium' | 'high';
+    | "cardiovascular"
+    | "metabolic"
+    | "hormonal"
+    | "inflammatory"
+    | "nutritional";
+  trend: "improving" | "stable" | "declining";
+  riskLevel: "low" | "medium" | "high";
   lastUpdated: Date;
 }
 
@@ -109,26 +109,31 @@ export interface DailyInsight {
   id: string;
   title: string;
   description: string;
-  category: 'sleep' | 'activity' | 'nutrition' | 'stress' | 'recovery';
-  priority: 'low' | 'medium' | 'high';
+  category: "sleep" | "activity" | "nutrition" | "stress" | "recovery";
+  priority: "low" | "medium" | "high";
   actionable: boolean;
   action?: string;
 }
 
 export interface HealthScore {
   overall: number;
-  biomarkers: number;  // 45% weight — blood marker ring
-  recovery: number;    // 35% weight — HRV, sleep, VO2 max ring
-  activity: number;    // 20% weight — lifestyle ring
+  biomarkers: number; // 45% weight — blood marker ring
+  recovery: number; // 35% weight — HRV, sleep, VO2 max ring
+  activity: number; // 20% weight — lifestyle ring
   sleep: number;
   stress: number;
   nutrition: number;
 }
 
 // Family Link Types
-export type RelationshipDegree = 'parent' | 'child' | 'sibling' | 'partner' | 'other';
-export type RelationshipDirection = 'one_way' | 'reciprocal';
-export type RelationshipStatus = 'pending' | 'active' | 'revoked';
+export type RelationshipDegree =
+  | "parent"
+  | "child"
+  | "sibling"
+  | "partner"
+  | "other";
+export type RelationshipDirection = "one_way" | "reciprocal";
+export type RelationshipStatus = "pending" | "active" | "revoked";
 
 export interface RelationshipLink {
   id: string;
@@ -142,7 +147,11 @@ export interface RelationshipLink {
   updatedAt: string;
 }
 
-export type RelationDegreeToRecipients = 'parent' | 'child' | 'sibling' | 'partner';
+export type RelationDegreeToRecipients =
+  | "parent"
+  | "child"
+  | "sibling"
+  | "partner";
 
 export interface HereditarySignal {
   id: string;
@@ -154,7 +163,7 @@ export interface HereditarySignal {
   severityBand?: string | null;
   lifestyleComponent?: string | null;
   expiresAt?: string | null;
-  status: 'active' | 'revoked';
+  status: "active" | "revoked";
   ciphertext: string;
   createdAt: string;
   updatedAt: string;
@@ -162,12 +171,12 @@ export interface HereditarySignal {
 
 export interface DerivedRiskFeature {
   key:
-    | 'pc_screening_earlier'
-    | 'breast_cancer_watchlist'
-    | 't2d_family_risk'
-    | 'cad_family_risk'
-    | 'colorectal_earlier'
-    | 'glaucoma_watchlist'
+    | "pc_screening_earlier"
+    | "breast_cancer_watchlist"
+    | "t2d_family_risk"
+    | "cad_family_risk"
+    | "colorectal_earlier"
+    | "glaucoma_watchlist"
     | string;
   value: boolean;
   rationale?: string;

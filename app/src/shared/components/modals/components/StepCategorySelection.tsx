@@ -1,18 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
   SymptomCategory,
   PHYSICAL_SYMPTOM_CATEGORIES,
   MENTAL_SYMPTOM_CATEGORIES,
-} from '../../../types/symptoms';
+} from "@shared/types/symptoms";
 
 interface StepCategorySelectionProps {
-  selectedType: 'physical' | 'mental' | null;
+  selectedType: "physical" | "mental" | null;
   onSelect: (category: SymptomCategory) => void;
 }
 
-const StepCategorySelection: React.FC<StepCategorySelectionProps> = ({ selectedType, onSelect }) => {
+const StepCategorySelection: React.FC<StepCategorySelectionProps> = ({
+  selectedType,
+  onSelect,
+}) => {
   if (!selectedType) {
     return (
       <View style={styles.stepContainer}>
@@ -21,7 +30,10 @@ const StepCategorySelection: React.FC<StepCategorySelectionProps> = ({ selectedT
     );
   }
 
-  const categories = selectedType === 'physical' ? PHYSICAL_SYMPTOM_CATEGORIES : MENTAL_SYMPTOM_CATEGORIES;
+  const categories =
+    selectedType === "physical"
+      ? PHYSICAL_SYMPTOM_CATEGORIES
+      : MENTAL_SYMPTOM_CATEGORIES;
 
   if (!categories || categories.length === 0) {
     return (
@@ -35,7 +47,10 @@ const StepCategorySelection: React.FC<StepCategorySelectionProps> = ({ selectedT
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Select {selectedType} symptom</Text>
 
-      <ScrollView style={styles.categoriesContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.categoriesContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.categoriesGrid}>
           {categories.map((category) => (
             <TouchableOpacity
@@ -43,7 +58,11 @@ const StepCategorySelection: React.FC<StepCategorySelectionProps> = ({ selectedT
               style={[styles.categoryCard, { borderColor: category.color }]}
               onPress={() => onSelect(category)}
             >
-              <Ionicons name={category.icon as any} size={24} color={category.color} />
+              <Ionicons
+                name={category.icon as any}
+                size={24}
+                color={category.color}
+              />
               <Text style={styles.categoryName}>{category.name}</Text>
             </TouchableOpacity>
           ))}
@@ -59,33 +78,33 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   categoriesContainer: {
     maxHeight: 400,
   },
   categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   categoryCard: {
-    width: '48%',
+    width: "48%",
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
+    backgroundColor: "#1C1C1E",
+    alignItems: "center",
   },
   categoryName: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

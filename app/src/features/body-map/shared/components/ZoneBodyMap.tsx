@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   StyleSheet,
@@ -7,10 +7,10 @@ import {
   Image,
   ImageSourcePropType,
   AccessibilityRole,
-} from 'react-native';
-import { PanelPayload, PanelBiomarker } from '../../types';
+} from "react-native";
+import { PanelPayload, PanelBiomarker } from "../../types";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const BODY_ASPECT_RATIO = 1.5;
 const BODY_WIDTH_RATIO = 0.99;
@@ -57,13 +57,13 @@ function ZoneBodyMap<Z>({
           resizeMode="contain"
         />
 
-        {dotPositions.map(dot => (
+        {dotPositions.map((dot) => (
           <TouchableOpacity
             key={dot.id}
             style={[styles.zoneDot, { left: `${dot.x}%`, top: `${dot.y}%` }]}
             onPress={() => handleDotPress(dot.id)}
             activeOpacity={0.8}
-            accessibilityRole={'button' as AccessibilityRole}
+            accessibilityRole={"button" as AccessibilityRole}
             accessibilityLabel={dot.label}
           >
             <View style={styles.dotInner} />
@@ -77,36 +77,39 @@ function ZoneBodyMap<Z>({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
     paddingVertical: 0,
-    width: '100%',
+    width: "100%",
   },
   bodyOutline: {
     width: width * BODY_WIDTH_RATIO,
     height: width * BODY_WIDTH_RATIO * BODY_ASPECT_RATIO,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   bodyImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   zoneDot: {
-    position: 'absolute',
+    position: "absolute",
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-    backgroundColor: '#2196F3',
+    backgroundColor: "#2196F3",
     borderWidth: 1,
-    borderColor: '#7FDBFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ translateX: -(DOT_SIZE / 2) }, { translateY: -(DOT_SIZE / 2) }],
+    borderColor: "#7FDBFF",
+    alignItems: "center",
+    justifyContent: "center",
+    transform: [
+      { translateX: -(DOT_SIZE / 2) },
+      { translateY: -(DOT_SIZE / 2) },
+    ],
     zIndex: 10,
-    shadowColor: '#2196F3',
+    shadowColor: "#2196F3",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -116,9 +119,9 @@ const styles = StyleSheet.create({
     width: DOT_INNER_SIZE,
     height: DOT_INNER_SIZE,
     borderRadius: DOT_INNER_SIZE / 2,
-    backgroundColor: '#00BFFF',
+    backgroundColor: "#00BFFF",
     borderWidth: 1,
-    borderColor: '#E3F2FD',
+    borderColor: "#E3F2FD",
   },
 });
 

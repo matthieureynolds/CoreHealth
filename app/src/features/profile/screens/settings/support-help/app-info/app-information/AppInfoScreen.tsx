@@ -1,55 +1,63 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../../../../../shared/context/AuthContext';
-import SettingsHeader from '../../../components/SettingsHeader';
-import { SETTINGS_SCROLL_PT } from '../../../components/settingsLayout';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@shared/context/AuthContext";
+import SettingsHeader from "@features/profile/screens/settings/components/SettingsHeader";
+import { SETTINGS_SCROLL_PT } from "@features/profile/screens/settings/components/settingsLayout";
 
 const AppInfoScreen: React.FC = () => {
   const { signOut } = useAuth();
 
   const appInfoItems = [
     {
-      title: 'App Version',
-      value: '1.0.0',
-      icon: 'information-circle-outline',
-      color: '#3AABF0', // Keep this one blue
+      title: "App Version",
+      value: "1.0.0",
+      icon: "information-circle-outline",
+      color: "#3AABF0", // Keep this one blue
     },
     {
-      title: 'Build Number',
-      value: '2024.1.15',
-      icon: 'code-outline',
-      color: '#34C759', // Green for build
+      title: "Build Number",
+      value: "2024.1.15",
+      icon: "code-outline",
+      color: "#34C759", // Green for build
     },
     {
-      title: 'Last Updated',
-      value: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      title: "Last Updated",
+      value: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }),
-      icon: 'calendar-outline',
-      color: '#FF9500', // Orange for calendar
+      icon: "calendar-outline",
+      color: "#FF9500", // Orange for calendar
     },
   ];
 
   const actionItems = [
     {
-      title: 'Reset App',
-      subtitle: 'Reset all app data and settings',
-      icon: 'refresh-outline',
-      color: '#FF9500',
-      onPress: () => Alert.alert('Reset App', 'This will reset all app data. Continue?'),
+      title: "Reset App",
+      subtitle: "Reset all app data and settings",
+      icon: "refresh-outline",
+      color: "#FF9500",
+      onPress: () =>
+        Alert.alert("Reset App", "This will reset all app data. Continue?"),
     },
     {
-      title: 'Sign Out',
-      subtitle: 'Sign out of your account',
-      icon: 'log-out-outline',
-      color: '#FF3B30',
+      title: "Sign Out",
+      subtitle: "Sign out of your account",
+      icon: "log-out-outline",
+      color: "#FF3B30",
       onPress: () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign Out', style: 'destructive', onPress: signOut },
+        Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Sign Out", style: "destructive", onPress: signOut },
         ]);
       },
     },
@@ -61,56 +69,82 @@ const AppInfoScreen: React.FC = () => {
       <SettingsHeader title="App Info" />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}
+      >
         {/* Content */}
         <View style={styles.content}>
           {/* About Card */}
           <View style={styles.card}>
-          <Text style={styles.cardHeader}>ABOUT</Text>
-          <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
-            <Text style={styles.aboutText}>
-              TOTO is your comprehensive health companion, designed to help you track, understand, and
-              optimize your health journey. Built with privacy and security at its core, TOTO provides
-              personalized insights and actionable recommendations to support your wellness goals.
-            </Text>
-          </View>
-        </View>
-        {/* App Info Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>APP INFORMATION</Text>
-          {appInfoItems.map((item, index) => (
-            <View key={index} style={[styles.cardRow, styles.cardRowNoDivider]}>
-              <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
-              <Text style={styles.cardLabel}>{item.title}</Text>
-              <Text style={styles.cardValue}>{item.value}</Text>
+            <Text style={styles.cardHeader}>ABOUT</Text>
+            <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
+              <Text style={styles.aboutText}>
+                TOTO is your comprehensive health companion, designed to help
+                you track, understand, and optimize your health journey. Built
+                with privacy and security at its core, TOTO provides
+                personalized insights and actionable recommendations to support
+                your wellness goals.
+              </Text>
             </View>
-          ))}
-        </View>
+          </View>
+          {/* App Info Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardHeader}>APP INFORMATION</Text>
+            {appInfoItems.map((item, index) => (
+              <View
+                key={index}
+                style={[styles.cardRow, styles.cardRowNoDivider]}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  size={22}
+                  color={item.color}
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardLabel}>{item.title}</Text>
+                <Text style={styles.cardValue}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
 
-        {/* Actions Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>ACTIONS</Text>
-          {actionItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.cardRow,
-                styles.actionsRow,
-                index === 0 
-                  ? [styles.actionLeft, styles.actionDivider]
-                  : [styles.actionRight, styles.tallRow50, styles.lastRow],
-              ]}
-              onPress={item.onPress}
-            >
-              <Ionicons name={item.icon as any} size={22} color={item.color} style={styles.cardIcon} />
-              <Text style={[styles.cardLabel, { color: item.color }]}>{item.title}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#888" style={styles.chevron} />
-            </TouchableOpacity>
-          ))}
-        </View>
+          {/* Actions Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardHeader}>ACTIONS</Text>
+            {actionItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.cardRow,
+                  styles.actionsRow,
+                  index === 0
+                    ? [styles.actionLeft, styles.actionDivider]
+                    : [styles.actionRight, styles.tallRow50, styles.lastRow],
+                ]}
+                onPress={item.onPress}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  size={22}
+                  color={item.color}
+                  style={styles.cardIcon}
+                />
+                <Text style={[styles.cardLabel, { color: item.color }]}>
+                  {item.title}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#888"
+                  style={styles.chevron}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Bottom spacing to match the gap between cards */}
-        <View style={styles.bottomSpacing} />
+          {/* Bottom spacing to match the gap between cards */}
+          <View style={styles.bottomSpacing} />
         </View>
       </ScrollView>
     </View>
@@ -120,14 +154,14 @@ const AppInfoScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   card: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     marginBottom: 20,
     paddingVertical: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -135,15 +169,15 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginBottom: 16,
     marginHorizontal: 20,
     letterSpacing: 0.5,
   },
   cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
   },
@@ -155,14 +189,14 @@ const styles = StyleSheet.create({
   },
   actionLeft: {
     borderRightWidth: 0,
-    borderRightColor: 'transparent',
+    borderRightColor: "transparent",
   },
   actionRight: {
     borderBottomWidth: 0,
   },
   actionDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2A',
+    borderBottomColor: "#2A2A2A",
   },
   tallRow50: {
     height: 50,
@@ -175,23 +209,23 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     flex: 1,
   },
   cardValue: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginRight: 8,
   },
   chevron: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
   aboutText: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     lineHeight: 20,
-    textAlign: 'left',
+    textAlign: "left",
   },
   scrollView: {
     flex: 1,
@@ -206,4 +240,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AppInfoScreen; 
+export default AppInfoScreen;

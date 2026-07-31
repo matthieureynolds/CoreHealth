@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import SettingsHeader from '../../../../components/SettingsHeader';
-import { SETTINGS_SCROLL_PT } from '../../../../components/settingsLayout';
-import biometricService from '../../../../../../../../shared/services/user/biometricService';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import SettingsHeader from "@features/profile/screens/settings/components/SettingsHeader";
+import { SETTINGS_SCROLL_PT } from "@features/profile/screens/settings/components/settingsLayout";
+import biometricService from "@shared/services/user/biometricService";
 
 const BiometricLockScreen: React.FC = () => {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
@@ -21,7 +29,7 @@ const BiometricLockScreen: React.FC = () => {
       setBiometricAvailable(biometricService.isBiometricAvailable());
       setBiometricEnabled(biometricService.isBiometricEnabled());
     } catch (error) {
-      console.error('Error initializing biometric service:', error);
+      console.error("Error initializing biometric service:", error);
     } finally {
       setIsLoading(false);
     }
@@ -35,9 +43,9 @@ const BiometricLockScreen: React.FC = () => {
         if (success) {
           setBiometricEnabled(true);
           Alert.alert(
-            'Biometric Lock Enabled',
+            "Biometric Lock Enabled",
             `Your health data is now protected with ${await biometricService.getPrimaryAuthenticationMethod()}. You'll need to authenticate to access the app.`,
-            [{ text: 'OK' }]
+            [{ text: "OK" }],
           );
         }
       } else {
@@ -45,15 +53,18 @@ const BiometricLockScreen: React.FC = () => {
         if (success) {
           setBiometricEnabled(false);
           Alert.alert(
-            'Biometric Lock Disabled',
-            'Biometric authentication has been disabled. Your health data is no longer protected with biometric authentication.',
-            [{ text: 'OK' }]
+            "Biometric Lock Disabled",
+            "Biometric authentication has been disabled. Your health data is no longer protected with biometric authentication.",
+            [{ text: "OK" }],
           );
         }
       }
     } catch (error) {
-      console.error('Biometric toggle error:', error);
-      Alert.alert('Error', 'Failed to update biometric settings. Please try again.');
+      console.error("Biometric toggle error:", error);
+      Alert.alert(
+        "Error",
+        "Failed to update biometric settings. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -63,35 +74,51 @@ const BiometricLockScreen: React.FC = () => {
     <View style={styles.container}>
       <SettingsHeader title="Biometric Lock / Face ID" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}
+      >
         <View style={styles.content}>
           <View style={styles.card}>
             <Text style={styles.cardHeader}>BIOMETRIC LOCK</Text>
-            <View style={[styles.cardRow, { justifyContent: 'space-between' }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <View style={[styles.cardRow, { justifyContent: "space-between" }]}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
                 <Ionicons
                   name="finger-print-outline"
                   size={22}
-                  color={!biometricAvailable || isLoading ? '#666' : '#3AABF0'}
+                  color={!biometricAvailable || isLoading ? "#666" : "#3AABF0"}
                   style={styles.cardIcon}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.cardLabel, (!biometricAvailable || isLoading) && styles.disabledText]}>
+                  <Text
+                    style={[
+                      styles.cardLabel,
+                      (!biometricAvailable || isLoading) && styles.disabledText,
+                    ]}
+                  >
                     Biometric Lock / Face ID
                   </Text>
-                  <Text style={[styles.cardSub, (!biometricAvailable || isLoading) && styles.disabledText]}>
+                  <Text
+                    style={[
+                      styles.cardSub,
+                      (!biometricAvailable || isLoading) && styles.disabledText,
+                    ]}
+                  >
                     {!biometricAvailable
-                      ? 'Biometric authentication not available on this device'
+                      ? "Biometric authentication not available on this device"
                       : biometricEnabled
-                      ? 'Protecting your health data with biometric authentication'
-                      : 'Use fingerprint or face recognition to secure your health data'}
+                        ? "Protecting your health data with biometric authentication"
+                        : "Use fingerprint or face recognition to secure your health data"}
                   </Text>
                 </View>
               </View>
               <Switch
                 value={biometricEnabled}
                 onValueChange={handleBiometricToggle}
-                trackColor={{ false: '#333', true: '#3AABF0' }}
+                trackColor={{ false: "#333", true: "#3AABF0" }}
                 thumbColor="#FFFFFF"
                 disabled={!biometricAvailable || isLoading}
               />
@@ -101,20 +128,34 @@ const BiometricLockScreen: React.FC = () => {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>ABOUT BIOMETRIC PROTECTION</Text>
             <View style={styles.infoRow}>
-              <Ionicons name="shield-checkmark" size={20} color="#34C759" style={styles.cardIcon} />
+              <Ionicons
+                name="shield-checkmark"
+                size={20}
+                color="#34C759"
+                style={styles.cardIcon}
+              />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>Enterprise-Grade Security</Text>
                 <Text style={styles.infoText}>
-                  When enabled, Face ID or Touch ID will be required to access your health data, providing enterprise-grade security for your sensitive medical information.
+                  When enabled, Face ID or Touch ID will be required to access
+                  your health data, providing enterprise-grade security for your
+                  sensitive medical information.
                 </Text>
               </View>
             </View>
             <View style={styles.infoRow}>
-              <Ionicons name="lock-closed" size={20} color="#3AABF0" style={styles.cardIcon} />
+              <Ionicons
+                name="lock-closed"
+                size={20}
+                color="#3AABF0"
+                style={styles.cardIcon}
+              />
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoTitle}>How It Works</Text>
                 <Text style={styles.infoText}>
-                  Your biometric data never leaves your device. The authentication is handled entirely by your device's secure enclave, ensuring maximum privacy.
+                  Your biometric data never leaves your device. The
+                  authentication is handled entirely by your device's secure
+                  enclave, ensuring maximum privacy.
                 </Text>
               </View>
             </View>
@@ -126,19 +167,51 @@ const BiometricLockScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: "#000000" },
   scrollView: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 0 },
-  card: { backgroundColor: '#181818', borderRadius: 12, marginBottom: 20, paddingVertical: 16 },
-  cardHeader: { fontSize: 12, fontWeight: '600', color: '#8E8E93', marginBottom: 16, marginHorizontal: 20, letterSpacing: 0.5 },
-  cardRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 20 },
+  card: {
+    backgroundColor: "#181818",
+    borderRadius: 12,
+    marginBottom: 20,
+    paddingVertical: 16,
+  },
+  cardHeader: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#8E8E93",
+    marginBottom: 16,
+    marginHorizontal: 20,
+    letterSpacing: 0.5,
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
   cardIcon: { marginRight: 12 },
-  cardLabel: { fontSize: 16, fontWeight: '500', color: '#FFFFFF', flex: 1 },
-  cardSub: { fontSize: 13, color: '#8E8E93' },
-  disabledText: { color: '#666' },
-  infoRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 12, paddingHorizontal: 20 },
-  infoTitle: { fontSize: 14, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 },
-  infoText: { fontSize: 12, color: '#8E8E93', lineHeight: 16, textAlign: 'justify' },
+  cardLabel: { fontSize: 16, fontWeight: "500", color: "#FFFFFF", flex: 1 },
+  cardSub: { fontSize: 13, color: "#8E8E93" },
+  disabledText: { color: "#666" },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#8E8E93",
+    lineHeight: 16,
+    textAlign: "justify",
+  },
 });
 
 export default BiometricLockScreen;

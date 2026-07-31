@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,14 +6,14 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
   onComplete: () => void;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
   const confettiAnim = useRef(new Animated.Value(0)).current;
@@ -48,7 +48,15 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
     onComplete();
   };
 
-  const ConfettiPiece = ({ delay, left, color }: { delay: number; left: number; color: string }) => {
+  const ConfettiPiece = ({
+    delay,
+    left,
+    color,
+  }: {
+    delay: number;
+    left: number;
+    color: string;
+  }) => {
     const animValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -77,7 +85,7 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
               {
                 rotate: animValue.interpolate({
                   inputRange: [0, 1],
-                  outputRange: ['0deg', '360deg'],
+                  outputRange: ["0deg", "360deg"],
                 }),
               },
             ],
@@ -97,7 +105,9 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
             key={index}
             delay={index * 100}
             left={Math.random() * width}
-            color={['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][index % 5]}
+            color={
+              ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"][index % 5]
+            }
           />
         ))}
       </View>
@@ -162,7 +172,12 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
         >
           <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
             <Text style={styles.finishButtonText}>Go to Dashboard</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color="#FFFFFF"
+              style={styles.buttonIcon}
+            />
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -173,10 +188,10 @@ const FinishOnboardingScreen: React.FC<Props> = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   confettiContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -184,15 +199,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   confettiPiece: {
-    position: 'absolute',
+    position: "absolute",
     width: 8,
     height: 8,
     borderRadius: 4,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     zIndex: 2,
   },
@@ -200,41 +215,41 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   textContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 48,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "center",
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     lineHeight: 26,
     paddingHorizontal: 20,
   },
   buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   finishButton: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     minWidth: 200,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   finishButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   buttonIcon: {

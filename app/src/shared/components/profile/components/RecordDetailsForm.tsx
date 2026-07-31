@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet, TextInput } from "react-native";
 
 interface FormData {
   title: string;
@@ -12,7 +12,10 @@ interface RecordDetailsFormProps {
   onChange: (data: Partial<FormData>) => void;
 }
 
-const RecordDetailsForm: React.FC<RecordDetailsFormProps> = ({ formData, onChange }) => (
+const RecordDetailsForm: React.FC<RecordDetailsFormProps> = ({
+  formData,
+  onChange,
+}) => (
   <View style={styles.formSection}>
     <Text style={styles.sectionTitle}>Document Details</Text>
 
@@ -48,20 +51,20 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
+    fontWeight: "bold",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1C1C1E',
+    color: "#1C1C1E",
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
   },
 });
 

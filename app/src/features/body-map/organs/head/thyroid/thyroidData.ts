@@ -1,16 +1,34 @@
-import { Organ } from '../../types';
+import { Organ } from "../../types";
 
 export const thyroidOrgan: Organ = {
-  id: 'thyroid',
-  label: 'Thyroid',
+  id: "thyroid",
+  label: "Thyroid",
   position: { x: 0.49, y: 0.18 },
   data: {
-    name: 'Thyroid',
-    description: 'Regulates metabolism and energy production.',
+    name: "Thyroid",
+    description: "Regulates metabolism and energy production.",
     biomarkers: [
-      { name: 'TSH', value: 2.1, unit: 'mIU/L', range: '0.4-4.0', status: 'normal' },
-      { name: 'Free T3', value: 3.2, unit: 'pg/mL', range: '2.3-4.2', status: 'normal' },
-      { name: 'Free T4', value: 1.3, unit: 'ng/dL', range: '0.8-1.8', status: 'normal' },
+      {
+        name: "TSH",
+        value: 2.1,
+        unit: "mIU/L",
+        range: "0.4-4.0",
+        status: "normal",
+      },
+      {
+        name: "Free T3",
+        value: 3.2,
+        unit: "pg/mL",
+        range: "2.3-4.2",
+        status: "normal",
+      },
+      {
+        name: "Free T4",
+        value: 1.3,
+        unit: "ng/dL",
+        range: "0.8-1.8",
+        status: "normal",
+      },
     ],
   },
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,24 +7,32 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
-import FileSelectionSection from './components/FileSelectionSection';
-import ProcessingSection from './components/ProcessingSection';
-import FilePreviewCard from './components/FilePreviewCard';
-import RecordTypeSelector from './components/RecordTypeSelector';
-import RecordDetailsForm from './components/RecordDetailsForm';
-import ExtractedDataPreview from './components/ExtractedDataPreview';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
+import FileSelectionSection from "./components/FileSelectionSection";
+import ProcessingSection from "./components/ProcessingSection";
+import FilePreviewCard from "./components/FilePreviewCard";
+import RecordTypeSelector from "./components/RecordTypeSelector";
+import RecordDetailsForm from "./components/RecordDetailsForm";
+import ExtractedDataPreview from "./components/ExtractedDataPreview";
 
 interface MedicalRecord {
   id: string;
-  type: 'lab_result' | 'prescription' | 'medical_report' | 'vaccination_record' | 'other';
+  type:
+    | "lab_result"
+    | "prescription"
+    | "medical_report"
+    | "vaccination_record"
+    | "other";
   title: string;
   date: string;
   provider: string;
-  extractedData: { values?: Array<{ name: string; value: string; unit?: string }>; notes?: string } | null;
+  extractedData: {
+    values?: Array<{ name: string; value: string; unit?: string }>;
+    notes?: string;
+  } | null;
   image?: string;
   file?: { uri: string; name?: string; size?: number };
 }
@@ -36,11 +44,26 @@ interface MedicalRecordScannerProps {
 }
 
 const recordTypes = [
-  { id: 'lab_result', title: 'Lab Result', icon: 'flask', color: '#FF6B6B' },
-  { id: 'prescription', title: 'Prescription', icon: 'medical', color: '#4ECDC4' },
-  { id: 'medical_report', title: 'Medical Report', icon: 'document-text', color: '#45B7D1' },
-  { id: 'vaccination_record', title: 'Vaccination Record', icon: 'shield-checkmark', color: '#96CEB4' },
-  { id: 'other', title: 'Other', icon: 'folder', color: '#FFB347' },
+  { id: "lab_result", title: "Lab Result", icon: "flask", color: "#FF6B6B" },
+  {
+    id: "prescription",
+    title: "Prescription",
+    icon: "medical",
+    color: "#4ECDC4",
+  },
+  {
+    id: "medical_report",
+    title: "Medical Report",
+    icon: "document-text",
+    color: "#45B7D1",
+  },
+  {
+    id: "vaccination_record",
+    title: "Vaccination Record",
+    icon: "shield-checkmark",
+    color: "#96CEB4",
+  },
+  { id: "other", title: "Other", icon: "folder", color: "#FFB347" },
 ];
 
 const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
@@ -48,20 +71,27 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
   onClose,
   onSave,
 }) => {
-  const [selectedFile, setSelectedFile] = useState<{ uri: string; name?: string; size?: number } | null>(null);
-  const [extractedData, setExtractedData] = useState<{ values?: Array<{ name: string; value: string; unit?: string }>; notes?: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{
+    uri: string;
+    name?: string;
+    size?: number;
+  } | null>(null);
+  const [extractedData, setExtractedData] = useState<{
+    values?: Array<{ name: string; value: string; unit?: string }>;
+    notes?: string;
+  } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    date: '',
-    provider: '',
-    type: 'lab_result' as MedicalRecord['type'],
+    title: "",
+    date: "",
+    provider: "",
+    type: "lab_result" as MedicalRecord["type"],
   });
 
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/*'],
+        type: ["application/pdf", "image/*"],
         copyToCacheDirectory: true,
       });
       if (!result.canceled && result.assets[0]) {
@@ -69,15 +99,18 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
         processDocument(result.assets[0]);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick document. Please try again.');
+      Alert.alert("Error", "Failed to pick document. Please try again.");
     }
   };
 
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Camera permission is required to take photos.');
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "Camera permission is required to take photos.",
+        );
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
@@ -90,7 +123,7 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
         processDocument(result.assets[0]);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      Alert.alert("Error", "Failed to take photo. Please try again.");
     }
   };
 
@@ -98,23 +131,38 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
     setIsProcessing(true);
     setTimeout(() => {
       const mockExtractedData = {
-        type: 'lab_result',
-        title: 'Blood Test Results',
-        date: '2024-01-15',
-        provider: 'City Medical Center',
+        type: "lab_result",
+        title: "Blood Test Results",
+        date: "2024-01-15",
+        provider: "City Medical Center",
         values: [
-          { name: 'Glucose', value: '95 mg/dL', normal: '70-100 mg/dL', status: 'normal' },
-          { name: 'Cholesterol', value: '180 mg/dL', normal: '<200 mg/dL', status: 'normal' },
-          { name: 'Blood Pressure', value: '120/80 mmHg', normal: '<120/80 mmHg', status: 'normal' },
+          {
+            name: "Glucose",
+            value: "95 mg/dL",
+            normal: "70-100 mg/dL",
+            status: "normal",
+          },
+          {
+            name: "Cholesterol",
+            value: "180 mg/dL",
+            normal: "<200 mg/dL",
+            status: "normal",
+          },
+          {
+            name: "Blood Pressure",
+            value: "120/80 mmHg",
+            normal: "<120/80 mmHg",
+            status: "normal",
+          },
         ],
-        notes: 'All values within normal range. Continue current lifestyle.',
+        notes: "All values within normal range. Continue current lifestyle.",
       };
       setExtractedData(mockExtractedData);
       setFormData({
         title: mockExtractedData.title,
         date: mockExtractedData.date,
         provider: mockExtractedData.provider,
-        type: mockExtractedData.type as MedicalRecord['type'],
+        type: mockExtractedData.type as MedicalRecord["type"],
       });
       setIsProcessing(false);
     }, 2000);
@@ -122,7 +170,7 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
 
   const handleSave = () => {
     if (!selectedFile || !formData.title.trim()) {
-      Alert.alert('Error', 'Please select a file and enter a title.');
+      Alert.alert("Error", "Please select a file and enter a title.");
       return;
     }
     const record: MedicalRecord = {
@@ -143,7 +191,7 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
   const resetForm = () => {
     setSelectedFile(null);
     setExtractedData(null);
-    setFormData({ title: '', date: '', provider: '', type: 'lab_result' });
+    setFormData({ title: "", date: "", provider: "", type: "lab_result" });
   };
 
   return (
@@ -166,7 +214,10 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {!selectedFile && (
-            <FileSelectionSection onTakePhoto={takePhoto} onPickDocument={pickDocument} />
+            <FileSelectionSection
+              onTakePhoto={takePhoto}
+              onPickDocument={pickDocument}
+            />
           )}
 
           {isProcessing && <ProcessingSection />}
@@ -177,13 +228,20 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
               <RecordTypeSelector
                 recordTypes={recordTypes}
                 selectedType={formData.type}
-                onSelect={(type) => setFormData({ ...formData, type: type as MedicalRecord['type'] })}
+                onSelect={(type) =>
+                  setFormData({
+                    ...formData,
+                    type: type as MedicalRecord["type"],
+                  })
+                }
               />
               <RecordDetailsForm
                 formData={formData}
                 onChange={(data) => setFormData({ ...formData, ...data })}
               />
-              {extractedData && <ExtractedDataPreview extractedData={extractedData} />}
+              {extractedData && (
+                <ExtractedDataPreview extractedData={extractedData} />
+              )}
             </>
           )}
         </ScrollView>
@@ -195,23 +253,23 @@ const MedicalRecordScanner: React.FC<MedicalRecordScannerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
   },
   closeButton: {
     padding: 8,
@@ -221,8 +279,8 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#3AABF0',
+    fontWeight: "600",
+    color: "#3AABF0",
   },
   content: {
     flex: 1,

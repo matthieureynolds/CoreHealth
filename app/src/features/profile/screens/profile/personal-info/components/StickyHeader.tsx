@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
+import React from "react";
+import { View, Text, StyleSheet, Animated, Platform } from "react-native";
+import { BlurView } from "expo-blur";
 
 interface StickyHeaderProps {
   stickyHeaderOpacity: Animated.AnimatedInterpolation<number>;
@@ -19,7 +19,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
 }) => (
   <View
     style={styles.stickyHeader}
-    pointerEvents={isHeaderVisible ? 'auto' : 'none'}
+    pointerEvents={isHeaderVisible ? "auto" : "none"}
   >
     <Animated.View
       style={[styles.stickyHeaderBackground, { opacity: headerBgOpacity }]}
@@ -44,29 +44,29 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
 
 const styles = StyleSheet.create({
   stickyHeader: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 999,
-    paddingTop: Platform.OS === 'ios' ? 44 : 20,
+    paddingTop: Platform.OS === "ios" ? 44 : 20,
     paddingBottom: 16,
-    minHeight: Platform.OS === 'ios' ? 96 : 72,
+    minHeight: Platform.OS === "ios" ? 96 : 72,
   },
   stickyHeaderBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   stickyHeaderContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingTop: 18,
   },
   stickyHeaderName: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

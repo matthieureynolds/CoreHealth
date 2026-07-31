@@ -16,8 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "../TravelScreen.styles";
 import FlightLookupStep from "./FlightLookupStep";
 import ManualTripForm from "./ManualTripForm";
-import { FlightOption } from "../../../../../shared/types";
-import { palette } from "../../../../../shared/theme/colors";
+import { FlightOption } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 /**
  * Isolates the DateTimePicker from parent re-renders.

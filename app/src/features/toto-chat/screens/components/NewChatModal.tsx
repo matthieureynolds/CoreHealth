@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   TouchableWithoutFeedback,
   Animated,
   StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface NewChatModalProps {
   visible: boolean;
@@ -16,7 +16,7 @@ interface NewChatModalProps {
   onDismiss: () => void;
   onStartWithMemory: () => void;
   onStartWithoutMemory: () => void;
-  styles: typeof import('../HealthAssistantScreen.styles').styles;
+  styles: typeof import("../HealthAssistantScreen.styles").styles;
 }
 
 const NewChatModal: React.FC<NewChatModalProps> = ({
@@ -39,11 +39,19 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
         <View style={StyleSheet.absoluteFill} />
       </TouchableWithoutFeedback>
       <View style={styles.newChatBottomSheetContainer}>
-        <Animated.View style={[styles.newChatBottomSheetContent, { transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[
+            styles.newChatBottomSheetContent,
+            { transform: [{ translateY }] },
+          ]}
+        >
           <View style={styles.newChatBottomSheetHandleContainer}>
             <View style={styles.newChatBottomSheetHandle} />
           </View>
-          <View style={styles.newChatBottomSheetHeader} pointerEvents="box-none">
+          <View
+            style={styles.newChatBottomSheetHeader}
+            pointerEvents="box-none"
+          >
             <TouchableOpacity
               onPress={onDismiss}
               style={styles.newChatBottomSheetCloseButton}
@@ -56,7 +64,9 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
             <View style={{ width: 32 }} />
           </View>
           <View style={styles.newChatBottomSheetBody}>
-            <Text style={styles.newChatQuestion}>Would you like this chat to have memory?</Text>
+            <Text style={styles.newChatQuestion}>
+              Would you like this chat to have memory?
+            </Text>
             <TouchableOpacity
               style={styles.newChatButtonWithMemory}
               onPress={onStartWithMemory}

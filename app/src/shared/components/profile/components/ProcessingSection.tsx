@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const ProcessingSection: React.FC = () => (
   <View style={styles.processingSection}>
@@ -16,7 +16,7 @@ const ProcessingSection: React.FC = () => (
 
 const styles = StyleSheet.create({
   processingSection: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 40,
   },
   processingIcon: {
@@ -24,14 +24,14 @@ const styles = StyleSheet.create({
   },
   processingTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   processingSubtitle: {
     fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
 });
 

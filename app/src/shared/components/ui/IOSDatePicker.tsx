@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 
 interface IOSDatePickerProps {
   visible: boolean;
@@ -9,7 +15,7 @@ interface IOSDatePickerProps {
   onConfirm: (date: Date) => void;
   onCancel: () => void;
   title?: string;
-  mode?: 'date' | 'time';
+  mode?: "date" | "time";
   minimumDate?: Date;
   maximumDate?: Date;
   overlayOpacity?: number;
@@ -21,12 +27,12 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
   value,
   onConfirm,
   onCancel,
-  title = 'Select Date',
-  mode = 'date',
+  title = "Select Date",
+  mode = "date",
   minimumDate,
   maximumDate,
   overlayOpacity,
-  containerColor
+  containerColor,
 }) => {
   const [tempDate, setTempDate] = useState(value);
 
@@ -40,17 +46,30 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
     return null;
   }
 
-  if (Platform.OS === 'ios') {
+  if (Platform.OS === "ios") {
     return (
-      <View style={[styles.overlay, { backgroundColor: `rgba(0, 0, 0, ${overlayOpacity ?? 0.7})` }]}> 
-        <View style={[styles.container, { backgroundColor: containerColor ?? '#1a1a1a' }]}> 
-          {mode === 'date' ? (
+      <View
+        style={[
+          styles.overlay,
+          { backgroundColor: `rgba(0, 0, 0, ${overlayOpacity ?? 0.7})` },
+        ]}
+      >
+        <View
+          style={[
+            styles.container,
+            { backgroundColor: containerColor ?? "#1a1a1a" },
+          ]}
+        >
+          {mode === "date" ? (
             <View style={styles.header}>
               <TouchableOpacity onPress={onCancel} style={styles.headerButton}>
                 <Text style={styles.headerButtonText}>Cancel</Text>
               </TouchableOpacity>
               <Text style={styles.title}>{title}</Text>
-              <TouchableOpacity onPress={() => onConfirm(tempDate)} style={styles.headerButton}>
+              <TouchableOpacity
+                onPress={() => onConfirm(tempDate)}
+                style={styles.headerButton}
+              >
                 <Text style={styles.headerButtonText}>Done</Text>
               </TouchableOpacity>
             </View>
@@ -60,8 +79,8 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
             </View>
           )}
 
-          {mode === 'time' ? (
-            <View style={styles.pickerRow}> 
+          {mode === "time" ? (
+            <View style={styles.pickerRow}>
               <DateTimePicker
                 value={tempDate}
                 mode="time"
@@ -76,10 +95,18 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
                 style={styles.datePicker}
               />
               <View style={styles.actionColumn}>
-                <TouchableOpacity accessibilityLabel="Cancel" onPress={onCancel} style={[styles.iconButton, styles.cancelButton]}>
+                <TouchableOpacity
+                  accessibilityLabel="Cancel"
+                  onPress={onCancel}
+                  style={[styles.iconButton, styles.cancelButton]}
+                >
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <TouchableOpacity accessibilityLabel="Confirm" onPress={() => onConfirm(tempDate)} style={[styles.iconButton, styles.confirmButton]}>
+                <TouchableOpacity
+                  accessibilityLabel="Confirm"
+                  onPress={() => onConfirm(tempDate)}
+                  style={[styles.iconButton, styles.confirmButton]}
+                >
                   <Ionicons name="checkmark" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>
@@ -123,49 +150,49 @@ const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderRadius: 20,
-    width: '90%',
+    width: "90%",
     maxWidth: 360,
     paddingBottom: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   pickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 8,
     paddingVertical: 8,
   },
   timeHeaderSpacer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 12,
     paddingBottom: 4,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   headerButton: {
     paddingHorizontal: 12,
@@ -173,34 +200,33 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     fontSize: 16,
-    color: '#3AABF0',
-    fontWeight: '500',
+    color: "#3AABF0",
+    fontWeight: "500",
   },
   datePicker: {
-    width: '100%',
+    width: "100%",
     height: 220,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   actionColumn: {
     marginLeft: 12,
     height: 220,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingVertical: 8,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
   },
   confirmButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: "#34C759",
   },
 });
 
 export default IOSDatePicker;
-

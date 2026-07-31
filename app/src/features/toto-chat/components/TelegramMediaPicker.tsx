@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   Animated,
   Dimensions,
   Alert,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 interface TelegramMediaPickerProps {
   visible: boolean;
@@ -21,7 +21,7 @@ interface TelegramMediaPickerProps {
   onDocumentSelected: (uri: string, name: string) => void;
 }
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
 export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
   visible,
@@ -65,15 +65,18 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
         onClose();
       }
     } catch (e) {
-      console.error('Error selecting photo:', e);
+      console.error("Error selecting photo:", e);
     }
   };
 
   const handleCamera = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Camera Access', 'Please allow camera access in Settings to take photos.');
+      if (status !== "granted") {
+        Alert.alert(
+          "Camera Access",
+          "Please allow camera access in Settings to take photos.",
+        );
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
@@ -87,14 +90,17 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
         onClose();
       }
     } catch (e) {
-      Alert.alert('Camera Unavailable', 'Camera is not available on this device.');
+      Alert.alert(
+        "Camera Unavailable",
+        "Camera is not available on this device.",
+      );
     }
   };
 
   const handleFiles = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['image/*', 'application/pdf'],
+        type: ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
       });
       if (!result.canceled && result.assets[0]) {
@@ -102,16 +108,23 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
         onClose();
       }
     } catch (e) {
-      console.error('Error selecting document:', e);
+      console.error("Error selecting document:", e);
     }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={dismiss}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={dismiss}
+    >
       <TouchableWithoutFeedback onPress={dismiss}>
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
-            <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+            <Animated.View
+              style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+            >
               {/* Handle */}
               <View style={styles.handleRow}>
                 <View style={styles.handle} />
@@ -119,17 +132,29 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
 
               {/* Options row */}
               <View style={styles.optionsRow}>
-                <TouchableOpacity style={styles.optionIcon} onPress={handlePhotos} activeOpacity={0.7}>
+                <TouchableOpacity
+                  style={styles.optionIcon}
+                  onPress={handlePhotos}
+                  activeOpacity={0.7}
+                >
                   <Ionicons name="images-outline" size={32} color="#fff" />
                   <Text style={styles.optionLabel}>Photos</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.optionIcon} onPress={handleCamera} activeOpacity={0.7}>
+                <TouchableOpacity
+                  style={styles.optionIcon}
+                  onPress={handleCamera}
+                  activeOpacity={0.7}
+                >
                   <Ionicons name="camera-outline" size={32} color="#fff" />
                   <Text style={styles.optionLabel}>Camera</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.optionIcon} onPress={handleFiles} activeOpacity={0.7}>
+                <TouchableOpacity
+                  style={styles.optionIcon}
+                  onPress={handleFiles}
+                  activeOpacity={0.7}
+                >
                   <Ionicons name="share-outline" size={32} color="#fff" />
                   <Text style={styles.optionLabel}>Files</Text>
                 </TouchableOpacity>
@@ -145,17 +170,17 @@ export const TelegramMediaPicker: React.FC<TelegramMediaPickerProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 40,
   },
   handleRow: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 10,
     paddingBottom: 16,
   },
@@ -163,11 +188,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
   },
   optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    flexDirection: "row",
+    justifyContent: "space-evenly",
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
@@ -175,14 +200,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 24,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#2C2C2E",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
   },
   optionLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

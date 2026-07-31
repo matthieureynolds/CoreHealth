@@ -1,1 +1,1 @@
-export { default as BiomarkerDashboard } from './BiomarkerDashboard';
+export { default as BiomarkerDashboard } from "./BiomarkerDashboard";

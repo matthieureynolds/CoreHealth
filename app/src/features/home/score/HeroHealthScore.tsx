@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,25 @@ import {
   Dimensions,
   TouchableOpacity,
   Animated,
-} from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import AnimatedProgressCircle from './components/AnimatedProgressCircle';
-import { AnimatedScoreText, AnimatedScoreLabel } from './components/AnimatedScoreDisplay';
+} from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import AnimatedProgressCircle from "./components/AnimatedProgressCircle";
+import {
+  AnimatedScoreText,
+  AnimatedScoreLabel,
+} from "./components/AnimatedScoreDisplay";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface HeroHealthScoreProps {
   score: number;
   onPress?: () => void;
 }
 
-const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({ score, onPress }) => {
+const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({
+  score,
+  onPress,
+}) => {
   const [hasAnimated, setHasAnimated] = useState(false);
   const animatedScore = useRef(new Animated.Value(0)).current;
   const animatedProgress = useRef(new Animated.Value(0)).current;
@@ -60,11 +66,16 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({ score, onPress }) => 
           const progress = Math.min(elapsed / duration, 1);
           const easedProgress = easeOutTick(progress);
 
-          const currentScore = Math.max(1, Math.floor(1 + easedProgress * (safe - 1)));
+          const currentScore = Math.max(
+            1,
+            Math.floor(1 + easedProgress * (safe - 1)),
+          );
           animatedScore.setValue(currentScore);
 
           const currentProgress = (1 + easedProgress * (safe - 1)) / 100;
-          animatedProgress.setValue(Math.max(0.01, Math.min(currentProgress, 1)));
+          animatedProgress.setValue(
+            Math.max(0.01, Math.min(currentProgress, 1)),
+          );
 
           if (progress < 1) {
             frameId = requestAnimationFrame(animate);
@@ -96,7 +107,12 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({ score, onPress }) => 
       activeOpacity={0.8}
     >
       <View style={styles.scoreContainer}>
-        <View style={[styles.circleWrapper, { width: circleSize, height: circleSize }]}>
+        <View
+          style={[
+            styles.circleWrapper,
+            { width: circleSize, height: circleSize },
+          ]}
+        >
           <Svg width={circleSize} height={circleSize} style={styles.svg}>
             <Circle
               stroke="#2C2C2E"
@@ -130,49 +146,49 @@ const HeroHealthScore: React.FC<HeroHealthScoreProps> = ({ score, onPress }) => 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 24,
     marginHorizontal: 16,
     marginVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   scoreContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   circleWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   svg: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
   },
   scoreContent: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   brandText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     letterSpacing: 1.2,
     marginBottom: 4,
   },
   scoreSubtitle: {
     fontSize: 10,
-    fontWeight: '500',
-    color: '#8E8E93',
+    fontWeight: "500",
+    color: "#8E8E93",
     letterSpacing: 0.5,
   },
 });

@@ -1,8 +1,8 @@
-export type JetLagSeverity = 'minimal' | 'mild' | 'moderate' | 'severe';
+export type JetLagSeverity = "minimal" | "mild" | "moderate" | "severe";
 
 export interface SleepScheduleAdjustment {
   totalTimeZoneDifference: number;
-  direction: 'eastward' | 'westward';
+  direction: "eastward" | "westward";
   daysToAdjust: number;
   maxDailyAdjustment: number;
   dailySchedule: Array<{
@@ -16,7 +16,7 @@ export interface SleepScheduleAdjustment {
 }
 
 export interface LightExposureSchedule {
-  direction: 'eastward' | 'westward';
+  direction: "eastward" | "westward";
   strategy: string;
   schedule: Array<{
     day: number;
@@ -57,7 +57,7 @@ export interface JetLagPlanningEvent {
   daysToAdjust: number;
   sleepAdjustment: SleepScheduleAdjustment;
   lightExposureSchedule: LightExposureSchedule;
-  status: 'upcoming' | 'active' | 'completed';
+  status: "upcoming" | "active" | "completed";
   createdAt: string;
   updatedAt: string;
 }
@@ -93,13 +93,13 @@ export interface Trip {
   dep_utc: string;
   arr_utc: string;
   tz_diff_hours: number;
-  direction: 'east' | 'west';
+  direction: "east" | "west";
   /** Nights at the destination (outbound leg). Short stays → stay on home time. */
   stay_days?: number;
-  plan_style: 'gentle' | 'aggressive';
+  plan_style: "gentle" | "aggressive";
   prefs: {
     sleep_window_local: { start: string; end: string };
-    chronotype: 'morning' | 'neutral' | 'evening';
+    chronotype: "morning" | "neutral" | "evening";
     caffeine: boolean;
     melatonin: boolean;
     naps: boolean;
@@ -130,17 +130,27 @@ export interface Trip {
   layovers?: Layover[];
   /** Fixed events the traveller must be alert for (meetings, etc.). */
   commitments?: Commitment[];
-  status: 'draft' | 'active' | 'archived';
+  status: "draft" | "active" | "archived";
   created_at: string;
   updated_at: string;
 }
 
 export interface Action {
-  type: 'sleep' | 'seek_light' | 'avoid_light' | 'caffeine_ok' | 'caffeine_cutoff' | 'melatonin' | 'nap' | 'in_flight' | 'meal' | 'commitment';
+  type:
+    | "sleep"
+    | "seek_light"
+    | "avoid_light"
+    | "caffeine_ok"
+    | "caffeine_cutoff"
+    | "melatonin"
+    | "nap"
+    | "in_flight"
+    | "meal"
+    | "commitment";
   start_local: string | null;
   end_local: string | null;
   at_local: string | null;
-  intensity?: 'low' | 'moderate' | 'high';
+  intensity?: "low" | "moderate" | "high";
   rationale?: string;
   /** Custom display title (e.g. the user's commitment name). Falls back to the type's default. */
   label?: string;
@@ -153,7 +163,7 @@ export interface PlanDay {
   location: {
     label: string;
     tz: string;
-    segment: 'pre' | 'in_flight' | 'post' | 'layover';
+    segment: "pre" | "in_flight" | "post" | "layover";
   };
   actions: Action[];
   notes: string[];
@@ -167,7 +177,7 @@ export interface NowCard {
     label: string;
     window: { start_local: string; end_local: string };
     explain: string;
-    cta: 'Done' | 'Snooze';
+    cta: "Done" | "Snooze";
   } | null;
   next_action_preview?: string;
 }

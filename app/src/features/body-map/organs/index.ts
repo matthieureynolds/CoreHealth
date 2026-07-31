@@ -1,31 +1,31 @@
 // Head
-import { brainOrgan } from './head/brain/brainData';
-import { eyesOrgan } from './head/eyes/eyesData';
-import { earsOrgan } from './head/ears/earsData';
-import { mouthOrgan } from './head/mouth/mouthData';
-import { thyroidOrgan } from './head/thyroid/thyroidData';
+import { brainOrgan } from "./head/brain/brainData";
+import { eyesOrgan } from "./head/eyes/eyesData";
+import { earsOrgan } from "./head/ears/earsData";
+import { mouthOrgan } from "./head/mouth/mouthData";
+import { thyroidOrgan } from "./head/thyroid/thyroidData";
 
 // Lungs
-import { lungsOrgan } from './lungs/lungsData';
+import { lungsOrgan } from "./lungs/lungsData";
 
 // Heart
-import { heartOrgan } from './heart/heartData';
+import { heartOrgan } from "./heart/heartData";
 
 // Liver
-import { liverOrgan } from './liver/liverData';
+import { liverOrgan } from "./liver/liverData";
 
 // Stomach & Pancreas
-import { stomachOrgan } from './stomach/stomachData';
-import { pancreasOrgan } from './stomach/pancreas/pancreasData';
+import { stomachOrgan } from "./stomach/stomachData";
+import { pancreasOrgan } from "./stomach/pancreas/pancreasData";
 
 // Kidney
-import { kidneysOrgan } from './kidneys/kidneysData';
+import { kidneysOrgan } from "./kidneys/kidneysData";
 
 // Intestines
-import { smallIntestineOrgan } from './small-intestine/smallIntestineData';
-import { largeIntestineOrgan } from './large-intestine/largeIntestineData';
+import { smallIntestineOrgan } from "./small-intestine/smallIntestineData";
+import { largeIntestineOrgan } from "./large-intestine/largeIntestineData";
 
-import { Organ } from './types';
+import { Organ } from "./types";
 
 export const organs: Record<string, Organ> = {
   [brainOrgan.id]: brainOrgan,
@@ -45,13 +45,18 @@ export const organs: Record<string, Organ> = {
 
 export const organsList: Organ[] = Object.values(organs);
 
-export * from './types';
+export * from "./types";
 export {
-  brainOrgan, eyesOrgan, earsOrgan, mouthOrgan, thyroidOrgan,
+  brainOrgan,
+  eyesOrgan,
+  earsOrgan,
+  mouthOrgan,
+  thyroidOrgan,
   lungsOrgan,
   heartOrgan,
   liverOrgan,
-  stomachOrgan, pancreasOrgan,
+  stomachOrgan,
+  pancreasOrgan,
   kidneysOrgan,
   smallIntestineOrgan,
   largeIntestineOrgan,

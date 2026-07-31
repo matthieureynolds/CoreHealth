@@ -1,4 +1,4 @@
-import { Biomarker } from "../../../features/body-map/organs/types";
+import { Biomarker } from "@features/body-map/organs/types";
 
 export interface ProcessedDocument {
   id: string;

@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface UploadOptionsSectionProps {
   onTakePhoto: () => void;
   onPickDocument: () => void;
 }
 
-const UploadOptionsSection: React.FC<UploadOptionsSectionProps> = ({ onTakePhoto, onPickDocument }) => (
+const UploadOptionsSection: React.FC<UploadOptionsSectionProps> = ({
+  onTakePhoto,
+  onPickDocument,
+}) => (
   <View style={s.group}>
     <TouchableOpacity style={s.row} onPress={onTakePhoto}>
       <Ionicons name="camera-outline" size={20} color="#3AABF0" />
@@ -24,10 +27,26 @@ const UploadOptionsSection: React.FC<UploadOptionsSectionProps> = ({ onTakePhoto
 );
 
 const s = StyleSheet.create({
-  group: { backgroundColor: '#2C2C2E', borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  rowText: { fontSize: 16, color: '#fff', flex: 1, marginLeft: 12, fontWeight: '500' },
-  divider: { height: 1, backgroundColor: '#3A3A3C', marginLeft: 16 },
+  group: {
+    backgroundColor: "#2C2C2E",
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  rowText: {
+    fontSize: 16,
+    color: "#fff",
+    flex: 1,
+    marginLeft: 12,
+    fontWeight: "500",
+  },
+  divider: { height: 1, backgroundColor: "#3A3A3C", marginLeft: 16 },
 });
 
 export default UploadOptionsSection;

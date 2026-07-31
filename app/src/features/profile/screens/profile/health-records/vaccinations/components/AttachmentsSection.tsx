@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { AttachedFile } from '../../../../../../../shared/types';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { AttachedFile } from "@shared/types";
 
 interface AttachmentsSectionProps {
   attachments: AttachedFile[];
@@ -20,7 +20,9 @@ const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({
       {attachments.map((file) => (
         <View key={file.uri} style={styles.attachmentChip}>
           <Ionicons
-            name={file.type?.includes('pdf') ? 'document-outline' : 'image-outline'}
+            name={
+              file.type?.includes("pdf") ? "document-outline" : "image-outline"
+            }
             size={14}
             color="#FFFFFF"
           />
@@ -35,7 +37,10 @@ const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({
           </TouchableOpacity>
         </View>
       ))}
-      <TouchableOpacity style={styles.addAttachmentButton} onPress={onAttachFile}>
+      <TouchableOpacity
+        style={styles.addAttachmentButton}
+        onPress={onAttachFile}
+      >
         <Ionicons name="attach" size={16} color="#3AABF0" />
         <Text style={styles.addAttachmentText}>Add file</Text>
       </TouchableOpacity>
@@ -50,28 +55,28 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   attachmentsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   attachmentChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     borderRadius: 16,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: "#3A3A3C",
   },
   attachmentText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
     marginLeft: 6,
     maxWidth: 140,
@@ -80,24 +85,24 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   addAttachmentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#3AABF0',
+    borderColor: "#3AABF0",
   },
   addAttachmentText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
     fontSize: 12,
     marginLeft: 6,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   attachmentsHelp: {
     marginTop: 8,
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
 });

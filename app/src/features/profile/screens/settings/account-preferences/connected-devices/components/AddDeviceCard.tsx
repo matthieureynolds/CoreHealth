@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const AddDeviceCard: React.FC = () => (
   <TouchableOpacity style={styles.addDeviceCard}>
@@ -19,12 +19,12 @@ const AddDeviceCard: React.FC = () => (
 
 const styles = StyleSheet.create({
   addDeviceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
   },
   addDeviceText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
     marginBottom: 4,
   },
   addDeviceSubtext: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
 });
 

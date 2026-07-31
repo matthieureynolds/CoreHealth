@@ -1,7 +1,15 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, Image, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { MedicalRecord } from '../../../../../../../shared/types';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Image,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { MedicalRecord } from "@shared/types";
 
 interface RecordType {
   value: string;
@@ -60,14 +68,18 @@ const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
               <View style={styles.recordDetailInfo}>
                 <Text style={styles.recordDetailName}>{record.name}</Text>
                 <Text style={styles.recordDetailType}>
-                  {recordTypes.find(t => t.value === record.type)?.label}
+                  {recordTypes.find((t) => t.value === record.type)?.label}
                 </Text>
               </View>
             </View>
 
             <View style={styles.recordDetailMeta}>
-              <Text style={styles.recordDetailDate}>Date: {formatDate(record.date)}</Text>
-              <Text style={styles.recordDetailSize}>Size: {formatFileSize(record.fileSize)}</Text>
+              <Text style={styles.recordDetailDate}>
+                Date: {formatDate(record.date)}
+              </Text>
+              <Text style={styles.recordDetailSize}>
+                Size: {formatFileSize(record.fileSize)}
+              </Text>
             </View>
 
             {record.tags && record.tags.length > 0 && (
@@ -103,7 +115,10 @@ const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
           </View>
 
           <View style={{ marginTop: 16 }}>
-            <TouchableOpacity style={styles.deleteRow} onPress={() => onDelete(record.id)}>
+            <TouchableOpacity
+              style={styles.deleteRow}
+              onPress={() => onDelete(record.id)}
+            >
               <Ionicons name="trash-outline" size={20} color="#FF3B30" />
               <Text style={styles.deleteRowText}>Delete Record</Text>
             </TouchableOpacity>
@@ -117,44 +132,44 @@ const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   cancelButton: {
     fontSize: 16,
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   shareButton: {
     fontSize: 16,
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
   },
   modalContent: {
     flex: 1,
     padding: 20,
   },
   recordDetailCard: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 12,
     padding: 20,
   },
   recordDetailHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
   recordDetailInfo: {
@@ -163,42 +178,42 @@ const styles = StyleSheet.create({
   },
   recordDetailName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     marginBottom: 4,
   },
   recordDetailType: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
   },
   recordDetailMeta: {
     marginBottom: 16,
   },
   recordDetailDate: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 4,
   },
   recordDetailSize: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
   },
   recordDetailTags: {
     marginBottom: 16,
   },
   recordDetailSectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     marginBottom: 8,
   },
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 8,
   },
   tag: {
-    backgroundColor: '#3AABF020',
+    backgroundColor: "#3AABF020",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -207,35 +222,35 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   recordDetailNotes: {
     marginBottom: 16,
   },
   recordDetailNotesText: {
     fontSize: 14,
-    color: '#ccc',
+    color: "#ccc",
     lineHeight: 20,
   },
   recordDetailPreview: {
     marginBottom: 16,
   },
   recordDetailImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 8,
-    backgroundColor: '#222',
+    backgroundColor: "#222",
   },
   deleteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     paddingVertical: 12,
   },
   deleteRowText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
 });

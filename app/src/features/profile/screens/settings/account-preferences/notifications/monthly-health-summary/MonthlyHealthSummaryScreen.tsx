@@ -1,5 +1,5 @@
-import React from 'react';
-import NotificationToggleScreen from '../components/NotificationToggleScreen';
+import React from "react";
+import NotificationToggleScreen from "../components/NotificationToggleScreen";
 
 const MonthlyHealthSummaryScreen: React.FC = () => (
   <NotificationToggleScreen

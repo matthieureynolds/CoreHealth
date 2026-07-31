@@ -1,5 +1,5 @@
 import { Alert, Keyboard, Linking, Platform } from "react-native";
-import { LocationData, TravelHealth } from "../../../../../shared/types";
+import { LocationData, TravelHealth } from "@shared/types";
 import { createTripHandlers } from "./useTripHandlers";
 
 export type { Trip } from "./useTripHandlers";

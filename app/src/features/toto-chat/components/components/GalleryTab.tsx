@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   ScrollView,
   Image,
   Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const H_PADDING = 16;
 const GAP = 8;
 const availableWidth = width - H_PADDING * 2 - GAP * 2;
@@ -86,30 +86,30 @@ const styles = StyleSheet.create({
   cameraButton: {
     width: itemSize,
     height: itemSize * 2 + GAP,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
     marginRight: GAP,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: "#2C2C2E",
   },
   cameraIconContainer: {
     width: 48,
     height: 48,
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   photosGrid: {
     flex: 1,
   },
   photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
   },
   photoItem: {
     width: itemSize,
@@ -117,21 +117,21 @@ const styles = StyleSheet.create({
     marginBottom: GAP,
     marginRight: GAP,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   photoImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1C1C1E',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#1C1C1E",
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 48,
   },
   emptyStateText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 16,
     marginTop: 16,
   },

@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
-import BiomarkerItem, { BiomarkerInfo } from './BiomarkerItem';
+import React from "react";
+import { View, Text, TouchableOpacity, Switch, StyleSheet } from "react-native";
+import BiomarkerItem, { BiomarkerInfo } from "./BiomarkerItem";
 
 interface CategorySectionProps {
   category: string;
@@ -38,7 +38,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
         <Switch
           value={allVisible}
           onValueChange={(value) => onToggleCategory(category, value)}
-          trackColor={{ false: '#E5E5EA', true: '#30D158' }}
+          trackColor={{ false: "#E5E5EA", true: "#30D158" }}
           thumbColor="#fff"
         />
       </TouchableOpacity>
@@ -61,26 +61,26 @@ const styles = StyleSheet.create({
     marginTop: 35,
   },
   categoryHeader: {
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C6C6C8',
+    borderBottomColor: "#C6C6C8",
   },
   categoryLeft: {
     flex: 1,
   },
   categoryTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: "600",
+    color: "#000000",
   },
   categoryCount: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 2,
   },
 });

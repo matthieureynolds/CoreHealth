@@ -1,23 +1,22 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import BiomarkerSummaryCard from '../../../../shared/components/cards/BiomarkerSummaryCard';
-import { colors } from '../../../../shared/theme/colors';
+import React from "react";
+import { View, ScrollView, StyleSheet, Alert } from "react-native";
+import BiomarkerSummaryCard from "@shared/components/cards/BiomarkerSummaryCard";
+import { colors } from "@shared/theme/colors";
 
 export default function BiomarkerDashboard() {
   const handleUpload = () => {
     Alert.alert(
-      'Upload Lab Results',
-      'This will open the lab results upload feature.',
-      [{ text: 'OK' }]
+      "Upload Lab Results",
+      "This will open the lab results upload feature.",
+      [{ text: "OK" }],
     );
   };
 
-  const handleFilterChange = (filter: string) => {
-  };
+  const handleFilterChange = (filter: string) => {};
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >

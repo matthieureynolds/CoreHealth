@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, Switch, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, Switch, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface SyncSettingsCardProps {
   autoSync: boolean;
@@ -29,7 +29,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
       <Switch
         value={autoSync}
         onValueChange={onAutoSyncChange}
-        trackColor={{ false: '#E5E5EA', true: '#3AABF0' }}
+        trackColor={{ false: "#E5E5EA", true: "#3AABF0" }}
         thumbColor="#fff"
         ios_backgroundColor="#E5E5EA"
       />
@@ -48,7 +48,7 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
       <Switch
         value={backgroundSync}
         onValueChange={onBackgroundSyncChange}
-        trackColor={{ false: '#E5E5EA', true: '#3AABF0' }}
+        trackColor={{ false: "#E5E5EA", true: "#3AABF0" }}
         thumbColor="#fff"
         ios_backgroundColor="#E5E5EA"
       />
@@ -59,7 +59,9 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
         <Ionicons name="time" size={20} color="#3AABF0" />
         <View style={styles.settingText}>
           <Text style={styles.settingTitle}>Sync Frequency</Text>
-          <Text style={styles.settingDescription}>How often to sync your data</Text>
+          <Text style={styles.settingDescription}>
+            How often to sync your data
+          </Text>
         </View>
       </View>
       <View style={styles.settingValue}>
@@ -72,25 +74,25 @@ const SyncSettingsCard: React.FC<SyncSettingsCardProps> = ({
 
 const styles = StyleSheet.create({
   settingsCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: "#F2F2F7",
   },
   settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   settingText: {
@@ -99,21 +101,21 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   settingValue: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   settingValueText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginRight: 4,
   },
 });

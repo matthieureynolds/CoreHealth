@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 /** Screen shell, header, tabs, scroll, trip rows, add-trip CTA */
 export const travelShellStyles = StyleSheet.create({

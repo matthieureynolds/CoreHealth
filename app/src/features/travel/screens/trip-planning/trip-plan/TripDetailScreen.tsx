@@ -17,18 +17,15 @@ import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSettings } from "../../../../../shared/context/SettingsContext";
-import {
-  TravelStackParamList,
-  SerializedTrip,
-} from "../../../../../shared/types";
-import { EnhancedJetLagService } from "../../../../../shared/services/jetlag-brain/enhancedJetLagService";
-import { PlanDay, Action, Commitment } from "../../../../../shared/types";
+import { useSettings } from "@shared/context/SettingsContext";
+import { TravelStackParamList, SerializedTrip } from "@shared/types";
+import { EnhancedJetLagService } from "@shared/services/jetlag-brain/enhancedJetLagService";
+import { PlanDay, Action, Commitment } from "@shared/types";
 import {
   buildEnhancedTrip,
   TripForPlan,
   getCityUtcOffsetHours,
-} from "../../../../../shared/services/jetlag-brain/jetLagService";
+} from "@shared/services/jetlag-brain/jetLagService";
 import {
   estimateCircadianPhase,
   computeAdaptationFactor,
@@ -36,15 +33,15 @@ import {
   DEFAULT_EFFICIENCY,
   CircadianEstimate,
   DirectionalEfficiency,
-} from "../../../../../shared/services/jetlag-brain/circadianModel";
-import { useHealthData } from "../../../../../shared/context/HealthDataContext";
+} from "@shared/services/jetlag-brain/circadianModel";
+import { useHealthData } from "@shared/context/HealthDataContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getRecentSleepWindow,
   getOvernightHrNadir,
   getOvernightGlucoseNadir,
-} from "../../../../../shared/services/device/healthKitService";
-import { palette } from "../../../../../shared/theme/colors";
+} from "@shared/services/device/healthKitService";
+import { palette } from "@shared/theme/colors";
 
 type TripDetailRoute = RouteProp<TravelStackParamList, "TripDetail">;
 type TripDetailNav = StackNavigationProp<TravelStackParamList, "TripDetail">;

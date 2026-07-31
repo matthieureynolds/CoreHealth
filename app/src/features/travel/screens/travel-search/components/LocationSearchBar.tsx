@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
-import { CitySearchResult } from "../../../../../shared/services/travel/citySearchService";
+import { CitySearchResult } from "@shared/services/travel/citySearchService";
 import { styles } from "../TravelScreen.styles";
 import { GLASS_AVAILABLE, GLASS_TINT } from "./glass";
 import { useTypewriter } from "../hooks/useTypewriter";
 import { popularCities } from "../hooks/useTravelState";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 // The animated placeholder ticks every 80ms. Owning it here keeps those renders
 // local to the search bar; it used to live in TravelScreen and re-render the

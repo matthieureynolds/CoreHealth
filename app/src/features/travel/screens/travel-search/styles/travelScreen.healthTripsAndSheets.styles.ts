@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 /** Vaccinations, health summary, metrics, trip cards, jet lag, date pickers, bottom sheet */
 export const travelHealthTripsAndSheetsStyles = StyleSheet.create({

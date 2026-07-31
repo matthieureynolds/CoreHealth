@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Animated } from "react-native";
 
 interface TwitterLoadingIndicatorProps {
   visible: boolean;
   text?: string;
 }
 
-const TwitterLoadingIndicator: React.FC<TwitterLoadingIndicatorProps> = ({ 
-  visible, 
-  text = "Loading..." 
+const TwitterLoadingIndicator: React.FC<TwitterLoadingIndicatorProps> = ({
+  visible,
+  text = "Loading...",
 }) => {
   const spinValue = useRef(new Animated.Value(0)).current;
   const scaleValue = useRef(new Animated.Value(0.8)).current;
@@ -36,7 +36,7 @@ const TwitterLoadingIndicator: React.FC<TwitterLoadingIndicatorProps> = ({
           toValue: 1,
           duration: 1000,
           useNativeDriver: true,
-        })
+        }),
       );
       rotateAnimation.start();
 
@@ -63,26 +63,26 @@ const TwitterLoadingIndicator: React.FC<TwitterLoadingIndicatorProps> = ({
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ["0deg", "360deg"],
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
         {
           opacity: opacityValue,
           transform: [{ scale: scaleValue }],
-        }
+        },
       ]}
     >
       <View style={styles.loadingContainer}>
-        <Animated.View 
+        <Animated.View
           style={[
             styles.spinner,
             {
               transform: [{ rotate: spin }],
-            }
+            },
           ]}
         >
           <View style={styles.spinnerInner} />
@@ -95,19 +95,19 @@ const TwitterLoadingIndicator: React.FC<TwitterLoadingIndicatorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
   loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   spinner: {
     width: 40,
@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 3,
-    borderColor: 'transparent',
-    borderTopColor: '#1DA1F2', // Twitter blue
-    borderRightColor: '#1DA1F2',
+    borderColor: "transparent",
+    borderTopColor: "#1DA1F2", // Twitter blue
+    borderRightColor: "#1DA1F2",
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
 

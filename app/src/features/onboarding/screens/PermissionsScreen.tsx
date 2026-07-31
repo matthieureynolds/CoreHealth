@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   ScrollView,
   Alert,
   Linking,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
   onNext: () => void;
@@ -24,56 +24,60 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
 
   const permissionItems = [
     {
-      id: 'location',
-      title: 'Location Access',
-      description: 'For Travel Health features and location-based health insights',
-      icon: 'location-outline',
-      color: '#FF9500',
-      reason: 'So TOTO can keep you safe wherever you are',
+      id: "location",
+      title: "Location Access",
+      description:
+        "For Travel Health features and location-based health insights",
+      icon: "location-outline",
+      color: "#FF9500",
+      reason: "So TOTO can keep you safe wherever you are",
     },
     {
-      id: 'notifications',
-      title: 'Notifications',
-      description: 'For medication reminders, lab results, and health alerts',
-      icon: 'notifications-outline',
-      color: '#34C759',
-      reason: 'Stay on top of your health with timely reminders',
+      id: "notifications",
+      title: "Notifications",
+      description: "For medication reminders, lab results, and health alerts",
+      icon: "notifications-outline",
+      color: "#34C759",
+      reason: "Stay on top of your health with timely reminders",
     },
     {
-      id: 'fileAccess',
-      title: 'File Access',
-      description: 'To upload and manage your medical documents and PDFs',
-      icon: 'document-outline',
-      color: '#3AABF0',
-      reason: 'Easily store and access your medical records',
+      id: "fileAccess",
+      title: "File Access",
+      description: "To upload and manage your medical documents and PDFs",
+      icon: "document-outline",
+      color: "#3AABF0",
+      reason: "Easily store and access your medical records",
     },
   ];
 
   const handlePermissionToggle = (permissionId: keyof typeof permissions) => {
-    setPermissions(prev => ({
+    setPermissions((prev) => ({
       ...prev,
-      [permissionId]: !prev[permissionId]
+      [permissionId]: !prev[permissionId],
     }));
   };
 
   const handleRequestPermission = (permissionId: string) => {
     Alert.alert(
-      'Permission Required',
+      "Permission Required",
       `TOTO needs ${permissionId} permission to provide the best experience.`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Open Settings', 
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Open Settings",
           onPress: () => {
             // In a real app, you would request the actual permission here
-            Alert.alert('Permission Granted', 'Permission has been granted successfully!');
-            setPermissions(prev => ({
+            Alert.alert(
+              "Permission Granted",
+              "Permission has been granted successfully!",
+            );
+            setPermissions((prev) => ({
               ...prev,
-              [permissionId]: true
+              [permissionId]: true,
             }));
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -86,12 +90,12 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onBack}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#3AABF0" />
         </TouchableOpacity>
         <Text style={styles.title}>Permissions</Text>
@@ -104,28 +108,50 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
         {permissionItems.map((item) => (
           <View key={item.id} style={styles.permissionCard}>
             <View style={styles.permissionHeader}>
-              <View style={[styles.permissionIcon, { backgroundColor: item.color + '20' }]}>
-                <Ionicons name={item.icon as any} size={24} color={item.color} />
+              <View
+                style={[
+                  styles.permissionIcon,
+                  { backgroundColor: item.color + "20" },
+                ]}
+              >
+                <Ionicons
+                  name={item.icon as any}
+                  size={24}
+                  color={item.color}
+                />
               </View>
               <View style={styles.permissionInfo}>
                 <Text style={styles.permissionTitle}>{item.title}</Text>
-                <Text style={styles.permissionDescription}>{item.description}</Text>
+                <Text style={styles.permissionDescription}>
+                  {item.description}
+                </Text>
               </View>
               <TouchableOpacity
                 style={[
                   styles.toggleButton,
-                  permissions[item.id as keyof typeof permissions] && styles.toggleButtonActive
+                  permissions[item.id as keyof typeof permissions] &&
+                    styles.toggleButtonActive,
                 ]}
-                onPress={() => handlePermissionToggle(item.id as keyof typeof permissions)}
+                onPress={() =>
+                  handlePermissionToggle(item.id as keyof typeof permissions)
+                }
               >
-                <Ionicons 
-                  name={permissions[item.id as keyof typeof permissions] ? 'checkmark' : 'add'} 
-                  size={16} 
-                  color={permissions[item.id as keyof typeof permissions] ? '#FFFFFF' : '#666'} 
+                <Ionicons
+                  name={
+                    permissions[item.id as keyof typeof permissions]
+                      ? "checkmark"
+                      : "add"
+                  }
+                  size={16}
+                  color={
+                    permissions[item.id as keyof typeof permissions]
+                      ? "#FFFFFF"
+                      : "#666"
+                  }
                 />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.reasonContainer}>
               <Text style={styles.reasonText}>"{item.reason}"</Text>
             </View>
@@ -147,7 +173,8 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
           <View style={styles.privacyText}>
             <Text style={styles.privacyTitle}>Your Privacy is Protected</Text>
             <Text style={styles.privacyDescription}>
-              All your data is encrypted and stored securely. We never share your personal health information.
+              All your data is encrypted and stored securely. We never share
+              your personal health information.
             </Text>
           </View>
         </View>
@@ -159,7 +186,12 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
         </TouchableOpacity>
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.nextButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+          <Ionicons
+            name="arrow-forward"
+            size={20}
+            color="#FFFFFF"
+            style={styles.buttonIcon}
+          />
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -169,7 +201,7 @@ const PermissionsScreen: React.FC<Props> = ({ onNext, onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   scrollContent: {
     flexGrow: 1,
@@ -185,37 +217,37 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     lineHeight: 24,
   },
   content: {
     flex: 1,
   },
   permissionCard: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
   },
   permissionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   permissionIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
   },
   permissionInfo: {
@@ -223,62 +255,62 @@ const styles = StyleSheet.create({
   },
   permissionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 4,
   },
   permissionDescription: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     lineHeight: 20,
   },
   toggleButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E5E5EA',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E5E5EA",
+    alignItems: "center",
+    justifyContent: "center",
   },
   toggleButtonActive: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   reasonContainer: {
-    backgroundColor: '#F0F8FF',
+    backgroundColor: "#F0F8FF",
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
   reasonText: {
     fontSize: 14,
-    color: '#3AABF0',
-    fontStyle: 'italic',
-    textAlign: 'center',
+    color: "#3AABF0",
+    fontStyle: "italic",
+    textAlign: "center",
   },
   requestButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: '#3AABF0',
+    borderColor: "#3AABF0",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   requestButtonText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   privacyContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F0F8FF',
+    flexDirection: "row",
+    backgroundColor: "#F0F8FF",
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   privacyText: {
     flex: 1,
@@ -286,19 +318,19 @@ const styles = StyleSheet.create({
   },
   privacyTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#3AABF0',
+    fontWeight: "600",
+    color: "#3AABF0",
     marginBottom: 4,
   },
   privacyDescription: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     lineHeight: 20,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 20,
   },
   skipButton: {
@@ -307,21 +339,21 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   nextButton: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   nextButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   buttonIcon: {

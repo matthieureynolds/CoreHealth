@@ -1,14 +1,12 @@
-import React from 'react';
+import React from "react";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { ExtractedBiomarker } from "@shared/services/data/documentProcessor";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { ExtractedBiomarker } from '../../../../shared/services/data/documentProcessor';
-import { getBiomarkerStatusColor, getBiomarkerStatusIcon } from '../../utils/biomarkerStatus';
-import styles from './BodyMapStyles';
+  getBiomarkerStatusColor,
+  getBiomarkerStatusIcon,
+} from "../../utils/biomarkerStatus";
+import styles from "./BodyMapStyles";
 
 interface BiomarkerResultsProps {
   extractedBiomarkers: ExtractedBiomarker[];
@@ -16,14 +14,17 @@ interface BiomarkerResultsProps {
 }
 
 const groupBiomarkersByOrgan = (biomarkers: ExtractedBiomarker[]) =>
-  biomarkers.reduce((groups, biomarker) => {
-    const organ = biomarker.organSystem || 'Other';
-    if (!groups[organ]) {
-      groups[organ] = [];
-    }
-    groups[organ].push(biomarker);
-    return groups;
-  }, {} as { [key: string]: ExtractedBiomarker[] });
+  biomarkers.reduce(
+    (groups, biomarker) => {
+      const organ = biomarker.organSystem || "Other";
+      if (!groups[organ]) {
+        groups[organ] = [];
+      }
+      groups[organ].push(biomarker);
+      return groups;
+    },
+    {} as { [key: string]: ExtractedBiomarker[] },
+  );
 
 const BiomarkerResults: React.FC<BiomarkerResultsProps> = ({
   extractedBiomarkers,
@@ -59,7 +60,11 @@ const BiomarkerResults: React.FC<BiomarkerResultsProps> = ({
                 key={`${biomarker.name}-${index}`}
                 style={styles.biomarkerResultItem}
                 onPress={() =>
-                  onBiomarkerPress(biomarker.name, biomarker.value, biomarker.status)
+                  onBiomarkerPress(
+                    biomarker.name,
+                    biomarker.value,
+                    biomarker.status,
+                  )
                 }
                 activeOpacity={0.7}
               >
@@ -84,7 +89,7 @@ const BiomarkerResults: React.FC<BiomarkerResultsProps> = ({
                       { color: getBiomarkerStatusColor(biomarker.status) },
                     ]}
                   >
-                    {biomarker.status?.toUpperCase() || 'NORMAL'}
+                    {biomarker.status?.toUpperCase() || "NORMAL"}
                   </Text>
                 </View>
               </TouchableOpacity>

@@ -1,11 +1,11 @@
 import { Alert } from "react-native";
 import { Animated } from "react-native";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { api } from "../../../../../shared/services/data/apiClient";
-import { FlightLookupService } from "../../../../../shared/services/jetlag-brain/enhancedJetLagService";
-import { getCityTimezone } from "../../../../../shared/services/jetlag-brain/jetLagService";
-import { FlightOption } from "../../../../../shared/types";
-import { logger } from "../../../../../shared/utils/logger";
+import { api } from "@shared/services/data/apiClient";
+import { FlightLookupService } from "@shared/services/jetlag-brain/enhancedJetLagService";
+import { getCityTimezone } from "@shared/services/jetlag-brain/jetLagService";
+import { FlightOption } from "@shared/types";
+import { logger } from "@shared/utils/logger";
 
 function syncTripToBackend(trip: Trip) {
   fetchAuthSession()

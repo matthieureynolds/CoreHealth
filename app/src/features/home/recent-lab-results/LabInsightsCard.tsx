@@ -1,30 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { recentLabResults, LabResult } from './results';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { recentLabResults, LabResult } from "./results";
 import {
   getStatusColor,
   getTrendColor,
   getTrendLabel,
   isGoodTrend,
-} from './utils';
-import { useHealthData } from '../../../shared/context/HealthDataContext';
-import { Biomarker } from '../../../shared/types';
+} from "./utils";
+import { useHealthData } from "@shared/context/HealthDataContext";
+import { Biomarker } from "@shared/types";
 
 function biomarkerToLabResult(b: Biomarker): LabResult {
-  const id = b.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-  const status: LabResult['status'] =
-    b.riskLevel === 'high' ? 'high' : b.riskLevel === 'medium' ? 'borderline' : 'normal';
-  const lastUpdated = b.lastUpdated instanceof Date
-    ? b.lastUpdated.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    : String(b.lastUpdated);
-  return { id, name: b.name, value: b.value, unit: b.unit, trend: 'stable', trendPercent: 0, status, lastUpdated };
+  const id = b.name
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+  const status: LabResult["status"] =
+    b.riskLevel === "high"
+      ? "high"
+      : b.riskLevel === "medium"
+        ? "borderline"
+        : "normal";
+  const lastUpdated =
+    b.lastUpdated instanceof Date
+      ? b.lastUpdated.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : String(b.lastUpdated);
+  return {
+    id,
+    name: b.name,
+    value: b.value,
+    unit: b.unit,
+    trend: "stable",
+    trendPercent: 0,
+    status,
+    lastUpdated,
+  };
 }
 
 interface LabInsightsCardProps {
@@ -32,19 +53,18 @@ interface LabInsightsCardProps {
 }
 
 const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
-  onLabResultPress
+  onLabResultPress,
 }) => {
   const [showCount, setShowCount] = useState(3);
   const [viewAll, setViewAll] = useState(false);
   const { biomarkers } = useHealthData();
 
-  const labResults: LabResult[] = biomarkers.length > 0
-    ? biomarkers.map(biomarkerToLabResult)
-    : recentLabResults;
+  const labResults: LabResult[] =
+    biomarkers.length > 0
+      ? biomarkers.map(biomarkerToLabResult)
+      : recentLabResults;
 
-  const visibleResults = viewAll
-    ? labResults
-    : labResults.slice(0, showCount);
+  const visibleResults = viewAll ? labResults : labResults.slice(0, showCount);
   const hasMore = !viewAll && showCount < 6 && labResults.length > 3;
   const canShowLess = !viewAll && showCount > 3;
   const canShowLessFromAll = viewAll && labResults.length > 3;
@@ -56,7 +76,7 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
     const trendLabel = getTrendLabel(result.trend, good);
 
     return (
-        <TouchableOpacity
+      <TouchableOpacity
         key={result.id}
         style={styles.labResultItem}
         onPress={() => onLabResultPress?.(result)}
@@ -75,15 +95,19 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
               {result.value} {result.unit}
             </Text>
             <View style={styles.trendContainer}>
-              {result.trend !== 'stable' && (
-                <Text style={[styles.trendPercent, { color: trendColor }]}>{result.trendPercent} </Text>
+              {result.trend !== "stable" && (
+                <Text style={[styles.trendPercent, { color: trendColor }]}>
+                  {result.trendPercent}{" "}
+                </Text>
               )}
-              <Text style={[styles.trendLabel, { color: trendColor }]}>{trendLabel}</Text>
+              <Text style={[styles.trendLabel, { color: trendColor }]}>
+                {trendLabel}
+              </Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
         </View>
-        </TouchableOpacity>
+      </TouchableOpacity>
     );
   };
 
@@ -102,24 +126,39 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
         )}
       </View>
       <ScrollView
-        style={[styles.labResultsList, (showCount > 3 || viewAll) && styles.labResultsListExpanded]}
+        style={[
+          styles.labResultsList,
+          (showCount > 3 || viewAll) && styles.labResultsListExpanded,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {visibleResults.map(renderLabResult)}
       </ScrollView>
-      <View style={{ alignItems: 'center', marginTop: 4 }}>
+      <View style={{ alignItems: "center", marginTop: 4 }}>
         {hasMore && (
-          <TouchableOpacity onPress={() => setShowCount(6)} style={styles.moreTab}>
+          <TouchableOpacity
+            onPress={() => setShowCount(6)}
+            style={styles.moreTab}
+          >
             <Text style={styles.moreTabText}>+ More</Text>
           </TouchableOpacity>
         )}
         {canShowLess && (
-          <TouchableOpacity onPress={() => setShowCount(3)} style={styles.lessTab}>
+          <TouchableOpacity
+            onPress={() => setShowCount(3)}
+            style={styles.lessTab}
+          >
             <Text style={styles.lessTabText}>Show Less</Text>
           </TouchableOpacity>
         )}
         {canShowLessFromAll && (
-          <TouchableOpacity onPress={() => { setShowCount(3); setViewAll(false); }} style={styles.lessTab}>
+          <TouchableOpacity
+            onPress={() => {
+              setShowCount(3);
+              setViewAll(false);
+            }}
+            style={styles.lessTab}
+          >
             <Text style={styles.lessTabText}>Show Less</Text>
           </TouchableOpacity>
         )}
@@ -135,50 +174,50 @@ const LabInsightsCard: React.FC<LabInsightsCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 16,
     marginVertical: 8,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginLeft: 8,
   },
   viewAllText: {
     fontSize: 14,
-    color: '#3AABF0',
-    fontWeight: '500',
+    color: "#3AABF0",
+    fontWeight: "500",
   },
   labResultsList: {
     maxHeight: 200,
   },
   labResultItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     marginBottom: 8,
     minHeight: 60,
   },
   labResultLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     marginRight: 12,
   },
@@ -187,77 +226,77 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginRight: 12,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   labResultContent: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   labResultName: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   labResultDate: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   labResultRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   labResultValueContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginRight: 8,
   },
   labResultValue: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   trendContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   trendPercent: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 2,
   },
   trendLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 2,
   },
   footer: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
+    borderTopColor: "#2C2C2E",
   },
   footerText: {
     fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
   moreTab: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
   moreTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
     fontSize: 14,
   },
   lessTab: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
   lessTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
     fontSize: 14,
   },
   labResultsListExpanded: {
@@ -265,4 +304,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LabInsightsCard; 
+export default LabInsightsCard;

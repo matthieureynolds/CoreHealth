@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,20 +6,20 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import BiomarkerComparisonModal from './BiomarkerComparisonModal';
-import BiomarkerResultCard from './components/BiomarkerResultCard';
-import BiomarkerRangeIndicator from './components/BiomarkerRangeIndicator';
-import BiomarkerHistoryGraph from './components/BiomarkerHistoryGraph';
-import BiomarkerInfoSections from './components/BiomarkerInfoSections';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import BiomarkerComparisonModal from "./BiomarkerComparisonModal";
+import BiomarkerResultCard from "./components/BiomarkerResultCard";
+import BiomarkerRangeIndicator from "./components/BiomarkerRangeIndicator";
+import BiomarkerHistoryGraph from "./components/BiomarkerHistoryGraph";
+import BiomarkerInfoSections from "./components/BiomarkerInfoSections";
 
 export interface BiomarkerInfo {
   name: string;
   value: number;
   unit: string;
   referenceRange: string;
-  status: 'normal' | 'low' | 'high' | 'critical';
+  status: "normal" | "low" | "high" | "critical";
   explanation: string;
   whatItMeans: string;
   tips: string[];
@@ -49,15 +49,24 @@ interface BiomarkerModalProps {
 
 const getBackgroundColor = (status: string) => {
   switch (status) {
-    case 'normal': return '#1C3A1C';
-    case 'low': return '#3A2F1C';
-    case 'high': return '#3A2F1C';
-    case 'critical': return '#3A1C1C';
-    default: return '#2C2C2E';
+    case "normal":
+      return "#1C3A1C";
+    case "low":
+      return "#3A2F1C";
+    case "high":
+      return "#3A2F1C";
+    case "critical":
+      return "#3A1C1C";
+    default:
+      return "#2C2C2E";
   }
 };
 
-const BiomarkerModal: React.FC<BiomarkerModalProps> = ({ visible, biomarker, onClose }) => {
+const BiomarkerModal: React.FC<BiomarkerModalProps> = ({
+  visible,
+  biomarker,
+  onClose,
+}) => {
   const [comparisonModalVisible, setComparisonModalVisible] = useState(false);
 
   if (!biomarker) return null;
@@ -112,19 +121,19 @@ const BiomarkerModal: React.FC<BiomarkerModalProps> = ({ visible, biomarker, onC
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     zIndex: 1000,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
+    borderBottomColor: "#3A3A3C",
   },
   closeButton: {
     padding: 8,
@@ -132,13 +141,13 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: -70,
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   placeholder: {
     width: 40,

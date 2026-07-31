@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-type FilterType = 'all' | 'physical' | 'mental';
+type FilterType = "all" | "physical" | "mental";
 
 interface SymptomFilterTabsProps {
   filter: FilterType;
@@ -9,21 +9,32 @@ interface SymptomFilterTabsProps {
 }
 
 const TABS: { key: FilterType; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'physical', label: 'Physical' },
-  { key: 'mental', label: 'Mental' },
+  { key: "all", label: "All" },
+  { key: "physical", label: "Physical" },
+  { key: "mental", label: "Mental" },
 ];
 
-const SymptomFilterTabs: React.FC<SymptomFilterTabsProps> = ({ filter, onFilterChange }) => (
+const SymptomFilterTabs: React.FC<SymptomFilterTabsProps> = ({
+  filter,
+  onFilterChange,
+}) => (
   <View style={styles.filterSection}>
     <View style={styles.filterTabs}>
-      {TABS.map(tab => (
+      {TABS.map((tab) => (
         <TouchableOpacity
           key={tab.key}
-          style={[styles.filterTab, filter === tab.key && styles.filterTabActive]}
+          style={[
+            styles.filterTab,
+            filter === tab.key && styles.filterTabActive,
+          ]}
           onPress={() => onFilterChange(tab.key)}
         >
-          <Text style={[styles.filterTabText, filter === tab.key && styles.filterTabTextActive]}>
+          <Text
+            style={[
+              styles.filterTabText,
+              filter === tab.key && styles.filterTabTextActive,
+            ]}
+          >
             {tab.label}
           </Text>
         </TouchableOpacity>
@@ -38,8 +49,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   filterTabs: {
-    flexDirection: 'row',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     padding: 4,
   },
@@ -48,18 +59,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   filterTabActive: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   filterTabText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   filterTabTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
 });
 

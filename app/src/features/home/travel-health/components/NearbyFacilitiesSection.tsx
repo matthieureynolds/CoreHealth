@@ -8,9 +8,9 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { JetLagPlanningEvent } from "../../../../shared/types/jetlag";
+import { JetLagPlanningEvent } from "@shared/types/jetlag";
 import JetLagPlanningCard from "../jet-lag-planning/JetLagPlanningCard";
-import EmptyState from "../../../../shared/components/feedback/EmptyState";
+import EmptyState from "@shared/components/feedback/EmptyState";
 
 interface Facility {
   id: string;

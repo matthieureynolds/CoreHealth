@@ -1,7 +1,16 @@
-import React from 'react';
-import { View, Text, Modal, TouchableOpacity, TouchableWithoutFeedback, ScrollView, TextInput, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React from "react";
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  ScrollView,
+  TextInput,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 interface AddAppointmentModalProps {
   visible: boolean;
@@ -25,9 +34,24 @@ interface AddAppointmentModalProps {
 }
 
 const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
-  visible, title, doctor, appointmentDate, location, notes, attachedFile,
-  showDatePicker, onClose, onSave, onChangeTitle, onChangeDoctor, onChangeLoc,
-  onChangeNotes, onShowDatePicker, onDateChange, onAttachFile, formatDate,
+  visible,
+  title,
+  doctor,
+  appointmentDate,
+  location,
+  notes,
+  attachedFile,
+  showDatePicker,
+  onClose,
+  onSave,
+  onChangeTitle,
+  onChangeDoctor,
+  onChangeLoc,
+  onChangeNotes,
+  onShowDatePicker,
+  onDateChange,
+  onAttachFile,
+  formatDate,
 }) => (
   <Modal visible={visible} transparent animationType="fade">
     <TouchableWithoutFeedback onPress={onClose}>
@@ -65,12 +89,21 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
                   placeholderTextColor="#555"
                 />
                 <View style={s.divider} />
-                <TouchableOpacity style={s.groupInput} onPress={onShowDatePicker}>
+                <TouchableOpacity
+                  style={s.groupInput}
+                  onPress={onShowDatePicker}
+                >
                   <View style={s.dateRow}>
-                    <Text style={[s.dateText, !appointmentDate && s.placeholder]}>
-                      {appointmentDate ? formatDate(appointmentDate) : 'Date'}
+                    <Text
+                      style={[s.dateText, !appointmentDate && s.placeholder]}
+                    >
+                      {appointmentDate ? formatDate(appointmentDate) : "Date"}
                     </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color="#8E8E93"
+                    />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -111,7 +144,7 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
               <TouchableOpacity style={s.attachButton} onPress={onAttachFile}>
                 <Ionicons name="document-attach" size={22} color="#3AABF0" />
                 <Text style={s.attachButtonText}>
-                  {attachedFile ? attachedFile.name : 'Attach PDF or image'}
+                  {attachedFile ? attachedFile.name : "Attach PDF or image"}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -125,79 +158,79 @@ const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '85%',
+    maxHeight: "85%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: "#2C2C2E",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   body: {
     padding: 20,
     paddingBottom: 40,
   },
   group: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   groupInput: {
     paddingHorizontal: 16,
     paddingVertical: 13,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   divider: {
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     marginLeft: 16,
   },
   dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   dateText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   placeholder: {
-    color: '#555',
+    color: "#555",
   },
   notesInput: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   attachButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
-    borderStyle: 'dashed',
+    borderColor: "#3A3A3C",
+    borderStyle: "dashed",
     marginTop: 20,
   },
   attachButtonText: {
     fontSize: 16,
-    color: '#3AABF0',
+    color: "#3AABF0",
     marginLeft: 10,
   },
 });

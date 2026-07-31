@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-export type InsightsTab = 'insights' | 'recommendations' | 'actions';
+export type InsightsTab = "insights" | "recommendations" | "actions";
 
 interface InsightsTabBarProps {
   activeTab: InsightsTab;
@@ -16,12 +16,15 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: 'insights', icon: 'bulb', label: 'Insights' },
-  { key: 'recommendations', icon: 'checkmark-circle', label: 'Tips' },
-  { key: 'actions', icon: 'flash', label: 'Actions' },
+  { key: "insights", icon: "bulb", label: "Insights" },
+  { key: "recommendations", icon: "checkmark-circle", label: "Tips" },
+  { key: "actions", icon: "flash", label: "Actions" },
 ];
 
-const InsightsTabBar: React.FC<InsightsTabBarProps> = ({ activeTab, onTabChange }) => (
+const InsightsTabBar: React.FC<InsightsTabBarProps> = ({
+  activeTab,
+  onTabChange,
+}) => (
   <View style={styles.tabContainer}>
     {TABS.map(({ key, icon, label }) => (
       <TouchableOpacity
@@ -32,9 +35,11 @@ const InsightsTabBar: React.FC<InsightsTabBarProps> = ({ activeTab, onTabChange 
         <Ionicons
           name={icon as any}
           size={16}
-          color={activeTab === key ? '#3AABF0' : '#8E8E93'}
+          color={activeTab === key ? "#3AABF0" : "#8E8E93"}
         />
-        <Text style={[styles.tabText, activeTab === key && styles.activeTabText]}>
+        <Text
+          style={[styles.tabText, activeTab === key && styles.activeTabText]}
+        >
           {label}
         </Text>
       </TouchableOpacity>
@@ -44,24 +49,24 @@ const InsightsTabBar: React.FC<InsightsTabBarProps> = ({ activeTab, onTabChange 
 
 const styles = StyleSheet.create({
   tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    backgroundColor: "#F2F2F7",
     borderRadius: 12,
     padding: 4,
     marginBottom: 16,
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -69,12 +74,12 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 13,
-    color: '#8E8E93',
-    fontWeight: '500',
+    color: "#8E8E93",
+    fontWeight: "500",
     marginLeft: 4,
   },
   activeTabText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
 });
 

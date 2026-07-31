@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path, Line, Circle, Text as SvgText } from 'react-native-svg';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path, Line, Circle, Text as SvgText } from "react-native-svg";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface BiomarkerComparisonModalProps {
   visible: boolean;
@@ -33,61 +33,53 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
   biomarker,
   onClose,
 }) => {
-  const [selectedTab, setSelectedTab] = useState<'all' | 'ageSex'>('all');
+  const [selectedTab, setSelectedTab] = useState<"all" | "ageSex">("all");
 
   if (!biomarker) return null;
 
-  const currentPercentile = selectedTab === 'all' 
-    ? biomarker.comparisonData?.allPopulation || biomarker.percentile || 72
-    : biomarker.comparisonData?.ageSexGroup || biomarker.percentile || 75;
+  const currentPercentile =
+    selectedTab === "all"
+      ? biomarker.comparisonData?.allPopulation || biomarker.percentile || 72
+      : biomarker.comparisonData?.ageSexGroup || biomarker.percentile || 75;
 
   const renderBellCurve = () => {
     const graphWidth = width - 60;
     const graphHeight = 200;
     const centerX = graphWidth / 2;
     const centerY = graphHeight / 2;
-    
+
     // Calculate user's position on the curve (percentile to x position)
     const userX = (currentPercentile / 100) * graphWidth;
-    
+
     // Generate bell curve points
     const points = [];
     for (let x = 0; x <= graphWidth; x += 2) {
       const normalizedX = (x - centerX) / (graphWidth * 0.3); // Standard deviation scaling
-      const y = centerY - (Math.exp(-normalizedX * normalizedX / 2) * 80);
+      const y = centerY - Math.exp((-normalizedX * normalizedX) / 2) * 80;
       points.push(`${x},${y}`);
     }
-    
-    const pathData = points.map((point, index) => 
-      `${index === 0 ? 'M' : 'L'} ${point}`
-    ).join(' ');
+
+    const pathData = points
+      .map((point, index) => `${index === 0 ? "M" : "L"} ${point}`)
+      .join(" ");
 
     // Area under curve to user's position
     const areaPoints = [`M 0,${centerY}`];
     for (let x = 0; x <= userX; x += 2) {
       const normalizedX = (x - centerX) / (graphWidth * 0.3);
-      const y = centerY - (Math.exp(-normalizedX * normalizedX / 2) * 80);
+      const y = centerY - Math.exp((-normalizedX * normalizedX) / 2) * 80;
       areaPoints.push(`L ${x},${y}`);
     }
     areaPoints.push(`L ${userX},${centerY} Z`);
-    const areaData = areaPoints.join(' ');
+    const areaData = areaPoints.join(" ");
 
     return (
       <View style={styles.graphContainer}>
         <Svg width={graphWidth} height={graphHeight} style={styles.bellCurve}>
           {/* Area under curve */}
-          <Path
-            d={areaData}
-            fill="#30D158"
-            fillOpacity="0.3"
-          />
+          <Path d={areaData} fill="#30D158" fillOpacity="0.3" />
           {/* Bell curve line */}
-          <Path
-            d={pathData}
-            stroke="#8E8E93"
-            strokeWidth="2"
-            fill="none"
-          />
+          <Path d={pathData} stroke="#8E8E93" strokeWidth="2" fill="none" />
           {/* User's position line */}
           <Line
             x1={userX}
@@ -101,7 +93,13 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
           {/* User's position marker */}
           <Circle
             cx={userX}
-            cy={centerY - (Math.exp(-Math.pow((userX - centerX) / (graphWidth * 0.3), 2) / 2) * 80)}
+            cy={
+              centerY -
+              Math.exp(
+                -Math.pow((userX - centerX) / (graphWidth * 0.3), 2) / 2,
+              ) *
+                80
+            }
             r="6"
             fill="#30D158"
           />
@@ -152,7 +150,9 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.title}>How You Compare</Text>
-            <Text style={styles.subtitle}>Based on latest available medical population data</Text>
+            <Text style={styles.subtitle}>
+              Based on latest available medical population data
+            </Text>
           </View>
           <View style={styles.placeholder} />
         </View>
@@ -161,18 +161,28 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
           {/* Comparison Tabs */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
-              style={[styles.tab, selectedTab === 'all' && styles.activeTab]}
-              onPress={() => setSelectedTab('all')}
+              style={[styles.tab, selectedTab === "all" && styles.activeTab]}
+              onPress={() => setSelectedTab("all")}
             >
-              <Text style={[styles.tabText, selectedTab === 'all' && styles.activeTabText]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === "all" && styles.activeTabText,
+                ]}
+              >
                 All Population
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, selectedTab === 'ageSex' && styles.activeTab]}
-              onPress={() => setSelectedTab('ageSex')}
+              style={[styles.tab, selectedTab === "ageSex" && styles.activeTab]}
+              onPress={() => setSelectedTab("ageSex")}
             >
-              <Text style={[styles.tabText, selectedTab === 'ageSex' && styles.activeTabText]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === "ageSex" && styles.activeTabText,
+                ]}
+              >
                 My Age & Sex Group
               </Text>
             </TouchableOpacity>
@@ -182,7 +192,9 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
           {renderBellCurve()}
 
           {/* X-axis label */}
-          <Text style={styles.axisLabel}>{biomarker.name} ({biomarker.unit})</Text>
+          <Text style={styles.axisLabel}>
+            {biomarker.name} ({biomarker.unit})
+          </Text>
 
           {/* Percentile Result */}
           <View style={styles.resultContainer}>
@@ -190,7 +202,8 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
               You are in the {currentPercentile}th percentile
             </Text>
             <Text style={styles.percentileSubtext}>
-              Higher than {currentPercentile}% of people in your {selectedTab === 'all' ? 'population' : 'demographic group'}
+              Higher than {currentPercentile}% of people in your{" "}
+              {selectedTab === "all" ? "population" : "demographic group"}
             </Text>
           </View>
 
@@ -204,7 +217,8 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
           {/* Data Source */}
           <View style={styles.dataSourceContainer}>
             <Text style={styles.dataSourceText}>
-              Data source: National Health and Nutrition Examination Survey (NHANES) 2017-2020
+              Data source: National Health and Nutrition Examination Survey
+              (NHANES) 2017-2020
             </Text>
           </View>
         </ScrollView>
@@ -216,35 +230,35 @@ const BiomarkerComparisonModal: React.FC<BiomarkerComparisonModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
+    borderBottomColor: "#3A3A3C",
   },
   backButton: {
     padding: 8,
   },
   headerContent: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   placeholder: {
     width: 40,
@@ -254,8 +268,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    flexDirection: "row",
+    backgroundColor: "#1C1C1E",
     borderRadius: 8,
     padding: 4,
     marginBottom: 24,
@@ -265,21 +279,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
   },
   activeTab: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#8E8E93',
+    fontWeight: "500",
+    color: "#8E8E93",
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   graphContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 16,
   },
   bellCurve: {
@@ -287,41 +301,41 @@ const styles = StyleSheet.create({
   },
   axisLabel: {
     fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
     marginBottom: 24,
   },
   resultContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: "#3A3A3C",
   },
   percentileText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 8,
   },
   percentileSubtext: {
     fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
   interpretationContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#3A3A3C',
+    borderColor: "#3A3A3C",
   },
   interpretationText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     lineHeight: 24,
   },
   dataSourceContainer: {
@@ -330,9 +344,9 @@ const styles = StyleSheet.create({
   },
   dataSourceText: {
     fontSize: 12,
-    color: '#8E8E93',
-    fontStyle: 'italic',
-    textAlign: 'center',
+    color: "#8E8E93",
+    fontStyle: "italic",
+    textAlign: "center",
   },
 });
 

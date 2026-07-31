@@ -2,17 +2,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Animated } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AIRLINE_CODES } from "../travelMetricHelpers";
-import { TravelApiErrors, FlightOption } from "../../../../../shared/types";
+import { TravelApiErrors, FlightOption } from "@shared/types";
 import {
   searchAllLocations,
   getPopularCities,
   CitySearchResult,
-} from "../../../../../shared/services/travel/citySearchService";
+} from "@shared/services/travel/citySearchService";
 import { useCitySuggestions } from "./useCitySuggestions";
 import { Trip } from "./useTravelHandlers";
-import { MOCK_TRIPS } from "../../../mockTrips";
-import { searchMockFlights } from "../../../mockFlights";
-import { logger } from "../../../../../shared/utils/logger";
+import { MOCK_TRIPS } from "@features/travel/mockTrips";
+import { searchMockFlights } from "@features/travel/mockFlights";
+import { logger } from "@shared/utils/logger";
 
 export const popularCities = getPopularCities();
 

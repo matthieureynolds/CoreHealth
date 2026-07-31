@@ -1,6 +1,12 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface NameFieldProps {
   value: string;
@@ -10,9 +16,20 @@ interface NameFieldProps {
   completed: boolean;
 }
 
-export const NameField: React.FC<NameFieldProps> = ({ value, onChange, onEndEditing, placeholder, completed }) => (
+export const NameField: React.FC<NameFieldProps> = ({
+  value,
+  onChange,
+  onEndEditing,
+  placeholder,
+  completed,
+}) => (
   <View style={styles.inputContainer}>
-    <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+    <Ionicons
+      name="person-outline"
+      size={20}
+      color="#666"
+      style={styles.inputIcon}
+    />
     <TextInput
       style={styles.input}
       placeholder={placeholder}
@@ -21,7 +38,9 @@ export const NameField: React.FC<NameFieldProps> = ({ value, onChange, onEndEdit
       onEndEditing={onEndEditing}
       autoCapitalize="words"
     />
-    {value && completed && <Ionicons name="checkmark-circle" size={20} color="#34C759" />}
+    {value && completed && (
+      <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+    )}
   </View>
 );
 
@@ -32,9 +51,19 @@ interface EmailFieldProps {
   completed: boolean;
 }
 
-export const EmailField: React.FC<EmailFieldProps> = ({ value, onChange, onEndEditing, completed }) => (
+export const EmailField: React.FC<EmailFieldProps> = ({
+  value,
+  onChange,
+  onEndEditing,
+  completed,
+}) => (
   <View style={styles.inputContainer}>
-    <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+    <Ionicons
+      name="mail-outline"
+      size={20}
+      color="#666"
+      style={styles.inputIcon}
+    />
     <TextInput
       style={styles.input}
       placeholder="Email"
@@ -45,7 +74,9 @@ export const EmailField: React.FC<EmailFieldProps> = ({ value, onChange, onEndEd
       autoCapitalize="none"
       autoCorrect={false}
     />
-    {value && completed && <Ionicons name="checkmark-circle" size={20} color="#34C759" />}
+    {value && completed && (
+      <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+    )}
   </View>
 );
 
@@ -60,10 +91,21 @@ interface PasswordFieldProps {
 }
 
 export const PasswordField: React.FC<PasswordFieldProps> = ({
-  value, onChange, onEndEditing, placeholder, showPassword, onToggleShow, completed
+  value,
+  onChange,
+  onEndEditing,
+  placeholder,
+  showPassword,
+  onToggleShow,
+  completed,
 }) => (
   <View style={styles.inputContainer}>
-    <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+    <Ionicons
+      name="lock-closed-outline"
+      size={20}
+      color="#666"
+      style={styles.inputIcon}
+    />
     <TextInput
       style={styles.input}
       placeholder={placeholder}
@@ -74,9 +116,15 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
       autoCapitalize="none"
     />
     <TouchableOpacity style={styles.eyeIcon} onPress={onToggleShow}>
-      <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color="#666" />
+      <Ionicons
+        name={showPassword ? "eye-outline" : "eye-off-outline"}
+        size={20}
+        color="#666"
+      />
     </TouchableOpacity>
-    {value && completed && <Ionicons name="checkmark-circle" size={20} color="#34C759" />}
+    {value && completed && (
+      <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+    )}
   </View>
 );
 
@@ -85,25 +133,35 @@ interface ProgressBarProps {
   totalSteps: number;
 }
 
-export const ProgressBar: React.FC<ProgressBarProps> = ({ currentStep, totalSteps }) => (
+export const ProgressBar: React.FC<ProgressBarProps> = ({
+  currentStep,
+  totalSteps,
+}) => (
   <View style={styles.progressContainer}>
-    <Text style={styles.progressText}>Step {currentStep} of {totalSteps}</Text>
+    <Text style={styles.progressText}>
+      Step {currentStep} of {totalSteps}
+    </Text>
     <View style={styles.progressBar}>
-      <View style={[styles.progressFill, { width: `${(currentStep / totalSteps) * 100}%` }]} />
+      <View
+        style={[
+          styles.progressFill,
+          { width: `${(currentStep / totalSteps) * 100}%` },
+        ]}
+      />
     </View>
   </View>
 );
 
 const styles = StyleSheet.create({
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: "#333333",
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
   },
   inputIcon: {
     marginRight: 12,
@@ -112,7 +170,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   eyeIcon: {
     padding: 4,
@@ -122,19 +180,19 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: '#A0A0A0',
+    color: "#A0A0A0",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#333333',
+    backgroundColor: "#333333",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#3AABF0',
+    height: "100%",
+    backgroundColor: "#3AABF0",
     borderRadius: 2,
   },
 });

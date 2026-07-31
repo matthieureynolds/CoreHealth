@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { TravelHealth } from "../../../shared/types/travel";
-import { JetLagPlanningEvent } from "../../../shared/types/jetlag";
-import { useSettings } from "../../../shared/context/SettingsContext";
-import { metersToDisplay } from "../../../shared/utils/units";
+import { TravelHealth } from "@shared/types/travel";
+import { JetLagPlanningEvent } from "@shared/types/jetlag";
+import { useSettings } from "@shared/context/SettingsContext";
+import { metersToDisplay } from "@shared/utils/units";
 import EnvironmentalMetricCard, {
   EnvironmentalMetric,
 } from "./components/EnvironmentalMetricCard";

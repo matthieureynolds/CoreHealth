@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   Linking,
   Animated,
   TouchableWithoutFeedback,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import type { MedicalEvent } from '../types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
+import type { MedicalEvent } from "../types";
 
 interface EventDetailsModalProps {
   visible: boolean;
@@ -57,7 +57,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   const handleSwipeEnd = (gestureEvent: any) => {
@@ -76,30 +76,37 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
   const openMaps = (location: string) => {
     Alert.alert(
-      'Navigate to Location',
+      "Navigate to Location",
       `How would you like to navigate to ${location}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Apple Maps',
+          text: "Apple Maps",
           onPress: () => {
             const dest = encodeURIComponent(location);
             Linking.openURL(`http://maps.apple.com/?daddr=${dest}`);
           },
         },
         {
-          text: 'Google Maps',
+          text: "Google Maps",
           onPress: () => {
             const dest = encodeURIComponent(location);
-            Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${dest}`);
+            Linking.openURL(
+              `https://www.google.com/maps/dir/?api=1&destination=${dest}`,
+            );
           },
         },
-      ]
+      ],
     );
   };
 
   return (
-    <Modal visible={visible} transparent animationType="none" presentationStyle="overFullScreen">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      presentationStyle="overFullScreen"
+    >
       <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={dismiss}>
           <View style={StyleSheet.absoluteFill} />
@@ -157,7 +164,9 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                 <View style={styles.section}>
                   <Text style={styles.sectionLabel}>Location</Text>
                   <TouchableOpacity onPress={() => openMaps(event.location!)}>
-                    <Text style={[styles.sectionValue, styles.link]}>{event.location}</Text>
+                    <Text style={[styles.sectionValue, styles.link]}>
+                      {event.location}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -176,9 +185,9 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                     style={styles.fileRow}
                     onPress={() =>
                       onViewFile(
-                        event.attachedFile?.uri ?? '',
-                        event.attachedFile?.name ?? '',
-                        event.attachedFile?.type || undefined
+                        event.attachedFile?.uri ?? "",
+                        event.attachedFile?.name ?? "",
+                        event.attachedFile?.type || undefined,
                       )
                     }
                   >
@@ -202,29 +211,29 @@ export default EventDetailsModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-    position: 'absolute',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
   sheetContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    width: '100%',
+    width: "100%",
     zIndex: 1000,
-    pointerEvents: 'box-none',
+    pointerEvents: "box-none",
   },
   sheetContent: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    width: '100%',
-    shadowColor: '#000',
+    width: "100%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -232,35 +241,35 @@ const styles = StyleSheet.create({
   },
   handleContainer: {
     paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     borderRadius: 2,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "700",
+    color: "#FFFFFF",
+    textAlign: "center",
     flex: 1,
   },
   editButton: {
     width: 32,
     height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   body: {
     flex: 0,
@@ -274,25 +283,25 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginBottom: 6,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   sectionValue: {
     fontSize: 16,
-    fontWeight: '400',
-    color: '#FFFFFF',
+    fontWeight: "400",
+    color: "#FFFFFF",
     lineHeight: 22,
   },
   link: {
-    color: '#3AABF0',
-    textDecorationLine: 'underline',
+    color: "#3AABF0",
+    textDecorationLine: "underline",
   },
   fileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 4,
   },
   fileName: {

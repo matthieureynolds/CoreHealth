@@ -11,8 +11,8 @@ import {
   updatePassword,
   signInWithRedirect,
   getCurrentUser,
-} from 'aws-amplify/auth';
-import { User } from '../types';
+} from "aws-amplify/auth";
+import { User } from "../types";
 
 // ─── Transform Cognito attributes → app User type ─────────────────────────────
 
@@ -25,12 +25,12 @@ export const transformCognitoUser = async (): Promise<User> => {
   return {
     id: userId,
     email: attributes.email ?? username,
-    firstName: attributes.given_name ?? '',
-    surname: attributes.family_name ?? '',
-    preferredName: attributes['custom:preferredName'] ?? '',
-    username: attributes['custom:username'] ?? undefined,
+    firstName: attributes.given_name ?? "",
+    surname: attributes.family_name ?? "",
+    preferredName: attributes["custom:preferredName"] ?? "",
+    username: attributes["custom:username"] ?? undefined,
     photoURL: attributes.picture ?? undefined,
-    emailVerified: attributes.email_verified === 'true',
+    emailVerified: attributes.email_verified === "true",
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -43,8 +43,8 @@ export const performSignUp = async (
   password: string,
   displayName: string,
 ): Promise<{ needsVerification: boolean; email: string }> => {
-  const firstName = displayName.split(' ')[0] ?? displayName;
-  const surname = displayName.split(' ').slice(1).join(' ') ?? '';
+  const firstName = displayName.split(" ")[0] ?? displayName;
+  const surname = displayName.split(" ").slice(1).join(" ") ?? "";
 
   await signUp({
     username: email,
@@ -54,7 +54,7 @@ export const performSignUp = async (
         email,
         given_name: firstName,
         family_name: surname,
-        'custom:preferredName': displayName,
+        "custom:preferredName": displayName,
       },
       autoSignIn: false,
     },
@@ -91,11 +91,11 @@ export const performResetPassword = async (email: string): Promise<void> => {
 };
 
 export const performSignInWithGoogle = async (): Promise<void> => {
-  await signInWithRedirect({ provider: 'Google' });
+  await signInWithRedirect({ provider: "Google" });
 };
 
 export const performSignInWithApple = async (): Promise<void> => {
-  await signInWithRedirect({ provider: 'Apple' });
+  await signInWithRedirect({ provider: "Apple" });
 };
 
 export const performGetCurrentUser = async (): Promise<User | null> => {
@@ -125,7 +125,9 @@ export const performUpdateDisplayName = async (
   user: User,
   displayName: string,
 ): Promise<User> => {
-  await updateUserAttributes({ userAttributes: { 'custom:preferredName': displayName } });
+  await updateUserAttributes({
+    userAttributes: { "custom:preferredName": displayName },
+  });
   return { ...user, preferredName: displayName };
 };
 
@@ -139,10 +141,11 @@ export const performUpdateUserName = async (
     userAttributes: {
       given_name: firstName,
       family_name: surname,
-      'custom:preferredName': preferredName,
+      "custom:preferredName": preferredName,
     },
   });
-  const displayName = preferredName || [firstName, surname].filter(Boolean).join(' ');
+  const displayName =
+    preferredName || [firstName, surname].filter(Boolean).join(" ");
   return { ...user, firstName, surname, preferredName, displayName };
 };
 
@@ -152,15 +155,19 @@ export const performUpdateUsername = async (
 ): Promise<User> => {
   const sanitized = username
     .toLowerCase()
-    .replace(/[^a-z0-9_.]/g, '')
-    .replace(/\.{2,}/g, '.')
-    .replace(/^\.|\.$/g, '');
+    .replace(/[^a-z0-9_.]/g, "")
+    .replace(/\.{2,}/g, ".")
+    .replace(/^\.|\.$/g, "");
 
   if (!sanitized || sanitized.length < 3) {
-    throw new Error('Username must be at least 3 characters and contain only letters, numbers, underscores, or dots.');
+    throw new Error(
+      "Username must be at least 3 characters and contain only letters, numbers, underscores, or dots.",
+    );
   }
 
-  await updateUserAttributes({ userAttributes: { 'custom:username': sanitized } });
+  await updateUserAttributes({
+    userAttributes: { "custom:username": sanitized },
+  });
   return { ...user, username: sanitized };
 };
 

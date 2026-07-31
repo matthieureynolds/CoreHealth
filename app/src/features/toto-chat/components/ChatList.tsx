@@ -1,51 +1,68 @@
-import React, { useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, findNodeHandle, UIManager, Animated } from 'react-native';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import { TortoAvatar } from './TortoAvatar';
-import { useSendAnimation } from '../../../shared/hooks/useSendAnimation';
+import React, { useCallback, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  findNodeHandle,
+  UIManager,
+  Animated,
+} from "react-native";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
+import { TortoAvatar } from "./TortoAvatar";
+import { useSendAnimation } from "@shared/hooks/useSendAnimation";
 
 export interface ChatMessage {
   id: string;
   clientId: string;
   text: string;
-  role: 'user' | 'assistant';
-  status?: 'sending' | 'sent';
+  role: "user" | "assistant";
+  status?: "sending" | "sent";
   timestamp: Date;
 }
 
 interface ChatListProps {
   messages: ChatMessage[];
-  onMessageLayout?: (clientId: string, rect: { x: number; y: number; w: number; h: number }) => void;
+  onMessageLayout?: (
+    clientId: string,
+    rect: { x: number; y: number; w: number; h: number },
+  ) => void;
   streamingId?: string; // assistant message currently streaming
 }
 
-export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, streamingId }) => {
+export const ChatList: React.FC<ChatListProps> = ({
+  messages,
+  onMessageLayout,
+  streamingId,
+}) => {
   const sendAnim = useSendAnimation();
 
-  const renderMessage = useCallback((item: ChatMessage) => {
-    // Add safety checks
-    if (!item || !item.id || !item.text || !item.role) {
-      console.warn('Invalid message item:', item);
-      return null;
-    }
+  const renderMessage = useCallback(
+    (item: ChatMessage) => {
+      // Add safety checks
+      if (!item || !item.id || !item.text || !item.role) {
+        console.warn("Invalid message item:", item);
+        return null;
+      }
 
-    return (
-      <MessageRow
-        key={item.id}
-        message={item}
-        isStreaming={streamingId === item.id}
-        onLayoutMeasured={(node) => {
-          const handle = findNodeHandle(node);
-          if (!handle) return;
-          UIManager.measureInWindow(handle, (x, y, width, height) => {
-            const rect = { x, y, w: width, h: height };
-            sendAnim.setEndRect(item.clientId, rect);
-            onMessageLayout?.(item.clientId, rect);
-          });
-        }}
-      />
-    );
-  }, [sendAnim, onMessageLayout]);
+      return (
+        <MessageRow
+          key={item.id}
+          message={item}
+          isStreaming={streamingId === item.id}
+          onLayoutMeasured={(node) => {
+            const handle = findNodeHandle(node);
+            if (!handle) return;
+            UIManager.measureInWindow(handle, (x, y, width, height) => {
+              const rect = { x, y, w: width, h: height };
+              sendAnim.setEndRect(item.clientId, rect);
+              onMessageLayout?.(item.clientId, rect);
+            });
+          }}
+        />
+      );
+    },
+    [sendAnim, onMessageLayout],
+  );
 
   return (
     <View style={styles.container}>
@@ -53,7 +70,9 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, s
         messages.map(renderMessage)
       ) : (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Start a conversation with your Health Assistant</Text>
+          <Text style={styles.emptyStateText}>
+            Start a conversation with your Health Assistant
+          </Text>
         </View>
       )}
     </View>
@@ -64,9 +83,9 @@ export const ChatList: React.FC<ChatListProps> = ({ messages, onMessageLayout, s
 const formatTimestamp = (date: Date): string => {
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const ampm = hours >= 12 ? "PM" : "AM";
   const displayHours = hours % 12 || 12;
-  const displayMinutes = minutes.toString().padStart(2, '0');
+  const displayMinutes = minutes.toString().padStart(2, "0");
   return `${displayHours}:${displayMinutes} ${ampm}`;
 };
 
@@ -77,8 +96,12 @@ const MessageRow: React.FC<{
   onLayoutMeasured: (node: View | null) => void;
 }> = ({ message, isStreaming, onLayoutMeasured }) => {
   const ref = useRef<View>(null);
-  const fade = useRef(new Animated.Value(message.role === 'assistant' ? 0 : 1)).current;
-  const slideY = useRef(new Animated.Value(message.role === 'assistant' ? 6 : 0)).current;
+  const fade = useRef(
+    new Animated.Value(message.role === "assistant" ? 0 : 1),
+  ).current;
+  const slideY = useRef(
+    new Animated.Value(message.role === "assistant" ? 6 : 0),
+  ).current;
 
   // Swipe-to-reveal timestamp for user messages
   const translateX = useRef(new Animated.Value(0)).current;
@@ -86,29 +109,47 @@ const MessageRow: React.FC<{
   const MAX_SWIPE_DISTANCE = -58; // enough to reveal full timestamp (e.g. "12 PM") without overdoing it
 
   useEffect(() => {
-    if (message.role !== 'assistant') return;
+    if (message.role !== "assistant") return;
     Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 180, useNativeDriver: true }),
-      Animated.timing(slideY, { toValue: 0, duration: 180, useNativeDriver: true })
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideY, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
 
   useEffect(() => {
-    if (message.role !== 'assistant') return;
+    if (message.role !== "assistant") return;
     fade.setValue(0.88);
     slideY.setValue(4);
     Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 140, useNativeDriver: true }),
-      Animated.timing(slideY, { toValue: 0, duration: 140, useNativeDriver: true })
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 140,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideY, {
+        toValue: 0,
+        duration: 140,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, [message.text]);
 
   // Handle pan gesture for user messages
   const lastTranslationX = useRef(0);
-  
-  const onGestureEvent = (event: { nativeEvent: { translationX: number; state: number } }) => {
+
+  const onGestureEvent = (event: {
+    nativeEvent: { translationX: number; state: number };
+  }) => {
     const translationX = event.nativeEvent.translationX;
-    
+
     // Only allow left swipe (negative values)
     if (translationX > 0) {
       translateX.setValue(0);
@@ -116,30 +157,34 @@ const MessageRow: React.FC<{
       lastTranslationX.current = 0;
       return;
     }
-    
+
     // Clamp to max distance
     const clampedX = Math.max(translationX, MAX_SWIPE_DISTANCE);
     translateX.setValue(clampedX);
     lastTranslationX.current = clampedX;
-    
+
     // Calculate timestamp opacity based on drag progress (0 to 1)
     const progress = Math.abs(clampedX) / Math.abs(MAX_SWIPE_DISTANCE);
     timestampOpacity.setValue(progress);
   };
 
-  const onHandlerStateChange = (event: { nativeEvent: { translationX: number; state: number } }) => {
+  const onHandlerStateChange = (event: {
+    nativeEvent: { translationX: number; state: number };
+  }) => {
     const { state, translationX } = event.nativeEvent;
-    
+
     if (state === State.ACTIVE) {
       // Gesture is active, already handled in onGestureEvent
       return;
     }
-    
+
     if (state === State.END || state === State.CANCELLED) {
       // Spring back to original position
       translateX.setValue(lastTranslationX.current);
-      timestampOpacity.setValue(Math.abs(lastTranslationX.current) / Math.abs(MAX_SWIPE_DISTANCE));
-      
+      timestampOpacity.setValue(
+        Math.abs(lastTranslationX.current) / Math.abs(MAX_SWIPE_DISTANCE),
+      );
+
       Animated.parallel([
         Animated.spring(translateX, {
           toValue: 0,
@@ -154,7 +199,7 @@ const MessageRow: React.FC<{
           stiffness: 200,
         }),
       ]).start();
-      
+
       lastTranslationX.current = 0;
     }
   };
@@ -163,34 +208,42 @@ const MessageRow: React.FC<{
     <Animated.View
       style={[
         styles.messageContainer,
-        message.role === 'user' ? styles.userMessage : styles.assistantMessage,
-        message.role === 'user' && {
+        message.role === "user" ? styles.userMessage : styles.assistantMessage,
+        message.role === "user" && {
           transform: [{ translateX }],
         },
       ]}
     >
-      <Animated.Text style={[
-        styles.messageText,
-        message.role === 'user' ? styles.userMessageText : styles.assistantMessageText,
-        message.role === 'assistant' ? { opacity: fade, transform: [{ translateY: slideY }] } : null
-      ]}>
+      <Animated.Text
+        style={[
+          styles.messageText,
+          message.role === "user"
+            ? styles.userMessageText
+            : styles.assistantMessageText,
+          message.role === "assistant"
+            ? { opacity: fade, transform: [{ translateY: slideY }] }
+            : null,
+        ]}
+      >
         {message.text}
       </Animated.Text>
     </Animated.View>
   );
 
   return (
-    <View style={[
-      styles.messageRow,
-      message.role === 'user' ? styles.rowRight : styles.rowLeft
-    ]}>
-      {message.role === 'assistant' && (
+    <View
+      style={[
+        styles.messageRow,
+        message.role === "user" ? styles.rowRight : styles.rowLeft,
+      ]}
+    >
+      {message.role === "assistant" && (
         <View style={styles.avatarContainer}>
-          <TortoAvatar state={isStreaming ? 'talking' : 'idle'} size={28} />
+          <TortoAvatar state={isStreaming ? "talking" : "idle"} size={28} />
         </View>
       )}
-      
-      {message.role === 'user' ? (
+
+      {message.role === "user" ? (
         <View style={styles.userMessageWrapper}>
           {/* Swipeable message bubble */}
           <PanGestureHandler
@@ -199,13 +252,13 @@ const MessageRow: React.FC<{
             activeOffsetX={[-10, 10]} // Activate when swiping horizontally
             failOffsetY={[-5, 5]} // Fail if swiping vertically more than 5dp
           >
-            <Animated.View>
-              {messageBubble}
-            </Animated.View>
+            <Animated.View>{messageBubble}</Animated.View>
           </PanGestureHandler>
-          
+
           {/* Timestamp that appears on the right side as user swipes */}
-          <Animated.View style={[styles.timestampContainer, { opacity: timestampOpacity }]}>
+          <Animated.View
+            style={[styles.timestampContainer, { opacity: timestampOpacity }]}
+          >
             <Text style={styles.timestampText}>
               {formatTimestamp(message.timestamp)}
             </Text>
@@ -228,65 +281,65 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   messageRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     marginVertical: 4,
   },
   rowLeft: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
+    alignSelf: "flex-start",
+    alignItems: "flex-start",
   },
   rowRight: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   userMessageWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-    justifyContent: 'flex-end',
-    alignSelf: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    position: "relative",
+    justifyContent: "flex-end",
+    alignSelf: "flex-end",
   },
   timestampContainer: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     minWidth: 60,
-    pointerEvents: 'none',
+    pointerEvents: "none",
   },
   timestampText: {
     fontSize: 12,
-    color: '#8E8E93',
-    fontWeight: '500',
+    color: "#8E8E93",
+    fontWeight: "500",
   },
   avatarContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginRight: 4,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 0,
-    borderColor: 'transparent'
+    borderColor: "transparent",
   },
   avatarImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   messageContainer: {
-    maxWidth: '82%',
+    maxWidth: "82%",
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 20,
   },
   userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#3AABF0',
+    alignSelf: "flex-end",
+    backgroundColor: "#3AABF0",
     borderTopRightRadius: 4,
   },
   assistantMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#2A2A2A',
+    alignSelf: "flex-start",
+    backgroundColor: "#2A2A2A",
     borderTopLeftRadius: 4,
   },
   messageText: {
@@ -294,20 +347,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   userMessageText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   assistantMessageText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 48,
   },
   emptyStateText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons';
-import { MedicalRecord } from '../../../../../../../shared/types';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { MedicalRecord } from "@shared/types";
 
 interface RecordCardProps {
   record: MedicalRecord;
@@ -23,11 +23,20 @@ const RecordCard: React.FC<RecordCardProps> = ({
   getTypeColor,
   formatDate,
 }) => (
-  <View style={[styles.recordCard, { borderWidth: 1, borderColor: getTypeColor(record.type) }]}>
+  <View
+    style={[
+      styles.recordCard,
+      { borderWidth: 1, borderColor: getTypeColor(record.type) },
+    ]}
+  >
     <View style={styles.recordHeader}>
       <View style={styles.recordInfo}>
         <View style={styles.recordTitleRow}>
-          <Ionicons name={getTypeIcon(record.type) as any} size={20} color={getTypeColor(record.type)} />
+          <Ionicons
+            name={getTypeIcon(record.type) as any}
+            size={20}
+            color={getTypeColor(record.type)}
+          />
           <Text style={styles.recordName}>{record.name}</Text>
         </View>
         <Text style={styles.recordDate}>{formatDate(record.date)}</Text>
@@ -46,13 +55,22 @@ const RecordCard: React.FC<RecordCardProps> = ({
         {record.notes && <Text style={styles.recordNotes}>{record.notes}</Text>}
       </View>
       <View style={styles.recordActions}>
-        <TouchableOpacity onPress={() => onView(record)} style={styles.actionButton}>
+        <TouchableOpacity
+          onPress={() => onView(record)}
+          style={styles.actionButton}
+        >
           <Ionicons name="eye-outline" size={20} color="#3AABF0" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => onEdit(record)} style={styles.actionButton}>
+        <TouchableOpacity
+          onPress={() => onEdit(record)}
+          style={styles.actionButton}
+        >
           <Feather name="edit-2" size={16} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => onShare(record)} style={styles.actionButton}>
+        <TouchableOpacity
+          onPress={() => onShare(record)}
+          style={styles.actionButton}
+        >
           <Ionicons name="share-outline" size={20} color="#4CD964" />
         </TouchableOpacity>
       </View>
@@ -62,42 +80,42 @@ const RecordCard: React.FC<RecordCardProps> = ({
 
 const styles = StyleSheet.create({
   recordCard: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   recordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   recordInfo: {
     flex: 1,
   },
   recordTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
   },
   recordName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     marginLeft: 8,
   },
   recordDate: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 2,
   },
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 8,
   },
   tag: {
-    backgroundColor: '#3AABF020',
+    backgroundColor: "#3AABF020",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -106,20 +124,20 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   moreTags: {
     fontSize: 12,
-    color: '#888',
+    color: "#888",
     marginLeft: 4,
   },
   recordNotes: {
     fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
+    color: "#888",
+    fontStyle: "italic",
   },
   recordActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginLeft: 12,
   },
   actionButton: {

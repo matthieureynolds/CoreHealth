@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface FileTabProps {
   onSelectDocument: () => void;
   onSelectFromGallery: () => void;
 }
 
-const FileTab: React.FC<FileTabProps> = ({ onSelectDocument, onSelectFromGallery }) => (
+const FileTab: React.FC<FileTabProps> = ({
+  onSelectDocument,
+  onSelectFromGallery,
+}) => (
   <View style={styles.fileContainer}>
     <TouchableOpacity style={styles.fileOption} onPress={onSelectDocument}>
       <Ionicons name="document" size={24} color="#3AABF0" />
@@ -25,18 +28,18 @@ const styles = StyleSheet.create({
   fileContainer: {
     flex: 1,
     padding: 16,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   fileOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     marginBottom: 12,
   },
   fileOptionText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
     marginLeft: 12,
   },

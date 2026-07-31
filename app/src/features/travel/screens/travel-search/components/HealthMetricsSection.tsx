@@ -4,10 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { CompositeNavigationProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import {
-  RootStackParamList,
-  TravelStackParamList,
-} from "../../../../../shared/types";
+import { RootStackParamList, TravelStackParamList } from "@shared/types";
 import { styles } from "../TravelScreen.styles";
 import {
   getStatusColor,

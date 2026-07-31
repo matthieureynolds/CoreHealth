@@ -1,12 +1,12 @@
-import React from 'react';
-import { Svg, G, Circle } from 'react-native-svg';
+import React from "react";
+import { Svg, G, Circle } from "react-native-svg";
 
 type RadialProps = {
   size?: number;
   stroke?: number;
   gapDeg?: number;
   segments: { segs: number; color: string; key: string }[];
-  filter?: string | 'all';
+  filter?: string | "all";
   animate?: boolean;
 };
 
@@ -15,7 +15,7 @@ export default function RadialSegments({
   stroke = 14,
   gapDeg = 2.4,
   segments,
-  filter = 'all',
+  filter = "all",
   animate = true, // kept for API compatibility, no-op now
 }: RadialProps) {
   const r = (size - stroke) / 2;
@@ -25,18 +25,20 @@ export default function RadialSegments({
   const step = (360 - totalSegs * gapDeg) / totalSegs;
 
   let startAngle = -90; // start at top
-  const items = segments.flatMap(s => Array.from({ length: s.segs }).map(() => s));
+  const items = segments.flatMap((s) =>
+    Array.from({ length: s.segs }).map(() => s),
+  );
 
   return (
     <Svg width={size} height={size}>
       {/* track */}
-      <Circle 
-        cx={cx} 
-        cy={cy} 
-        r={r} 
-        stroke="rgba(255,255,255,0.08)" 
-        strokeWidth={stroke} 
-        fill="none" 
+      <Circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        stroke="rgba(255,255,255,0.08)"
+        strokeWidth={stroke}
+        fill="none"
       />
       <G originX={cx} originY={cy}>
         {items.map((seg, i) => {
@@ -44,10 +46,10 @@ export default function RadialSegments({
           const sweep = step;
           startAngle += step + gapDeg;
 
-          const dash = (Math.PI * 2 * r) * (sweep / 360);
-          const gap = (Math.PI * 2 * r) * (gapDeg / 360);
+          const dash = Math.PI * 2 * r * (sweep / 360);
+          const gap = Math.PI * 2 * r * (gapDeg / 360);
 
-          const highlight = filter === 'all' || filter === seg.key ? 1 : 0.25;
+          const highlight = filter === "all" || filter === seg.key ? 1 : 0.25;
 
           return (
             <G key={i} rotation={angle} originX={cx} originY={cy}>

@@ -9,8 +9,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { TravelStackParamList } from "../../../../../shared/types";
-import { palette } from "../../../../../shared/theme/colors";
+import { TravelStackParamList } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 type Nav = StackNavigationProp<TravelStackParamList>;
 

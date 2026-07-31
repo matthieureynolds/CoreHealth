@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { PastAppointment } from '../../../../../../../shared/types';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PastAppointment } from "@shared/types";
 
 interface AppointmentCardProps {
   appointment: PastAppointment;
@@ -42,30 +42,40 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: "#2C2C2E",
   },
   cardMain: { flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  cardDoctor: { fontSize: 14, color: '#8E8E93', marginBottom: 2 },
-  cardDate: { fontSize: 13, color: '#3AABF0', marginBottom: 2 },
-  cardLocation: { fontSize: 12, color: '#8E8E93' },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 4,
+  },
+  cardDoctor: { fontSize: 14, color: "#8E8E93", marginBottom: 2 },
+  cardDate: { fontSize: 13, color: "#3AABF0", marginBottom: 2 },
+  cardLocation: { fontSize: 12, color: "#8E8E93" },
   attachmentBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,122,255,0.15)',
+    backgroundColor: "rgba(0,122,255,0.15)",
   },
-  attachmentText: { fontSize: 12, color: '#3AABF0', marginLeft: 4, fontWeight: '600' },
+  attachmentText: {
+    fontSize: 12,
+    color: "#3AABF0",
+    marginLeft: 4,
+    fontWeight: "600",
+  },
 });
 
 export default AppointmentCard;

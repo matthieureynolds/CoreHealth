@@ -1,1 +1,1 @@
-export { default as StateOfMindChart } from './StateOfMindChart';
+export { default as StateOfMindChart } from "./StateOfMindChart";

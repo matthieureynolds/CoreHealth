@@ -14,7 +14,7 @@ export interface VascularBiomarker {
   value: number;
   unit: string;
   range: string;
-  status: 'normal' | 'low' | 'high' | 'critical';
-  category: 'lipid' | 'inflammation' | 'clotting' | 'blood';
+  status: "normal" | "low" | "high" | "critical";
+  category: "lipid" | "inflammation" | "clotting" | "blood";
   description: string;
 }

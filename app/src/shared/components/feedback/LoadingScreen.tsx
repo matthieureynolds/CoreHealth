@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   Image,
   Animated,
   Dimensions,
-} from 'react-native';
+} from "react-native";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const healthFacts = [
   "💧 Drinking water first thing in the morning kickstarts your metabolism",
@@ -68,10 +68,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
             duration: 800,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       );
       pulseAnimation.start();
-
 
       // Cycle through health facts
       const factInterval = setInterval(() => {
@@ -92,7 +91,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
     }
   }, [visible]);
 
-
   if (!visible) return null;
 
   return (
@@ -103,19 +101,16 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
           style={[
             styles.logoContainer,
             {
-              transform: [
-                { scale: scaleAnim },
-                { scale: pulseAnim },
-              ],
+              transform: [{ scale: scaleAnim }, { scale: pulseAnim }],
             },
           ]}
         >
           <Image
-            source={require('../../../../assets/images/brand/logo-loading.png')}
+            source={require("../../../../assets/images/brand/logo-loading.png")}
             style={styles.logo}
             resizeMode="contain"
           />
-          
+
           {/* Heart Loading Animation - Removed */}
         </Animated.View>
 
@@ -123,9 +118,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
 
         {/* Health Fact */}
         <Animated.View style={[styles.factContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.factText}>
-            {healthFacts[currentFactIndex]}
-          </Text>
+          <Text style={styles.factText}>{healthFacts[currentFactIndex]}</Text>
         </Animated.View>
 
         {/* Loading Dots */}
@@ -143,22 +136,22 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ visible }) => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     zIndex: 9999,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
   logoContainer: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 30,
   },
   logo: {
@@ -166,31 +159,31 @@ const styles = StyleSheet.create({
     height: 200, // Made even bigger
   },
   factContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     padding: 20,
     borderRadius: 16,
     marginBottom: 40,
     minHeight: 80,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   factText: {
     fontSize: 16,
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    textAlign: "center",
     lineHeight: 24,
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingDots: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     marginHorizontal: 4,
   },
 });

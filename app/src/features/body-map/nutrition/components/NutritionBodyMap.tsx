@@ -1,35 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-} from 'react-native';
-import BiomarkerModal, { BiomarkerInfo } from '../../../../shared/components/modals/BiomarkerModal';
-import { getBiomarkerInfo } from '../../../../shared/data/biomarkerDatabase';
-import { vitamins, majorMinerals, traceMinerals } from '../../nutrition';
-import { NutritionItem } from '../../nutrition/types';
+} from "react-native";
+import BiomarkerModal, {
+  BiomarkerInfo,
+} from "@shared/components/modals/BiomarkerModal";
+import { getBiomarkerInfo } from "@shared/data/biomarkerDatabase";
+import { vitamins, majorMinerals, traceMinerals } from "../../nutrition";
+import { NutritionItem } from "../../nutrition/types";
 
 const getStatusColor = (status: string): string => {
   switch (status) {
-    case 'normal':    return '#30D158';
-    case 'low':       return '#FF9500';
-    case 'high':      return '#FF3B30';
-    case 'deficient': return '#FF3B30';
-    default:          return '#8E8E93';
+    case "normal":
+      return "#30D158";
+    case "low":
+      return "#FF9500";
+    case "high":
+      return "#FF3B30";
+    case "deficient":
+      return "#FF3B30";
+    default:
+      return "#8E8E93";
   }
 };
 
 const NutritionBodyMap: React.FC = () => {
-  const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerInfo | null>(null);
+  const [selectedBiomarker, setSelectedBiomarker] =
+    useState<BiomarkerInfo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleItemPress = (item: NutritionItem) => {
     const biomarkerInfo = getBiomarkerInfo(
       item.name,
       item.value,
-      item.status === 'deficient' ? 'low' : item.status,
+      item.status === "deficient" ? "low" : item.status,
     );
     if (biomarkerInfo) {
       setSelectedBiomarker(biomarkerInfo);
@@ -56,7 +64,12 @@ const NutritionBodyMap: React.FC = () => {
                 <Text style={styles.biomarkerName}>{item.name}</Text>
               </View>
               <View style={styles.biomarkerColumn2}>
-                <Text style={[styles.biomarkerValue, { color: getStatusColor(item.status), fontWeight: 'bold' }]}>
+                <Text
+                  style={[
+                    styles.biomarkerValue,
+                    { color: getStatusColor(item.status), fontWeight: "bold" },
+                  ]}
+                >
                   {item.value} {item.unit}
                 </Text>
               </View>
@@ -81,9 +94,9 @@ const NutritionBodyMap: React.FC = () => {
         </View>
 
         <View style={styles.nutritionTable}>
-          {renderNutritionSection('Vitamins',       vitamins)}
-          {renderNutritionSection('Major Minerals', majorMinerals)}
-          {renderNutritionSection('Trace Minerals', traceMinerals)}
+          {renderNutritionSection("Vitamins", vitamins)}
+          {renderNutritionSection("Major Minerals", majorMinerals)}
+          {renderNutritionSection("Trace Minerals", traceMinerals)}
         </View>
       </View>
 
@@ -111,13 +124,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     lineHeight: 22,
   },
   nutritionTable: {
@@ -129,12 +142,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   separatorLine: {
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     marginBottom: 0,
     marginTop: 0,
   },
@@ -143,41 +156,41 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   biomarkerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
+    borderBottomColor: "#3A3A3C",
     minHeight: 48,
   },
   biomarkerColumn1: {
     flex: 1.5,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   biomarkerColumn2: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingLeft: 10,
   },
   biomarkerColumn3: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   biomarkerName: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    textAlign: 'left',
+    fontWeight: "500",
+    color: "#FFFFFF",
+    textAlign: "left",
   },
   biomarkerValue: {
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   biomarkerRange: {
     fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'right',
+    color: "#8E8E93",
+    textAlign: "right",
   },
 });
 

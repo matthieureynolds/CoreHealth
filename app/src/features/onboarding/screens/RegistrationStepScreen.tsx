@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../shared/context/AuthContext';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@shared/context/AuthContext";
 
 interface Props {
   onNext: (userData: {
@@ -23,16 +23,15 @@ interface Props {
 }
 
 const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
-  const [firstName, setFirstName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
   const handleStepComplete = () => {
-    
     if (currentStep === 1 && firstName.trim().length > 0) {
       setCurrentStep(2);
     } else if (currentStep === 2 && surname.trim().length > 0) {
@@ -47,12 +46,12 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
 
   const handleNext = () => {
     if (!firstName || !surname || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert("Error", "Passwords do not match");
       return;
     }
 
@@ -68,28 +67,24 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Create Your Account</Text>
-          <Text style={styles.subtitle}>
-            Let's get your account set up
-          </Text>
+          <Text style={styles.subtitle}>Let's get your account set up</Text>
         </View>
 
         <View style={styles.form}>
           {/* Progress Indicator */}
           <View style={styles.progressContainer}>
-            <Text style={styles.progressText}>
-              Step {currentStep} of 5
-            </Text>
+            <Text style={styles.progressText}>Step {currentStep} of 5</Text>
             <View style={styles.progressBar}>
-              <View 
+              <View
                 style={[
-                  styles.progressFill, 
-                  { width: `${(currentStep / 5) * 100}%` }
-                ]} 
+                  styles.progressFill,
+                  { width: `${(currentStep / 5) * 100}%` },
+                ]}
               />
             </View>
           </View>
@@ -184,7 +179,7 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 <Ionicons
-                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
                   size={20}
                   color="#666"
                 />
@@ -223,36 +218,48 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
             <TouchableOpacity
               style={[
                 styles.stepButton,
-                (!firstName && currentStep === 1) || 
-                (!surname && currentStep === 2) || 
-                (!email && currentStep === 3) || 
-                (!password && currentStep === 4) 
-                  ? styles.stepButtonDisabled 
-                  : styles.stepButtonEnabled
+                (!firstName && currentStep === 1) ||
+                (!surname && currentStep === 2) ||
+                (!email && currentStep === 3) ||
+                (!password && currentStep === 4)
+                  ? styles.stepButtonDisabled
+                  : styles.stepButtonEnabled,
               ]}
               onPress={handleStepComplete}
               disabled={
-                (!firstName && currentStep === 1) || 
-                (!surname && currentStep === 2) || 
-                (!email && currentStep === 3) || 
+                (!firstName && currentStep === 1) ||
+                (!surname && currentStep === 2) ||
+                (!email && currentStep === 3) ||
                 (!password && currentStep === 4)
               }
             >
               <Text style={styles.stepButtonText}>Next</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#FFFFFF"
+                style={styles.buttonIcon}
+              />
             </TouchableOpacity>
           )}
 
           {/* Final Next Button - Only show when all steps are complete */}
-          {currentStep >= 5 && firstName && surname && email && password && confirmPassword && (
-            <TouchableOpacity
-              style={styles.nextButton}
-              onPress={handleNext}
-            >
-              <Text style={styles.nextButtonText}>Create Account</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-            </TouchableOpacity>
-          )}
+          {currentStep >= 5 &&
+            firstName &&
+            surname &&
+            email &&
+            password &&
+            confirmPassword && (
+              <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                <Text style={styles.nextButtonText}>Create Account</Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color="#FFFFFF"
+                  style={styles.buttonIcon}
+                />
+              </TouchableOpacity>
+            )}
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -262,7 +269,7 @@ const RegistrationStepScreen: React.FC<Props> = ({ onNext }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000', // Dark background
+    backgroundColor: "#000000", // Dark background
   },
   content: {
     flex: 1,
@@ -270,52 +277,52 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#3AABF0', // Keep blue for brand
+    fontWeight: "bold",
+    color: "#3AABF0", // Keep blue for brand
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#A0A0A0', // Light gray for dark mode
-    textAlign: 'center',
+    color: "#A0A0A0", // Light gray for dark mode
+    textAlign: "center",
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   progressContainer: {
     marginBottom: 24,
   },
   progressText: {
     fontSize: 14,
-    color: '#A0A0A0', // Light gray for dark mode
+    color: "#A0A0A0", // Light gray for dark mode
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#333333', // Dark gray for dark mode
+    backgroundColor: "#333333", // Dark gray for dark mode
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#3AABF0', // Keep blue for progress
+    height: "100%",
+    backgroundColor: "#3AABF0", // Keep blue for progress
     borderRadius: 2,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#333333', // Dark border
+    borderColor: "#333333", // Dark border
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#1C1C1E', // Dark input background
+    backgroundColor: "#1C1C1E", // Dark input background
   },
   inputIcon: {
     marginRight: 12,
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#FFFFFF', // White text for dark mode
+    color: "#FFFFFF", // White text for dark mode
   },
   eyeIcon: {
     padding: 4,
@@ -332,36 +339,36 @@ const styles = StyleSheet.create({
   stepButton: {
     height: 50,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   stepButtonEnabled: {
-    backgroundColor: '#3AABF0', // Keep blue for enabled
+    backgroundColor: "#3AABF0", // Keep blue for enabled
   },
   stepButtonDisabled: {
-    backgroundColor: '#333333', // Dark gray for disabled
+    backgroundColor: "#333333", // Dark gray for disabled
   },
   stepButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   nextButton: {
-    backgroundColor: '#3AABF0', // Keep blue for final button
+    backgroundColor: "#3AABF0", // Keep blue for final button
     height: 50,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   nextButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   buttonIcon: {

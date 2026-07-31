@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,46 +7,81 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../shared/context/AuthContext';
-import { useOnboarding } from '../../../shared/hooks/useOnboarding';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '../../../shared/types';
-import RegistrationStepScreen from './RegistrationStepScreen';
-import AgeGenderStepScreen from './AgeGenderStepScreen';
-import EmailVerificationStepScreen from './EmailVerificationStepScreen';
-import MedicalDocumentsScreen from './MedicalDocumentsScreen';
-import DeviceConnectionScreen from './DeviceConnectionScreen';
-import PermissionsScreen from './PermissionsScreen';
-import FinishOnboardingScreen from './FinishOnboardingScreen';
-import SequentialTypewriter from './components/SequentialTypewriter';
-import { HealthTrackingIcon, TravelHealthIcon, RobotIcon } from './components/OnboardingPageIcons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@shared/context/AuthContext";
+import { useOnboarding } from "@shared/hooks/useOnboarding";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AuthStackParamList } from "@shared/types";
+import RegistrationStepScreen from "./RegistrationStepScreen";
+import AgeGenderStepScreen from "./AgeGenderStepScreen";
+import EmailVerificationStepScreen from "./EmailVerificationStepScreen";
+import MedicalDocumentsScreen from "./MedicalDocumentsScreen";
+import DeviceConnectionScreen from "./DeviceConnectionScreen";
+import PermissionsScreen from "./PermissionsScreen";
+import FinishOnboardingScreen from "./FinishOnboardingScreen";
+import SequentialTypewriter from "./components/SequentialTypewriter";
+import {
+  HealthTrackingIcon,
+  TravelHealthIcon,
+  RobotIcon,
+} from "./components/OnboardingPageIcons";
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
 const TYPEWRITER_LINES = [
-  'Welcome to TOTO.',
-  'Track your health.',
-  'Stay informed.',
-  'Take control.',
-  'Stay healthy.',
-  'This is TOTO.',
+  "Welcome to TOTO.",
+  "Track your health.",
+  "Stay informed.",
+  "Take control.",
+  "Stay healthy.",
+  "This is TOTO.",
 ];
 
 const onboardingPages = [
-  { title: 'Welcome to TOTO', subtitle: 'Your Personal Health Companion', description: 'Track, monitor, and optimize your health with AI-powered insights and personalized recommendations.', icon: '', isTypewriter: true },
-  { title: 'Health Tracking', subtitle: 'Monitor Your Vital Signs', description: 'Real-time tracking of your health metrics with intelligent analysis and trend detection.', icon: 'custom', isTypewriter: false },
-  { title: 'Travel Health', subtitle: 'Stay Healthy Anywhere', description: 'Location-based health insights, air quality monitoring, and jet lag management tips.', icon: 'custom-plane', isTypewriter: false },
-  { title: 'AI Health Assistant', subtitle: 'Your Personal Health Expert', description: 'Get instant answers to health questions with our advanced AI assistant trained on medical knowledge.', icon: 'custom-robot', isTypewriter: false },
+  {
+    title: "Welcome to TOTO",
+    subtitle: "Your Personal Health Companion",
+    description:
+      "Track, monitor, and optimize your health with AI-powered insights and personalized recommendations.",
+    icon: "",
+    isTypewriter: true,
+  },
+  {
+    title: "Health Tracking",
+    subtitle: "Monitor Your Vital Signs",
+    description:
+      "Real-time tracking of your health metrics with intelligent analysis and trend detection.",
+    icon: "custom",
+    isTypewriter: false,
+  },
+  {
+    title: "Travel Health",
+    subtitle: "Stay Healthy Anywhere",
+    description:
+      "Location-based health insights, air quality monitoring, and jet lag management tips.",
+    icon: "custom-plane",
+    isTypewriter: false,
+  },
+  {
+    title: "AI Health Assistant",
+    subtitle: "Your Personal Health Expert",
+    description:
+      "Get instant answers to health questions with our advanced AI assistant trained on medical knowledge.",
+    icon: "custom-robot",
+    isTypewriter: false,
+  },
 ];
 
 interface OnboardingScreenProps {
   onComplete?: () => void;
-  navigation?: StackNavigationProp<AuthStackParamList, 'Onboarding'>;
+  navigation?: StackNavigationProp<AuthStackParamList, "Onboarding">;
 }
 
-const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigation }) => {
+const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
+  onComplete,
+  navigation,
+}) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [typewriterComplete, setTypewriterComplete] = useState(false);
   const [userData, setUserData] = useState<Record<string, string>>({});
@@ -56,21 +91,37 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
     if (onComplete) onComplete();
   };
 
-  const handleRegistrationComplete = async (registrationData: Record<string, string>) => {
+  const handleRegistrationComplete = async (
+    registrationData: Record<string, string>,
+  ) => {
     try {
       const displayName = `${registrationData.firstName} ${registrationData.surname}`;
-      await signUp(registrationData.email, registrationData.password, displayName);
+      await signUp(
+        registrationData.email,
+        registrationData.password,
+        displayName,
+      );
       setUserData((prev) => ({ ...prev, ...registrationData }));
       setCurrentPage(5);
     } catch (error: any) {
-      console.error('Registration failed in onboarding:', error);
-      const message = error?.message ?? 'Something went wrong. Please try again.';
-      if (message.includes('already exists') || message.includes('UsernameExists')) {
-        Alert.alert('Account already exists', 'An account with this email already exists. Please sign in instead.');
-      } else if (message.includes('password') || message.includes('Password')) {
-        Alert.alert('Invalid password', 'Password must be at least 8 characters with uppercase, lowercase, and a number.');
+      console.error("Registration failed in onboarding:", error);
+      const message =
+        error?.message ?? "Something went wrong. Please try again.";
+      if (
+        message.includes("already exists") ||
+        message.includes("UsernameExists")
+      ) {
+        Alert.alert(
+          "Account already exists",
+          "An account with this email already exists. Please sign in instead.",
+        );
+      } else if (message.includes("password") || message.includes("Password")) {
+        Alert.alert(
+          "Invalid password",
+          "Password must be at least 8 characters with uppercase, lowercase, and a number.",
+        );
       } else {
-        Alert.alert('Registration failed', message);
+        Alert.alert("Registration failed", message);
       }
     }
   };
@@ -81,26 +132,71 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
   };
 
   const handleNext = () => {
-    if (currentPage < onboardingPages.length - 1) setCurrentPage(prev => prev + 1);
+    if (currentPage < onboardingPages.length - 1)
+      setCurrentPage((prev) => prev + 1);
   };
 
-  if (currentPage === 4) return <RegistrationStepScreen onNext={handleRegistrationComplete} />;
-  if (currentPage === 5) return <EmailVerificationStepScreen email={userData.email} onNext={() => setCurrentPage(6)} onBack={() => setCurrentPage(4)} />;
-  if (currentPage === 6) return <AgeGenderStepScreen onNext={handleAgeGenderComplete} onBack={() => setCurrentPage(5)} />;
-  if (currentPage === 7) return <MedicalDocumentsScreen onNext={() => setCurrentPage(8)} onBack={() => setCurrentPage(6)} />;
-  if (currentPage === 8) return <DeviceConnectionScreen onNext={() => setCurrentPage(9)} onBack={() => setCurrentPage(7)} />;
-  if (currentPage === 9) return <PermissionsScreen onNext={() => setCurrentPage(10)} onBack={() => setCurrentPage(8)} />;
-  if (currentPage === 10) return <FinishOnboardingScreen onComplete={handleComplete} />;
+  if (currentPage === 4)
+    return <RegistrationStepScreen onNext={handleRegistrationComplete} />;
+  if (currentPage === 5)
+    return (
+      <EmailVerificationStepScreen
+        email={userData.email}
+        onNext={() => setCurrentPage(6)}
+        onBack={() => setCurrentPage(4)}
+      />
+    );
+  if (currentPage === 6)
+    return (
+      <AgeGenderStepScreen
+        onNext={handleAgeGenderComplete}
+        onBack={() => setCurrentPage(5)}
+      />
+    );
+  if (currentPage === 7)
+    return (
+      <MedicalDocumentsScreen
+        onNext={() => setCurrentPage(8)}
+        onBack={() => setCurrentPage(6)}
+      />
+    );
+  if (currentPage === 8)
+    return (
+      <DeviceConnectionScreen
+        onNext={() => setCurrentPage(9)}
+        onBack={() => setCurrentPage(7)}
+      />
+    );
+  if (currentPage === 9)
+    return (
+      <PermissionsScreen
+        onNext={() => setCurrentPage(10)}
+        onBack={() => setCurrentPage(8)}
+      />
+    );
+  if (currentPage === 10)
+    return <FinishOnboardingScreen onComplete={handleComplete} />;
 
-  const renderPage = (page: typeof onboardingPages[0], index: number) => {
+  const renderPage = (page: (typeof onboardingPages)[0], index: number) => {
     if (index === 0 && page.isTypewriter) {
       return (
         <View style={styles.typewriterPage}>
-          <SequentialTypewriter lines={TYPEWRITER_LINES} onAllComplete={() => setTypewriterComplete(true)} />
+          <SequentialTypewriter
+            lines={TYPEWRITER_LINES}
+            onAllComplete={() => setTypewriterComplete(true)}
+          />
           {typewriterComplete && (
-            <TouchableOpacity style={styles.typewriterNextButton} onPress={handleNext}>
+            <TouchableOpacity
+              style={styles.typewriterNextButton}
+              onPress={handleNext}
+            >
               <Text style={styles.typewriterNextText}>Next</Text>
-              <Ionicons name="arrow-forward" size={16} color="#3AABF0" style={styles.typewriterArrow} />
+              <Ionicons
+                name="arrow-forward"
+                size={16}
+                color="#3AABF0"
+                style={styles.typewriterArrow}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -108,8 +204,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
     }
     const IconMap: Record<string, React.ReactNode> = {
       custom: <HealthTrackingIcon />,
-      'custom-plane': <TravelHealthIcon />,
-      'custom-robot': <RobotIcon />,
+      "custom-plane": <TravelHealthIcon />,
+      "custom-robot": <RobotIcon />,
     };
     const icon = IconMap[page.icon] ?? null;
     return (
@@ -126,16 +222,26 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} pagingEnabled scrollEnabled={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        pagingEnabled
+        scrollEnabled={false}
+      >
         {onboardingPages.map((page, index) => (
-          <View key={index} style={styles.page}>{renderPage(page, index)}</View>
+          <View key={index} style={styles.page}>
+            {renderPage(page, index)}
+          </View>
         ))}
       </ScrollView>
       <View style={styles.footer}>
         {currentPage !== 0 && (
           <View style={styles.pagination}>
             {onboardingPages.map((_, index) => (
-              <View key={index} style={[styles.dot, currentPage === index && styles.activeDot]} />
+              <View
+                key={index}
+                style={[styles.dot, currentPage === index && styles.activeDot]}
+              />
             ))}
           </View>
         )}
@@ -144,20 +250,41 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
             <Text style={styles.skipButtonText}>Skip</Text>
           </TouchableOpacity>
         )}
-        {currentPage !== 0 && currentPage < onboardingPages.length && !typewriterComplete && (
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>Next</Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-          </TouchableOpacity>
-        )}
+        {currentPage !== 0 &&
+          currentPage < onboardingPages.length &&
+          !typewriterComplete && (
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+              <Text style={styles.nextButtonText}>Next</Text>
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#FFFFFF"
+                style={styles.buttonIcon}
+              />
+            </TouchableOpacity>
+          )}
         {currentPage === onboardingPages.length - 1 && (
           <View style={styles.lastPageButtons}>
-            <TouchableOpacity style={styles.getStartedButton} onPress={() => setCurrentPage(4)}>
+            <TouchableOpacity
+              style={styles.getStartedButton}
+              onPress={() => setCurrentPage(4)}
+            >
               <Text style={styles.getStartedButtonText}>Get Started</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#FFFFFF"
+                style={styles.buttonIcon}
+              />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleComplete} style={styles.signInLink}>
-              <Text style={styles.signInLinkText}>Already have an account? <Text style={styles.signInLinkBold}>Sign in</Text></Text>
+            <TouchableOpacity
+              onPress={handleComplete}
+              style={styles.signInLink}
+            >
+              <Text style={styles.signInLinkText}>
+                Already have an account?{" "}
+                <Text style={styles.signInLinkBold}>Sign in</Text>
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -167,33 +294,126 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, navigat
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: "#ffffff" },
   scrollContent: { flexGrow: 1 },
-  page: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, minHeight: height },
-  typewriterPage: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  typewriterNextButton: { position: 'absolute', bottom: 100, right: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: '#3AABF0', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25 },
-  typewriterNextText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
+  page: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    minHeight: height,
+  },
+  typewriterPage: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  typewriterNextButton: {
+    position: "absolute",
+    bottom: 100,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#3AABF0",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  typewriterNextText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginRight: 8,
+  },
   typewriterArrow: { marginLeft: 4 },
-  pageContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  iconContainer: { position: 'absolute', top: height * 0.1, alignSelf: 'center' },
-  textContainer: { marginTop: 50, alignItems: 'center' },
-  title: { fontSize: 38, fontWeight: 'bold', color: '#000', textAlign: 'center', marginBottom: 16 },
-  subtitle: { fontSize: 28, color: '#3AABF0', textAlign: 'center', marginBottom: 20 },
-  description: { fontSize: 22, color: '#666', textAlign: 'center', lineHeight: 30, fontWeight: 'normal' },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20 },
-  pagination: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E5E5EA', marginHorizontal: 4 },
-  activeDot: { backgroundColor: '#3AABF0' },
+  pageContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  iconContainer: {
+    position: "absolute",
+    top: height * 0.1,
+    alignSelf: "center",
+  },
+  textContainer: { marginTop: 50, alignItems: "center" },
+  title: {
+    fontSize: 38,
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 28,
+    color: "#3AABF0",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  description: {
+    fontSize: 22,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 30,
+    fontWeight: "normal",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    paddingTop: 20,
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#E5E5EA",
+    marginHorizontal: 4,
+  },
+  activeDot: { backgroundColor: "#3AABF0" },
   skipButton: { paddingVertical: 12, paddingHorizontal: 24 },
-  skipButtonText: { fontSize: 16, color: '#666', fontWeight: '500' },
-  nextButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
-  nextButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
-  lastPageButtons: { alignItems: 'center', gap: 12 },
-  getStartedButton: { backgroundColor: '#3AABF0', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
-  getStartedButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginRight: 8 },
+  skipButtonText: { fontSize: 16, color: "#666", fontWeight: "500" },
+  nextButton: {
+    backgroundColor: "#3AABF0",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  nextButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginRight: 8,
+  },
+  lastPageButtons: { alignItems: "center", gap: 12 },
+  getStartedButton: {
+    backgroundColor: "#3AABF0",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  getStartedButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginRight: 8,
+  },
   signInLink: { paddingVertical: 8 },
-  signInLinkText: { fontSize: 14, color: '#666' },
-  signInLinkBold: { color: '#3AABF0', fontWeight: '600' },
+  signInLinkText: { fontSize: 14, color: "#666" },
+  signInLinkBold: { color: "#3AABF0", fontWeight: "600" },
   buttonIcon: { marginLeft: 4 },
 });
 

@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ReportSection {
   id: string;
@@ -40,13 +40,18 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
               <Ionicons
                 name={section.icon as any}
                 size={24}
-                color={isSelected ? '#3AABF0' : '#888'}
+                color={isSelected ? "#3AABF0" : "#888"}
               />
               <View style={styles.sectionText}>
-                <Text style={[styles.sectionLabel, isSelected && styles.selectedSectionText]}>
+                <Text
+                  style={[
+                    styles.sectionLabel,
+                    isSelected && styles.selectedSectionText,
+                  ]}
+                >
                   {section.label}
                 </Text>
-                {section.id !== 'personal_info' && (
+                {section.id !== "personal_info" && (
                   <Text style={styles.sectionCount}>
                     {getSectionCount(section.id)} items
                   </Text>
@@ -54,7 +59,9 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
               </View>
             </View>
             <View style={[styles.checkbox, isSelected && styles.checkedBox]}>
-              {isSelected && <Ionicons name="checkmark" size={16} color="#fff" />}
+              {isSelected && (
+                <Ionicons name="checkmark" size={16} color="#fff" />
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -69,34 +76,34 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
     marginBottom: 20,
   },
   sectionCard: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   selectedSection: {
-    backgroundColor: '#3AABF020',
+    backgroundColor: "#3AABF020",
     borderWidth: 1,
-    borderColor: '#3AABF0',
+    borderColor: "#3AABF0",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   sectionInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   sectionText: {
@@ -105,29 +112,29 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
+    fontWeight: "500",
+    color: "#fff",
     marginBottom: 2,
   },
   selectedSectionText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   sectionCount: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#333",
+    alignItems: "center",
+    justifyContent: "center",
   },
   checkedBox: {
-    backgroundColor: '#3AABF0',
-    borderColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
+    borderColor: "#3AABF0",
   },
 });
 

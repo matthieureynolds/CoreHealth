@@ -1,8 +1,8 @@
-export * from './user';
-export * from './health';
-export * from './travel';
-export * from './jetlag';
-export * from './navigation';
+export * from "./user";
+export * from "./health";
+export * from "./travel";
+export * from "./jetlag";
+export * from "./navigation";
 
 // Also re-export domain-specific type files
 export type {
@@ -20,10 +20,10 @@ export type {
   UserSettings,
   SettingsAction,
   EmergencyContact as SettingsEmergencyContact,
-} from './settings';
-export { defaultSettings } from './settings';
-export * from './biomarkers';
-export * from './symptoms';
+} from "./settings";
+export { defaultSettings } from "./settings";
+export * from "./biomarkers";
+export * from "./symptoms";
 
 // UserProfile is composed from several domain types — define here so it can
 // import from both user.ts and health.ts without circular deps.
@@ -38,24 +38,33 @@ import type {
   Surgery,
   LifestyleInfo,
   OrganCondition,
-} from './user';
+} from "./user";
 import type {
   MedicalCondition,
   Allergy,
   FamilyCondition,
   Vaccination,
   Screening,
-} from './health';
+} from "./health";
 
 export interface UserProfile {
   userId: string;
   age: number;
-  gender: 'male' | 'female' | 'other';
+  gender: "male" | "female" | "other";
   height: number;
   weight: number;
   birthDate?: string;
   ethnicity?: string;
-  bloodType?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | 'unknown';
+  bloodType?:
+    | "A+"
+    | "A-"
+    | "B+"
+    | "B-"
+    | "AB+"
+    | "AB-"
+    | "O+"
+    | "O-"
+    | "unknown";
   medicalHistory: MedicalCondition[];
   medications: Medication[];
   familyHistory: FamilyCondition[];

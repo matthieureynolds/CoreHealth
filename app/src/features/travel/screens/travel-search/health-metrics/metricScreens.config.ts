@@ -1,5 +1,5 @@
 import type { Ionicons } from "@expo/vector-icons";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 /** One band on a metric's reference scale (AQI bands, UV levels, altitude zones…). */
 export interface MetricScaleBand {

@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface PickerFieldProps {
   label: string;
@@ -9,7 +9,12 @@ interface PickerFieldProps {
   placeholder?: string;
 }
 
-const PickerField: React.FC<PickerFieldProps> = ({ label, value, onPress, placeholder = 'Select option' }) => (
+const PickerField: React.FC<PickerFieldProps> = ({
+  label,
+  value,
+  onPress,
+  placeholder = "Select option",
+}) => (
   <View style={styles.formField}>
     <Text style={styles.fieldLabel}>{label}</Text>
     <TouchableOpacity style={styles.pickerButton} onPress={onPress}>
@@ -27,27 +32,27 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
+    fontWeight: "500",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   pickerButton: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
   },
   pickerText: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: "#1C1C1E",
   },
   pickerPlaceholder: {
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
 });
 

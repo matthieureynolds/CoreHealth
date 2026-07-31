@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { metricScreenStyles as s } from "./metricScreenStyles";
 import type { MetricScreenConfig } from "./metricScreens.config";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 /** Icon tints that are the same on every metric screen. */
 const RECOMMENDATION_TINT = palette.link;

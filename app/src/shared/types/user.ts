@@ -49,7 +49,13 @@ export interface Doctor {
 export interface MedicalRecord {
   id: string;
   name: string;
-  type: 'lab_result' | 'imaging' | 'prescription' | 'consultation' | 'procedure' | 'other';
+  type:
+    | "lab_result"
+    | "imaging"
+    | "prescription"
+    | "consultation"
+    | "procedure"
+    | "other";
   date: Date;
   fileUrl?: string;
   fileSize?: number;
@@ -108,42 +114,66 @@ export interface Surgery {
 
 export interface LifestyleInfo {
   smoking: {
-    status: 'never' | 'former' | 'current';
+    status: "never" | "former" | "current";
     packYears?: number;
     quitDate?: string;
   };
   alcohol: {
-    frequency: 'never' | 'rarely' | 'monthly' | 'weekly' | 'daily';
+    frequency: "never" | "rarely" | "monthly" | "weekly" | "daily";
     unitsPerWeek?: number;
   };
   diet: {
-    type: 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'mediterranean' | 'other';
+    type:
+      | "omnivore"
+      | "vegetarian"
+      | "vegan"
+      | "pescatarian"
+      | "keto"
+      | "paleo"
+      | "mediterranean"
+      | "other";
     restrictions?: string[];
     supplements?: string[];
   };
   exercise: {
-    frequency: 'never' | 'rarely' | '1-2_times_week' | '3-4_times_week' | '5+_times_week' | 'daily';
+    frequency:
+      | "never"
+      | "rarely"
+      | "1-2_times_week"
+      | "3-4_times_week"
+      | "5+_times_week"
+      | "daily";
     type?: string[];
-    intensity?: 'low' | 'moderate' | 'high';
+    intensity?: "low" | "moderate" | "high";
     hoursPerWeek?: number;
   };
   sleep: {
     averageHoursPerNight?: number;
-    sleepQuality?: 'poor' | 'fair' | 'good' | 'excellent';
+    sleepQuality?: "poor" | "fair" | "good" | "excellent";
     sleepDisorders?: string[];
   };
   stress: {
-    level: 'low' | 'moderate' | 'high' | 'severe';
+    level: "low" | "moderate" | "high" | "severe";
     managementTechniques?: string[];
   };
 }
 
 export interface OrganCondition {
   id: string;
-  organSystem: 'cardiovascular' | 'respiratory' | 'digestive' | 'nervous' | 'endocrine' | 'immune' | 'urinary' | 'reproductive' | 'musculoskeletal' | 'integumentary';
+  organSystem:
+    | "cardiovascular"
+    | "respiratory"
+    | "digestive"
+    | "nervous"
+    | "endocrine"
+    | "immune"
+    | "urinary"
+    | "reproductive"
+    | "musculoskeletal"
+    | "integumentary";
   condition: string;
   diagnosedDate?: string;
-  severity: 'mild' | 'moderate' | 'severe';
-  status: 'active' | 'resolved' | 'managed';
+  severity: "mild" | "moderate" | "severe";
+  status: "active" | "resolved" | "managed";
   notes?: string;
 }

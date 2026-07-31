@@ -1,16 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateModeSelector, { DateMode } from './DateModeSelector';
-import IOSDatePicker from '../../../../../../../shared/components/ui/IOSDatePicker';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import DateModeSelector, { DateMode } from "./DateModeSelector";
+import IOSDatePicker from "@shared/components/ui/IOSDatePicker";
 
 export const formatDateForMode = (d: Date | null, mode: DateMode): string => {
-  if (!d) return 'Select date';
+  if (!d) return "Select date";
   const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  if (mode === 'year') return `${year}`;
-  if (mode === 'yearMonth') return `${year}-${month}`;
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  if (mode === "year") return `${year}`;
+  if (mode === "yearMonth") return `${year}-${month}`;
   return `${year}-${month}-${day}`;
 };
 
@@ -40,7 +40,10 @@ const DateField: React.FC<DateFieldProps> = ({
   <View style={styles.inputContainer}>
     <Text style={styles.inputLabel}>{label}</Text>
     <DateModeSelector mode={dateMode} setMode={setDateMode} />
-    <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker(true)}>
+    <TouchableOpacity
+      style={styles.dateInput}
+      onPress={() => setShowPicker(true)}
+    >
       <Text style={[styles.dateInputText, !date && styles.placeholderText]}>
         {formatDateForMode(date, dateMode)}
       </Text>
@@ -49,7 +52,7 @@ const DateField: React.FC<DateFieldProps> = ({
     {showPicker && (
       <IOSDatePicker
         visible={true}
-        title={label.replace(' *:', '').replace(' (Optional):', '')}
+        title={label.replace(" *:", "").replace(" (Optional):", "")}
         value={date ?? new Date()}
         minimumDate={minimumDate}
         maximumDate={maximumDate}
@@ -69,25 +72,25 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   dateInput: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   dateInputText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   placeholderText: {
-    color: '#666',
+    color: "#666",
   },
 });
 

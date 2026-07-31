@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import RadialSegments from '../ui/RadialSegments';
-import { colors } from '../../theme/colors';
-import { buildSegments } from '../../utils/segments';
-import type { BiomarkerSummaryProps } from '../../types/biomarkers';
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import RadialSegments from "../ui/RadialSegments";
+import { colors } from "../../theme/colors";
+import { buildSegments } from "../../utils/segments";
+import type { BiomarkerSummaryProps } from "../../types/biomarkers";
 
 export default function BiomarkerSummaryCard({
   total,
   buckets,
   onUpload,
   onFilterChange,
-  initialFilter = 'all',
-  a11yLabel = 'Biomarker Summary',
+  initialFilter = "all",
+  a11yLabel = "Biomarker Summary",
   style,
   hideTitle,
   dialSize,
@@ -24,24 +24,33 @@ export default function BiomarkerSummaryCard({
       buildSegments(
         total,
         [
-          { key: 'optimal', value: buckets.optimal, color: colors.optimal },
-          { key: 'sufficient', value: buckets.sufficient, color: colors.sufficient },
-          { key: 'out', value: buckets.out, color: colors.out },
+          { key: "optimal", value: buckets.optimal, color: colors.optimal },
+          {
+            key: "sufficient",
+            value: buckets.sufficient,
+            color: colors.sufficient,
+          },
+          { key: "out", value: buckets.out, color: colors.out },
         ],
-        segmentCount ?? total
+        segmentCount ?? total,
       ),
     [total, buckets],
   );
 
   // Ensure no stale filter selection when totals change
   useEffect(() => {
-    setFilter('all');
+    setFilter("all");
   }, [total, buckets.optimal, buckets.sufficient, buckets.out]);
 
-  const legendItem = (label: string, value: number, color: string, key: keyof typeof buckets) => (
+  const legendItem = (
+    label: string,
+    value: number,
+    color: string,
+    key: keyof typeof buckets,
+  ) => (
     <Pressable
       onPress={() => {
-        const next = filter === key ? 'all' : key;
+        const next = filter === key ? "all" : key;
         setFilter(next);
         onFilterChange?.(next);
       }}
@@ -49,7 +58,7 @@ export default function BiomarkerSummaryCard({
       accessibilityLabel={`${label}: ${value}`}
       style={[
         styles.legendRow,
-        { opacity: filter === 'all' || filter === key ? 1 : 0.5 }
+        { opacity: filter === "all" || filter === key ? 1 : 0.5 },
       ]}
     >
       <View style={[styles.badge, { backgroundColor: `${color}22` }]}>
@@ -83,9 +92,14 @@ export default function BiomarkerSummaryCard({
         </View>
 
         <View style={styles.legend}>
-          {legendItem('Optimal', buckets.optimal, colors.optimal, 'optimal')}
-          {legendItem('Sufficient', buckets.sufficient, colors.sufficient, 'sufficient')}
-          {legendItem('Out of Range', buckets.out, colors.out, 'out')}
+          {legendItem("Optimal", buckets.optimal, colors.optimal, "optimal")}
+          {legendItem(
+            "Sufficient",
+            buckets.sufficient,
+            colors.sufficient,
+            "sufficient",
+          )}
+          {legendItem("Out of Range", buckets.out, colors.out, "out")}
 
           {onUpload && (
             <Pressable
@@ -110,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderColor: colors.divider,
     borderWidth: 1,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -121,30 +135,30 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18, // match Recent Lab Results
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textPrimary,
     marginBottom: 16,
   },
   content: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   dialContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 16,
   },
   centerContent: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   centerNumber: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.textPrimary,
   },
   centerLabel: {
@@ -158,13 +172,13 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   legendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 10,
@@ -177,11 +191,11 @@ const styles = StyleSheet.create({
   },
   badgeLabel: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   legendValue: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textPrimary,
   },
   uploadButton: {
@@ -190,12 +204,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: colors.cta,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   uploadButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.ctaText,
   },
 });

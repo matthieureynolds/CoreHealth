@@ -587,8 +587,8 @@ export function getMetricDetails(
 
 // Derived from the canonical popular cities list in citySearchService.ts
 // to avoid maintaining two separate city lists.
-import { getPopularCities } from "../../../../shared/services/travel/citySearchService";
-import { palette } from "../../../../shared/theme/colors";
+import { getPopularCities } from "@shared/services/travel/citySearchService";
+import { palette } from "@shared/theme/colors";
 
 const _buildCityCountryMap = (): Record<string, string> => {
   const map: Record<string, string> = { "Current Location": "Your Location" };

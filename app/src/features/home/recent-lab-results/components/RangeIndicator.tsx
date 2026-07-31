@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Rect, Polygon, Text as SvgText, G } from 'react-native-svg';
-import { LabResult } from '../results/types';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import Svg, { Rect, Polygon, Text as SvgText, G } from "react-native-svg";
+import { LabResult } from "../results/types";
 
 interface RangeSegment {
   label: string;
@@ -18,52 +18,99 @@ interface RangeData {
 
 const getRangeData = (id: string, value: number): RangeData => {
   switch (id) {
-    case 'total_cholesterol':
+    case "total_cholesterol":
       return {
         segments: [
-          { label: 'Optimal', range: '<180', color: '#30D158', isBold: false },
-          { label: 'Normal', range: '180-199', color: '#32D74B', isBold: false },
-          { label: 'Borderline', range: '200-239', color: '#FF9F0A', isBold: false },
-          { label: 'High', range: '240+', color: '#FF3B30', isBold: false },
+          { label: "Optimal", range: "<180", color: "#30D158", isBold: false },
+          {
+            label: "Normal",
+            range: "180-199",
+            color: "#32D74B",
+            isBold: false,
+          },
+          {
+            label: "Borderline",
+            range: "200-239",
+            color: "#FF9F0A",
+            isBold: false,
+          },
+          { label: "High", range: "240+", color: "#FF3B30", isBold: false },
         ],
         currentValue: value,
-        currentLabel: value < 180 ? 'Optimal' : value < 200 ? 'Normal' : value < 240 ? 'Borderline' : 'High',
+        currentLabel:
+          value < 180
+            ? "Optimal"
+            : value < 200
+              ? "Normal"
+              : value < 240
+                ? "Borderline"
+                : "High",
       };
-    case 'ldl_cholesterol':
+    case "ldl_cholesterol":
       return {
         segments: [
-          { label: 'Optimal', range: '<70', color: '#30D158', isBold: false },
-          { label: 'Near Optimal', range: '70-99', color: '#32D74B', isBold: false },
-          { label: 'Borderline', range: '100-129', color: '#FF9F0A', isBold: false },
-          { label: 'High', range: '130+', color: '#FF3B30', isBold: false },
+          { label: "Optimal", range: "<70", color: "#30D158", isBold: false },
+          {
+            label: "Near Optimal",
+            range: "70-99",
+            color: "#32D74B",
+            isBold: false,
+          },
+          {
+            label: "Borderline",
+            range: "100-129",
+            color: "#FF9F0A",
+            isBold: false,
+          },
+          { label: "High", range: "130+", color: "#FF3B30", isBold: false },
         ],
         currentValue: value,
-        currentLabel: value < 70 ? 'Optimal' : value < 100 ? 'Near Optimal' : value < 130 ? 'Borderline' : 'High',
+        currentLabel:
+          value < 70
+            ? "Optimal"
+            : value < 100
+              ? "Near Optimal"
+              : value < 130
+                ? "Borderline"
+                : "High",
       };
-    case 'glucose':
+    case "glucose":
       return {
         segments: [
-          { label: 'Normal', range: '70-99', color: '#30D158', isBold: false },
-          { label: 'Prediabetes', range: '100-125', color: '#FF9F0A', isBold: false },
-          { label: 'Diabetes', range: '126+', color: '#FF3B30', isBold: false },
+          { label: "Normal", range: "70-99", color: "#30D158", isBold: false },
+          {
+            label: "Prediabetes",
+            range: "100-125",
+            color: "#FF9F0A",
+            isBold: false,
+          },
+          { label: "Diabetes", range: "126+", color: "#FF3B30", isBold: false },
         ],
         currentValue: value,
-        currentLabel: value < 100 ? 'Normal' : value < 126 ? 'Prediabetes' : 'Diabetes',
+        currentLabel:
+          value < 100 ? "Normal" : value < 126 ? "Prediabetes" : "Diabetes",
       };
-    case 'creatinine':
+    case "creatinine":
       return {
         segments: [
-          { label: 'Normal', range: '0.6-1.2', color: '#30D158', isBold: false },
-          { label: 'High', range: '1.3+', color: '#FF3B30', isBold: false },
+          {
+            label: "Normal",
+            range: "0.6-1.2",
+            color: "#30D158",
+            isBold: false,
+          },
+          { label: "High", range: "1.3+", color: "#FF3B30", isBold: false },
         ],
         currentValue: value,
-        currentLabel: value <= 1.2 ? 'Normal' : 'High',
+        currentLabel: value <= 1.2 ? "Normal" : "High",
       };
     default:
       return {
-        segments: [{ label: 'Normal', range: 'Normal', color: '#30D158', isBold: false }],
+        segments: [
+          { label: "Normal", range: "Normal", color: "#30D158", isBold: false },
+        ],
         currentValue: value,
-        currentLabel: 'Normal',
+        currentLabel: "Normal",
       };
   }
 };
@@ -84,10 +131,11 @@ const RangeIndicator: React.FC<RangeIndicatorProps> = ({ labResult }) => {
   let pointerPosition = 0;
   if (rangeData.segments.length > 1) {
     const currentSegmentIndex = rangeData.segments.findIndex(
-      segment => rangeData.currentLabel === segment.label
+      (segment) => rangeData.currentLabel === segment.label,
     );
     if (currentSegmentIndex >= 0) {
-      pointerPosition = currentSegmentIndex * (segmentWidth + gap) + segmentWidth / 2;
+      pointerPosition =
+        currentSegmentIndex * (segmentWidth + gap) + segmentWidth / 2;
     }
   }
 
@@ -105,8 +153,20 @@ const RangeIndicator: React.FC<RangeIndicatorProps> = ({ labResult }) => {
                 width={segmentWidth}
                 height={barHeight}
                 fill={segment.color}
-                rx={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0}
-                ry={index === 0 ? 8 : index === rangeData.segments.length - 1 ? 8 : 0}
+                rx={
+                  index === 0
+                    ? 8
+                    : index === rangeData.segments.length - 1
+                      ? 8
+                      : 0
+                }
+                ry={
+                  index === 0
+                    ? 8
+                    : index === rangeData.segments.length - 1
+                      ? 8
+                      : 0
+                }
               />
             );
           })}
@@ -128,7 +188,7 @@ const RangeIndicator: React.FC<RangeIndicatorProps> = ({ labResult }) => {
                   y={32}
                   fontSize="10"
                   fill="#FFFFFF"
-                  fontWeight={segment.isBold ? 'bold' : '600'}
+                  fontWeight={segment.isBold ? "bold" : "600"}
                   textAnchor="middle"
                 >
                   {segment.label}
@@ -152,7 +212,8 @@ const RangeIndicator: React.FC<RangeIndicatorProps> = ({ labResult }) => {
 
       <View style={styles.currentScoreContainer}>
         <Text style={styles.currentScoreText}>
-          Your result is in the {rangeData.currentLabel} range ({rangeData.currentValue} {labResult.unit}).
+          Your result is in the {rangeData.currentLabel} range (
+          {rangeData.currentValue} {labResult.unit}).
         </Text>
       </View>
     </View>
@@ -161,24 +222,24 @@ const RangeIndicator: React.FC<RangeIndicatorProps> = ({ labResult }) => {
 
 const styles = StyleSheet.create({
   rangeIndicatorContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   rangeIndicatorSvg: {
     marginBottom: 16,
   },
   currentScoreContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   currentScoreText: {
     fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
   fallbackText: {
     fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
 });
 

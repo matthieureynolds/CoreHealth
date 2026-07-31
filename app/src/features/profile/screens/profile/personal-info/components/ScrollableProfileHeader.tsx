@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { AVATAR_LARGE } from '../useProfileDetails';
+import React from "react";
+import { View, Text, StyleSheet, Animated } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { AVATAR_LARGE } from "../useProfileDetails";
 
 interface ScrollableProfileHeaderProps {
   largeNameOpacity: Animated.AnimatedInterpolation<number>;
@@ -29,11 +29,14 @@ const ScrollableProfileHeader: React.FC<ScrollableProfileHeaderProps> = ({
         },
       ]}
     >
-      <Text style={styles.profileName}>
-        {userName}
-      </Text>
+      <Text style={styles.profileName}>{userName}</Text>
       {profileCompletion >= 100 && (
-        <Ionicons name="checkmark-circle" size={22} color="#34C759" style={{ marginLeft: 6 }} />
+        <Ionicons
+          name="checkmark-circle"
+          size={22}
+          color="#34C759"
+          style={{ marginLeft: 6 }}
+        />
       )}
     </Animated.View>
   </View>
@@ -41,8 +44,8 @@ const ScrollableProfileHeader: React.FC<ScrollableProfileHeaderProps> = ({
 
 const styles = StyleSheet.create({
   profileHeader: {
-    alignItems: 'center',
-    backgroundColor: '#000000',
+    alignItems: "center",
+    backgroundColor: "#000000",
     paddingTop: 66,
     paddingBottom: 8,
   },
@@ -52,15 +55,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 2,
   },
   profileName: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 2,
   },
 });

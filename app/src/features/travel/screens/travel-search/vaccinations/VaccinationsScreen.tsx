@@ -10,8 +10,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { palette } from "../../../../../shared/theme/colors";
-import { logger } from "../../../../../shared/utils/logger";
+import { palette } from "@shared/theme/colors";
+import { logger } from "@shared/utils/logger";
 
 const CHECKED_VAX_KEY = "vaccinations_checked";
 

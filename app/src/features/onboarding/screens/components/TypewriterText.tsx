@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Text } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { Text } from "react-native";
 
 interface TypewriterTextProps {
   text: string;
@@ -8,15 +8,20 @@ interface TypewriterTextProps {
   style?: object;
 }
 
-const TypewriterText: React.FC<TypewriterTextProps> = ({ text, speed = 60, onComplete, style }) => {
-  const [displayedText, setDisplayedText] = useState('');
+const TypewriterText: React.FC<TypewriterTextProps> = ({
+  text,
+  speed = 60,
+  onComplete,
+  style,
+}) => {
+  const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (currentIndex < text.length) {
       const timer = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        setDisplayedText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
       }, speed);
       return () => clearTimeout(timer);
     } else if (onComplete) {

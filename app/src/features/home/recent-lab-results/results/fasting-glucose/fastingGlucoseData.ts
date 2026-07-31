@@ -1,12 +1,12 @@
-import { LabResult } from '../types';
+import { LabResult } from "../types";
 
 export const fastingGlucose: LabResult = {
-  id: 'glucose',
-  name: 'Fasting Glucose',
+  id: "glucose",
+  name: "Fasting Glucose",
   value: 88,
-  unit: 'mg/dL',
-  trend: 'stable',
+  unit: "mg/dL",
+  trend: "stable",
   trendPercent: 2,
-  status: 'optimal',
-  lastUpdated: '1 week ago',
+  status: "optimal",
+  lastUpdated: "1 week ago",
 };

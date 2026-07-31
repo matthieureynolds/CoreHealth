@@ -1,6 +1,13 @@
-import React from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface PickerOption {
   value: string;
@@ -16,7 +23,14 @@ interface PickerModalProps {
   onClose: () => void;
 }
 
-const PickerModal: React.FC<PickerModalProps> = ({ visible, title, options, selectedValue, onSelect, onClose }) => (
+const PickerModal: React.FC<PickerModalProps> = ({
+  visible,
+  title,
+  options,
+  selectedValue,
+  onSelect,
+  onClose,
+}) => (
   <Modal
     visible={visible}
     transparent={true}
@@ -53,28 +67,28 @@ const PickerModal: React.FC<PickerModalProps> = ({ visible, title, options, sele
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
-    maxHeight: '70%',
+    maxHeight: "70%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
   },
   closeButton: {
     padding: 4,
@@ -83,17 +97,17 @@ const styles = StyleSheet.create({
     maxHeight: 400,
   },
   pickerOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   pickerOptionText: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: "#1C1C1E",
   },
 });
 

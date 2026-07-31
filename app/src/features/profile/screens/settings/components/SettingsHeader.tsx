@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { SETTINGS_HEADER_PT, SETTINGS_HEADER_PB } from './settingsLayout';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { SETTINGS_HEADER_PT, SETTINGS_HEADER_PB } from "./settingsLayout";
 
 interface SettingsHeaderProps {
   title: string;
@@ -28,13 +28,13 @@ const SettingsHeader: React.FC<SettingsHeaderProps> = ({ title }) => {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: SETTINGS_HEADER_PT,
     paddingBottom: SETTINGS_HEADER_PB,
-    backgroundColor: '#000000',
-    position: 'absolute',
+    backgroundColor: "#000000",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -47,9 +47,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
     flex: 1,
   },
   spacer: {

@@ -1,6 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle, Path, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import Svg, {
+  Circle,
+  Path,
+  Text as SvgText,
+  Defs,
+  LinearGradient,
+  Stop,
+} from "react-native-svg";
 
 const getPercentile = (score: number): number => {
   if (score >= 80) return 85;
@@ -34,11 +41,13 @@ const DistributionCurve: React.FC<DistributionCurveProps> = ({ score }) => {
     points.push(`${x + padding},${chartY}`);
   }
 
-  const pathData = `M ${points.join(' L ')}`;
-  const fullAreaPath = `M ${padding},${curveHeight - 10} L ${points.join(' L ')} L ${curveWidth + padding},${curveHeight - 10} Z`;
+  const pathData = `M ${points.join(" L ")}`;
+  const fullAreaPath = `M ${padding},${curveHeight - 10} L ${points.join(" L ")} L ${curveWidth + padding},${curveHeight - 10} Z`;
 
   const userNormalizedX = (userPosition / curveWidth) * 100;
-  const userYVal = Math.exp(-0.5 * Math.pow((userNormalizedX - mean) / stdDev, 2));
+  const userYVal = Math.exp(
+    -0.5 * Math.pow((userNormalizedX - mean) / stdDev, 2),
+  );
   const userChartY = curveHeight - userYVal * curveHeight * 0.8 - 10;
 
   return (
@@ -67,7 +76,14 @@ const DistributionCurve: React.FC<DistributionCurveProps> = ({ score }) => {
           strokeDasharray="4,6"
           opacity="0.9"
         />
-        <Circle cx={userPosition + padding} cy={userChartY} r="4" fill="#FF9500" stroke="#FFFFFF" strokeWidth="2" />
+        <Circle
+          cx={userPosition + padding}
+          cy={userChartY}
+          r="4"
+          fill="#FF9500"
+          stroke="#FFFFFF"
+          strokeWidth="2"
+        />
         <SvgText
           x={Math.min(userPosition + padding + 10, curveWidth + padding - 60)}
           y={Math.max(userChartY - 100, padding + 12)}
@@ -77,18 +93,42 @@ const DistributionCurve: React.FC<DistributionCurveProps> = ({ score }) => {
         >
           {`Score: ${score}`}
         </SvgText>
-        <SvgText x={padding} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="start">0</SvgText>
-        <SvgText x={padding + curveWidth / 2} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="middle">50</SvgText>
-        <SvgText x={padding + curveWidth} y={chartHeight - 5} fontSize="10" fill="#8E8E93" textAnchor="end">100</SvgText>
+        <SvgText
+          x={padding}
+          y={chartHeight - 5}
+          fontSize="10"
+          fill="#8E8E93"
+          textAnchor="start"
+        >
+          0
+        </SvgText>
+        <SvgText
+          x={padding + curveWidth / 2}
+          y={chartHeight - 5}
+          fontSize="10"
+          fill="#8E8E93"
+          textAnchor="middle"
+        >
+          50
+        </SvgText>
+        <SvgText
+          x={padding + curveWidth}
+          y={chartHeight - 5}
+          fontSize="10"
+          fill="#8E8E93"
+          textAnchor="end"
+        >
+          100
+        </SvgText>
       </Svg>
 
       <View style={styles.distributionLegend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#8E8E93' }]} />
+          <View style={[styles.legendDot, { backgroundColor: "#8E8E93" }]} />
           <Text style={styles.legendText}>Mean</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
+          <View style={[styles.legendDot, { backgroundColor: "#FF9500" }]} />
           <Text style={styles.legendText}>{userPercentile}th percentile</Text>
         </View>
       </View>
@@ -98,18 +138,18 @@ const DistributionCurve: React.FC<DistributionCurveProps> = ({ score }) => {
 
 const styles = StyleSheet.create({
   distributionContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   distributionLegend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 16,
     marginTop: 8,
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   legendDot: {
@@ -119,7 +159,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
 });
 

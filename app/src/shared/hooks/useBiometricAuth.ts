@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import biometricService from '../services/user/biometricService';
+import { useState, useEffect, useCallback } from "react";
+import biometricService from "../services/user/biometricService";
 
 export interface UseBiometricAuthReturn {
   isBiometricAvailable: boolean;
@@ -27,19 +27,19 @@ export const useBiometricAuth = (): UseBiometricAuthReturn => {
     try {
       setIsLoading(true);
       await biometricService.initialize();
-      
+
       const available = biometricService.isBiometricAvailable();
       const enabled = biometricService.isBiometricEnabled();
-      
+
       setIsBiometricAvailable(available);
       setIsBiometricEnabled(enabled);
-      
+
       // If biometric is not enabled, consider user as authenticated
       if (!enabled) {
         setIsAuthenticated(true);
       }
     } catch (error) {
-      console.error('Error initializing biometric auth:', error);
+      console.error("Error initializing biometric auth:", error);
       setIsBiometricAvailable(false);
       setIsBiometricEnabled(false);
       setIsAuthenticated(true); // Allow access on error
@@ -48,25 +48,28 @@ export const useBiometricAuth = (): UseBiometricAuthReturn => {
     }
   }, []);
 
-  const authenticate = useCallback(async (config?: any): Promise<boolean> => {
-    if (!isBiometricEnabled || !isBiometricAvailable) {
-      setIsAuthenticated(true);
-      return true;
-    }
+  const authenticate = useCallback(
+    async (config?: any): Promise<boolean> => {
+      if (!isBiometricEnabled || !isBiometricAvailable) {
+        setIsAuthenticated(true);
+        return true;
+      }
 
-    try {
-      setIsLoading(true);
-      const success = await biometricService.authenticate(config);
-      setIsAuthenticated(success);
-      return success;
-    } catch (error) {
-      console.error('Biometric authentication error:', error);
-      setIsAuthenticated(false);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isBiometricEnabled, isBiometricAvailable]);
+      try {
+        setIsLoading(true);
+        const success = await biometricService.authenticate(config);
+        setIsAuthenticated(success);
+        return success;
+      } catch (error) {
+        console.error("Biometric authentication error:", error);
+        setIsAuthenticated(false);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isBiometricEnabled, isBiometricAvailable],
+  );
 
   const enableBiometric = useCallback(async (): Promise<boolean> => {
     try {
@@ -79,7 +82,7 @@ export const useBiometricAuth = (): UseBiometricAuthReturn => {
       }
       return success;
     } catch (error) {
-      console.error('Error enabling biometric:', error);
+      console.error("Error enabling biometric:", error);
       return false;
     } finally {
       setIsLoading(false);
@@ -96,7 +99,7 @@ export const useBiometricAuth = (): UseBiometricAuthReturn => {
       }
       return success;
     } catch (error) {
-      console.error('Error disabling biometric:', error);
+      console.error("Error disabling biometric:", error);
       return false;
     } finally {
       setIsLoading(false);
@@ -128,4 +131,4 @@ export const useBiometricAuth = (): UseBiometricAuthReturn => {
   };
 };
 
-export default useBiometricAuth; 
+export default useBiometricAuth;

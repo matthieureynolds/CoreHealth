@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Animated } from 'react-native';
-import { Circle } from 'react-native-svg';
+import React, { useState, useEffect } from "react";
+import { Animated } from "react-native";
+import { Circle } from "react-native-svg";
 
 const getScoreColor = (score: number): string => {
-  if (score >= 80) return '#30D158';
-  if (score >= 65) return '#32D74B';
-  if (score >= 50) return '#FF9F0A';
-  if (score >= 35) return '#FF6B35';
-  return '#FF3B30';
+  if (score >= 80) return "#30D158";
+  if (score >= 65) return "#32D74B";
+  if (score >= 50) return "#FF9F0A";
+  if (score >= 35) return "#FF6B35";
+  return "#FF3B30";
 };
 
 interface AnimatedProgressCircleProps {
@@ -28,20 +28,24 @@ const AnimatedProgressCircle: React.FC<AnimatedProgressCircleProps> = ({
   strokeWidth,
 }) => {
   const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
-  const [currentColor, setCurrentColor] = useState('#FF3B30');
+  const [currentColor, setCurrentColor] = useState("#FF3B30");
 
   useEffect(() => {
     const listener = animatedProgress.addListener(({ value }) => {
       setStrokeDashoffset(circumference * (1 - value));
     });
-    return () => { animatedProgress.removeListener(listener); };
+    return () => {
+      animatedProgress.removeListener(listener);
+    };
   }, [animatedProgress, circumference]);
 
   useEffect(() => {
     const listener = animatedScore.addListener(({ value }) => {
       setCurrentColor(getScoreColor(Math.round(value)));
     });
-    return () => { animatedScore.removeListener(listener); };
+    return () => {
+      animatedScore.removeListener(listener);
+    };
   }, [animatedScore]);
 
   return (

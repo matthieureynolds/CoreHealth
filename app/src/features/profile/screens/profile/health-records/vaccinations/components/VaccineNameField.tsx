@@ -1,5 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 
 interface VaccineNameFieldProps {
   vaccineName: string;
@@ -56,20 +62,20 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   suggestionsContainer: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 150,
@@ -78,10 +84,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   suggestionText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
   },
 });

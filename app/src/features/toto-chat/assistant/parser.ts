@@ -1,4 +1,4 @@
-import type { Command } from './commandBus';
+import type { Command } from "./commandBus";
 
 // Detects a JSON command block either in a fenced code block or inline JSON
 export function parseAssistantCommand(text: string): Command | null {
@@ -15,9 +15,10 @@ export function parseAssistantCommand(text: string): Command | null {
 
     const candidate = lastMatch ? lastMatch[1] : text;
     // Find first JSON object in candidate
-    const firstBrace = candidate.indexOf('{');
-    const lastBrace = candidate.lastIndexOf('}');
-    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) return null;
+    const firstBrace = candidate.indexOf("{");
+    const lastBrace = candidate.lastIndexOf("}");
+    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace)
+      return null;
     const jsonStr = candidate.slice(firstBrace, lastBrace + 1);
 
     const obj = JSON.parse(jsonStr);
@@ -26,13 +27,13 @@ export function parseAssistantCommand(text: string): Command | null {
     if (!type) return null;
 
     switch (type) {
-      case 'SUPPLEMENT_VITC_RECOMMEND':
-      case 'APPT_RESCHEDULE_DENTIST':
-      case 'SYMPTOM_LOG_LEG_PAIN':
-      case 'ALLERGY_UPDATE_PNUT':
-      case 'TRAVEL_ADD_COUNTRY_CARD':
-      case 'LAB_SUBMIT_RESULTS':
-      case 'TRIP_CHANGE_DATES':
+      case "SUPPLEMENT_VITC_RECOMMEND":
+      case "APPT_RESCHEDULE_DENTIST":
+      case "SYMPTOM_LOG_LEG_PAIN":
+      case "ALLERGY_UPDATE_PNUT":
+      case "TRAVEL_ADD_COUNTRY_CARD":
+      case "LAB_SUBMIT_RESULTS":
+      case "TRIP_CHANGE_DATES":
         return { type, payload: obj.payload } as Command;
       default:
         return null;
@@ -41,5 +42,3 @@ export function parseAssistantCommand(text: string): Command | null {
     return null;
   }
 }
-
-

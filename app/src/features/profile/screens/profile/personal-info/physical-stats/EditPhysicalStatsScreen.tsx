@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,15 @@ import {
   Platform,
   ScrollView,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useHealthData } from '../../../../../../shared/context/HealthDataContext';
-import { ProfileTabParamList } from '../../../../../../shared/types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useHealthData } from "@shared/context/HealthDataContext";
+import { ProfileTabParamList } from "@shared/types";
 
-type EditPhysicalStatsScreenNavigationProp = StackNavigationProp<ProfileTabParamList>;
+type EditPhysicalStatsScreenNavigationProp =
+  StackNavigationProp<ProfileTabParamList>;
 
 interface PhysicalStatsData {
   height: string;
@@ -29,18 +30,18 @@ const EditPhysicalStatsScreen: React.FC = () => {
   const navigation = useNavigation<EditPhysicalStatsScreenNavigationProp>();
   const { profile, updateProfile } = useHealthData();
   const [statsData, setStatsData] = useState<PhysicalStatsData>({
-    height: '',
-    weight: '',
-    bloodType: '',
+    height: "",
+    weight: "",
+    bloodType: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setStatsData({
-        height: profile.height?.toString() || '',
-        weight: profile.weight?.toString() || '',
-        bloodType: profile.bloodType || '',
+        height: profile.height?.toString() || "",
+        weight: profile.weight?.toString() || "",
+        bloodType: profile.bloodType || "",
       });
     }
   }, [profile]);
@@ -50,17 +51,17 @@ const EditPhysicalStatsScreen: React.FC = () => {
     const weight = parseFloat(statsData.weight);
 
     if (isNaN(height) || height < 50 || height > 250) {
-      Alert.alert('Error', 'Please enter a valid height in cm (50-250)');
+      Alert.alert("Error", "Please enter a valid height in cm (50-250)");
       return;
     }
 
     if (isNaN(weight) || weight < 20 || weight > 500) {
-      Alert.alert('Error', 'Please enter a valid weight in kg (20-500)');
+      Alert.alert("Error", "Please enter a valid weight in kg (20-500)");
       return;
     }
 
     if (!statsData.bloodType.trim()) {
-      Alert.alert('Error', 'Please select your blood type');
+      Alert.alert("Error", "Please select your blood type");
       return;
     }
 
@@ -70,19 +71,41 @@ const EditPhysicalStatsScreen: React.FC = () => {
         ...profile,
         height: Math.round(height * 10) / 10, // Round to 1 decimal place
         weight: Math.round(weight * 10) / 10, // Round to 1 decimal place
-        bloodType: statsData.bloodType as "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "unknown",
+        bloodType: statsData.bloodType as
+          | "A+"
+          | "A-"
+          | "B+"
+          | "B-"
+          | "AB+"
+          | "AB-"
+          | "O+"
+          | "O-"
+          | "unknown",
       });
 
-      Alert.alert('Success', 'Physical stats updated successfully');
+      Alert.alert("Success", "Physical stats updated successfully");
     } catch (error) {
-      console.error('Error updating physical stats:', error);
-      Alert.alert('Error', 'Failed to update physical stats. Please try again.');
+      console.error("Error updating physical stats:", error);
+      Alert.alert(
+        "Error",
+        "Failed to update physical stats. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const bloodTypeOptions = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+  const bloodTypeOptions = [
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-",
+    "O+",
+    "O-",
+    "Unknown",
+  ];
   const ITEM_HEIGHT = 52;
   const VISIBLE_ITEMS = 5;
 
@@ -95,7 +118,10 @@ const EditPhysicalStatsScreen: React.FC = () => {
       const idx = Math.max(0, bloodTypeOptions.indexOf(statsData.bloodType));
       setTempBloodType(bloodTypeOptions[idx]);
       setTimeout(() => {
-        pickerScrollRef.current?.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+        pickerScrollRef.current?.scrollTo({
+          y: idx * ITEM_HEIGHT,
+          animated: false,
+        });
       }, 50);
     }
   }, [showBloodTypePicker]);
@@ -108,7 +134,7 @@ const EditPhysicalStatsScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.header} pointerEvents="box-none">
         <TouchableOpacity
@@ -118,11 +144,13 @@ const EditPhysicalStatsScreen: React.FC = () => {
         >
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} pointerEvents="none">Physical Stats</Text>
+        <Text style={styles.headerTitle} pointerEvents="none">
+          Physical Stats
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.contentContainer, { paddingTop: 120 }]}
@@ -133,7 +161,9 @@ const EditPhysicalStatsScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             value={statsData.height}
-            onChangeText={(text) => setStatsData({ ...statsData, height: text })}
+            onChangeText={(text) =>
+              setStatsData({ ...statsData, height: text })
+            }
             placeholder="Enter your height (e.g., 175.5)"
             placeholderTextColor="#666"
             keyboardType="decimal-pad"
@@ -149,7 +179,9 @@ const EditPhysicalStatsScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             value={statsData.weight}
-            onChangeText={(text) => setStatsData({ ...statsData, weight: text })}
+            onChangeText={(text) =>
+              setStatsData({ ...statsData, weight: text })
+            }
             placeholder="Enter your weight (e.g., 75.5)"
             placeholderTextColor="#666"
             keyboardType="decimal-pad"
@@ -166,8 +198,13 @@ const EditPhysicalStatsScreen: React.FC = () => {
             style={styles.pickerButton}
             onPress={() => setShowBloodTypePicker(true)}
           >
-            <Text style={[styles.pickerButtonText, !statsData.bloodType && styles.placeholderText]}>
-              {statsData.bloodType || 'Select your blood type'}
+            <Text
+              style={[
+                styles.pickerButtonText,
+                !statsData.bloodType && styles.placeholderText,
+              ]}
+            >
+              {statsData.bloodType || "Select your blood type"}
             </Text>
             <Ionicons name="chevron-down" size={20} color="#666" />
           </TouchableOpacity>
@@ -184,19 +221,31 @@ const EditPhysicalStatsScreen: React.FC = () => {
         <View style={styles.pickerOverlay}>
           <View style={styles.pickerContainer}>
             <View style={styles.pickerHeader}>
-              <TouchableOpacity onPress={() => setShowBloodTypePicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <TouchableOpacity
+                onPress={() => setShowBloodTypePicker(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={24} color="#FF3B30" />
               </TouchableOpacity>
               <Text style={styles.pickerTitle}>Blood Type</Text>
-              <TouchableOpacity onPress={() => handleBloodTypeSelect(tempBloodType)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <TouchableOpacity
+                onPress={() => handleBloodTypeSelect(tempBloodType)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="checkmark" size={24} color="#34C759" />
               </TouchableOpacity>
             </View>
 
             <View style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS }}>
               {/* Selection indicator lines */}
-              <View style={[styles.selectionLine, { top: ITEM_HEIGHT * 2 }]} pointerEvents="none" />
-              <View style={[styles.selectionLine, { top: ITEM_HEIGHT * 3 }]} pointerEvents="none" />
+              <View
+                style={[styles.selectionLine, { top: ITEM_HEIGHT * 2 }]}
+                pointerEvents="none"
+              />
+              <View
+                style={[styles.selectionLine, { top: ITEM_HEIGHT * 3 }]}
+                pointerEvents="none"
+              />
 
               <ScrollView
                 ref={pickerScrollRef}
@@ -205,12 +254,24 @@ const EditPhysicalStatsScreen: React.FC = () => {
                 decelerationRate="fast"
                 contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
                 onMomentumScrollEnd={(e) => {
-                  const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-                  setTempBloodType(bloodTypeOptions[Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))]);
+                  const idx = Math.round(
+                    e.nativeEvent.contentOffset.y / ITEM_HEIGHT,
+                  );
+                  setTempBloodType(
+                    bloodTypeOptions[
+                      Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))
+                    ],
+                  );
                 }}
                 onScrollEndDrag={(e) => {
-                  const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-                  setTempBloodType(bloodTypeOptions[Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))]);
+                  const idx = Math.round(
+                    e.nativeEvent.contentOffset.y / ITEM_HEIGHT,
+                  );
+                  setTempBloodType(
+                    bloodTypeOptions[
+                      Math.max(0, Math.min(idx, bloodTypeOptions.length - 1))
+                    ],
+                  );
                 }}
               >
                 {bloodTypeOptions.map((bt) => (
@@ -219,11 +280,19 @@ const EditPhysicalStatsScreen: React.FC = () => {
                     style={styles.pickerItem}
                     onPress={() => {
                       const idx = bloodTypeOptions.indexOf(bt);
-                      pickerScrollRef.current?.scrollTo({ y: idx * ITEM_HEIGHT, animated: true });
+                      pickerScrollRef.current?.scrollTo({
+                        y: idx * ITEM_HEIGHT,
+                        animated: true,
+                      });
                       setTempBloodType(bt);
                     }}
                   >
-                    <Text style={[styles.pickerItemText, tempBloodType === bt && styles.pickerItemTextActive]}>
+                    <Text
+                      style={[
+                        styles.pickerItemText,
+                        tempBloodType === bt && styles.pickerItemTextActive,
+                      ]}
+                    >
                       {bt}
                     </Text>
                   </TouchableOpacity>
@@ -240,17 +309,17 @@ const EditPhysicalStatsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 56,
     paddingBottom: 12,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     zIndex: 1000,
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -261,10 +330,10 @@ const styles = StyleSheet.create({
     marginLeft: -8,
   },
   headerTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     flex: 1,
   },
   content: {
@@ -279,101 +348,101 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#222',
+    backgroundColor: "#222",
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 18,
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
     minHeight: 56,
   },
   characterCount: {
-    color: '#666',
+    color: "#666",
     fontSize: 12,
-    textAlign: 'right',
+    textAlign: "right",
     marginTop: 4,
   },
   pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#222',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#222",
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 18,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
     minHeight: 56,
   },
   pickerButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   placeholderText: {
-    color: '#666',
+    color: "#666",
   },
   pickerOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   pickerContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderRadius: 20,
-    width: '100%',
+    width: "100%",
     maxWidth: 350,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
   },
   pickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   pickerTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   selectionLine: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
     right: 20,
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     zIndex: 1,
   },
   pickerItem: {
     height: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   pickerItemText: {
-    color: '#555',
+    color: "#555",
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   pickerItemTextActive: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 
-export default EditPhysicalStatsScreen; 
+export default EditPhysicalStatsScreen;

@@ -2,8 +2,8 @@ import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { LiquidGlass } from "../../../../../shared/components/ui/LiquidGlass";
-import { palette } from "../../../../../shared/theme/colors";
+import { LiquidGlass } from "@shared/components/ui/LiquidGlass";
+import { palette } from "@shared/theme/colors";
 
 interface TravelTabBarProps {
   activeTab: "health" | "trips";

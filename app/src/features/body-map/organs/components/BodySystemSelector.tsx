@@ -1,14 +1,18 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-export type BodySystemType = 'organs' | 'skeleton' | 'circulation' | 'nutrition';
+export type BodySystemType =
+  | "organs"
+  | "skeleton"
+  | "circulation"
+  | "nutrition";
 
 interface BodySystemSelectorProps {
   selectedSystem: BodySystemType;
@@ -21,24 +25,24 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
 }) => {
   const systems = [
     {
-      id: 'organs' as BodySystemType,
-      name: 'Organs',
-      icon: 'body' as const,
+      id: "organs" as BodySystemType,
+      name: "Organs",
+      icon: "body" as const,
     },
     {
-      id: 'skeleton' as BodySystemType,
-      name: 'Skeleton',
-      icon: 'skull' as const,
+      id: "skeleton" as BodySystemType,
+      name: "Skeleton",
+      icon: "skull" as const,
     },
     {
-      id: 'circulation' as BodySystemType,
-      name: 'Circulatory',
-      icon: 'heart' as const,
+      id: "circulation" as BodySystemType,
+      name: "Circulatory",
+      icon: "heart" as const,
     },
     {
-      id: 'nutrition' as BodySystemType,
-      name: 'Nutrition',
-      icon: 'nutrition' as const,
+      id: "nutrition" as BodySystemType,
+      name: "Nutrition",
+      icon: "nutrition" as const,
     },
   ];
 
@@ -49,7 +53,7 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabScrollContainer}
       >
-        {systems.map(system => (
+        {systems.map((system) => (
           <TouchableOpacity
             key={system.id}
             style={[
@@ -58,11 +62,11 @@ const BodySystemSelector: React.FC<BodySystemSelectorProps> = ({
             ]}
             onPress={() => onSystemChange(system.id)}
             activeOpacity={0.7}
-            >
-            <Ionicons 
-              name={system.icon} 
-              size={18} 
-              color={selectedSystem === system.id ? '#3AABF0' : '#8E8E93'} 
+          >
+            <Ionicons
+              name={system.icon}
+              size={18}
+              color={selectedSystem === system.id ? "#3AABF0" : "#8E8E93"}
             />
             <Text
               style={[
@@ -87,20 +91,20 @@ const styles = StyleSheet.create({
   container: {
     paddingVertical: 16,
     paddingHorizontal: 0,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
+    borderBottomColor: "#1C1C1E",
   },
   tabScrollContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     gap: 8,
   },
   tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 8,
@@ -109,17 +113,17 @@ const styles = StyleSheet.create({
   },
   selectedTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3AABF0',
+    borderBottomColor: "#3AABF0",
   },
   tabText: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#8E8E93',
+    fontWeight: "500",
+    color: "#8E8E93",
     maxWidth: 100,
   },
   selectedTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
   },
 });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface RecordType {
   value: string;
@@ -51,7 +51,11 @@ const TypePickerModal: React.FC<TypePickerModalProps> = ({
             style={styles.typeOption}
             onPress={() => onSelect(type.value)}
           >
-            <Ionicons name={type.icon as any} size={24} color={type.color as any} />
+            <Ionicons
+              name={type.icon as any}
+              size={24}
+              color={type.color as any}
+            />
             <Text style={styles.typeOptionText}>{type.label}</Text>
             <Ionicons name="chevron-forward" size={20} color="#888" />
           </TouchableOpacity>
@@ -64,42 +68,42 @@ const TypePickerModal: React.FC<TypePickerModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   cancelButton: {
     fontSize: 16,
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   modalContent: {
     flex: 1,
     padding: 20,
   },
   typeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   typeOptionText: {
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     flex: 1,
     marginLeft: 12,
   },

@@ -1,4 +1,4 @@
-import { Doctor, UserProfile } from '../../../../../../shared/types';
+import { Doctor, UserProfile } from "@shared/types";
 
 interface ReportOptions {
   patientName: string;
@@ -7,12 +7,18 @@ interface ReportOptions {
   profile: UserProfile | null;
 }
 
-const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString();
 
-export function generateHealthReportHTML({ patientName, selectedDoctor, selectedSections, profile }: ReportOptions): string {
+export function generateHealthReportHTML({
+  patientName,
+  selectedDoctor,
+  selectedSections,
+  profile,
+}: ReportOptions): string {
   const currentDate = new Date().toLocaleDateString();
-  const doctorName = selectedDoctor?.name || 'Healthcare Provider';
-  const doctorSpecialty = selectedDoctor?.specialty || 'Medical Professional';
+  const doctorName = selectedDoctor?.name || "Healthcare Provider";
+  const doctorSpecialty = selectedDoctor?.specialty || "Medical Professional";
 
   let html = `
     <!DOCTYPE html>
@@ -46,7 +52,7 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
       <div class="doctor-info">
         <div class="doctor-title">Shared with Healthcare Provider</div>
         <div class="subtitle">Dr. ${doctorName} - ${doctorSpecialty}</div>
-        ${selectedDoctor?.office ? `<div class="subtitle">${selectedDoctor.office}</div>` : ''}
+        ${selectedDoctor?.office ? `<div class="subtitle">${selectedDoctor.office}</div>` : ""}
       </div>
       <div class="warning">
         <strong>⚠️ Confidential Medical Information</strong><br>
@@ -54,28 +60,28 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
       </div>
   `;
 
-  if (selectedSections.includes('personal_info')) {
+  if (selectedSections.includes("personal_info")) {
     html += `
       <div class="section">
         <div class="section-title">Personal Information</div>
         <div class="item">
           <div class="item-title">Basic Information</div>
           <div class="item-detail">Name: ${patientName}</div>
-          <div class="item-detail">Age: ${profile?.age || 'Not specified'} years</div>
-          <div class="item-detail">Gender: ${profile?.gender || 'Not specified'}</div>
-          ${profile?.height ? `<div class="item-detail">Height: ${profile.height} cm</div>` : ''}
-          ${profile?.weight ? `<div class="item-detail">Weight: ${profile.weight} kg</div>` : ''}
-          ${profile?.bloodType ? `<div class="item-detail">Blood Type: ${profile.bloodType}</div>` : ''}
+          <div class="item-detail">Age: ${profile?.age || "Not specified"} years</div>
+          <div class="item-detail">Gender: ${profile?.gender || "Not specified"}</div>
+          ${profile?.height ? `<div class="item-detail">Height: ${profile.height} cm</div>` : ""}
+          ${profile?.weight ? `<div class="item-detail">Weight: ${profile.weight} kg</div>` : ""}
+          ${profile?.bloodType ? `<div class="item-detail">Blood Type: ${profile.bloodType}</div>` : ""}
         </div>
       </div>
     `;
   }
 
-  if (selectedSections.includes('medical_conditions')) {
+  if (selectedSections.includes("medical_conditions")) {
     html += `<div class="section"><div class="section-title">Medical Conditions</div>`;
     if (profile?.medicalHistory?.length) {
-      profile.medicalHistory.forEach(c => {
-        html += `<div class="item"><div class="item-title">${c.condition}</div><div class="item-detail">Diagnosed: ${formatDate(c.diagnosedDate)}</div><div class="item-detail">Severity: ${c.severity}</div><div class="item-detail">Status: ${c.status}</div>${c.resolvedDate ? `<div class="item-detail">Resolved: ${formatDate(c.resolvedDate)}</div>` : ''}${c.notes ? `<div class="item-detail">Notes: ${c.notes}</div>` : ''}</div>`;
+      profile.medicalHistory.forEach((c) => {
+        html += `<div class="item"><div class="item-title">${c.condition}</div><div class="item-detail">Diagnosed: ${formatDate(c.diagnosedDate)}</div><div class="item-detail">Severity: ${c.severity}</div><div class="item-detail">Status: ${c.status}</div>${c.resolvedDate ? `<div class="item-detail">Resolved: ${formatDate(c.resolvedDate)}</div>` : ""}${c.notes ? `<div class="item-detail">Notes: ${c.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No medical conditions recorded</div>`;
@@ -83,11 +89,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('medications')) {
+  if (selectedSections.includes("medications")) {
     html += `<div class="section"><div class="section-title">Current Medications</div>`;
     if (profile?.medications?.length) {
-      profile.medications.forEach(m => {
-        html += `<div class="item"><div class="item-title">${m.name}</div>${m.dosage ? `<div class="item-detail">Dosage: ${m.dosage}</div>` : ''}${m.frequency ? `<div class="item-detail">Frequency: ${m.frequency}</div>` : ''}${m.startDate ? `<div class="item-detail">Started: ${formatDate(m.startDate)}</div>` : ''}${m.duration ? `<div class="item-detail">Duration: ${m.duration}</div>` : ''}${m.notes ? `<div class="item-detail">Notes: ${m.notes}</div>` : ''}</div>`;
+      profile.medications.forEach((m) => {
+        html += `<div class="item"><div class="item-title">${m.name}</div>${m.dosage ? `<div class="item-detail">Dosage: ${m.dosage}</div>` : ""}${m.frequency ? `<div class="item-detail">Frequency: ${m.frequency}</div>` : ""}${m.startDate ? `<div class="item-detail">Started: ${formatDate(m.startDate)}</div>` : ""}${m.duration ? `<div class="item-detail">Duration: ${m.duration}</div>` : ""}${m.notes ? `<div class="item-detail">Notes: ${m.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No medications recorded</div>`;
@@ -95,11 +101,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('allergies')) {
+  if (selectedSections.includes("allergies")) {
     html += `<div class="section"><div class="section-title">Allergies</div>`;
     if (profile?.allergies?.length) {
-      profile.allergies.forEach(a => {
-        html += `<div class="item"><div class="item-title">${a.name}</div><div class="item-detail">Severity: ${a.severity}</div><div class="item-detail">Status: ${a.status}</div><div class="item-detail">Started: ${formatDate(a.startDate)}</div>${a.endDate ? `<div class="item-detail">Resolved: ${formatDate(a.endDate)}</div>` : ''}${a.reaction ? `<div class="item-detail">Reaction: ${a.reaction}</div>` : ''}${a.notes ? `<div class="item-detail">Notes: ${a.notes}</div>` : ''}</div>`;
+      profile.allergies.forEach((a) => {
+        html += `<div class="item"><div class="item-title">${a.name}</div><div class="item-detail">Severity: ${a.severity}</div><div class="item-detail">Status: ${a.status}</div><div class="item-detail">Started: ${formatDate(a.startDate)}</div>${a.endDate ? `<div class="item-detail">Resolved: ${formatDate(a.endDate)}</div>` : ""}${a.reaction ? `<div class="item-detail">Reaction: ${a.reaction}</div>` : ""}${a.notes ? `<div class="item-detail">Notes: ${a.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No allergies recorded</div>`;
@@ -107,11 +113,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('family_history')) {
+  if (selectedSections.includes("family_history")) {
     html += `<div class="section"><div class="section-title">Family Medical History</div>`;
     if (profile?.familyHistory?.length) {
-      profile.familyHistory.forEach(f => {
-        html += `<div class="item"><div class="item-title">${f.condition}</div><div class="item-detail">Relation: ${f.relation}</div>${f.ageOfOnset ? `<div class="item-detail">Age of Onset: ${f.ageOfOnset} years</div>` : ''}</div>`;
+      profile.familyHistory.forEach((f) => {
+        html += `<div class="item"><div class="item-title">${f.condition}</div><div class="item-detail">Relation: ${f.relation}</div>${f.ageOfOnset ? `<div class="item-detail">Age of Onset: ${f.ageOfOnset} years</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No family history recorded</div>`;
@@ -119,11 +125,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('vaccinations')) {
+  if (selectedSections.includes("vaccinations")) {
     html += `<div class="section"><div class="section-title">Vaccinations</div>`;
     if (profile?.vaccinations?.length) {
-      profile.vaccinations.forEach(v => {
-        html += `<div class="item"><div class="item-title">${v.name}</div><div class="item-detail">Date Received: ${formatDate(v.date.toISOString())}</div>${v.nextDue ? `<div class="item-detail">Next Due: ${formatDate(v.nextDue.toISOString())}</div>` : ''}${v.location ? `<div class="item-detail">Location: ${v.location}</div>` : ''}${(v as any).batchNumber ? `<div class="item-detail">Batch Number: ${(v as any).batchNumber}</div>` : ''}${v.notes ? `<div class="item-detail">Notes: ${v.notes}</div>` : ''}</div>`;
+      profile.vaccinations.forEach((v) => {
+        html += `<div class="item"><div class="item-title">${v.name}</div><div class="item-detail">Date Received: ${formatDate(v.date.toISOString())}</div>${v.nextDue ? `<div class="item-detail">Next Due: ${formatDate(v.nextDue.toISOString())}</div>` : ""}${v.location ? `<div class="item-detail">Location: ${v.location}</div>` : ""}${(v as any).batchNumber ? `<div class="item-detail">Batch Number: ${(v as any).batchNumber}</div>` : ""}${v.notes ? `<div class="item-detail">Notes: ${v.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No vaccinations recorded</div>`;
@@ -131,11 +137,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('screenings')) {
+  if (selectedSections.includes("screenings")) {
     html += `<div class="section"><div class="section-title">Health Screenings</div>`;
     if (profile?.screenings?.length) {
-      profile.screenings.forEach(s => {
-        html += `<div class="item"><div class="item-title">${s.name}</div><div class="item-detail">Date: ${formatDate(s.date.toISOString())}</div><div class="item-detail">Result: ${s.result}</div>${s.nextDue ? `<div class="item-detail">Next Due: ${formatDate(s.nextDue.toISOString())}</div>` : ''}${s.location ? `<div class="item-detail">Location: ${s.location}</div>` : ''}${s.notes ? `<div class="item-detail">Notes: ${s.notes}</div>` : ''}</div>`;
+      profile.screenings.forEach((s) => {
+        html += `<div class="item"><div class="item-title">${s.name}</div><div class="item-detail">Date: ${formatDate(s.date.toISOString())}</div><div class="item-detail">Result: ${s.result}</div>${s.nextDue ? `<div class="item-detail">Next Due: ${formatDate(s.nextDue.toISOString())}</div>` : ""}${s.location ? `<div class="item-detail">Location: ${s.location}</div>` : ""}${s.notes ? `<div class="item-detail">Notes: ${s.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No screenings recorded</div>`;
@@ -143,11 +149,11 @@ export function generateHealthReportHTML({ patientName, selectedDoctor, selected
     html += `</div>`;
   }
 
-  if (selectedSections.includes('medical_records')) {
+  if (selectedSections.includes("medical_records")) {
     html += `<div class="section"><div class="section-title">Medical Records</div>`;
     if (profile?.medicalRecords?.length) {
-      profile.medicalRecords.forEach(r => {
-        html += `<div class="item"><div class="item-title">${r.name}</div><div class="item-detail">Type: ${r.type}</div><div class="item-detail">Date: ${formatDate(r.date.toISOString())}</div>${(r as any).fileSize ? `<div class="item-detail">File Size: ${(r as any).fileSize} KB</div>` : ''}${r.notes ? `<div class="item-detail">Notes: ${r.notes}</div>` : ''}</div>`;
+      profile.medicalRecords.forEach((r) => {
+        html += `<div class="item"><div class="item-title">${r.name}</div><div class="item-detail">Type: ${r.type}</div><div class="item-detail">Date: ${formatDate(r.date.toISOString())}</div>${(r as any).fileSize ? `<div class="item-detail">File Size: ${(r as any).fileSize} KB</div>` : ""}${r.notes ? `<div class="item-detail">Notes: ${r.notes}</div>` : ""}</div>`;
       });
     } else {
       html += `<div class="empty-section">No medical records uploaded</div>`;

@@ -1,5 +1,5 @@
-import React from 'react';
-import NotificationReminderScreen from '../components/NotificationReminderScreen';
+import React from "react";
+import NotificationReminderScreen from "../components/NotificationReminderScreen";
 
 const MedicalAppointmentScreen: React.FC = () => (
   <NotificationReminderScreen

@@ -13,6 +13,15 @@ module.exports = {
     '**/src/features/travel/**/__tests__/**/*.test.ts',
     '**/src/shared/services/__tests__/**/*.test.ts',
   ],
+  // Mirrors the aliases in tsconfig.json `paths` and babel.config.js
+  // module-resolver. All three have to agree or a module resolves for the
+  // typechecker and the app but not the tests.
+  moduleNameMapper: {
+    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@features/(.*)$': '<rootDir>/src/features/$1',
+    '^@navigation/(.*)$': '<rootDir>/src/shared/navigation/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
   transform: {
     '^.+\\.ts$': ['ts-jest', { isolatedModules: true, diagnostics: false }],
   },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   Modal,
   TouchableOpacity,
   Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface BedtimeReminderModalProps {
   visible: boolean;
   onClose: () => void;
-  type: 'bedtime' | 'bedtime_soon';
+  type: "bedtime" | "bedtime_soon";
   bedtime: string;
 }
 
@@ -23,23 +23,23 @@ const BedtimeReminderModal: React.FC<BedtimeReminderModalProps> = ({
   bedtime,
 }) => {
   const formatTime = (timeString: string): string => {
-    const [hours, minutes] = timeString.split(':');
+    const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm = hour >= 12 ? "PM" : "AM";
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
   const getTitle = () => {
-    if (type === 'bedtime') {
-      return 'It\'s Bedtime! 🌙';
+    if (type === "bedtime") {
+      return "It's Bedtime! 🌙";
     } else {
-      return 'Bedtime in 30 Minutes ⏰';
+      return "Bedtime in 30 Minutes ⏰";
     }
   };
 
   const getMessage = () => {
-    if (type === 'bedtime') {
+    if (type === "bedtime") {
       return `It's past your bedtime of ${formatTime(bedtime)}. Consider winding down and avoiding screens for better sleep quality.`;
     } else {
       return `Your bedtime is at ${formatTime(bedtime)}. In 30 minutes, try to avoid screens and start your wind-down routine.`;
@@ -47,18 +47,18 @@ const BedtimeReminderModal: React.FC<BedtimeReminderModalProps> = ({
   };
 
   const getIcon = () => {
-    if (type === 'bedtime') {
-      return 'moon';
+    if (type === "bedtime") {
+      return "moon";
     } else {
-      return 'time';
+      return "time";
     }
   };
 
   const getIconColor = () => {
-    if (type === 'bedtime') {
-      return '#5856D6';
+    if (type === "bedtime") {
+      return "#5856D6";
     } else {
-      return '#FF9500';
+      return "#FF9500";
     }
   };
 
@@ -89,9 +89,12 @@ const BedtimeReminderModal: React.FC<BedtimeReminderModalProps> = ({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.acknowledgeButton} onPress={onClose}>
+            <TouchableOpacity
+              style={styles.acknowledgeButton}
+              onPress={onClose}
+            >
               <Text style={styles.acknowledgeButtonText}>
-                {type === 'bedtime' ? 'I Understand' : 'Got It'}
+                {type === "bedtime" ? "I Understand" : "Got It"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -101,33 +104,33 @@ const BedtimeReminderModal: React.FC<BedtimeReminderModalProps> = ({
   );
 };
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   modalContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     width: width - 40,
     maxWidth: 400,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 16,
@@ -136,17 +139,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2A2A2A',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#2A2A2A",
+    justifyContent: "center",
+    alignItems: "center",
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2A2A2A',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#2A2A2A",
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     paddingHorizontal: 24,
@@ -154,15 +157,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 12,
   },
   message: {
     fontSize: 16,
-    color: '#A0A0A0',
-    textAlign: 'center',
+    color: "#A0A0A0",
+    textAlign: "center",
     lineHeight: 24,
   },
   footer: {
@@ -170,16 +173,16 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   acknowledgeButton: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   acknowledgeButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

@@ -1,26 +1,27 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { AuthStackParamList } from '../types';
-import { useOnboarding } from '../hooks/useOnboarding';
-import { colors } from '../theme/colors';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { AuthStackParamList } from "../types";
+import { useOnboarding } from "../hooks/useOnboarding";
+import { colors } from "../theme/colors";
 
-import LoginScreen from '../../features/auth/screens/LoginScreen';
-import RegisterScreen from '../../features/auth/screens/RegisterScreen';
-import ForgotPasswordScreen from '../../features/auth/screens/ForgotPasswordScreen';
-import EmailSentScreen from '../../features/auth/screens/EmailSentScreen';
-import EmailVerificationScreen from '../../features/auth/screens/EmailVerificationScreen';
-import PersonalInfoScreen from '../../features/onboarding/screens/PersonalInfoScreen';
-import MedicalDocumentsScreen from '../../features/onboarding/screens/MedicalDocumentsScreen';
-import DeviceConnectionScreen from '../../features/onboarding/screens/DeviceConnectionScreen';
-import PermissionsScreen from '../../features/onboarding/screens/PermissionsScreen';
-import FinishOnboardingScreen from '../../features/onboarding/screens/FinishOnboardingScreen';
-import OnboardingScreen from '../../features/onboarding/screens/OnboardingScreen';
-import PrivacyNoticeScreen from '../../features/auth/screens/PrivacyNoticeScreen';
+import LoginScreen from "../../features/auth/screens/LoginScreen";
+import RegisterScreen from "../../features/auth/screens/RegisterScreen";
+import ForgotPasswordScreen from "../../features/auth/screens/ForgotPasswordScreen";
+import EmailSentScreen from "../../features/auth/screens/EmailSentScreen";
+import EmailVerificationScreen from "../../features/auth/screens/EmailVerificationScreen";
+import PersonalInfoScreen from "../../features/onboarding/screens/PersonalInfoScreen";
+import MedicalDocumentsScreen from "../../features/onboarding/screens/MedicalDocumentsScreen";
+import DeviceConnectionScreen from "../../features/onboarding/screens/DeviceConnectionScreen";
+import PermissionsScreen from "../../features/onboarding/screens/PermissionsScreen";
+import FinishOnboardingScreen from "../../features/onboarding/screens/FinishOnboardingScreen";
+import OnboardingScreen from "../../features/onboarding/screens/OnboardingScreen";
+import PrivacyNoticeScreen from "../../features/auth/screens/PrivacyNoticeScreen";
 
 const Stack = createStackNavigator<AuthStackParamList>();
 
 const AuthNavigator: React.FC = () => {
-  const { hasSeenOnboarding, isLoading, markOnboardingComplete } = useOnboarding();
+  const { hasSeenOnboarding, isLoading, markOnboardingComplete } =
+    useOnboarding();
 
   if (isLoading) {
     return null;
@@ -36,13 +37,18 @@ const AuthNavigator: React.FC = () => {
     >
       {!hasSeenOnboarding ? (
         <Stack.Screen name="Onboarding">
-          {(props) => <OnboardingScreen {...props} onComplete={markOnboardingComplete} />}
+          {(props) => (
+            <OnboardingScreen {...props} onComplete={markOnboardingComplete} />
+          )}
         </Stack.Screen>
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
           <Stack.Screen name="EmailSent" component={EmailSentScreen} />
           <Stack.Screen
             name="EmailVerification"
@@ -52,7 +58,7 @@ const AuthNavigator: React.FC = () => {
           <Stack.Screen name="MedicalDocuments">
             {(props) => (
               <MedicalDocumentsScreen
-                onNext={() => props.navigation.navigate('DeviceConnection')}
+                onNext={() => props.navigation.navigate("DeviceConnection")}
                 onBack={() => props.navigation.goBack()}
               />
             )}
@@ -60,7 +66,7 @@ const AuthNavigator: React.FC = () => {
           <Stack.Screen name="DeviceConnection">
             {(props) => (
               <DeviceConnectionScreen
-                onNext={() => props.navigation.navigate('Permissions')}
+                onNext={() => props.navigation.navigate("Permissions")}
                 onBack={() => props.navigation.goBack()}
               />
             )}
@@ -68,16 +74,14 @@ const AuthNavigator: React.FC = () => {
           <Stack.Screen name="Permissions">
             {(props) => (
               <PermissionsScreen
-                onNext={() => props.navigation.navigate('FinishOnboarding')}
+                onNext={() => props.navigation.navigate("FinishOnboarding")}
                 onBack={() => props.navigation.goBack()}
               />
             )}
           </Stack.Screen>
           <Stack.Screen name="FinishOnboarding">
             {(props) => (
-              <FinishOnboardingScreen
-                onComplete={markOnboardingComplete}
-              />
+              <FinishOnboardingScreen onComplete={markOnboardingComplete} />
             )}
           </Stack.Screen>
           <Stack.Screen name="PrivacyNotice" component={PrivacyNoticeScreen} />

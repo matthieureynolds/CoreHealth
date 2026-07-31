@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,16 +11,16 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../shared/context/AuthContext';
-import { useOnboarding } from '../../../shared/hooks/useOnboarding';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { AuthStackParamList } from '../../../shared/types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@shared/context/AuthContext";
+import { useOnboarding } from "@shared/hooks/useOnboarding";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AuthStackParamList } from "@shared/types";
 
 type LoginScreenNavigationProp = StackNavigationProp<
   AuthStackParamList,
-  'Login'
+  "Login"
 >;
 
 interface Props {
@@ -28,28 +28,33 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const { signIn, signUp, signInWithGoogle, isLoading: authLoading } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithGoogle,
+    isLoading: authLoading,
+  } = useAuth();
   const { resetOnboarding } = useOnboarding();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
-    setError('');
+    setError("");
     setIsLoading(true);
     try {
       await signIn(email, password);
       // Login successful - user will be automatically navigated to main app
     } catch (error: any) {
-      setError(error.message || 'Invalid email or password');
+      setError(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -58,11 +63,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Image source={require('../../../../assets/images/brand/logo.png')} style={styles.logo} />
+          <Image
+            source={require("../../../../assets/images/brand/logo.png")}
+            style={styles.logo}
+          />
           <Text style={styles.subtitle}>Your Personal Health Intelligence</Text>
         </View>
 
@@ -107,7 +115,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
                 color="#8E8E93"
               />
@@ -123,13 +131,17 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.forgotPassword}
-            onPress={() => navigation.navigate('ForgotPassword')}
+            onPress={() => navigation.navigate("ForgotPassword")}
           >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.loginButton, isLoading && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              styles.loginButton,
+              isLoading && styles.buttonDisabled,
+            ]}
             onPress={handleLogin}
             disabled={isLoading}
           >
@@ -149,13 +161,17 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Google Sign-In Button */}
           <TouchableOpacity
-            style={[styles.button, styles.googleButton, isLoading && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              styles.googleButton,
+              isLoading && styles.buttonDisabled,
+            ]}
             onPress={async () => {
-              setError('');
+              setError("");
               try {
                 await signInWithGoogle();
               } catch (err: any) {
-                setError(err.message || 'Google sign-in failed');
+                setError(err.message || "Google sign-in failed");
               }
             }}
             disabled={isLoading}
@@ -164,8 +180,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
-                <Ionicons name="logo-google" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={[styles.loginButtonText, { color: '#FFFFFF' }]}>Sign in with Google</Text>
+                <Ionicons
+                  name="logo-google"
+                  size={20}
+                  color="#FFFFFF"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={[styles.loginButtonText, { color: "#FFFFFF" }]}>
+                  Sign in with Google
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -175,7 +198,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             style={[styles.button, styles.resetButton]}
             onPress={async () => {
               await resetOnboarding();
-              Alert.alert('Onboarding Reset', 'Please restart the app to see the onboarding screen');
+              Alert.alert(
+                "Onboarding Reset",
+                "Please restart the app to see the onboarding screen",
+              );
             }}
           >
             <Text style={styles.resetButtonText}>Reset Onboarding (Test)</Text>
@@ -183,12 +209,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
               <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.privacyLink} onPress={() => navigation.navigate('PrivacyNotice')}>
+          <TouchableOpacity
+            style={styles.privacyLink}
+            onPress={() => navigation.navigate("PrivacyNotice")}
+          >
             <Text style={styles.privacyLinkText}>Privacy Notice</Text>
           </TouchableOpacity>
         </View>
@@ -200,44 +229,44 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
     paddingTop: 60,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   logo: {
     width: 120,
     height: 120,
-    resizeMode: 'contain',
+    resizeMode: "contain",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
   form: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     height: 56,
-    width: '100%',
+    width: "100%",
     maxWidth: 320,
   },
   inputIcon: {
@@ -247,110 +276,114 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   eyeIcon: {
     padding: 4,
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF3B3010',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF3B3010",
     borderWidth: 1,
-    borderColor: '#FF3B30',
+    borderColor: "#FF3B30",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 14,
     marginLeft: 8,
   },
   forgotPassword: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginBottom: 24,
-    width: '100%',
+    width: "100%",
     maxWidth: 320,
   },
   forgotPasswordText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   button: {
     height: 56,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
-    width: '100%',
+    width: "100%",
     maxWidth: 320,
   },
   loginButton: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   buttonDisabled: {
-    backgroundColor: '#3AABF080',
+    backgroundColor: "#3AABF080",
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 24,
   },
   footerText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
   },
   signUpText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   googleButton: {
-    backgroundColor: '#DB4437', // Official Google red
+    backgroundColor: "#DB4437", // Official Google red
     borderWidth: 1,
-    borderColor: '#DB4437',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#DB4437",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   separatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 12,
-    width: '100%',
+    width: "100%",
     maxWidth: 320,
   },
   separatorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#333',
+    backgroundColor: "#333",
   },
   separatorText: {
     marginHorizontal: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   resetButton: {
-    backgroundColor: '#FF9500',
+    backgroundColor: "#FF9500",
     marginTop: 16,
   },
   resetButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  privacyLink: { alignItems: 'center', marginTop: 16 },
-  privacyLinkText: { color: '#555', fontSize: 12, textDecorationLine: 'underline' },
+  privacyLink: { alignItems: "center", marginTop: 16 },
+  privacyLinkText: {
+    color: "#555",
+    fontSize: 12,
+    textDecorationLine: "underline",
+  },
 });
 
 export default LoginScreen;

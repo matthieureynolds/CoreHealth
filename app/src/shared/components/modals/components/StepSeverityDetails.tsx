@@ -1,10 +1,21 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import Slider from '@react-native-community/slider';
-import { SymptomCategory, DURATION_OPTIONS, SEVERITY_LABELS } from '../../../types/symptoms';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import Slider from "@react-native-community/slider";
+import {
+  SymptomCategory,
+  DURATION_OPTIONS,
+  SEVERITY_LABELS,
+} from "@shared/types/symptoms";
 
 interface StepSeverityDetailsProps {
-  selectedType: 'physical' | 'mental' | null;
+  selectedType: "physical" | "mental" | null;
   selectedCategory: SymptomCategory | null;
   severity: number;
   onSeverityChange: (value: number) => void;
@@ -19,8 +30,16 @@ interface StepSeverityDetailsProps {
 }
 
 const availableFactors = [
-  'Work', 'Health', 'Family', 'Relationships', 'Weather',
-  'Sleep', 'Exercise', 'Diet', 'Medication', 'Stress',
+  "Work",
+  "Health",
+  "Family",
+  "Relationships",
+  "Weather",
+  "Sleep",
+  "Exercise",
+  "Diet",
+  "Medication",
+  "Stress",
 ];
 
 const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
@@ -47,10 +66,14 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
 
   return (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Rate your {selectedCategory.name.toLowerCase()}</Text>
+      <Text style={styles.stepTitle}>
+        Rate your {selectedCategory.name.toLowerCase()}
+      </Text>
 
       <View style={styles.severityContainer}>
-        <Text style={styles.severityLabel}>Severity: {SEVERITY_LABELS[Math.round(severity) - 1]}</Text>
+        <Text style={styles.severityLabel}>
+          Severity: {SEVERITY_LABELS[Math.round(severity) - 1]}
+        </Text>
         {Slider ? (
           <Slider
             style={styles.severitySlider}
@@ -83,10 +106,13 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
                 ]}
                 onPress={() => onDurationChange(option.value)}
               >
-                <Text style={[
-                  styles.durationOptionText,
-                  duration === option.value && styles.durationOptionTextSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.durationOptionText,
+                    duration === option.value &&
+                      styles.durationOptionTextSelected,
+                  ]}
+                >
                   {option.label}
                 </Text>
               </TouchableOpacity>
@@ -95,7 +121,7 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
         </ScrollView>
       </View>
 
-      {selectedType === 'physical' && (
+      {selectedType === "physical" && (
         <View style={styles.locationContainer}>
           <Text style={styles.sectionTitle}>Location (optional)</Text>
           <TextInput
@@ -109,7 +135,9 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
       )}
 
       <View style={styles.factorsContainer}>
-        <Text style={styles.sectionTitle}>What's affecting you? (optional)</Text>
+        <Text style={styles.sectionTitle}>
+          What's affecting you? (optional)
+        </Text>
         <View style={styles.factorsGrid}>
           {availableFactors.map((factor) => (
             <TouchableOpacity
@@ -120,10 +148,12 @@ const StepSeverityDetails: React.FC<StepSeverityDetailsProps> = ({
               ]}
               onPress={() => onFactorToggle(factor)}
             >
-              <Text style={[
-                styles.factorChipText,
-                factors.includes(factor) && styles.factorChipTextSelected,
-              ]}>
+              <Text
+                style={[
+                  styles.factorChipText,
+                  factors.includes(factor) && styles.factorChipTextSelected,
+                ]}
+              >
                 {factor}
               </Text>
             </TouchableOpacity>
@@ -153,105 +183,105 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   severityContainer: {
     marginBottom: 24,
   },
   severityLabel: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 16,
   },
   severitySlider: {
-    width: '100%',
+    width: "100%",
     height: 40,
   },
   severityLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
   },
   severityLabelText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
   durationContainer: {
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
   },
   durationOptions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   durationOption: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
   },
   durationOptionSelected: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   durationOptionText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
   },
   durationOptionTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   locationContainer: {
     marginBottom: 24,
   },
   textInput: {
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     borderRadius: 12,
     padding: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
   },
   factorsContainer: {
     marginBottom: 24,
   },
   factorsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   factorChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
   },
   factorChipSelected: {
-    backgroundColor: '#3AABF0',
+    backgroundColor: "#3AABF0",
   },
   factorChipText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
   },
   factorChipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   notesContainer: {
     marginBottom: 24,
   },
   notesInput: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 });
 

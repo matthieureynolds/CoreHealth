@@ -1,21 +1,24 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
-import TypewriterText from './TypewriterText';
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet } from "react-native";
+import TypewriterText from "./TypewriterText";
 
 interface SequentialTypewriterProps {
   lines: string[];
   onAllComplete: () => void;
 }
 
-const SequentialTypewriter: React.FC<SequentialTypewriterProps> = ({ lines, onAllComplete }) => {
+const SequentialTypewriter: React.FC<SequentialTypewriterProps> = ({
+  lines,
+  onAllComplete,
+}) => {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [completedLines, setCompletedLines] = useState<number[]>([]);
 
   const handleLineComplete = useCallback(() => {
-    setCompletedLines(prev => [...prev, currentLineIndex]);
+    setCompletedLines((prev) => [...prev, currentLineIndex]);
     if (currentLineIndex < lines.length - 1) {
       setTimeout(() => {
-        setCurrentLineIndex(prev => prev + 1);
+        setCurrentLineIndex((prev) => prev + 1);
       }, 300);
     } else {
       setTimeout(() => {
@@ -32,7 +35,9 @@ const SequentialTypewriter: React.FC<SequentialTypewriterProps> = ({ lines, onAl
             <TypewriterText
               text={line}
               speed={60}
-              onComplete={index === currentLineIndex ? handleLineComplete : undefined}
+              onComplete={
+                index === currentLineIndex ? handleLineComplete : undefined
+              }
               style={styles.typewriterText}
             />
           )}
@@ -44,19 +49,19 @@ const SequentialTypewriter: React.FC<SequentialTypewriterProps> = ({ lines, onAl
 
 const styles = StyleSheet.create({
   typewriterContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 60,
   },
   typewriterLine: {
     height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   typewriterText: {
     fontSize: 32,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#000",
+    textAlign: "center",
     paddingHorizontal: 20,
   },
 });

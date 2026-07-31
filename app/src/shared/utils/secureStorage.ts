@@ -15,19 +15,21 @@
  *   npx expo install expo-secure-store
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Lazy-import so the module doesn't hard-crash if expo-secure-store isn't installed
-let SecureStore: typeof import('expo-secure-store') | null = null;
+let SecureStore: typeof import("expo-secure-store") | null = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  SecureStore = require('expo-secure-store');
+  SecureStore = require("expo-secure-store");
 } catch {
-  console.warn('[secureStorage] expo-secure-store not available — falling back to plaintext AsyncStorage. Run: npx expo install expo-secure-store');
+  console.warn(
+    "[secureStorage] expo-secure-store not available — falling back to plaintext AsyncStorage. Run: npx expo install expo-secure-store",
+  );
 }
 
-const MASTER_KEY_STORE_KEY = 'ch_storage_master_key_v1';
-const ENC_PREFIX = 'enc1:'; // versioned prefix so we can migrate later
+const MASTER_KEY_STORE_KEY = "ch_storage_master_key_v1";
+const ENC_PREFIX = "enc1:"; // versioned prefix so we can migrate later
 
 let cachedKeyMaterial: CryptoKey | null = null;
 
@@ -40,19 +42,27 @@ async function getMasterKey(): Promise<CryptoKey | null> {
     if (!rawKeyHex) {
       // Generate a new 256-bit key and persist to Keychain/Keystore
       const keyBytes = crypto.getRandomValues(new Uint8Array(32));
-      rawKeyHex = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      rawKeyHex = Array.from(keyBytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
       await SecureStore.setItemAsync(MASTER_KEY_STORE_KEY, rawKeyHex, {
         requireAuthentication: false, // don't require biometrics so the app can read on background
       });
     }
 
-    const keyBytes = new Uint8Array(rawKeyHex.match(/.{2}/g)!.map(h => parseInt(h, 16)));
+    const keyBytes = new Uint8Array(
+      rawKeyHex.match(/.{2}/g)!.map((h) => parseInt(h, 16)),
+    );
     cachedKeyMaterial = await crypto.subtle.importKey(
-      'raw', keyBytes, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt'],
+      "raw",
+      keyBytes,
+      { name: "AES-GCM" },
+      false,
+      ["encrypt", "decrypt"],
     );
     return cachedKeyMaterial;
   } catch (e) {
-    console.error('[secureStorage] Failed to initialise master key:', e);
+    console.error("[secureStorage] Failed to initialise master key:", e);
     return null;
   }
 }
@@ -63,7 +73,11 @@ async function encryptValue(plaintext: string): Promise<string> {
 
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(plaintext);
-  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    encoded,
+  );
 
   const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
   combined.set(iv, 0);
@@ -79,33 +93,40 @@ async function decryptValue(stored: string): Promise<string> {
   if (!key) return stored;
 
   try {
-    const combined = Uint8Array.from(atob(stored.slice(ENC_PREFIX.length)), c => c.charCodeAt(0));
+    const combined = Uint8Array.from(
+      atob(stored.slice(ENC_PREFIX.length)),
+      (c) => c.charCodeAt(0),
+    );
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
-    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ciphertext,
+    );
     return new TextDecoder().decode(plaintext);
   } catch {
     // Decryption failed (wrong key, corrupted data) — return null so caller re-fetches from server
-    return '';
+    return "";
   }
 }
 
 // ─── Sensitive health data keys (all go through encryption) ──────────────────
 
 export const SENSITIVE_KEYS = [
-  'profile',
-  'biomarkers',
-  'labResults',
-  'deviceData',
-  'healthScore',
-  'dailyInsights',
-  'derivedRiskFeatures',
-  'connectedDevices',
-  'jetLagPlanningEvents',
-  '@corehealth_pending_consent',
+  "profile",
+  "biomarkers",
+  "labResults",
+  "deviceData",
+  "healthScore",
+  "dailyInsights",
+  "derivedRiskFeatures",
+  "connectedDevices",
+  "jetLagPlanningEvents",
+  "@corehealth_pending_consent",
 ] as const;
 
-export type SensitiveKey = typeof SENSITIVE_KEYS[number];
+export type SensitiveKey = (typeof SENSITIVE_KEYS)[number];
 
 export const secureStorage = {
   async setItem(key: string, value: string): Promise<void> {

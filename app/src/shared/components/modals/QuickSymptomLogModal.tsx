@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,13 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { SymptomCategory, QuickLogData } from '../../types/symptoms';
-import { symptomService } from '../../services/user/symptomService';
-import StepTypeSelection from './components/StepTypeSelection';
-import StepCategorySelection from './components/StepCategorySelection';
-import StepSeverityDetails from './components/StepSeverityDetails';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { SymptomCategory, QuickLogData } from "../../types/symptoms";
+import { symptomService } from "../../services/user/symptomService";
+import StepTypeSelection from "./components/StepTypeSelection";
+import StepCategorySelection from "./components/StepCategorySelection";
+import StepSeverityDetails from "./components/StepSeverityDetails";
 
 interface QuickSymptomLogModalProps {
   visible: boolean;
@@ -28,12 +28,15 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
   onSuccess,
 }) => {
   const [step, setStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<'physical' | 'mental' | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<SymptomCategory | null>(null);
+  const [selectedType, setSelectedType] = useState<
+    "physical" | "mental" | null
+  >(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<SymptomCategory | null>(null);
   const [severity, setSeverity] = useState(5);
-  const [duration, setDuration] = useState('just_started');
-  const [notes, setNotes] = useState('');
-  const [location, setLocation] = useState('');
+  const [duration, setDuration] = useState("just_started");
+  const [notes, setNotes] = useState("");
+  const [location, setLocation] = useState("");
   const [factors, setFactors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -43,14 +46,14 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
       setSelectedType(null);
       setSelectedCategory(null);
       setSeverity(5);
-      setDuration('just_started');
-      setNotes('');
-      setLocation('');
+      setDuration("just_started");
+      setNotes("");
+      setLocation("");
       setFactors([]);
     }
   }, [visible]);
 
-  const handleTypeSelection = (type: 'physical' | 'mental') => {
+  const handleTypeSelection = (type: "physical" | "mental") => {
     setSelectedType(type);
     setStep(2);
   };
@@ -61,8 +64,10 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
   };
 
   const handleFactorToggle = (factor: string) => {
-    setFactors(prev =>
-      prev.includes(factor) ? prev.filter(f => f !== factor) : [...prev, factor]
+    setFactors((prev) =>
+      prev.includes(factor)
+        ? prev.filter((f) => f !== factor)
+        : [...prev, factor],
     );
   };
 
@@ -80,12 +85,12 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
         factors: factors.length > 0 ? factors : undefined,
       };
       await symptomService.quickLog(quickData);
-      Alert.alert('Success', 'Symptom logged successfully!');
+      Alert.alert("Success", "Symptom logged successfully!");
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('Error logging symptom:', error);
-      Alert.alert('Error', 'Failed to log symptom. Please try again.');
+      console.error("Error logging symptom:", error);
+      Alert.alert("Error", "Failed to log symptom. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -97,7 +102,12 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
       case 1:
         return <StepTypeSelection onSelect={handleTypeSelection} />;
       case 2:
-        return <StepCategorySelection selectedType={selectedType} onSelect={handleCategorySelection} />;
+        return (
+          <StepCategorySelection
+            selectedType={selectedType}
+            onSelect={handleCategorySelection}
+          />
+        );
       case 3:
         return (
           <StepSeverityDetails
@@ -140,7 +150,9 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
 
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${(step / 3) * 100}%` }]} />
+            <View
+              style={[styles.progressFill, { width: `${(step / 3) * 100}%` }]}
+            />
           </View>
           <Text style={styles.progressText}>Step {step} of 3</Text>
         </View>
@@ -162,16 +174,19 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
           <TouchableOpacity
             style={[
               styles.nextButton,
-              (!selectedType || (step === 2 && !selectedCategory) || loading) && styles.nextButtonDisabled,
+              (!selectedType || (step === 2 && !selectedCategory) || loading) &&
+                styles.nextButtonDisabled,
             ]}
             onPress={step === 3 ? handleSubmit : () => setStep(step + 1)}
-            disabled={!selectedType || (step === 2 && !selectedCategory) || loading}
+            disabled={
+              !selectedType || (step === 2 && !selectedCategory) || loading
+            }
           >
             {loading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <Text style={styles.nextButtonText}>
-                {step === 3 ? 'Log Symptom' : 'Next'}
+                {step === 3 ? "Log Symptom" : "Next"}
               </Text>
             )}
           </TouchableOpacity>
@@ -184,12 +199,12 @@ const QuickSymptomLogModal: React.FC<QuickSymptomLogModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 16,
@@ -199,8 +214,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   progressContainer: {
     paddingHorizontal: 20,
@@ -208,26 +223,26 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     borderRadius: 2,
     marginBottom: 8,
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#3AABF0',
+    height: "100%",
+    backgroundColor: "#3AABF0",
     borderRadius: 2,
   },
   progressText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
     paddingVertical: 16,
     gap: 12,
@@ -236,28 +251,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#3A3A3C',
-    alignItems: 'center',
+    backgroundColor: "#3A3A3C",
+    alignItems: "center",
   },
   backButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   nextButton: {
     flex: 2,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#3AABF0',
-    alignItems: 'center',
+    backgroundColor: "#3AABF0",
+    alignItems: "center",
   },
   nextButtonDisabled: {
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
   },
   nextButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

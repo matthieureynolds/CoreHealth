@@ -16,10 +16,10 @@ import {
   RootStackParamList,
   TravelStackParamList,
   SerializedTrip,
-} from "../../../../../shared/types";
+} from "@shared/types";
 import { styles } from "../TravelScreen.styles";
 import PressPop from "./PressPop";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 type Nav = CompositeNavigationProp<
   StackNavigationProp<TravelStackParamList, "TravelList">,

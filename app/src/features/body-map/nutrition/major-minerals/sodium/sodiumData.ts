@@ -1,11 +1,11 @@
-import { NutritionItem } from '../../types';
+import { NutritionItem } from "../../types";
 
 export const sodium: NutritionItem = {
-  name: 'Sodium',
+  name: "Sodium",
   value: 140,
-  unit: 'mEq/L',
-  range: '135-145',
-  status: 'normal',
-  category: 'mineral',
-  description: 'Maintains fluid balance and nerve function',
+  unit: "mEq/L",
+  range: "135-145",
+  status: "normal",
+  category: "mineral",
+  description: "Maintains fluid balance and nerve function",
 };

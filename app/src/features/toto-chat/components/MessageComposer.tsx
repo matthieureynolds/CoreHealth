@@ -1,6 +1,12 @@
-import React, { useRef, useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useRef, useState } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface MessageComposerProps {
   onSend: (text: string, clientId: string) => void;
@@ -20,14 +26,14 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   isRecording = false,
   waveformAnimValues = [],
 }) => {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const inputRef = useRef<TextInput>(null);
 
   const handleSend = () => {
     if (!text.trim() || disabled) return;
     const messageText = text.trim();
     const clientId = `c_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-    setText('');
+    setText("");
     onSend(messageText, clientId);
   };
 
@@ -43,7 +49,11 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           activeOpacity={0.6}
           style={styles.iconBtn}
         >
-          <Ionicons name="add" size={26} color={disabled || isRecording ? '#555' : '#999'} />
+          <Ionicons
+            name="add"
+            size={26}
+            color={disabled || isRecording ? "#555" : "#999"}
+          />
         </TouchableOpacity>
 
         {isRecording ? (
@@ -116,7 +126,11 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
               activeOpacity={0.6}
               style={styles.iconBtn}
             >
-              <Ionicons name="mic-outline" size={24} color={disabled ? '#555' : '#999'} />
+              <Ionicons
+                name="mic-outline"
+                size={24}
+                color={disabled ? "#555" : "#999"}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onMicPress}
@@ -144,9 +158,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
     borderRadius: 28,
     height: 56,
     paddingHorizontal: 6,
@@ -154,57 +168,57 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 44,
     height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     paddingVertical: 0,
   },
   rightIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   sendBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#3AABF0',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#3AABF0",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 4,
   },
   sendBtnDisabled: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
   },
   voiceBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#2C2C2E",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 2,
   },
   voiceLines: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 3,
   },
   voiceLine: {
     width: 2.5,
     borderRadius: 1.5,
-    backgroundColor: '#999',
+    backgroundColor: "#999",
   },
   // Waveform
   waveformContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     height: 36,
     gap: 2.5,
   },
@@ -212,20 +226,20 @@ const styles = StyleSheet.create({
     width: 3,
     height: 28,
     borderRadius: 1.5,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   stopBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#2C2C2E',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#2C2C2E",
+    alignItems: "center",
+    justifyContent: "center",
   },
   stopSquare: {
     width: 14,
     height: 14,
     borderRadius: 3,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
 });

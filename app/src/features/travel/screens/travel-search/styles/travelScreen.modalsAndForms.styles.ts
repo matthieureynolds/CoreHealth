@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 /** Metric detail modal, overlays, inputs, flight, search, suggestions, chips */
 export const travelModalsAndFormsStyles = StyleSheet.create({

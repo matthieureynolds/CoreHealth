@@ -1,13 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { HealthAssistantResponse } from '../../../../../shared/services/ai/healthAssistantService';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { HealthAssistantResponse } from "@shared/services/ai/healthAssistantService";
 
 interface InsightsTabContentProps {
   insights: HealthAssistantResponse | null;
 }
 
-export const InsightsContent: React.FC<InsightsTabContentProps> = ({ insights }) => (
+export const InsightsContent: React.FC<InsightsTabContentProps> = ({
+  insights,
+}) => (
   <View style={styles.contentContainer}>
     {insights?.insights.map((insight, index) => (
       <View key={index} style={styles.insightItem}>
@@ -20,7 +22,9 @@ export const InsightsContent: React.FC<InsightsTabContentProps> = ({ insights })
   </View>
 );
 
-export const RecommendationsContent: React.FC<InsightsTabContentProps> = ({ insights }) => (
+export const RecommendationsContent: React.FC<InsightsTabContentProps> = ({
+  insights,
+}) => (
   <View style={styles.contentContainer}>
     {insights?.recommendations.map((recommendation, index) => (
       <View key={index} style={styles.recommendationItem}>
@@ -35,27 +39,50 @@ export const RecommendationsContent: React.FC<InsightsTabContentProps> = ({ insi
 
 const getRiskColor = (level: string) => {
   switch (level) {
-    case 'low': return '#30D158';
-    case 'medium': return '#FF9500';
-    case 'high': return '#FF3B30';
-    default: return '#8E8E93';
+    case "low":
+      return "#30D158";
+    case "medium":
+      return "#FF9500";
+    case "high":
+      return "#FF3B30";
+    default:
+      return "#8E8E93";
   }
 };
 
-export const ActionsContent: React.FC<InsightsTabContentProps> = ({ insights }) => (
+export const ActionsContent: React.FC<InsightsTabContentProps> = ({
+  insights,
+}) => (
   <View style={styles.contentContainer}>
     <View style={styles.riskAssessment}>
-      <View style={[styles.riskIndicator, { backgroundColor: getRiskColor(insights?.riskAssessment.level || 'low') }]}>
+      <View
+        style={[
+          styles.riskIndicator,
+          {
+            backgroundColor: getRiskColor(
+              insights?.riskAssessment.level || "low",
+            ),
+          },
+        ]}
+      >
         <Ionicons
-          name={insights?.riskAssessment.level === 'low' ? 'shield-checkmark' : 'warning'}
+          name={
+            insights?.riskAssessment.level === "low"
+              ? "shield-checkmark"
+              : "warning"
+          }
           size={16}
           color="#fff"
         />
       </View>
       <View style={styles.riskInfo}>
-        <Text style={styles.riskLevel}>Risk Level: {insights?.riskAssessment.level?.toUpperCase()}</Text>
+        <Text style={styles.riskLevel}>
+          Risk Level: {insights?.riskAssessment.level?.toUpperCase()}
+        </Text>
         {insights?.riskAssessment.concerns.map((concern, index) => (
-          <Text key={index} style={styles.riskConcern}>• {concern}</Text>
+          <Text key={index} style={styles.riskConcern}>
+            • {concern}
+          </Text>
         ))}
       </View>
     </View>
@@ -79,50 +106,50 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   insightItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   insightIcon: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFF4E6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#FFF4E6",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
     marginTop: 2,
   },
   insightText: {
     flex: 1,
     fontSize: 14,
-    color: '#1D1D1F',
+    color: "#1D1D1F",
     lineHeight: 20,
   },
   recommendationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 12,
   },
   recommendationIcon: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#E6F7E6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E6F7E6",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
     marginTop: 2,
   },
   recommendationText: {
     flex: 1,
     fontSize: 14,
-    color: '#1D1D1F',
+    color: "#1D1D1F",
     lineHeight: 20,
   },
   riskAssessment: {
-    flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
+    flexDirection: "row",
+    backgroundColor: "#F8F9FA",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -131,8 +158,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   riskInfo: {
@@ -140,13 +167,13 @@ const styles = StyleSheet.create({
   },
   riskLevel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1D1D1F',
+    fontWeight: "600",
+    color: "#1D1D1F",
     marginBottom: 4,
   },
   riskConcern: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: "#8E8E93",
     lineHeight: 18,
   },
   actionsSection: {
@@ -154,34 +181,34 @@ const styles = StyleSheet.create({
   },
   actionsSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1D1D1F',
+    fontWeight: "600",
+    color: "#1D1D1F",
     marginBottom: 12,
   },
   actionItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 10,
   },
   actionNumber: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#3AABF0',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#3AABF0",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
     marginTop: 2,
   },
   actionNumberText: {
     fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   actionText: {
     flex: 1,
     fontSize: 14,
-    color: '#1D1D1F',
+    color: "#1D1D1F",
     lineHeight: 20,
   },
 });

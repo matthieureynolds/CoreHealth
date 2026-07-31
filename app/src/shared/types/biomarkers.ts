@@ -4,14 +4,14 @@ export type BiomarkerBuckets = {
   out: number;
 };
 
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { StyleProp, ViewStyle } from "react-native";
 
 export type BiomarkerSummaryProps = {
-  total: number;              // e.g., 65
-  buckets: BiomarkerBuckets;  // { optimal:52, sufficient:10, out:3 }
+  total: number; // e.g., 65
+  buckets: BiomarkerBuckets; // { optimal:52, sufficient:10, out:3 }
   onUpload?: () => void;
-  onFilterChange?: (key: keyof BiomarkerBuckets | 'all') => void;
-  initialFilter?: keyof BiomarkerBuckets | 'all';
+  onFilterChange?: (key: keyof BiomarkerBuckets | "all") => void;
+  initialFilter?: keyof BiomarkerBuckets | "all";
   // accessibility labels
   a11yLabel?: string;
   style?: StyleProp<ViewStyle>;

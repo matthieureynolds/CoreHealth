@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TextInput, StyleSheet } from "react-native";
 
 interface FormFieldProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
-  keyboardType?: 'default' | 'numeric' | 'email-address';
+  keyboardType?: "default" | "numeric" | "email-address";
   maxLength?: number;
   multiline?: boolean;
 }
@@ -16,7 +16,7 @@ const FormField: React.FC<FormFieldProps> = ({
   value,
   onChangeText,
   placeholder,
-  keyboardType = 'default',
+  keyboardType = "default",
   maxLength,
   multiline = false,
 }) => (
@@ -41,23 +41,23 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
+    fontWeight: "500",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1C1C1E',
+    color: "#1C1C1E",
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
   },
   multilineInput: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 });
 

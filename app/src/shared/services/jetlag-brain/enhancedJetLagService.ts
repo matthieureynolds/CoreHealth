@@ -5,7 +5,7 @@ import {
   NowCard,
   FlightLookupResult,
 } from "../../types";
-import { findMockFlight } from "../../../features/travel/mockFlights";
+import { findMockFlight } from "@features/travel/mockFlights";
 
 /**
  * Enhanced Jet Lag Service

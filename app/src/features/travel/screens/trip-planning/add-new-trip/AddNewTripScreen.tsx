@@ -13,8 +13,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { FlightLookupService } from "../../../../../shared/services/jetlag-brain/enhancedJetLagService";
-import { palette } from "../../../../../shared/theme/colors";
+import { FlightLookupService } from "@shared/services/jetlag-brain/enhancedJetLagService";
+import { palette } from "@shared/theme/colors";
 
 interface TripFormData {
   title: string;

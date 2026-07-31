@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface PlanHistoryItem {
   id: string;
@@ -24,7 +24,7 @@ interface PlanHistoryModalProps {
   loading: boolean;
   planHistory: PlanHistoryItem[];
   onClose: () => void;
-  styles: typeof import('../HealthAssistantScreen.styles').styles;
+  styles: typeof import("../HealthAssistantScreen.styles").styles;
 }
 
 const PlanHistoryModal: React.FC<PlanHistoryModalProps> = ({
@@ -34,7 +34,12 @@ const PlanHistoryModal: React.FC<PlanHistoryModalProps> = ({
   onClose,
   styles,
 }) => (
-  <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+  <Modal
+    visible={visible}
+    animationType="slide"
+    transparent
+    onRequestClose={onClose}
+  >
     <View style={styles.historyOverlay}>
       <View style={styles.historyCard}>
         <View style={styles.historyHeader}>
@@ -52,16 +57,32 @@ const PlanHistoryModal: React.FC<PlanHistoryModalProps> = ({
           ) : (
             <ScrollView contentContainerStyle={{ paddingVertical: 8 }}>
               {planHistory.length === 0 ? (
-                <Text style={[styles.mutedText, { textAlign: 'center', marginTop: 16 }]}>No history yet.</Text>
-              ) : planHistory.map(item => (
-                <View key={item.id} style={styles.historyRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.historyRowTitle}>{item.region || 'leg'} • {item.side || 'unspecified'}</Text>
-                    <Text style={styles.historyRowMeta}>Severity {item.severity ?? '-'} • {new Date(item.created_at).toLocaleString()}</Text>
+                <Text
+                  style={[
+                    styles.mutedText,
+                    { textAlign: "center", marginTop: 16 },
+                  ]}
+                >
+                  No history yet.
+                </Text>
+              ) : (
+                planHistory.map((item) => (
+                  <View key={item.id} style={styles.historyRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.historyRowTitle}>
+                        {item.region || "leg"} • {item.side || "unspecified"}
+                      </Text>
+                      <Text style={styles.historyRowMeta}>
+                        Severity {item.severity ?? "-"} •{" "}
+                        {new Date(item.created_at).toLocaleString()}
+                      </Text>
+                    </View>
+                    <Text style={styles.historyProgress}>
+                      {item.completed}/{item.total}
+                    </Text>
                   </View>
-                  <Text style={styles.historyProgress}>{item.completed}/{item.total}</Text>
-                </View>
-              ))}
+                ))
+              )}
             </ScrollView>
           )}
         </View>

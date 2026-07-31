@@ -1,15 +1,25 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import SettingsHeader from '../../../components/SettingsHeader';
-import { SETTINGS_SCROLL_PT } from '../../../components/settingsLayout';
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import SettingsHeader from "@features/profile/screens/settings/components/SettingsHeader";
+import { SETTINGS_SCROLL_PT } from "@features/profile/screens/settings/components/settingsLayout";
 
 const FAQScreen: React.FC = () => {
-  const Section = ({ title, items, first }: { title: string; items: { q: string; a: string }[]; first?: boolean }) => (
+  const Section = ({
+    title,
+    items,
+    first,
+  }: {
+    title: string;
+    items: { q: string; a: string }[];
+    first?: boolean;
+  }) => (
     <View style={[styles.section, !first && styles.sectionDivider]}>
       <Text style={styles.cardHeader}>{title}</Text>
       {items.map((item, idx) => (
         <View key={idx} style={styles.faqItem}>
-          <Text style={styles.question}>{idx + 1}. {item.q}</Text>
+          <Text style={styles.question}>
+            {idx + 1}. {item.q}
+          </Text>
           <Text style={styles.answer}>{item.a}</Text>
         </View>
       ))}
@@ -22,52 +32,101 @@ const FAQScreen: React.FC = () => {
       <SettingsHeader title="FAQs" />
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: SETTINGS_SCROLL_PT }}
+      >
         <Section
           first
           title="ABOUT"
           items={[
-            { q: 'What is TOTO?', a: 'TOTO is your personal health hub — it stores all your medical records, connects to wearables and smart devices, tracks your biomarkers, and gives you tailored recommendations for better health.' },
-            { q: 'How is TOTO different from Apple Health or Google Fit?', a: 'Unlike general health hubs, TOTO combines your medical history, wearable data, environmental health risks, and AI-powered insights into one place — plus a Travel Mode for health safety anywhere in the world.' },
-            { q: 'Which devices and apps can I connect to TOTO?', a: 'You can currently sync with Apple Health, Google Fit, WHOOP, Oura, Withings, and Eight Sleep, with more coming soon (Garmin, Fitbit, Dexcom, Abbott Libre, and more).' },
+            {
+              q: "What is TOTO?",
+              a: "TOTO is your personal health hub — it stores all your medical records, connects to wearables and smart devices, tracks your biomarkers, and gives you tailored recommendations for better health.",
+            },
+            {
+              q: "How is TOTO different from Apple Health or Google Fit?",
+              a: "Unlike general health hubs, TOTO combines your medical history, wearable data, environmental health risks, and AI-powered insights into one place — plus a Travel Mode for health safety anywhere in the world.",
+            },
+            {
+              q: "Which devices and apps can I connect to TOTO?",
+              a: "You can currently sync with Apple Health, Google Fit, WHOOP, Oura, Withings, and Eight Sleep, with more coming soon (Garmin, Fitbit, Dexcom, Abbott Libre, and more).",
+            },
           ]}
         />
 
         <Section
           title="USING THE APP"
-        items={[
-          { q: 'How do I connect my devices?', a: 'Go to Settings → Connected Devices & Integrations and select your device from the list. Sign in with your device account to allow TOTO to sync your data.' },
-          { q: 'Can I import my past medical records?', a: 'Yes. Go to Medical Records → Upload and select files such as PDFs, lab results, or scanned documents. You can also connect through Apple Health/Google Fit for past wearable data.' },
-          { q: 'How does Travel Mode work?', a: 'When enabled, Travel Mode auto-detects your location (or you can enter it manually) to show local health alerts, vaccination requirements, air/water quality, and jet lag plans.' },
-        ]}
-      />
+          items={[
+            {
+              q: "How do I connect my devices?",
+              a: "Go to Settings → Connected Devices & Integrations and select your device from the list. Sign in with your device account to allow TOTO to sync your data.",
+            },
+            {
+              q: "Can I import my past medical records?",
+              a: "Yes. Go to Medical Records → Upload and select files such as PDFs, lab results, or scanned documents. You can also connect through Apple Health/Google Fit for past wearable data.",
+            },
+            {
+              q: "How does Travel Mode work?",
+              a: "When enabled, Travel Mode auto-detects your location (or you can enter it manually) to show local health alerts, vaccination requirements, air/water quality, and jet lag plans.",
+            },
+          ]}
+        />
 
-      <Section
-        title="PRIVACY & SECURITY"
-        items={[
-          { q: 'Is my data secure?', a: 'Yes — TOTO encrypts your data both in transit and at rest. Only you can access your full health profile unless you choose to share it.' },
-          { q: 'Will TOTO sell my data?', a: 'No. TOTO will never sell your personal health information to advertisers or other third parties.' },
-          { q: 'Where is my data stored?', a: 'Data is stored securely in our cloud provider infrastructure, compliant with GDPR and HIPAA standards.' },
-          { q: 'Can I delete my account and all my data?', a: 'Yes — go to Settings → Privacy & Security → Delete Account & Data to permanently remove all your data from our servers.' },
-        ]}
-      />
+        <Section
+          title="PRIVACY & SECURITY"
+          items={[
+            {
+              q: "Is my data secure?",
+              a: "Yes — TOTO encrypts your data both in transit and at rest. Only you can access your full health profile unless you choose to share it.",
+            },
+            {
+              q: "Will TOTO sell my data?",
+              a: "No. TOTO will never sell your personal health information to advertisers or other third parties.",
+            },
+            {
+              q: "Where is my data stored?",
+              a: "Data is stored securely in our cloud provider infrastructure, compliant with GDPR and HIPAA standards.",
+            },
+            {
+              q: "Can I delete my account and all my data?",
+              a: "Yes — go to Settings → Privacy & Security → Delete Account & Data to permanently remove all your data from our servers.",
+            },
+          ]}
+        />
 
-      <Section
-        title="NOTIFICATIONS"
-        items={[
-          { q: 'What reminders can I get?', a: 'Currently, TOTO supports medication reminders, appointment reminders, and jet lag bedtime/wake-up prompts. More health alerts are planned for future updates.' },
-          { q: 'Can I choose when reminders are sent?', a: 'Yes — in Settings → Notifications, you can set how early you want each reminder.' },
-        ]}
-      />
+        <Section
+          title="NOTIFICATIONS"
+          items={[
+            {
+              q: "What reminders can I get?",
+              a: "Currently, TOTO supports medication reminders, appointment reminders, and jet lag bedtime/wake-up prompts. More health alerts are planned for future updates.",
+            },
+            {
+              q: "Can I choose when reminders are sent?",
+              a: "Yes — in Settings → Notifications, you can set how early you want each reminder.",
+            },
+          ]}
+        />
 
-      <Section
-        title="TECHNICAL"
-        items={[
-          { q: 'Does TOTO work offline?', a: 'You can view saved data offline, but new data from devices or travel alerts require an internet connection.' },
-          { q: 'Which phones are supported?', a: 'iOS and Android recent versions are supported.' },
-          { q: 'How do I report a bug or suggest a feature?', a: 'Go to Settings → Support & Help → Feedback Submission.' },
-        ]}
-      />
+        <Section
+          title="TECHNICAL"
+          items={[
+            {
+              q: "Does TOTO work offline?",
+              a: "You can view saved data offline, but new data from devices or travel alerts require an internet connection.",
+            },
+            {
+              q: "Which phones are supported?",
+              a: "iOS and Android recent versions are supported.",
+            },
+            {
+              q: "How do I report a bug or suggest a feature?",
+              a: "Go to Settings → Support & Help → Feedback Submission.",
+            },
+          ]}
+        />
 
         {/* Bottom spacing to match the gap between cards */}
         <View style={styles.bottomSpacing} />
@@ -77,9 +136,9 @@ const FAQScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#000000' 
+  container: {
+    flex: 1,
+    backgroundColor: "#000000",
   },
   scrollView: {
     flex: 1,
@@ -90,13 +149,13 @@ const styles = StyleSheet.create({
   },
   sectionDivider: {
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
+    borderTopColor: "#2C2C2E",
     paddingTop: 24,
   },
   cardHeader: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#8E8E93',
+    fontWeight: "700",
+    color: "#8E8E93",
     marginBottom: 16,
     letterSpacing: 0.8,
   },
@@ -104,13 +163,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   question: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 6,
   },
   answer: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
     lineHeight: 20,
   },

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Runs from the repo root (~/TOTO); the app lives in app/.
+# Only staged TS/TSX under app/src is checked, so the hook stays fast enough
+# to actually leave enabled.
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^app/src/.*\.tsx?$' || true)
+[ -z "$STAGED" ] && exit 0
+
+cd app || exit 1
+
+# Tools expect paths relative to app/.
+REL=$(echo "$STAGED" | sed 's|^app/||')
+
+# Formatting is enforced everywhere: the whole repo already passes.
+echo "▸ prettier --check"
+# shellcheck disable=SC2086
+if ! npx prettier --check $REL; then
+  echo "  ✗ formatting issues — run: cd app && npx prettier --write $REL"
+  exit 1
+fi
+
+# Linting is a ratchet, not a wall. The travel domain is at zero errors, so
+# regressions there are blocked. The rest of the app still carries ~124
+# pre-existing unused-var errors; failing on those would block every commit
+# and the hook would just get disabled. Widen CLEAN_PATHS as areas are fixed.
+CLEAN_PATHS='^(features/travel/|shared/services/travel/|features/home/travel-health/|shared/services/http|shared/utils/logger)'
+CLEAN=$(echo "$REL" | grep -E "$CLEAN_PATHS" || true)
+
+if [ -n "$CLEAN" ]; then
+  echo "▸ eslint (enforced — already-clean areas)"
+  # shellcheck disable=SC2086
+  if ! npx eslint $CLEAN; then
+    echo "  ✗ lint errors in an area that was clean — fix, then stage the correction."
+    exit 1
+  fi
+fi
+
+OTHER=$(echo "$REL" | grep -vE "$CLEAN_PATHS" || true)
+if [ -n "$OTHER" ]; then
+  echo "▸ eslint (advisory — legacy areas, not blocking)"
+  # shellcheck disable=SC2086
+  npx eslint $OTHER || true
+fi
+
+exit 0

@@ -15,8 +15,8 @@ import {
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 import { Ionicons } from "@expo/vector-icons";
-import { CitySearchResult } from "../../../../../shared/services/travel/citySearchService";
-import { TravelHealth, TravelApiErrors } from "../../../../../shared/types";
+import { CitySearchResult } from "@shared/services/travel/citySearchService";
+import { TravelHealth, TravelApiErrors } from "@shared/types";
 
 // Friendly labels for the data sources that can fail to load, shown in the banner.
 const API_ERROR_LABELS: Record<string, string> = {
@@ -36,7 +36,7 @@ import NearbyHospitalsSection from "./NearbyHospitalsSection";
 import VaccinationsMedicationsSection from "./VaccinationsMedicationsSection";
 import TreadmillCard from "./TreadmillCard";
 import AnalyzingState from "./AnalyzingState";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 if (
   Platform.OS === "android" &&

@@ -1,9 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'react-native';
-import { Swipeable, RectButton } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { AshParticles } from './AshParticles';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Easing,
+  StyleSheet,
+} from "react-native";
+import { Swipeable, RectButton } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { useSettings } from "@shared/context/SettingsContext";
+import { AshParticles } from "./AshParticles";
 
 interface SwipeableChatItemProps {
   chat: { id: string; title: string; timestamp: Date };
@@ -11,11 +18,20 @@ interface SwipeableChatItemProps {
   onDelete: () => void;
 }
 
-export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPress, onDelete }) => {
+export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({
+  chat,
+  onPress,
+  onDelete,
+}) => {
   const { settings } = useSettings();
   const [isDeleting, setIsDeleting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const [itemLayout, setItemLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [itemLayout, setItemLayout] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
 
   const handleDelete = () => {
     setIsDeleting(true);
@@ -31,16 +47,18 @@ export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPr
 
   const renderRightActions = (
     _progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
+    dragX: Animated.AnimatedInterpolation<number>,
   ) => {
     const scale = dragX.interpolate({
       inputRange: [-100, 0],
       outputRange: [1, 0],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
     return (
       <RectButton style={styles.deleteButton} onPress={handleDelete}>
-        <Animated.View style={[styles.deleteContent, { transform: [{ scale }] }]}>
+        <Animated.View
+          style={[styles.deleteContent, { transform: [{ scale }] }]}
+        >
           <Ionicons name="trash" size={24} color="#fff" />
           <Text style={styles.deleteText}>Delete</Text>
         </Animated.View>
@@ -54,7 +72,7 @@ export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPr
         const { x, y, width, height } = e.nativeEvent.layout;
         setItemLayout({ x, y, width, height });
       }}
-      style={{ position: 'relative' }}
+      style={{ position: "relative" }}
     >
       <Animated.View style={{ opacity: fadeAnim }}>
         <Swipeable renderRightActions={renderRightActions} rightThreshold={40}>
@@ -62,11 +80,11 @@ export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPr
             <View style={{ flex: 1 }}>
               <Text style={styles.chatTitle}>{chat.title}</Text>
               <Text style={styles.chatTimestamp}>
-                {chat.timestamp.toLocaleDateString()}{' '}
+                {chat.timestamp.toLocaleDateString()}{" "}
                 {chat.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: settings?.general?.timeFormat === '12h',
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: settings?.general?.timeFormat === "12h",
                 })}
               </Text>
             </View>
@@ -78,7 +96,13 @@ export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPr
         <View
           style={[
             styles.ashOverlay,
-            { position: 'absolute', top: 0, left: 0, width: itemLayout.width || '100%', height: itemLayout.height || 64 },
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: itemLayout.width || "100%",
+              height: itemLayout.height || 64,
+            },
           ]}
         >
           <AshParticles visible={isDeleting} onComplete={() => {}} />
@@ -90,50 +114,50 @@ export const SwipeableChatItem: React.FC<SwipeableChatItemProps> = ({ chat, onPr
 
 const styles = StyleSheet.create({
   chatItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 0,
     paddingHorizontal: 16,
-    backgroundColor: '#2A2A2A',
+    backgroundColor: "#2A2A2A",
     borderRadius: 12,
     marginBottom: 8,
     height: 64,
   },
   chatTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   chatTimestamp: {
-    color: '#aaa',
+    color: "#aaa",
     fontSize: 12,
     marginTop: 4,
   },
   deleteButton: {
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FF3B30",
+    justifyContent: "center",
+    alignItems: "center",
     width: 96,
     height: 64,
     borderRadius: 12,
     marginBottom: 8,
   },
   deleteContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   deleteText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 4,
   },
   ashOverlay: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'visible',
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "visible",
     zIndex: 1000,
   },
 });

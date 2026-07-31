@@ -1,12 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 interface PickerHeaderProps {
   onClose: () => void;
   panHandlers: object;
 }
 
-const PickerHeader: React.FC<PickerHeaderProps> = ({ onClose, panHandlers }) => (
+const PickerHeader: React.FC<PickerHeaderProps> = ({
+  onClose,
+  panHandlers,
+}) => (
   <View style={styles.header} {...panHandlers}>
     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
       <Text style={styles.closeButtonText}>Close</Text>
@@ -20,32 +23,32 @@ const PickerHeader: React.FC<PickerHeaderProps> = ({ onClose, panHandlers }) => 
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
+    borderBottomColor: "#1C1C1E",
   },
   closeButton: {
     padding: 8,
   },
   closeButtonText: {
-    color: '#3AABF0',
+    color: "#3AABF0",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   headerCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     flex: 1,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   rightSpacer: { width: 52 },

@@ -1,5 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  TextInput,
+  StyleSheet,
+} from "react-native";
 
 interface EditRecordModalProps {
   visible: boolean;
@@ -41,7 +49,10 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.modalContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Name: *</Text>
           <TextInput
@@ -81,31 +92,31 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   editModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: "#333",
   },
   cancelButton: {
     fontSize: 16,
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   editModalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   saveButton: {
     fontSize: 16,
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
   },
   modalContent: {
     flex: 1,
@@ -116,23 +127,23 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
+    fontWeight: "500",
+    color: "#fff",
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#181818',
+    backgroundColor: "#181818",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
   },
   textArea: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 });
 

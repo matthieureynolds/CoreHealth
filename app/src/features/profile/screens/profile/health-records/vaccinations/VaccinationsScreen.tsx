@@ -1,23 +1,52 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useAuth } from '../../../../../../shared/context/AuthContext';
-import { Vaccination, AttachedFile } from '../../../../../../shared/types';
-import * as DocumentPicker from 'expo-document-picker';
-import FileViewerModal from '../../../../../../shared/components/modals/FileViewerModal';
-import VaccinationCard from './components/VaccinationCard';
-import VaccinationEmptyState from './components/VaccinationEmptyState';
-import VaccinationFormModal from './components/VaccinationFormModal';
-import { DataService } from '../../../../../../shared/services/data/dataService';
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "@shared/context/AuthContext";
+import { Vaccination, AttachedFile } from "@shared/types";
+import * as DocumentPicker from "expo-document-picker";
+import FileViewerModal from "@shared/components/modals/FileViewerModal";
+import VaccinationCard from "./components/VaccinationCard";
+import VaccinationEmptyState from "./components/VaccinationEmptyState";
+import VaccinationFormModal from "./components/VaccinationFormModal";
+import { DataService } from "@shared/services/data/dataService";
 
 const commonVaccines = [
-  'COVID-19', 'Influenza (Flu)', 'Tetanus', 'Diphtheria', 'Pertussis (Whooping Cough)',
-  'Measles', 'Mumps', 'Rubella', 'Varicella (Chickenpox)', 'Hepatitis A',
-  'Hepatitis B', 'HPV (Human Papillomavirus)', 'Meningococcal', 'Pneumococcal',
-  'Rotavirus', 'Haemophilus influenzae type b (Hib)', 'Polio', 'Yellow Fever',
-  'Typhoid', 'Rabies', 'Japanese Encephalitis', 'Cholera', 'Tuberculosis (BCG)',
-  'Shingles (Zoster)', 'Pneumonia', 'Meningitis B', 'Meningitis ACWY',
+  "COVID-19",
+  "Influenza (Flu)",
+  "Tetanus",
+  "Diphtheria",
+  "Pertussis (Whooping Cough)",
+  "Measles",
+  "Mumps",
+  "Rubella",
+  "Varicella (Chickenpox)",
+  "Hepatitis A",
+  "Hepatitis B",
+  "HPV (Human Papillomavirus)",
+  "Meningococcal",
+  "Pneumococcal",
+  "Rotavirus",
+  "Haemophilus influenzae type b (Hib)",
+  "Polio",
+  "Yellow Fever",
+  "Typhoid",
+  "Rabies",
+  "Japanese Encephalitis",
+  "Cholera",
+  "Tuberculosis (BCG)",
+  "Shingles (Zoster)",
+  "Pneumonia",
+  "Meningitis B",
+  "Meningitis ACWY",
 ];
 
 const VaccinationsScreen: React.FC = () => {
@@ -26,68 +55,81 @@ const VaccinationsScreen: React.FC = () => {
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [vaccineName, setVaccineName] = useState('');
+  const [vaccineName, setVaccineName] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [dateReceived, setDateReceived] = useState<Date | null>(null);
   const [showDateReceivedPicker, setShowDateReceivedPicker] = useState(false);
   const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
   const [showNextDuePicker, setShowNextDuePicker] = useState(false);
-  const [dateModeReceived, setDateModeReceived] = useState<'year' | 'yearMonth' | 'full'>('full');
-  const [dateModeNextDue, setDateModeNextDue] = useState<'year' | 'yearMonth' | 'full'>('full');
-  const [location, setLocation] = useState('');
-  const [batchNumber, setBatchNumber] = useState('');
-  const [notes, setNotes] = useState('');
-  const [editingVaccination, setEditingVaccination] = useState<Vaccination | null>(null);
+  const [dateModeReceived, setDateModeReceived] = useState<
+    "year" | "yearMonth" | "full"
+  >("full");
+  const [dateModeNextDue, setDateModeNextDue] = useState<
+    "year" | "yearMonth" | "full"
+  >("full");
+  const [location, setLocation] = useState("");
+  const [batchNumber, setBatchNumber] = useState("");
+  const [notes, setNotes] = useState("");
+  const [editingVaccination, setEditingVaccination] =
+    useState<Vaccination | null>(null);
   const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [fileViewerVisible, setFileViewerVisible] = useState(false);
-  const [currentFileUri, setCurrentFileUri] = useState('');
-  const [currentFileName, setCurrentFileName] = useState('');
-  const [currentFileType, setCurrentFileType] = useState('');
+  const [currentFileUri, setCurrentFileUri] = useState("");
+  const [currentFileName, setCurrentFileName] = useState("");
+  const [currentFileType, setCurrentFileType] = useState("");
 
   const loadVaccinations = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
       const rows = await DataService.getVaccinations(user.id);
-      setVaccinations(rows.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        date: new Date(v.date),
-        nextDue: v.next_due ? new Date(v.next_due) : undefined,
-        location: v.location ?? undefined,
-        batchNumber: v.batch_number ?? undefined,
-        notes: v.notes ?? undefined,
-      })));
+      setVaccinations(
+        rows.map((v: any) => ({
+          id: v.id,
+          name: v.name,
+          date: new Date(v.date),
+          nextDue: v.next_due ? new Date(v.next_due) : undefined,
+          location: v.location ?? undefined,
+          batchNumber: v.batch_number ?? undefined,
+          notes: v.notes ?? undefined,
+        })),
+      );
     } catch (e) {
-      console.error('Failed to load vaccinations:', e);
+      console.error("Failed to load vaccinations:", e);
     } finally {
       setLoading(false);
     }
   }, [user?.id]);
 
-  useFocusEffect(useCallback(() => { loadVaccinations(); }, [loadVaccinations]));
+  useFocusEffect(
+    useCallback(() => {
+      loadVaccinations();
+    }, [loadVaccinations]),
+  );
 
   const resetForm = () => {
-    setVaccineName('');
+    setVaccineName("");
     setDateReceived(null);
     setNextDueDate(null);
-    setLocation('');
-    setBatchNumber('');
-    setNotes('');
+    setLocation("");
+    setBatchNumber("");
+    setNotes("");
     setEditingVaccination(null);
     setAttachments([]);
   };
 
   const addVaccination = async () => {
     if (!vaccineName.trim()) {
-      Alert.alert('Error', 'Please enter a vaccine name');
+      Alert.alert("Error", "Please enter a vaccine name");
       return;
     }
     if (!user?.id) return;
 
     try {
-      const dateStr = (dateReceived || new Date()).toISOString().split('T')[0];
-      const nextDueStr = nextDueDate ? nextDueDate.toISOString().split('T')[0] : undefined;
+      const dateStr = (dateReceived || new Date()).toISOString().split("T")[0];
+      const nextDueStr = nextDueDate
+        ? nextDueDate.toISOString().split("T")[0]
+        : undefined;
 
       if (editingVaccination) {
         await DataService.updateVaccination(user.id, editingVaccination.id, {
@@ -98,15 +140,21 @@ const VaccinationsScreen: React.FC = () => {
           batchNumber: batchNumber.trim() || undefined,
           notes: notes.trim() || undefined,
         });
-        setVaccinations(prev => prev.map(v => v.id === editingVaccination.id ? {
-          ...v,
-          name: vaccineName.trim(),
-          date: dateReceived || new Date(),
-          nextDue: nextDueDate || undefined,
-          location: location.trim() || undefined,
-          batchNumber: batchNumber.trim() || undefined,
-          notes: notes.trim() || undefined,
-        } : v));
+        setVaccinations((prev) =>
+          prev.map((v) =>
+            v.id === editingVaccination.id
+              ? {
+                  ...v,
+                  name: vaccineName.trim(),
+                  date: dateReceived || new Date(),
+                  nextDue: nextDueDate || undefined,
+                  location: location.trim() || undefined,
+                  batchNumber: batchNumber.trim() || undefined,
+                  notes: notes.trim() || undefined,
+                }
+              : v,
+          ),
+        );
       } else {
         const saved = await DataService.addVaccination(user.id, {
           name: vaccineName.trim(),
@@ -116,19 +164,22 @@ const VaccinationsScreen: React.FC = () => {
           batchNumber: batchNumber.trim() || undefined,
           notes: notes.trim() || undefined,
         });
-        setVaccinations(prev => [...prev, {
-          id: saved.id,
-          name: vaccineName.trim(),
-          date: dateReceived || new Date(),
-          nextDue: nextDueDate || undefined,
-          location: location.trim() || undefined,
-          batchNumber: batchNumber.trim() || undefined,
-          notes: notes.trim() || undefined,
-          attachments: attachments.length ? attachments : undefined,
-        }]);
+        setVaccinations((prev) => [
+          ...prev,
+          {
+            id: saved.id,
+            name: vaccineName.trim(),
+            date: dateReceived || new Date(),
+            nextDue: nextDueDate || undefined,
+            location: location.trim() || undefined,
+            batchNumber: batchNumber.trim() || undefined,
+            notes: notes.trim() || undefined,
+            attachments: attachments.length ? attachments : undefined,
+          },
+        ]);
       }
     } catch (e) {
-      Alert.alert('Error', 'Could not save vaccination.');
+      Alert.alert("Error", "Could not save vaccination.");
     }
 
     setShowAddModal(false);
@@ -136,29 +187,35 @@ const VaccinationsScreen: React.FC = () => {
   };
 
   const deleteVaccination = (id: string) => {
-    Alert.alert('Delete Vaccination', 'Are you sure you want to delete this vaccination?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          if (!user?.id) return;
-          try {
-            await DataService.deleteVaccination(user.id, id);
-            setVaccinations(prev => prev.filter(v => v.id !== id));
-          } catch (e) { Alert.alert('Error', 'Could not delete vaccination.'); }
+    Alert.alert(
+      "Delete Vaccination",
+      "Are you sure you want to delete this vaccination?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            if (!user?.id) return;
+            try {
+              await DataService.deleteVaccination(user.id, id);
+              setVaccinations((prev) => prev.filter((v) => v.id !== id));
+            } catch (e) {
+              Alert.alert("Error", "Could not delete vaccination.");
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const handleEditVaccination = (v: Vaccination) => {
     setVaccineName(v.name);
     setDateReceived(v.date ? new Date(v.date) : new Date());
     setNextDueDate(v.nextDue ? new Date(v.nextDue) : null);
-    setLocation(v.location || '');
-    setBatchNumber(v.batchNumber || '');
-    setNotes(v.notes || '');
+    setLocation(v.location || "");
+    setBatchNumber(v.batchNumber || "");
+    setNotes(v.notes || "");
     setAttachments(v.attachments || []);
     setEditingVaccination(v);
     setShowAddModal(true);
@@ -166,56 +223,78 @@ const VaccinationsScreen: React.FC = () => {
 
   const openVaccinationOptions = (v: Vaccination) => {
     Alert.alert(v.name, undefined, [
-      { text: 'Edit', onPress: () => handleEditVaccination(v) },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteVaccination(v.id) },
-      { text: 'Cancel', style: 'cancel' },
+      { text: "Edit", onPress: () => handleEditVaccination(v) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteVaccination(v.id),
+      },
+      { text: "Cancel", style: "cancel" },
     ]);
   };
 
   const handleAttachFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['image/*', 'application/pdf'],
+        type: ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const newFile: AttachedFile = {
           uri: asset.uri,
-          name: asset.name || 'attachment',
+          name: asset.name || "attachment",
           type: asset.mimeType,
         };
-        setAttachments(prev => [...prev, newFile]);
+        setAttachments((prev) => [...prev, newFile]);
       }
     } catch (e) {
-      console.error('Attachment error', e);
-      Alert.alert('Attachment Error', 'Failed to attach file.');
+      console.error("Attachment error", e);
+      Alert.alert("Attachment Error", "Failed to attach file.");
     }
   };
 
-  const handleViewFile = (fileUri: string, fileName: string, fileType?: string) => {
+  const handleViewFile = (
+    fileUri: string,
+    fileName: string,
+    fileType?: string,
+  ) => {
     setCurrentFileUri(fileUri);
     setCurrentFileName(fileName);
-    setCurrentFileType(fileType || '');
+    setCurrentFileType(fileType || "");
     setFileViewerVisible(true);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Vaccinations</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
+        <TouchableOpacity
+          onPress={() => setShowAddModal(true)}
+          style={styles.addButton}
+        >
           <Ionicons name="add" size={24} color="#3AABF0" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 95 }}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 95 }}
+      >
         <View style={styles.content}>
           {loading ? (
-            <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
+            <ActivityIndicator
+              size="large"
+              color="#007AFF"
+              style={{ marginTop: 40 }}
+            />
           ) : vaccinations.length ? (
             vaccinations.map((vaccination) => (
               <VaccinationCard
@@ -257,9 +336,14 @@ const VaccinationsScreen: React.FC = () => {
         notes={notes}
         setNotes={setNotes}
         attachments={attachments}
-        onRemoveAttachment={(name) => setAttachments(prev => prev.filter(a => a.name !== name))}
+        onRemoveAttachment={(name) =>
+          setAttachments((prev) => prev.filter((a) => a.name !== name))
+        }
         onAttachFile={handleAttachFile}
-        onCancel={() => { setShowAddModal(false); resetForm(); }}
+        onCancel={() => {
+          setShowAddModal(false);
+          resetForm();
+        }}
         onSave={addVaccination}
         commonVaccines={commonVaccines}
       />
@@ -278,19 +362,19 @@ const VaccinationsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 56,
     paddingBottom: 12,
-    backgroundColor: '#000000',
-    position: 'absolute',
+    backgroundColor: "#000000",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -303,16 +387,16 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
     flex: 1,
     paddingBottom: 8,
   },
   addButton: {
     padding: 8,
     width: 40,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   content: {
     padding: 20,

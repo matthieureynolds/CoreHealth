@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../TravelScreen.styles";
 import TreadmillCard from "./TreadmillCard";
 import PressPop from "./PressPop";
-import { palette } from "../../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 const openMapsAlert = (destination: string) => {
   Alert.alert("Open Maps", `Navigate to ${destination}?`, [

@@ -1,17 +1,17 @@
-import React from 'react';
-import { useSettings } from '../../../../../../../shared/context/SettingsContext';
-import OptionPickerScreen from '../components/OptionPickerScreen';
+import React from "react";
+import { useSettings } from "@shared/context/SettingsContext";
+import OptionPickerScreen from "../components/OptionPickerScreen";
 
 const options = [
-  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY', description: '31/12/2024' },
-  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY', description: '12/31/2024' },
-  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD', description: '2024-12-31' },
+  { value: "DD/MM/YYYY", label: "DD/MM/YYYY", description: "31/12/2024" },
+  { value: "MM/DD/YYYY", label: "MM/DD/YYYY", description: "12/31/2024" },
+  { value: "YYYY-MM-DD", label: "YYYY-MM-DD", description: "2024-12-31" },
 ];
 
 const DateFormatScreen: React.FC = () => {
   const { settings, updateGeneralSettings } = useSettings();
   const selected = settings.general.dateFormat;
-  const currentOption = options.find(o => o.value === selected);
+  const currentOption = options.find((o) => o.value === selected);
 
   return (
     <OptionPickerScreen

@@ -1,6 +1,6 @@
 // Travel, Location, Weather, and Medication Availability Types
 
-export type RiskLevel = 'low' | 'moderate' | 'high' | 'severe';
+export type RiskLevel = "low" | "moderate" | "high" | "severe";
 
 export interface HealthMetric {
   value: number | string;
@@ -33,7 +33,13 @@ export interface LocationData {
 export interface HealthcareFacility {
   id: string;
   name: string;
-  type: 'HOSPITAL' | 'PHARMACY' | 'DOCTOR' | 'DENTIST' | 'PHYSIOTHERAPIST' | 'VETERINARY_CARE';
+  type:
+    | "HOSPITAL"
+    | "PHARMACY"
+    | "DOCTOR"
+    | "DENTIST"
+    | "PHYSIOTHERAPIST"
+    | "VETERINARY_CARE";
   address: string;
   coordinates: {
     latitude: number;
@@ -105,21 +111,26 @@ export interface WeatherData {
 export interface HeatIndexData {
   heatIndex: number;
   heatIndexFahrenheit: number;
-  dangerLevel: 'safe' | 'caution' | 'extreme_caution' | 'danger' | 'extreme_danger';
+  dangerLevel:
+    | "safe"
+    | "caution"
+    | "extreme_caution"
+    | "danger"
+    | "extreme_danger";
   warnings: string[];
   recommendations: string[];
 }
 
 export interface ExtremeHeatWarning {
   isActive: boolean;
-  severity: 'moderate' | 'high' | 'extreme';
+  severity: "moderate" | "high" | "extreme";
   temperature: number;
   heatIndex: number;
   uvIndex?: number;
-  combinedRisk: 'low' | 'moderate' | 'high' | 'severe';
+  combinedRisk: "low" | "moderate" | "high" | "severe";
   warnings: string[];
   recommendations: string[];
-  timeOfDay: 'morning' | 'midday' | 'afternoon' | 'evening';
+  timeOfDay: "morning" | "midday" | "afternoon" | "evening";
 }
 
 export interface HydrationRecommendation {
@@ -133,17 +144,17 @@ export interface HydrationRecommendation {
   };
   warnings: string[];
   recommendations: string[];
-  dehydrationRisk: 'low' | 'moderate' | 'high' | 'severe';
+  dehydrationRisk: "low" | "moderate" | "high" | "severe";
 }
 
 export interface ActivitySafetyData {
-  outdoorSafety: 'safe' | 'caution' | 'avoid';
+  outdoorSafety: "safe" | "caution" | "avoid";
   bestTimes: string[];
   recommendations: string[];
   warnings: string[];
   airQualityImpact: string;
   weatherImpact: string;
-  combinedRisk: 'low' | 'moderate' | 'high' | 'severe';
+  combinedRisk: "low" | "moderate" | "high" | "severe";
 }
 
 export interface MedicationInfo {
@@ -151,7 +162,11 @@ export interface MedicationInfo {
   name: string;
   genericName: string;
   brandNames: string[];
-  category: 'prescription' | 'over_the_counter' | 'controlled_substance' | 'restricted';
+  category:
+    | "prescription"
+    | "over_the_counter"
+    | "controlled_substance"
+    | "restricted";
   description: string;
   commonUses: string[];
 }
@@ -159,13 +174,23 @@ export interface MedicationInfo {
 export interface CountryMedicationStatus {
   country: string;
   countryCode: string;
-  availability: 'available' | 'prescription_required' | 'restricted' | 'banned' | 'unknown';
+  availability:
+    | "available"
+    | "prescription_required"
+    | "restricted"
+    | "banned"
+    | "unknown";
   alternativeNames: string[];
   localEquivalents: string[];
   prescriptionRequired: boolean;
   restrictions: string[];
   notes?: string;
-  pharmacyAvailability: 'widely_available' | 'limited' | 'specialty_only' | 'unavailable' | 'unknown';
+  pharmacyAvailability:
+    | "widely_available"
+    | "limited"
+    | "specialty_only"
+    | "unavailable"
+    | "unknown";
 }
 
 export interface MedicationPharmacy {
@@ -188,7 +213,7 @@ export interface MedicationPharmacy {
   specialties: string[];
   openingHours?: {
     weekdayText: string[];
-    currentStatus: 'open' | 'closed' | 'closing_soon' | 'unknown';
+    currentStatus: "open" | "closed" | "closing_soon" | "unknown";
     nextOpenClose?: {
       time: string;
       day: string;
@@ -198,7 +223,13 @@ export interface MedicationPharmacy {
   services?: string[];
   accessibility?: string[];
   paymentMethods?: string[];
-  pharmacyType: 'chain' | 'independent' | 'hospital' | 'clinic' | 'supermarket' | 'unknown';
+  pharmacyType:
+    | "chain"
+    | "independent"
+    | "hospital"
+    | "clinic"
+    | "supermarket"
+    | "unknown";
   languages?: string[];
 }
 
@@ -214,8 +245,8 @@ export interface ImportRegulations {
 export interface AlternativeMedication {
   name: string;
   activeIngredient: string;
-  availability: 'available' | 'prescription_required' | 'restricted';
-  similarity: 'exact_equivalent' | 'similar_effect' | 'alternative_treatment';
+  availability: "available" | "prescription_required" | "restricted";
+  similarity: "exact_equivalent" | "similar_effect" | "alternative_treatment";
   notes: string;
 }
 
@@ -262,7 +293,7 @@ export interface TravelHealth {
   healthcareFacilities?: HealthcareFacilities;
   emergencyContacts?: EmergencyContacts;
   timeZoneInfo?: TimeZoneInfo;
-  jetLagData?: import('./jetlag').JetLagData;
+  jetLagData?: import("./jetlag").JetLagData;
   weatherData?: WeatherData;
   heatWarning?: ExtremeHeatWarning;
   hydrationRecommendation?: HydrationRecommendation;
@@ -275,5 +306,5 @@ export interface TravelHealth {
   nearestHospitalData?: any;
   nearestPharmacyData?: any;
   apiErrors?: TravelApiErrors;
-  waterQualityData?: import('../services/travel/waterQualityService').WaterQualityData;
+  waterQualityData?: import("../services/travel/waterQualityService").WaterQualityData;
 }

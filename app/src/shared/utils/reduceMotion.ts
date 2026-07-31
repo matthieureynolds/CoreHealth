@@ -1,5 +1,5 @@
-import React from 'react';
-import { AccessibilityInfo } from 'react-native';
+import React from "react";
+import { AccessibilityInfo } from "react-native";
 
 export async function shouldReduceMotion(): Promise<boolean> {
   try {

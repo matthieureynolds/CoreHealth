@@ -3,8 +3,8 @@ import { View, Keyboard, StatusBar, Animated, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { styles } from "./TravelScreen.styles";
 import PagerView from "react-native-pager-view";
-import { useHealthData } from "../../../../shared/context/HealthDataContext";
-import { useReduceMotion } from "../../../../shared/utils/reduceMotion";
+import { useHealthData } from "@shared/context/HealthDataContext";
+import { useReduceMotion } from "@shared/utils/reduceMotion";
 import TravelHeader from "./components/TravelHeader";
 import TravelTabBar from "./components/TravelTabBar";
 import SearchTab from "./components/SearchTab";
@@ -16,7 +16,7 @@ import { createTravelHandlers } from "./hooks/useTravelHandlers";
 import { useTravelState, popularCities } from "./hooks/useTravelState";
 import { useStaggerReveal } from "./hooks/useStaggerReveal";
 import { useStableCallbacks } from "./hooks/useStableCallbacks";
-import { palette } from "../../../../shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 const TravelScreen: React.FC = () => {
   const reduceMotion = useReduceMotion();

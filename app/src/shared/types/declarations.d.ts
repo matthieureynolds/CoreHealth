@@ -1,1 +1,1 @@
-declare module 'text-encoding';
+declare module "text-encoding";

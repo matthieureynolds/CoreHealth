@@ -3,7 +3,7 @@ export interface NutritionItem {
   value: number;
   unit: string;
   range: string;
-  status: 'normal' | 'low' | 'high' | 'deficient';
-  category: 'vitamin' | 'mineral';
+  status: "normal" | "low" | "high" | "deficient";
+  category: "vitamin" | "mineral";
   description: string;
 }

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import AnimatedRing, { RingMetric } from './components/AnimatedRing';
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Animated } from "react-native";
+import AnimatedRing, { RingMetric } from "./components/AnimatedRing";
 
 interface SupportingRingsProps {
   recovery: number;
@@ -28,17 +28,42 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
   }, [safeRecovery, safeBiomarkers, safeLifestyle]);
 
   const metrics: RingMetric[] = [
-    { id: 'recovery', title: 'RECOVERY', value: safeRecovery, color: '#30D158', icon: 'refresh', subtitle: 'Sleep & HRV' },
-    { id: 'biomarkers', title: 'BIOMARKERS', value: safeBiomarkers, color: '#3AABF0', icon: 'water', subtitle: 'Lab Results' },
-    { id: 'lifestyle', title: 'LIFESTYLE', value: safeLifestyle, color: '#FF9F0A', icon: 'fitness', subtitle: 'Activity & Habits' },
+    {
+      id: "recovery",
+      title: "RECOVERY",
+      value: safeRecovery,
+      color: "#30D158",
+      icon: "refresh",
+      subtitle: "Sleep & HRV",
+    },
+    {
+      id: "biomarkers",
+      title: "BIOMARKERS",
+      value: safeBiomarkers,
+      color: "#3AABF0",
+      icon: "water",
+      subtitle: "Lab Results",
+    },
+    {
+      id: "lifestyle",
+      title: "LIFESTYLE",
+      value: safeLifestyle,
+      color: "#FF9F0A",
+      icon: "fitness",
+      subtitle: "Activity & Habits",
+    },
   ];
 
   const getAnimatedValue = (id: string): Animated.Value => {
     switch (id) {
-      case 'recovery': return animatedRecovery;
-      case 'biomarkers': return animatedBiomarkers;
-      case 'lifestyle': return animatedLifestyle;
-      default: return animatedRecovery;
+      case "recovery":
+        return animatedRecovery;
+      case "biomarkers":
+        return animatedBiomarkers;
+      case "lifestyle":
+        return animatedLifestyle;
+      default:
+        return animatedRecovery;
     }
   };
 
@@ -60,7 +85,7 @@ const SupportingRings: React.FC<SupportingRingsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 16,
@@ -68,15 +93,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   ringsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "flex-start",
     marginHorizontal: -20,
   },
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 export const HealthTrackingIcon = () => (
   <Ionicons name="pulse" size={80} color="#2D9CDB" />

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   PanResponder,
   GestureResponderEvent,
-} from 'react-native';
-import Svg, { Circle, Path, Line, Text as SvgText } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import Svg, { Circle, Path, Line, Text as SvgText } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
 
 // ─── Layout constants ────────────────────────────────────
 const CLOCK_SIZE = 280;
@@ -23,20 +23,20 @@ const ARC_W = 32;
 const HANDLE_R = ARC_W / 2 + 3;
 
 // ─── Colors ──────────────────────────────────────────────
-const BED_CLR = '#5856D6';
-const WAKE_CLR = '#FF9500';
-const ARC_CLR = '#5856D6';
-const FACE_CLR = '#1C1C1E';
-const TRACK_CLR = '#252528';
-const TICK_CLR = '#48484A';
-const TICK_H_CLR = '#636366';
-const NUM_CLR = '#8E8E93';
+const BED_CLR = "#5856D6";
+const WAKE_CLR = "#FF9500";
+const ARC_CLR = "#5856D6";
+const FACE_CLR = "#1C1C1E";
+const TRACK_CLR = "#252528";
+const TICK_CLR = "#48484A";
+const TICK_H_CLR = "#636366";
+const NUM_CLR = "#8E8E93";
 
 // ─── Helpers ─────────────────────────────────────────────
 
 /** Parse "HH:MM" → decimal hours (0–24) */
 const parse = (s: string): number => {
-  const [h, m] = s.split(':').map(Number);
+  const [h, m] = s.split(":").map(Number);
   return h + m / 60;
 };
 
@@ -44,16 +44,22 @@ const parse = (s: string): number => {
 const fmt24 = (d: number): string => {
   let h = Math.floor(((d % 24) + 24) % 24);
   let m = Math.round((d % 1) * 60);
-  if (m >= 60) { h = (h + 1) % 24; m = 0; }
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  if (m >= 60) {
+    h = (h + 1) % 24;
+    m = 0;
+  }
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
 /** Decimal hours → "7:00 AM" display string */
 const fmtDisp = (d: number): string => {
   let h24 = Math.floor(((d % 24) + 24) % 24);
   let m = Math.round((d % 1) * 60);
-  if (m >= 60) { h24 = (h24 + 1) % 24; m = 0; }
-  return `${h24 % 12 || 12}:${String(m).padStart(2, '0')} ${h24 >= 12 ? 'PM' : 'AM'}`;
+  if (m >= 60) {
+    h24 = (h24 + 1) % 24;
+    m = 0;
+  }
+  return `${h24 % 12 || 12}:${String(m).padStart(2, "0")} ${h24 >= 12 ? "PM" : "AM"}`;
 };
 
 /** Decimal hours → angle on 12-hour clock (0° = 12 o'clock, clockwise) */
@@ -82,8 +88,8 @@ const sleepH = (bed: number, wake: number): number => {
 const arcD = (startDeg: number, endDeg: number, r: number): string => {
   const sp = a2p(startDeg, r);
   const ep = a2p(endDeg, r);
-  let sweep = ((endDeg - startDeg) % 360 + 360) % 360;
-  if (sweep < 0.5) return '';
+  let sweep = (((endDeg - startDeg) % 360) + 360) % 360;
+  if (sweep < 0.5) return "";
   return `M${sp.x} ${sp.y} A${r} ${r} 0 ${sweep > 180 ? 1 : 0} 1 ${ep.x} ${ep.y}`;
 };
 
@@ -97,8 +103,7 @@ const angleToDec = (angle: number, prev: number): number => {
   const prevH12 = prev % 12;
   const wasPM = Math.floor(prev) >= 12;
   const prevA = (prevH12 * 30) % 360;
-  const crossed =
-    (prevA > 270 && norm < 90) || (prevA < 90 && norm > 270);
+  const crossed = (prevA > 270 && norm < 90) || (prevA < 90 && norm > 270);
   const pm = crossed ? !wasPM : wasPM;
 
   let h24 = pm ? h12 + 12 : h12;
@@ -114,7 +119,7 @@ const TICKS = Array.from({ length: 48 }, (_, i) => {
 });
 
 const HOURS = Array.from({ length: 12 }, (_, i) => ({
-  label: i === 0 ? '12' : String(i),
+  label: i === 0 ? "12" : String(i),
   deg: i * 30,
 }));
 
@@ -123,13 +128,17 @@ const HOURS = Array.from({ length: 12 }, (_, i) => ({
 interface Props {
   visible: boolean;
   wakeUpTime: string; // "HH:MM"
-  bedTime: string;    // "HH:MM"
+  bedTime: string; // "HH:MM"
   onConfirm: (wakeUpTime: string, bedTime: string) => void;
   onCancel: () => void;
 }
 
 const SleepClockPicker: React.FC<Props> = ({
-  visible, wakeUpTime, bedTime, onConfirm, onCancel,
+  visible,
+  wakeUpTime,
+  bedTime,
+  onConfirm,
+  onCancel,
 }) => {
   const [bed, setBed] = useState(() => parse(bedTime));
   const [wake, setWake] = useState(() => parse(wakeUpTime));
@@ -137,21 +146,27 @@ const SleepClockPicker: React.FC<Props> = ({
   // Refs for PanResponder (must read current values in callbacks)
   const bedR = useRef(parse(bedTime));
   const wakeR = useRef(parse(wakeUpTime));
-  const dragR = useRef<'bed' | 'wake' | null>(null);
+  const dragR = useRef<"bed" | "wake" | null>(null);
   const cxyR = useRef({ x: 0, y: 0 });
   const clockRef = useRef<View>(null);
 
   // Keep refs in sync with state
-  useEffect(() => { bedR.current = bed; }, [bed]);
-  useEffect(() => { wakeR.current = wake; }, [wake]);
+  useEffect(() => {
+    bedR.current = bed;
+  }, [bed]);
+  useEffect(() => {
+    wakeR.current = wake;
+  }, [wake]);
 
   // Reset state when modal opens
   useEffect(() => {
     if (visible) {
       const b = parse(bedTime);
       const w = parse(wakeUpTime);
-      setBed(b); setWake(w);
-      bedR.current = b; wakeR.current = w;
+      setBed(b);
+      setWake(w);
+      bedR.current = b;
+      wakeR.current = w;
     }
   }, [visible, bedTime, wakeUpTime]);
 
@@ -159,9 +174,16 @@ const SleepClockPicker: React.FC<Props> = ({
   const measure = useCallback(() => {
     requestAnimationFrame(() => {
       clockRef.current?.measure?.(
-        (_x: number, _y: number, _w: number, _h: number, px: number, py: number) => {
+        (
+          _x: number,
+          _y: number,
+          _w: number,
+          _h: number,
+          px: number,
+          py: number,
+        ) => {
           cxyR.current = { x: px, y: py };
-        }
+        },
       );
     });
   }, []);
@@ -188,7 +210,7 @@ const SleepClockPicker: React.FC<Props> = ({
         const wA = h2a(wakeR.current);
         const dB = Math.min(Math.abs(a - bA), 360 - Math.abs(a - bA));
         const dW = Math.min(Math.abs(a - wA), 360 - Math.abs(a - wA));
-        dragR.current = dB <= dW ? 'bed' : 'wake';
+        dragR.current = dB <= dW ? "bed" : "wake";
       },
 
       onPanResponderMove(e: GestureResponderEvent) {
@@ -197,14 +219,14 @@ const SleepClockPicker: React.FC<Props> = ({
         const ty = e.nativeEvent.pageY - cxyR.current.y;
         const a = t2a(tx, ty);
 
-        if (dragR.current === 'bed') {
-          setBed(prev => {
+        if (dragR.current === "bed") {
+          setBed((prev) => {
             const v = angleToDec(a, prev);
             bedR.current = v;
             return v;
           });
         } else {
-          setWake(prev => {
+          setWake((prev) => {
             const v = angleToDec(a, prev);
             wakeR.current = v;
             return v;
@@ -215,7 +237,7 @@ const SleepClockPicker: React.FC<Props> = ({
       onPanResponderRelease() {
         dragR.current = null;
       },
-    })
+    }),
   ).current;
 
   // Derived values
@@ -224,7 +246,7 @@ const SleepClockPicker: React.FC<Props> = ({
   const dur = sleepH(bed, wake);
   const bedPt = a2p(bedA, ARC_R);
   const wakePt = a2p(wakeA, ARC_R);
-  const sweep = ((wakeA - bedA) % 360 + 360) % 360;
+  const sweep = (((wakeA - bedA) % 360) + 360) % 360;
   const isFullCircle = sweep < 1 && dur > 6;
 
   if (!visible) return null;
@@ -263,8 +285,12 @@ const SleepClockPicker: React.FC<Props> = ({
 
               {/* Background track ring */}
               <Circle
-                cx={CX} cy={CY} r={ARC_R}
-                fill="none" stroke={TRACK_CLR} strokeWidth={ARC_W}
+                cx={CX}
+                cy={CY}
+                r={ARC_R}
+                fill="none"
+                stroke={TRACK_CLR}
+                strokeWidth={ARC_W}
               />
 
               {/* Tick marks */}
@@ -274,7 +300,10 @@ const SleepClockPicker: React.FC<Props> = ({
                 return (
                   <Line
                     key={i}
-                    x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
+                    x1={p1.x}
+                    y1={p1.y}
+                    x2={p2.x}
+                    y2={p2.y}
                     stroke={major ? TICK_H_CLR : TICK_CLR}
                     strokeWidth={major ? 2 : 1}
                   />
@@ -287,9 +316,11 @@ const SleepClockPicker: React.FC<Props> = ({
                 return (
                   <SvgText
                     key={label}
-                    x={p.x} y={p.y + 5}
+                    x={p.x}
+                    y={p.y + 5}
                     fill={NUM_CLR}
-                    fontSize={14} fontWeight="600"
+                    fontSize={14}
+                    fontWeight="600"
                     textAnchor="middle"
                   >
                     {label}
@@ -301,8 +332,10 @@ const SleepClockPicker: React.FC<Props> = ({
               {!isFullCircle && sweep > 1 && (
                 <Path
                   d={arcD(bedA, wakeA, ARC_R)}
-                  fill="none" stroke={ARC_CLR}
-                  strokeWidth={ARC_W + 6} strokeLinecap="round"
+                  fill="none"
+                  stroke={ARC_CLR}
+                  strokeWidth={ARC_W + 6}
+                  strokeLinecap="round"
                   opacity={0.08}
                 />
               )}
@@ -310,15 +343,21 @@ const SleepClockPicker: React.FC<Props> = ({
               {/* Sleep arc */}
               {isFullCircle ? (
                 <Circle
-                  cx={CX} cy={CY} r={ARC_R}
-                  fill="none" stroke={ARC_CLR}
-                  strokeWidth={ARC_W} opacity={0.85}
+                  cx={CX}
+                  cy={CY}
+                  r={ARC_R}
+                  fill="none"
+                  stroke={ARC_CLR}
+                  strokeWidth={ARC_W}
+                  opacity={0.85}
                 />
               ) : sweep > 1 ? (
                 <Path
                   d={arcD(bedA, wakeA, ARC_R)}
-                  fill="none" stroke={ARC_CLR}
-                  strokeWidth={ARC_W} strokeLinecap="round"
+                  fill="none"
+                  stroke={ARC_CLR}
+                  strokeWidth={ARC_W}
+                  strokeLinecap="round"
                   opacity={0.85}
                 />
               ) : null}
@@ -326,19 +365,29 @@ const SleepClockPicker: React.FC<Props> = ({
               {/* Bed handle */}
               <Circle cx={bedPt.x} cy={bedPt.y} r={HANDLE_R} fill={BED_CLR} />
               {/* Wake handle */}
-              <Circle cx={wakePt.x} cy={wakePt.y} r={HANDLE_R} fill={WAKE_CLR} />
+              <Circle
+                cx={wakePt.x}
+                cy={wakePt.y}
+                r={HANDLE_R}
+                fill={WAKE_CLR}
+              />
 
               {/* Duration text */}
               <SvgText
-                x={CX} y={CY - 6}
-                fill="#FFFFFF" fontSize={22} fontWeight="bold"
+                x={CX}
+                y={CY - 6}
+                fill="#FFFFFF"
+                fontSize={22}
+                fontWeight="bold"
                 textAnchor="middle"
               >
                 {`${Math.floor(dur)}h ${Math.round((dur % 1) * 60)}min`}
               </SvgText>
               <SvgText
-                x={CX} y={CY + 16}
-                fill={NUM_CLR} fontSize={12}
+                x={CX}
+                y={CY + 16}
+                fill={NUM_CLR}
+                fontSize={12}
                 textAnchor="middle"
               >
                 sleep
@@ -383,30 +432,30 @@ const SleepClockPicker: React.FC<Props> = ({
 const st = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.78)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.78)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     borderRadius: 24,
     width: CLOCK_SIZE + 56,
     paddingBottom: 28,
-    alignItems: 'center',
+    alignItems: "center",
   },
   hdr: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 6,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   clock: {
     width: CLOCK_SIZE,
@@ -414,37 +463,37 @@ const st = StyleSheet.create({
     marginTop: 4,
   },
   ico: {
-    position: 'absolute',
+    position: "absolute",
     width: 22,
     height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   readout: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 20,
     paddingHorizontal: 20,
-    width: '100%',
+    width: "100%",
   },
   rBlock: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   rDiv: {
     width: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     marginVertical: 2,
   },
   rLabel: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   rVal: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

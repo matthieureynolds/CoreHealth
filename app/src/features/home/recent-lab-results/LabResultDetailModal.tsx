@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LabResult } from './results/types';
-import { getStatusColor } from './utils';
-import CurrentResultCard from './components/CurrentResultCard';
-import RangeIndicator from './components/RangeIndicator';
-import BiomarkerDetails, { getBiomarkerDetails } from './components/BiomarkerDetails';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LabResult } from "./results/types";
+import { getStatusColor } from "./utils";
+import CurrentResultCard from "./components/CurrentResultCard";
+import RangeIndicator from "./components/RangeIndicator";
+import BiomarkerDetails, {
+  getBiomarkerDetails,
+} from "./components/BiomarkerDetails";
 
 interface LabResultDetailModalProps {
   visible: boolean;
@@ -41,13 +43,19 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
         <View style={styles.modalContainer}>
           {/* Fixed Header */}
           <View style={styles.modalHeader}>
-            <View style={[styles.modalIconContainer, { backgroundColor: `${statusColor}20` }]}>
+            <View
+              style={[
+                styles.modalIconContainer,
+                { backgroundColor: `${statusColor}20` },
+              ]}
+            >
               <Ionicons name="flask" size={32} color={statusColor} />
             </View>
             <View style={styles.modalTitleContainer}>
               <Text style={styles.modalTitle}>{labResult.name}</Text>
               <Text style={[styles.modalStatus, { color: statusColor }]}>
-                {labResult.value} {labResult.unit} • {labResult.status.toUpperCase()}
+                {labResult.value} {labResult.unit} •{" "}
+                {labResult.status.toUpperCase()}
               </Text>
             </View>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -56,8 +64,14 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
           </View>
 
           {/* Scrollable Content */}
-          <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollContent}>
-            <CurrentResultCard labResult={labResult} statusColor={statusColor} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={styles.modalScrollContent}
+          >
+            <CurrentResultCard
+              labResult={labResult}
+              statusColor={statusColor}
+            />
 
             <View style={styles.modalSection}>
               <Text style={styles.sectionTitle}>Range Indicator</Text>
@@ -75,30 +89,30 @@ const LabResultDetailModal: React.FC<LabResultDetailModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '90%',
-    minHeight: '70%',
+    maxHeight: "90%",
+    minHeight: "70%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     paddingTop: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: "#2C2C2E",
   },
   modalIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   modalTitleContainer: {
@@ -106,36 +120,36 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   modalStatus: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   closeButton: {
     width: 32,
     height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalScrollContent: {
     flex: 1,
     padding: 20,
   },
   modalSection: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
+    borderBottomColor: "#3A3A3C",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
 });

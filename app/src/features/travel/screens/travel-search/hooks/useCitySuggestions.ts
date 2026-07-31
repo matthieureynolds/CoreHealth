@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import {
   searchAllLocations,
   getPopularCities,
-} from "../../../../../shared/services/travel/citySearchService";
+} from "@shared/services/travel/citySearchService";
 
 const POPULAR_CITIES = getPopularCities();
 

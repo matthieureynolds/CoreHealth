@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 // Layout constants for settings screens
 export const SETTINGS_HEADER_PT = 56;
@@ -13,7 +13,7 @@ export const SETTINGS_SUB_SCROLL_PT = 95;
 export const settingsStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   scrollView: {
     flex: 1,

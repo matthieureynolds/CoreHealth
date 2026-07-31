@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../TravelScreen.styles";
-import { FlightOption } from "../../../../../shared/types";
-import { palette } from "../../../../../shared/theme/colors";
+import { FlightOption } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 interface FlightDetailsCardProps {
   flightLookupResult: FlightOption | null;

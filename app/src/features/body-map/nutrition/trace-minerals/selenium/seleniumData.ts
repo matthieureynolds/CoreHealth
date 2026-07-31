@@ -1,11 +1,11 @@
-import { NutritionItem } from '../../types';
+import { NutritionItem } from "../../types";
 
 export const selenium: NutritionItem = {
-  name: 'Selenium',
+  name: "Selenium",
   value: 120,
-  unit: 'μg/L',
-  range: '70-150',
-  status: 'normal',
-  category: 'mineral',
-  description: 'Antioxidant that supports thyroid function',
+  unit: "μg/L",
+  range: "70-150",
+  status: "normal",
+  category: "mineral",
+  description: "Antioxidant that supports thyroid function",
 };
