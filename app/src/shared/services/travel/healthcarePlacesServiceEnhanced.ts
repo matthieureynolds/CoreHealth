@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 export interface HealthcareFacility {
   id: string;
@@ -66,7 +68,7 @@ const searchOSMHealthcare = async (
       `addressdetails=1&` +
       `extratags=1`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       headers: {
         "User-Agent": "TOTO-App/1.0",
       },
@@ -134,7 +136,7 @@ const searchOSMHealthcare = async (
 
     return facilities;
   } catch (error) {
-    console.error(`Error searching OSM for ${type}:`, error);
+    logger.error(`Error searching OSM for ${type}:`, error);
     return [];
   }
 };
@@ -463,7 +465,7 @@ export const getClosestMedicalFacilities = async (
             source = "google";
           }
         } catch (error) {
-          console.warn("Google Places API failed, trying alternatives:", error);
+          logger.warn("Google Places API failed, trying alternatives:", error);
         }
       }
 
@@ -500,7 +502,7 @@ export const getClosestMedicalFacilities = async (
       source,
     };
   } catch (error) {
-    console.error("Error getting closest medical facilities:", error);
+    logger.error("Error getting closest medical facilities:", error);
 
     // Emergency fallback - return static data
     const staticFacilities = getStaticHealthcareData(
@@ -537,7 +539,7 @@ const searchGooglePlaces = async (
       `type=${placeType}&` +
       `key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Google Places API error: ${response.status}`);
@@ -573,7 +575,7 @@ const searchGooglePlaces = async (
           a.distance - b.distance,
       );
   } catch (error) {
-    console.error(`Google Places search error for ${type}:`, error);
+    logger.error(`Google Places search error for ${type}:`, error);
     return [];
   }
 };

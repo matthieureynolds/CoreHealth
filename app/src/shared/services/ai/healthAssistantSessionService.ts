@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { ChatSession } from './healthAssistantService';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { ChatSession } from "./healthAssistantService";
 
-const CHAT_SESSIONS_KEY = 'healthAssistant_chatSessions';
+const CHAT_SESSIONS_KEY = "healthAssistant_chatSessions";
 
 /**
  * Save a chat session with all its messages
@@ -9,23 +9,28 @@ const CHAT_SESSIONS_KEY = 'healthAssistant_chatSessions';
 export async function saveChatSession(session: ChatSession): Promise<void> {
   try {
     const existingSessions = await loadAllChatSessions();
-    const updatedSessions = existingSessions.filter(s => s.id !== session.id);
+    const updatedSessions = existingSessions.filter((s) => s.id !== session.id);
     updatedSessions.push(session);
-    await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(updatedSessions));
+    await AsyncStorage.setItem(
+      CHAT_SESSIONS_KEY,
+      JSON.stringify(updatedSessions),
+    );
   } catch (error) {
-    console.error('Failed to save chat session:', error);
+    console.error("Failed to save chat session:", error);
   }
 }
 
 /**
  * Load a specific chat session by ID
  */
-export async function loadChatSession(sessionId: string): Promise<ChatSession | null> {
+export async function loadChatSession(
+  sessionId: string,
+): Promise<ChatSession | null> {
   try {
     const sessions = await loadAllChatSessions();
-    return sessions.find(session => session.id === sessionId) || null;
+    return sessions.find((session) => session.id === sessionId) || null;
   } catch (error) {
-    console.error('Failed to load chat session:', error);
+    console.error("Failed to load chat session:", error);
     return null;
   }
 }
@@ -44,13 +49,13 @@ export async function loadAllChatSessions(): Promise<ChatSession[]> {
         lastUpdated: new Date(session.lastUpdated),
         messages: session.messages.map((message: any) => ({
           ...message,
-          timestamp: new Date(message.timestamp)
-        }))
+          timestamp: new Date(message.timestamp),
+        })),
       }));
     }
     return [];
   } catch (error) {
-    console.error('Failed to load chat sessions:', error);
+    console.error("Failed to load chat sessions:", error);
     return [];
   }
 }
@@ -61,29 +66,39 @@ export async function loadAllChatSessions(): Promise<ChatSession[]> {
 export async function deleteChatSession(sessionId: string): Promise<void> {
   try {
     const sessions = await loadAllChatSessions();
-    const updatedSessions = sessions.filter(session => session.id !== sessionId);
-    await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(updatedSessions));
+    const updatedSessions = sessions.filter(
+      (session) => session.id !== sessionId,
+    );
+    await AsyncStorage.setItem(
+      CHAT_SESSIONS_KEY,
+      JSON.stringify(updatedSessions),
+    );
   } catch (error) {
-    console.error('Failed to delete chat session:', error);
+    console.error("Failed to delete chat session:", error);
   }
 }
 
 /**
  * Update chat session title and messages
  */
-export async function updateChatSession(sessionId: string, updates: Partial<ChatSession>): Promise<void> {
+export async function updateChatSession(
+  sessionId: string,
+  updates: Partial<ChatSession>,
+): Promise<void> {
   try {
     const sessions = await loadAllChatSessions();
-    const sessionIndex = sessions.findIndex(session => session.id === sessionId);
+    const sessionIndex = sessions.findIndex(
+      (session) => session.id === sessionId,
+    );
     if (sessionIndex !== -1) {
       sessions[sessionIndex] = {
         ...sessions[sessionIndex],
         ...updates,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
       };
       await AsyncStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
     }
   } catch (error) {
-    console.error('Failed to update chat session:', error);
+    console.error("Failed to update chat session:", error);
   }
 }

@@ -1,5 +1,7 @@
 import { API_CONFIG } from "../../config/api";
 import { getTimezoneInfo } from "./timezoneService";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 export interface CitySearchResult {
   name: string;
@@ -60,7 +62,7 @@ export const searchCities = async (
 ): Promise<CitySearchResult[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot search locations");
+      logger.warn("Google Maps API key not found, cannot search locations");
       return [];
     }
 
@@ -72,7 +74,7 @@ export const searchCities = async (
     const encodedQuery = encodeURIComponent(query);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/autocomplete/json?input=${encodedQuery}&types=geocode&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Location search API error: ${response.status}`);
@@ -85,7 +87,7 @@ export const searchCities = async (
       !data.predictions ||
       data.predictions.length === 0
     ) {
-      console.warn("No location search results found for:", query);
+      logger.warn("No location search results found for:", query);
       return [];
     }
 
@@ -97,7 +99,7 @@ export const searchCities = async (
           const details = await getPlaceDetails(prediction.place_id);
           if (details) return details;
         } catch (error) {
-          console.warn(
+          logger.warn(
             "Error getting details for place:",
             prediction.place_id,
             error,
@@ -118,7 +120,7 @@ export const searchCities = async (
 
     return locationResults;
   } catch (error) {
-    console.error("Error searching locations:", error);
+    logger.error("Error searching locations:", error);
     return [];
   }
 };
@@ -136,7 +138,7 @@ const getPlaceDetails = async (
 
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/details/json?place_id=${placeId}&fields=formatted_address,geometry,address_components,place_id&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Place details API error: ${response.status}`);
@@ -184,7 +186,7 @@ const getPlaceDetails = async (
       timezoneOffset: timezoneInfo?.offsetString,
     };
   } catch (error) {
-    console.error("Error getting place details:", error);
+    logger.error("Error getting place details:", error);
     return null;
   }
 };
@@ -198,7 +200,7 @@ export const searchAllLocations = async (
 ): Promise<CitySearchResult[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot search locations");
+      logger.warn("Google Maps API key not found, cannot search locations");
       return [];
     }
 
@@ -210,7 +212,7 @@ export const searchAllLocations = async (
     const encodedQuery = encodeURIComponent(query);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/autocomplete/json?input=${encodedQuery}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Location search API error: ${response.status}`);
@@ -223,7 +225,7 @@ export const searchAllLocations = async (
       !data.predictions ||
       data.predictions.length === 0
     ) {
-      console.warn("No location search results found for:", query);
+      logger.warn("No location search results found for:", query);
       return [];
     }
 
@@ -235,7 +237,7 @@ export const searchAllLocations = async (
           const details = await getPlaceDetails(prediction.place_id);
           if (details) return details;
         } catch (error) {
-          console.warn(
+          logger.warn(
             "Error getting details for place:",
             prediction.place_id,
             error,
@@ -256,7 +258,7 @@ export const searchAllLocations = async (
 
     return locationResults;
   } catch (error) {
-    console.error("Error searching all locations:", error);
+    logger.error("Error searching all locations:", error);
     return [];
   }
 };
@@ -270,7 +272,7 @@ export const searchMajorCities = async (
 ): Promise<CitySearchResult[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot search cities");
+      logger.warn("Google Maps API key not found, cannot search cities");
       return [];
     }
 
@@ -282,7 +284,7 @@ export const searchMajorCities = async (
     const encodedQuery = encodeURIComponent(query);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/autocomplete/json?input=${encodedQuery}&types=(cities)&components=country&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`City search API error: ${response.status}`);
@@ -295,7 +297,7 @@ export const searchMajorCities = async (
       !data.predictions ||
       data.predictions.length === 0
     ) {
-      console.warn("No major city search results found for:", query);
+      logger.warn("No major city search results found for:", query);
       return [];
     }
 
@@ -309,7 +311,7 @@ export const searchMajorCities = async (
           cityResults.push(details);
         }
       } catch (error) {
-        console.warn(
+        logger.warn(
           "Error getting details for place:",
           prediction.place_id,
           error,
@@ -319,7 +321,7 @@ export const searchMajorCities = async (
 
     return cityResults;
   } catch (error) {
-    console.error("Error searching major cities:", error);
+    logger.error("Error searching major cities:", error);
     return [];
   }
 };

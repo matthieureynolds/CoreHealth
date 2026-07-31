@@ -1,5 +1,5 @@
-import * as LocalAuthentication from 'expo-local-authentication';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from "expo-local-authentication";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface BiometricConfig {
   promptMessage: string;
@@ -29,15 +29,15 @@ export class BiometricService {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      
+
       this.isAvailable = hasHardware && isEnrolled;
-      
+
       if (this.isAvailable) {
-        const stored = await AsyncStorage.getItem('biometricEnabled');
-        this.isEnabled = stored === 'true';
+        const stored = await AsyncStorage.getItem("biometricEnabled");
+        this.isEnabled = stored === "true";
       }
     } catch (error) {
-      console.error('Error initializing biometric service:', error);
+      console.error("Error initializing biometric service:", error);
       this.isAvailable = false;
       this.isEnabled = false;
     }
@@ -62,24 +62,26 @@ export class BiometricService {
    */
   public async enableBiometric(): Promise<boolean> {
     if (!this.isAvailable) {
-      throw new Error('Biometric authentication is not available on this device');
+      throw new Error(
+        "Biometric authentication is not available on this device",
+      );
     }
 
     try {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to enable biometric lock',
-        fallbackLabel: 'Use passcode',
-        cancelLabel: 'Cancel',
+        promptMessage: "Authenticate to enable biometric lock",
+        fallbackLabel: "Use passcode",
+        cancelLabel: "Cancel",
       });
 
       if (result.success) {
         this.isEnabled = true;
-        await AsyncStorage.setItem('biometricEnabled', 'true');
+        await AsyncStorage.setItem("biometricEnabled", "true");
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error enabling biometric authentication:', error);
+      console.error("Error enabling biometric authentication:", error);
       throw error;
     }
   }
@@ -94,19 +96,19 @@ export class BiometricService {
 
     try {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to disable biometric lock',
-        fallbackLabel: 'Use passcode',
-        cancelLabel: 'Cancel',
+        promptMessage: "Authenticate to disable biometric lock",
+        fallbackLabel: "Use passcode",
+        cancelLabel: "Cancel",
       });
 
       if (result.success) {
         this.isEnabled = false;
-        await AsyncStorage.setItem('biometricEnabled', 'false');
+        await AsyncStorage.setItem("biometricEnabled", "false");
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error disabling biometric authentication:', error);
+      console.error("Error disabling biometric authentication:", error);
       throw error;
     }
   }
@@ -123,9 +125,9 @@ export class BiometricService {
 
     try {
       const defaultConfig: BiometricConfig = {
-        promptMessage: 'Authenticate to access your health data',
-        fallbackLabel: 'Use passcode',
-        cancelLabel: 'Cancel',
+        promptMessage: "Authenticate to access your health data",
+        fallbackLabel: "Use passcode",
+        cancelLabel: "Cancel",
         disableDeviceFallback: false,
       };
 
@@ -134,7 +136,7 @@ export class BiometricService {
       const result = await LocalAuthentication.authenticateAsync(finalConfig);
       return result.success;
     } catch (error) {
-      console.error('Biometric authentication error:', error);
+      console.error("Biometric authentication error:", error);
       return false;
     }
   }
@@ -142,11 +144,13 @@ export class BiometricService {
   /**
    * Get supported authentication types
    */
-  public async getSupportedTypes(): Promise<LocalAuthentication.AuthenticationType[]> {
+  public async getSupportedTypes(): Promise<
+    LocalAuthentication.AuthenticationType[]
+  > {
     try {
       return await LocalAuthentication.supportedAuthenticationTypesAsync();
     } catch (error) {
-      console.error('Error getting supported authentication types:', error);
+      console.error("Error getting supported authentication types:", error);
       return [];
     }
   }
@@ -154,12 +158,14 @@ export class BiometricService {
   /**
    * Check if the device supports specific authentication type
    */
-  public async supportsAuthenticationType(type: LocalAuthentication.AuthenticationType): Promise<boolean> {
+  public async supportsAuthenticationType(
+    type: LocalAuthentication.AuthenticationType,
+  ): Promise<boolean> {
     try {
       const supportedTypes = await this.getSupportedTypes();
       return supportedTypes.includes(type);
     } catch (error) {
-      console.error('Error checking authentication type support:', error);
+      console.error("Error checking authentication type support:", error);
       return false;
     }
   }
@@ -167,16 +173,18 @@ export class BiometricService {
   /**
    * Get authentication type name for display
    */
-  public getAuthenticationTypeName(type: LocalAuthentication.AuthenticationType): string {
+  public getAuthenticationTypeName(
+    type: LocalAuthentication.AuthenticationType,
+  ): string {
     switch (type) {
       case LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION:
-        return 'Face ID';
+        return "Face ID";
       case LocalAuthentication.AuthenticationType.FINGERPRINT:
-        return 'Touch ID';
+        return "Touch ID";
       case LocalAuthentication.AuthenticationType.IRIS:
-        return 'Iris Scan';
+        return "Iris Scan";
       default:
-        return 'Biometric';
+        return "Biometric";
     }
   }
 
@@ -186,19 +194,29 @@ export class BiometricService {
   public async getPrimaryAuthenticationMethod(): Promise<string> {
     try {
       const supportedTypes = await this.getSupportedTypes();
-      
-      if (supportedTypes.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-        return 'Face ID';
-      } else if (supportedTypes.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-        return 'Touch ID';
-      } else if (supportedTypes.includes(LocalAuthentication.AuthenticationType.IRIS)) {
-        return 'Iris Scan';
+
+      if (
+        supportedTypes.includes(
+          LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION,
+        )
+      ) {
+        return "Face ID";
+      } else if (
+        supportedTypes.includes(
+          LocalAuthentication.AuthenticationType.FINGERPRINT,
+        )
+      ) {
+        return "Touch ID";
+      } else if (
+        supportedTypes.includes(LocalAuthentication.AuthenticationType.IRIS)
+      ) {
+        return "Iris Scan";
       }
-      
-      return 'Biometric';
+
+      return "Biometric";
     } catch (error) {
-      console.error('Error getting primary authentication method:', error);
-      return 'Biometric';
+      console.error("Error getting primary authentication method:", error);
+      return "Biometric";
     }
   }
 
@@ -208,11 +226,11 @@ export class BiometricService {
   public async reset(): Promise<void> {
     try {
       this.isEnabled = false;
-      await AsyncStorage.removeItem('biometricEnabled');
+      await AsyncStorage.removeItem("biometricEnabled");
     } catch (error) {
-      console.error('Error resetting biometric settings:', error);
+      console.error("Error resetting biometric settings:", error);
     }
   }
 }
 
-export default BiometricService.getInstance(); 
+export default BiometricService.getInstance();

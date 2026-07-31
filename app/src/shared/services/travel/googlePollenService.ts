@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 // Google Pollen API response interfaces
 export interface GooglePollenData {
@@ -140,7 +142,7 @@ export const getGooglePollenData = async (
 ): Promise<GooglePollenData | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot get pollen data");
+      logger.warn("Google Maps API key not found, cannot get pollen data");
       return null;
     }
 
@@ -155,7 +157,7 @@ export const getGooglePollenData = async (
       languageCode: "en",
     };
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -176,7 +178,7 @@ export const getGooglePollenData = async (
       dailyInfo: data.dailyInfo || [],
     };
   } catch (error) {
-    console.error("Error fetching Google pollen data:", error);
+    logger.error("Error fetching Google pollen data:", error);
     return null;
   }
 };

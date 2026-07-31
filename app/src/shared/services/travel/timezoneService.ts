@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 export interface TimezoneInfo {
   timezoneId: string;
@@ -1070,7 +1072,7 @@ export const getTimezoneFromAPI = async (
 ): Promise<TimezoneInfo | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn(
+      logger.warn(
         "Google Maps API key not found, cannot get timezone from API",
       );
       return null;
@@ -1086,7 +1088,7 @@ export const getTimezoneFromAPI = async (
     const timestamp = Math.floor(Date.now() / 1000);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.TIMEZONE_ENDPOINT}?location=${latitude},${longitude}&timestamp=${timestamp}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Timezone API error: ${response.status}`);
@@ -1095,7 +1097,7 @@ export const getTimezoneFromAPI = async (
     const data = await response.json();
 
     if (data.status !== "OK") {
-      console.warn(
+      logger.warn(
         "No timezone data found for coordinates:",
         latitude,
         longitude,
@@ -1122,7 +1124,7 @@ export const getTimezoneFromAPI = async (
 
     return result;
   } catch (error) {
-    console.error("Error getting timezone from API:", error);
+    logger.error("Error getting timezone from API:", error);
     return null;
   }
 };
@@ -1305,7 +1307,7 @@ export const getCurrentTimeInTimezone = (
       offset: timezone?.offsetString || "+00:00",
     };
   } catch (error) {
-    console.error("Error getting current time in timezone:", error);
+    logger.error("Error getting current time in timezone:", error);
     return {
       time: "00:00:00",
       date: "Unknown",

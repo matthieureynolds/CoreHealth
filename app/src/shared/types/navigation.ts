@@ -1,7 +1,7 @@
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
-  RingDetail: { id: 'recovery' | 'biomarkers' | 'lifestyle' };
+  RingDetail: { id: "recovery" | "biomarkers" | "lifestyle" };
   HealthScoreDetail: undefined;
   LabResultDetail: {
     labResult: {
@@ -9,17 +9,24 @@ export type RootStackParamList = {
       name: string;
       value: number;
       unit: string;
-      trend: 'up' | 'down' | 'stable';
+      trend: "up" | "down" | "stable";
       trendPercent: number;
-      status: 'optimal' | 'normal' | 'borderline' | 'high' | 'low';
+      status: "optimal" | "normal" | "borderline" | "high" | "low";
       lastUpdated: string;
     };
   };
   EnvironmentalMetric: {
-    metricId: 'air_quality' | 'pollen' | 'water_quality' | 'uv_index' | 'food_safety' | 'altitude' | 'outbreaks';
+    metricId:
+      | "air_quality"
+      | "pollen"
+      | "water_quality"
+      | "uv_index"
+      | "food_safety"
+      | "altitude"
+      | "outbreaks";
     label: string;
     value: string;
-    status: 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous';
+    status: "excellent" | "good" | "moderate" | "poor" | "hazardous";
     score?: number;
     icon?: string;
   };
@@ -56,8 +63,18 @@ export type SerializedTrip = {
   returnDate?: string;
   timezone: string;
   originTimezone?: string;
-  layovers?: Array<{ city?: string; tz: string; arr_local: string; dep_local: string }>;
-  commitments?: Array<{ title: string; date_local: string; start_local: string; end_local: string }>;
+  layovers?: Array<{
+    city?: string;
+    tz: string;
+    arr_local: string;
+    dep_local: string;
+  }>;
+  commitments?: Array<{
+    title: string;
+    date_local: string;
+    start_local: string;
+    end_local: string;
+  }>;
   notes?: string;
   jetLagPlanner?: {
     departureTime: string;
@@ -78,7 +95,12 @@ export type TravelStackParamList = {
   DiseaseOutbreak: undefined;
 
   NearbyHospitals: undefined;
-  Vaccinations: undefined;
+  /**
+   * Distinct from ProfileStackParamList's `Vaccinations`, which is a different
+   * screen. Sharing the name meant navigate('Vaccinations') typechecked against
+   * either list and could land on the wrong one.
+   */
+  TravelVaccinations: undefined;
   TravelMedications: undefined;
 
   AddNewTrip: undefined;
@@ -100,7 +122,13 @@ export type ProfileTabParamList = {
   CountryLeaderboard: undefined;
   PublicLeagueDetail: { id: string; name: string };
   CircleDetail: { name?: string; members?: number } | undefined;
-  CountryDetail: { name: string; code: string; score: number; delta: number; rank: number };
+  CountryDetail: {
+    name: string;
+    code: string;
+    score: number;
+    delta: number;
+    rank: number;
+  };
   SymptomRegistered: undefined;
   HealthIDs: undefined;
   ProfilePicture: undefined;

@@ -1,17 +1,17 @@
-import { api } from './apiClient';
-import { Allergy, Biomarker, LabResult } from '../../types';
+import { api } from "./apiClient";
+import { Allergy, Biomarker, LabResult } from "../../types";
 
 // Maps backend risk_level → app riskLevel
-function mapRiskLevel(r: string | null): Biomarker['riskLevel'] {
-  if (r === 'abnormal') return 'high';
-  if (r === 'unknown') return 'medium';
-  return 'low';
+function mapRiskLevel(r: string | null): Biomarker["riskLevel"] {
+  if (r === "abnormal") return "high";
+  if (r === "unknown") return "medium";
+  return "low";
 }
 
 // Maps backend trend → app trend (backend trend is value direction, not health direction)
-function mapTrend(t: string | null): Biomarker['trend'] {
-  if (t === 'increasing' || t === 'decreasing') return 'stable'; // can't infer health dir without context
-  return 'stable';
+function mapTrend(t: string | null): Biomarker["trend"] {
+  if (t === "increasing" || t === "decreasing") return "stable"; // can't infer health dir without context
+  return "stable";
 }
 
 function rowToBiomarker(r: any): Biomarker {
@@ -31,10 +31,12 @@ function rowToAllergy(r: any): Allergy {
   return {
     id: r.id,
     name: r.name,
-    severity: r.severity === 'life_threatening' ? 'severe' : r.severity, // map DB value to app type
+    severity: r.severity === "life_threatening" ? "severe" : r.severity, // map DB value to app type
     reaction: r.reaction ?? undefined,
     status: r.status,
-    startDate: r.start_date ? new Date(r.start_date).toISOString() : new Date(r.created_at).toISOString(),
+    startDate: r.start_date
+      ? new Date(r.start_date).toISOString()
+      : new Date(r.created_at).toISOString(),
     endDate: r.end_date ? new Date(r.end_date).toISOString() : undefined,
     notes: r.notes ?? undefined,
   };
@@ -50,14 +52,19 @@ export class DataService {
     surname?: string,
     preferredName?: string,
   ): Promise<void> {
-    await api.post(`/users/${userId}`, { email, firstName, surname, preferredName });
+    await api.post(`/users/${userId}`, {
+      email,
+      firstName,
+      surname,
+      preferredName,
+    });
   }
 
   static async getProfile(userId: string): Promise<any | null> {
     try {
       return await api.get<any>(`/users/${userId}`);
     } catch (e: any) {
-      if (e.message?.includes('404')) return null;
+      if (e.message?.includes("404")) return null;
       throw e;
     }
   }
@@ -66,43 +73,52 @@ export class DataService {
     await api.delete(`/users/${userId}`);
   }
 
-  static async updateProfile(userId: string, updates: {
-    firstName?: string;
-    surname?: string;
-    preferredName?: string;
-    username?: string;
-    photoUrl?: string;
-    dateOfBirth?: string;
-    gender?: string;
-    heightCm?: number;
-    weightKg?: number;
-    ethnicity?: string;
-  }): Promise<any> {
+  static async updateProfile(
+    userId: string,
+    updates: {
+      firstName?: string;
+      surname?: string;
+      preferredName?: string;
+      username?: string;
+      photoUrl?: string;
+      dateOfBirth?: string;
+      gender?: string;
+      heightCm?: number;
+      weightKg?: number;
+      ethnicity?: string;
+    },
+  ): Promise<any> {
     return api.put<any>(`/users/${userId}`, updates);
   }
 
-  static async syncProfileData(userId: string, profileData: any): Promise<void> {
+  static async syncProfileData(
+    userId: string,
+    profileData: any,
+  ): Promise<void> {
     await api.put(`/users/${userId}/profile-data`, profileData);
   }
 
-  static async logSymptom(userId: string, symptom: {
-    type: string;
-    category: string;
-    severity: number;
-    duration?: string;
-    location?: string;
-    notes?: string;
-    medications?: string[];
-    factors?: string[];
-    loggedAt?: string;
-  }): Promise<void> {
+  static async logSymptom(
+    userId: string,
+    symptom: {
+      type: string;
+      category: string;
+      severity: number;
+      duration?: string;
+      location?: string;
+      notes?: string;
+      medications?: string[];
+      factors?: string[];
+      loggedAt?: string;
+    },
+  ): Promise<void> {
     await api.post(`/users/${userId}/symptoms`, symptom);
   }
 
   // ─── Biomarkers ──────────────────────────────────────────────────────────
 
   static async getBiomarkers(category?: string): Promise<Biomarker[]> {
-    const path = category ? `/biomarkers?category=${category}` : '/biomarkers';
+    const path = category ? `/biomarkers?category=${category}` : "/biomarkers";
     const rows = await api.get<any[]>(path);
     return rows.map(rowToBiomarker);
   }
@@ -117,7 +133,7 @@ export class DataService {
     recordedAt?: string;
     labResultId?: string;
   }): Promise<Biomarker> {
-    const row = await api.post<any>('/biomarkers', biomarker);
+    const row = await api.post<any>("/biomarkers", biomarker);
     return rowToBiomarker(row);
   }
 
@@ -130,7 +146,7 @@ export class DataService {
   // These are used for the upload/processing flow only.
 
   static async getLabResultDocuments(): Promise<any[]> {
-    return api.get<any[]>('/lab-results');
+    return api.get<any[]>("/lab-results");
   }
 
   /**
@@ -143,15 +159,20 @@ export class DataService {
     labName?: string;
     reportDate?: string;
   }): Promise<{ labResultId: string; uploadUrl: string }> {
-    return api.post<{ labResultId: string; uploadUrl: string }>('/lab-results', {
-      fileName: data.fileName,
-      fileType: data.fileType,
-      labName: data.labName ?? null,
-      reportDate: data.reportDate ?? null,
-    });
+    return api.post<{ labResultId: string; uploadUrl: string }>(
+      "/lab-results",
+      {
+        fileName: data.fileName,
+        fileType: data.fileType,
+        labName: data.labName ?? null,
+        reportDate: data.reportDate ?? null,
+      },
+    );
   }
 
-  static async getLabResultStatus(labResultId: string): Promise<{ processing_status: string }> {
+  static async getLabResultStatus(
+    labResultId: string,
+  ): Promise<{ processing_status: string }> {
     return api.get(`/lab-results/${labResultId}`);
   }
 
@@ -166,7 +187,10 @@ export class DataService {
     return rows.map(rowToAllergy);
   }
 
-  static async addAllergy(userId: string, allergy: Omit<Allergy, 'id' | 'attachments'>): Promise<Allergy> {
+  static async addAllergy(
+    userId: string,
+    allergy: Omit<Allergy, "id" | "attachments">,
+  ): Promise<Allergy> {
     const row = await api.post<any>(`/users/${userId}/allergies`, {
       name: allergy.name,
       severity: allergy.severity,
@@ -179,7 +203,11 @@ export class DataService {
     return rowToAllergy(row);
   }
 
-  static async updateAllergy(userId: string, allergyId: string, updates: Partial<Omit<Allergy, 'id' | 'attachments'>>): Promise<Allergy> {
+  static async updateAllergy(
+    userId: string,
+    allergyId: string,
+    updates: Partial<Omit<Allergy, "id" | "attachments">>,
+  ): Promise<Allergy> {
     const row = await api.put<any>(`/users/${userId}/allergies/${allergyId}`, {
       name: updates.name,
       severity: updates.severity,
@@ -202,21 +230,39 @@ export class DataService {
     return api.get<any[]>(`/users/${userId}/medications`);
   }
 
-  static async addMedication(userId: string, data: {
-    name: string; dosage?: string; frequency?: string;
-    startDate?: string; endDate?: string; notes?: string;
-  }): Promise<any> {
+  static async addMedication(
+    userId: string,
+    data: {
+      name: string;
+      dosage?: string;
+      frequency?: string;
+      startDate?: string;
+      endDate?: string;
+      notes?: string;
+    },
+  ): Promise<any> {
     return api.post<any>(`/users/${userId}/medications`, data);
   }
 
-  static async updateMedication(userId: string, medicationId: string, data: Partial<{
-    name: string; dosage: string; frequency: string;
-    startDate: string; endDate: string; notes: string;
-  }>): Promise<any> {
+  static async updateMedication(
+    userId: string,
+    medicationId: string,
+    data: Partial<{
+      name: string;
+      dosage: string;
+      frequency: string;
+      startDate: string;
+      endDate: string;
+      notes: string;
+    }>,
+  ): Promise<any> {
     return api.put<any>(`/users/${userId}/medications/${medicationId}`, data);
   }
 
-  static async deleteMedication(userId: string, medicationId: string): Promise<void> {
+  static async deleteMedication(
+    userId: string,
+    medicationId: string,
+  ): Promise<void> {
     await api.delete(`/users/${userId}/medications/${medicationId}`);
   }
 
@@ -226,21 +272,39 @@ export class DataService {
     return api.get<any[]>(`/users/${userId}/conditions`);
   }
 
-  static async addCondition(userId: string, data: {
-    name: string; severity?: string; status?: string;
-    diagnosedDate?: string; resolvedDate?: string; notes?: string;
-  }): Promise<any> {
+  static async addCondition(
+    userId: string,
+    data: {
+      name: string;
+      severity?: string;
+      status?: string;
+      diagnosedDate?: string;
+      resolvedDate?: string;
+      notes?: string;
+    },
+  ): Promise<any> {
     return api.post<any>(`/users/${userId}/conditions`, data);
   }
 
-  static async updateCondition(userId: string, conditionId: string, data: Partial<{
-    name: string; severity: string; status: string;
-    diagnosedDate: string; resolvedDate: string; notes: string;
-  }>): Promise<any> {
+  static async updateCondition(
+    userId: string,
+    conditionId: string,
+    data: Partial<{
+      name: string;
+      severity: string;
+      status: string;
+      diagnosedDate: string;
+      resolvedDate: string;
+      notes: string;
+    }>,
+  ): Promise<any> {
     return api.put<any>(`/users/${userId}/conditions/${conditionId}`, data);
   }
 
-  static async deleteCondition(userId: string, conditionId: string): Promise<void> {
+  static async deleteCondition(
+    userId: string,
+    conditionId: string,
+  ): Promise<void> {
     await api.delete(`/users/${userId}/conditions/${conditionId}`);
   }
 
@@ -250,21 +314,39 @@ export class DataService {
     return api.get<any[]>(`/users/${userId}/vaccinations`);
   }
 
-  static async addVaccination(userId: string, data: {
-    name: string; date: string; nextDue?: string;
-    location?: string; batchNumber?: string; notes?: string;
-  }): Promise<any> {
+  static async addVaccination(
+    userId: string,
+    data: {
+      name: string;
+      date: string;
+      nextDue?: string;
+      location?: string;
+      batchNumber?: string;
+      notes?: string;
+    },
+  ): Promise<any> {
     return api.post<any>(`/users/${userId}/vaccinations`, data);
   }
 
-  static async updateVaccination(userId: string, vaccinationId: string, data: Partial<{
-    name: string; date: string; nextDue: string;
-    location: string; batchNumber: string; notes: string;
-  }>): Promise<any> {
+  static async updateVaccination(
+    userId: string,
+    vaccinationId: string,
+    data: Partial<{
+      name: string;
+      date: string;
+      nextDue: string;
+      location: string;
+      batchNumber: string;
+      notes: string;
+    }>,
+  ): Promise<any> {
     return api.put<any>(`/users/${userId}/vaccinations/${vaccinationId}`, data);
   }
 
-  static async deleteVaccination(userId: string, vaccinationId: string): Promise<void> {
+  static async deleteVaccination(
+    userId: string,
+    vaccinationId: string,
+  ): Promise<void> {
     await api.delete(`/users/${userId}/vaccinations/${vaccinationId}`);
   }
 
@@ -274,46 +356,80 @@ export class DataService {
     return api.get<any[]>(`/users/${userId}/appointments`);
   }
 
-  static async addAppointment(userId: string, data: {
-    title: string; subtitle?: string; eventDate: string;
-    doctor?: string; location?: string; notes?: string;
-  }): Promise<any> {
+  static async addAppointment(
+    userId: string,
+    data: {
+      title: string;
+      subtitle?: string;
+      eventDate: string;
+      doctor?: string;
+      location?: string;
+      notes?: string;
+    },
+  ): Promise<any> {
     return api.post<any>(`/users/${userId}/appointments`, data);
   }
 
-  static async updateAppointment(userId: string, appointmentId: string, data: Partial<{
-    title: string; subtitle: string; eventDate: string;
-    doctor: string; location: string; notes: string;
-  }>): Promise<any> {
+  static async updateAppointment(
+    userId: string,
+    appointmentId: string,
+    data: Partial<{
+      title: string;
+      subtitle: string;
+      eventDate: string;
+      doctor: string;
+      location: string;
+      notes: string;
+    }>,
+  ): Promise<any> {
     return api.put<any>(`/users/${userId}/appointments/${appointmentId}`, data);
   }
 
-  static async deleteAppointment(userId: string, appointmentId: string): Promise<void> {
+  static async deleteAppointment(
+    userId: string,
+    appointmentId: string,
+  ): Promise<void> {
     await api.delete(`/users/${userId}/appointments/${appointmentId}`);
   }
 
   // ─── Device data ─────────────────────────────────────────────────────────
 
-  static async getDeviceData(userId: string, deviceType?: string): Promise<any[]> {
+  static async getDeviceData(
+    userId: string,
+    deviceType?: string,
+  ): Promise<any[]> {
     const path = deviceType
       ? `/users/${userId}/device-data?device_type=${deviceType}`
       : `/users/${userId}/device-data`;
     return api.get<any[]>(path);
   }
 
-  static async ingestDeviceData(userId: string, data: {
-    deviceType: string; deviceName: string; metrics: Record<string, any>; timestamp: string;
-  }): Promise<any> {
+  static async ingestDeviceData(
+    userId: string,
+    data: {
+      deviceType: string;
+      deviceName: string;
+      metrics: Record<string, any>;
+      timestamp: string;
+    },
+  ): Promise<any> {
     return api.post<any>(`/users/${userId}/device-data`, data);
   }
 
   // ─── Push token ──────────────────────────────────────────────────────────
 
-  static async updatePushToken(userId: string, expoPushToken: string): Promise<void> {
+  static async updatePushToken(
+    userId: string,
+    expoPushToken: string,
+  ): Promise<void> {
     await api.put<any>(`/users/${userId}`, { expoPushToken });
   }
 
-  static async recordConsent(userId: string, version: string, purposes: string[]): Promise<void> {
+  static async recordConsent(
+    userId: string,
+    version: string,
+    purposes: string[],
+  ): Promise<void> {
     await api.post(`/users/${userId}/consent`, { version, purposes });
   }
 
@@ -321,7 +437,9 @@ export class DataService {
     await api.delete(`/users/${userId}/consent`);
   }
 
-  static async getHealthMemory(userId: string): Promise<{ memory: string | null; updatedAt: string | null }> {
+  static async getHealthMemory(
+    userId: string,
+  ): Promise<{ memory: string | null; updatedAt: string | null }> {
     return api.get(`/users/${userId}/health-memory`);
   }
 
@@ -335,15 +453,17 @@ export class DataService {
 
   // ─── Health alerts ────────────────────────────────────────────────────────
 
-  static async getAlerts(userId: string): Promise<Array<{
-    id: string;
-    type: 'trend' | 'abnormal' | 'pattern';
-    severity: 'info' | 'warning' | 'critical';
-    title: string;
-    body: string;
-    biomarkers: string[];
-    created_at: string;
-  }>> {
+  static async getAlerts(userId: string): Promise<
+    Array<{
+      id: string;
+      type: "trend" | "abnormal" | "pattern";
+      severity: "info" | "warning" | "critical";
+      title: string;
+      body: string;
+      biomarkers: string[];
+      created_at: string;
+    }>
+  > {
     return api.get(`/users/${userId}/alerts`);
   }
 
@@ -353,58 +473,109 @@ export class DataService {
 
   // ─── Biomarkers per lab result ───────────────────────────────────────────
 
-  static async getBiomarkersForLabResult(labResultId: string): Promise<Biomarker[]> {
-    const rows = await api.get<any[]>(`/biomarkers?lab_result_id=${encodeURIComponent(labResultId)}`);
+  static async getBiomarkersForLabResult(
+    labResultId: string,
+  ): Promise<Biomarker[]> {
+    const rows = await api.get<any[]>(
+      `/biomarkers?lab_result_id=${encodeURIComponent(labResultId)}`,
+    );
     return rows.map(rowToBiomarker);
   }
 
   // ─── Device OAuth ─────────────────────────────────────────────────────────
 
-  static async getDeviceAuthUrl(userId: string, device: 'whoop' | 'oura'): Promise<{ authUrl: string; redirectUri: string }> {
+  static async getDeviceAuthUrl(
+    userId: string,
+    device: "whoop" | "oura",
+  ): Promise<{ authUrl: string; redirectUri: string }> {
     return api.get(`/users/${userId}/device-oauth/auth-url/${device}`);
   }
 
-  static async exchangeDeviceCode(userId: string, device: 'whoop' | 'oura', code: string, redirectUri: string): Promise<void> {
-    await api.post(`/users/${userId}/device-oauth/${device}`, { code, redirectUri });
+  static async exchangeDeviceCode(
+    userId: string,
+    device: "whoop" | "oura",
+    code: string,
+    redirectUri: string,
+  ): Promise<void> {
+    await api.post(`/users/${userId}/device-oauth/${device}`, {
+      code,
+      redirectUri,
+    });
   }
 
-  static async getDeviceConnectionStatus(userId: string): Promise<Array<{ device_type: string; device_name: string; last_sync: string }>> {
+  static async getDeviceConnectionStatus(
+    userId: string,
+  ): Promise<
+    Array<{ device_type: string; device_name: string; last_sync: string }>
+  > {
     return api.get(`/users/${userId}/device-oauth/status`);
   }
 
   // ─── AI insights (server-side — OpenAI key never leaves backend) ────────────
 
-  static async getDailyInsights(): Promise<Array<{
-    id: string; title: string; description: string;
-    category: string; priority: string; actionable: boolean; action?: string | null;
-  }>> {
-    const result = await api.post<{ insights: any[] }>('/ai/insights', {});
+  static async getDailyInsights(): Promise<
+    Array<{
+      id: string;
+      title: string;
+      description: string;
+      category: string;
+      priority: string;
+      actionable: boolean;
+      action?: string | null;
+    }>
+  > {
+    const result = await api.post<{ insights: any[] }>("/ai/insights", {});
     return result.insights ?? [];
   }
 
   // ─── AI chat ─────────────────────────────────────────────────────────────
 
   static async sendChatMessage(message: string): Promise<{ reply: string }> {
-    return api.post<{ reply: string }>('/ai/chat', { message });
+    return api.post<{ reply: string }>("/ai/chat", { message });
   }
 
-  static async getChatHistory(): Promise<Array<{ role: string; content: string; created_at: string }>> {
-    return api.get('/ai/history');
+  static async getChatHistory(): Promise<
+    Array<{ role: string; content: string; created_at: string }>
+  > {
+    return api.get("/ai/history");
   }
 
-  static async getImagingResults(): Promise<Array<{
-    id: string; modality: string; body_part: string | null; study_date: string | null;
-    facility: string | null; radiologist: string | null; findings: string | null;
-    impression: string | null; measurements: Record<string, number> | null; notes: string | null;
-  }>> {
-    return api.get('/ai/imaging-results');
+  static async getImagingResults(): Promise<
+    Array<{
+      id: string;
+      modality: string;
+      body_part: string | null;
+      study_date: string | null;
+      facility: string | null;
+      radiologist: string | null;
+      findings: string | null;
+      impression: string | null;
+      measurements: Record<string, number> | null;
+      notes: string | null;
+    }>
+  > {
+    return api.get("/ai/imaging-results");
   }
 
-  static async transcribeAudio(audioBase64: string, mimeType: string): Promise<{ transcript: string }> {
-    return api.post<{ transcript: string }>('/ai/transcribe', { audio: audioBase64, mimeType });
+  static async transcribeAudio(
+    audioBase64: string,
+    mimeType: string,
+  ): Promise<{ transcript: string }> {
+    return api.post<{ transcript: string }>("/ai/transcribe", {
+      audio: audioBase64,
+      mimeType,
+    });
   }
 
-  static async analyzeImage(imageBase64: string, mimeType: string, prompt?: string): Promise<{ analysis: string }> {
-    return api.post<{ analysis: string }>('/ai/analyze-image', { image: imageBase64, mimeType, prompt });
+  static async analyzeImage(
+    imageBase64: string,
+    mimeType: string,
+    prompt?: string,
+  ): Promise<{ analysis: string }> {
+    return api.post<{ analysis: string }>("/ai/analyze-image", {
+      image: imageBase64,
+      mimeType,
+      prompt,
+    });
   }
 }

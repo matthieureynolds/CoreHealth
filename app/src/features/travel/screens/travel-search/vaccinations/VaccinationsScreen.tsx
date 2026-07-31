@@ -11,6 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { palette } from "../../../../../shared/theme/colors";
+import { logger } from "../../../../../shared/utils/logger";
 
 const CHECKED_VAX_KEY = "vaccinations_checked";
 
@@ -51,7 +52,7 @@ const VaccinationsScreen: React.FC = () => {
         if (stored) setCheckedVax(JSON.parse(stored));
       })
       .catch((err) => {
-        if (__DEV__) console.warn("failed to read vaccination checklist", err);
+        logger.warn("failed to read vaccination checklist", err);
       })
       .finally(() => {
         loaded.current = true;
@@ -62,7 +63,7 @@ const VaccinationsScreen: React.FC = () => {
     if (!loaded.current) return;
     AsyncStorage.setItem(CHECKED_VAX_KEY, JSON.stringify(checkedVax)).catch(
       (err) => {
-        if (__DEV__) console.warn("failed to save vaccination checklist", err);
+        logger.warn("failed to save vaccination checklist", err);
       },
     );
   }, [checkedVax]);

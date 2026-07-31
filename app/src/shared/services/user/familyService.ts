@@ -1,6 +1,12 @@
-import { getCurrentUser } from 'aws-amplify/auth';
-import { api } from '../data/apiClient';
-import { HereditarySignal, RelationshipDirection, RelationshipLink, RelationshipStatus, RelationshipDegree } from '../../types';
+import { getCurrentUser } from "aws-amplify/auth";
+import { api } from "../data/apiClient";
+import {
+  HereditarySignal,
+  RelationshipDirection,
+  RelationshipLink,
+  RelationshipStatus,
+  RelationshipDegree,
+} from "../../types";
 
 async function getCurrentUserId(): Promise<string> {
   const { userId } = await getCurrentUser();
@@ -10,11 +16,16 @@ async function getCurrentUserId(): Promise<string> {
 // Simple dev-time envelope — replace with libsodium sealed boxes in production
 function encodeEnvelope(payload: Record<string, any>): string {
   const json = JSON.stringify(payload);
-  return typeof btoa !== 'undefined' ? btoa(json) : Buffer.from(json, 'utf8').toString('base64');
+  return typeof btoa !== "undefined"
+    ? btoa(json)
+    : Buffer.from(json, "utf8").toString("base64");
 }
 
 function decodeEnvelope(ciphertext: string): any {
-  const json = typeof atob !== 'undefined' ? atob(ciphertext) : Buffer.from(ciphertext, 'base64').toString('utf8');
+  const json =
+    typeof atob !== "undefined"
+      ? atob(ciphertext)
+      : Buffer.from(ciphertext, "base64").toString("utf8");
   return JSON.parse(json);
 }
 
@@ -40,7 +51,7 @@ export const familyService = {
     return api.post<RelationshipLink>(`/users/${userId}/family/links`, {
       relativeEmail: params.relativeEmail,
       degree: params.degree,
-      direction: 'reciprocal',
+      direction: "reciprocal",
     });
   },
 
@@ -80,7 +91,10 @@ export const familyService = {
 
   async listIncomingSignals(): Promise<HereditarySignal[]> {
     const userId = await getCurrentUserId();
-    const data = await api.get<{ received: HereditarySignal[]; sent: HereditarySignal[] }>(`/users/${userId}/family/signals`);
+    const data = await api.get<{
+      received: HereditarySignal[];
+      sent: HereditarySignal[];
+    }>(`/users/${userId}/family/signals`);
     return data.received;
   },
 

@@ -2,6 +2,7 @@ import {
   findWaterStations,
   WaterStationSearchResult,
 } from "./waterStationService";
+import { logger } from "../../utils/logger";
 
 // Water quality data interfaces
 export interface WaterQualityData {
@@ -81,7 +82,7 @@ export const getWaterQualityData = async (
 
     return qualityAssessment;
   } catch (error) {
-    console.error("Error getting water quality data:", error);
+    logger.error("Error getting water quality data:", error);
     return null;
   }
 };

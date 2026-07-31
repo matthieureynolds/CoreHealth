@@ -11,6 +11,7 @@ module.exports = {
   testMatch: [
     '**/src/shared/services/jetlag-brain/__tests__/**/*.test.ts',
     '**/src/features/travel/**/__tests__/**/*.test.ts',
+    '**/src/shared/services/__tests__/**/*.test.ts',
   ],
   transform: {
     '^.+\\.ts$': ['ts-jest', { isolatedModules: true, diagnostics: false }],

@@ -12,6 +12,7 @@ import { useCitySuggestions } from "./useCitySuggestions";
 import { Trip } from "./useTravelHandlers";
 import { MOCK_TRIPS } from "../../../mockTrips";
 import { searchMockFlights } from "../../../mockFlights";
+import { logger } from "../../../../../shared/utils/logger";
 
 export const popularCities = getPopularCities();
 
@@ -75,8 +76,7 @@ export function useTravelState() {
           } catch (err) {
             // Corrupt store: fall through to the mock seed rather than crashing,
             // but surface it in dev so it isn't mistaken for "no trips yet".
-            if (__DEV__)
-              console.warn("planned_trips is corrupt, reseeding", err);
+            logger.warn("planned_trips is corrupt, reseeding", err);
           }
         }
         // Seed mock trips for testing when no real trips exist yet.
@@ -98,7 +98,7 @@ export function useTravelState() {
     if (trips === MOCK_TRIPS) return;
     AsyncStorage.setItem("planned_trips", JSON.stringify(trips)).catch(
       (err) => {
-        if (__DEV__) console.warn("failed to persist planned_trips", err);
+        logger.warn("failed to persist planned_trips", err);
       },
     );
   }, [trips]);

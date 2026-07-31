@@ -5,6 +5,7 @@ import { api } from "../../../../../shared/services/data/apiClient";
 import { FlightLookupService } from "../../../../../shared/services/jetlag-brain/enhancedJetLagService";
 import { getCityTimezone } from "../../../../../shared/services/jetlag-brain/jetLagService";
 import { FlightOption } from "../../../../../shared/types";
+import { logger } from "../../../../../shared/utils/logger";
 
 function syncTripToBackend(trip: Trip) {
   fetchAuthSession()
@@ -13,8 +14,7 @@ function syncTripToBackend(trip: Trip) {
         | string
         | undefined;
       if (!userId) {
-        if (__DEV__)
-          console.warn("[syncTrip] No user ID found in session, skipping sync");
+        logger.warn("[syncTrip] No user ID found in session, skipping sync");
         return;
       }
       api
@@ -40,11 +40,11 @@ function syncTripToBackend(trip: Trip) {
           },
         })
         .catch((error) => {
-          console.error("[syncTrip] Failed to sync trip to backend:", error);
+          logger.error("[syncTrip] Failed to sync trip to backend:", error);
         });
     })
     .catch((error) => {
-      console.error("[syncTrip] Failed to get auth session:", error);
+      logger.error("[syncTrip] Failed to get auth session:", error);
     });
 }
 

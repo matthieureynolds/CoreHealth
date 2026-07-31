@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 export { getClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 export type { ClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 
@@ -101,7 +103,7 @@ export const searchNearbyHealthcareFacilities = async (
 ): Promise<HealthcareFacility[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn(
+      logger.warn(
         "🚨 Google Maps API key not found, cannot search healthcare facilities",
       );
       return [];
@@ -110,17 +112,17 @@ export const searchNearbyHealthcareFacilities = async (
     const searchType = HEALTHCARE_TYPES[type];
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${searchType}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
-      console.error(`🚨 Places API HTTP error: ${response.status}`);
+      logger.error(`🚨 Places API HTTP error: ${response.status}`);
       throw new Error(`Places API error: ${response.status}`);
     }
 
     const data: GooglePlacesResponse = await response.json();
 
     if (data.status !== "OK") {
-      console.warn(`🚨 Google Places API error for ${type}:`, data.status);
+      logger.warn(`🚨 Google Places API error for ${type}:`, data.status);
       return [];
     }
 
@@ -173,7 +175,7 @@ export const searchNearbyHealthcareFacilities = async (
     // Sort by distance
     return facilities.sort((a, b) => (a.distance || 0) - (b.distance || 0));
   } catch (error) {
-    console.error("Error searching healthcare facilities:", error);
+    logger.error("Error searching healthcare facilities:", error);
     return [];
   }
 };
@@ -209,7 +211,7 @@ export const getAllHealthcareFacilities = async (
         hospitals.length + pharmacies.length + clinics.length + dentists.length,
     };
   } catch (error) {
-    console.error("Error getting all healthcare facilities:", error);
+    logger.error("Error getting all healthcare facilities:", error);
     return {
       hospitals: [],
       pharmacies: [],

@@ -46,7 +46,7 @@ const TravelStackNavigator: React.FC = () => {
 
       {/* Nearby hospitals, vaccinations, medications */}
       <Stack.Screen name="NearbyHospitals" component={NearbyHospitalsScreen} />
-      <Stack.Screen name="Vaccinations" component={VaccinationsScreen} />
+      <Stack.Screen name="TravelVaccinations" component={VaccinationsScreen} />
       <Stack.Screen
         name="TravelMedications"
         component={TravelMedicationsScreen}

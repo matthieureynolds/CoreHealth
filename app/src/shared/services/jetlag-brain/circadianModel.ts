@@ -30,25 +30,27 @@ export interface CircadianEstimate {
   sleep: { start: string; end: string };
   /** Best estimate of CBTmin ('HH:MM'). */
   cbtMin: string;
-  source: 'wearable_bio' | 'wearable_sleep' | 'settings';
-  confidence: 'high' | 'medium' | 'low';
+  source: "wearable_bio" | "wearable_sleep" | "settings";
+  confidence: "high" | "medium" | "low";
   note: string;
 }
 
 const MIN_NIGHTS = 3;
 
 const toMin = (t: string): number => {
-  const [h, m] = t.split(':').map(Number);
+  const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 };
 const toStr = (m: number): string => {
   const x = ((Math.round(m) % 1440) + 1440) % 1440;
-  return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(x / 60)).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`;
 };
 const sub = (t: string, mins: number): string => toStr(toMin(t) - mins);
 
 /** Weighted circular mean of clock times — handles midnight wrap. */
-const weightedCircMean = (items: Array<{ time: string; weight: number }>): string => {
+const weightedCircMean = (
+  items: Array<{ time: string; weight: number }>,
+): string => {
   let x = 0;
   let y = 0;
   let w = 0;
@@ -58,7 +60,7 @@ const weightedCircMean = (items: Array<{ time: string; weight: number }>): strin
     y += Math.sin(a) * it.weight;
     w += it.weight;
   }
-  if (w === 0) return items[0]?.time ?? '04:00';
+  if (w === 0) return items[0]?.time ?? "04:00";
   const ang = Math.atan2(y / w, x / w);
   return toStr((ang / (2 * Math.PI)) * 1440);
 };
@@ -74,7 +76,7 @@ export interface AdaptationInputs {
   /** Recent habitual sleep window (to estimate chronic sleep debt). */
   measuredSleep?: { start: string; end: string } | null;
   /** Self-reported light sensitivity: 'low' adapts slower, 'high' faster. */
-  lightSensitivity?: 'low' | 'normal' | 'high';
+  lightSensitivity?: "low" | "normal" | "high";
 }
 
 /** Age-only factor (kept for callers without richer signals). */
@@ -95,22 +97,30 @@ export function computeAdaptationFactor(inp: AdaptationInputs): number {
   let f = adaptationFactorFromAge(inp.age);
 
   if (inp.measuredSleep) {
-    const dur = (toMin(inp.measuredSleep.end) - toMin(inp.measuredSleep.start) + 1440) % 1440;
+    const dur =
+      (toMin(inp.measuredSleep.end) - toMin(inp.measuredSleep.start) + 1440) %
+      1440;
     const hours = dur / 60;
     const debt = Math.max(0, 7.5 - hours); // hours short of a healthy night
-    f *= Math.max(0.85, 1 - debt * 0.04);  // up to ~-15% when badly sleep-deprived
+    f *= Math.max(0.85, 1 - debt * 0.04); // up to ~-15% when badly sleep-deprived
   }
 
-  if (inp.lightSensitivity === 'low') f *= 0.9;
-  else if (inp.lightSensitivity === 'high') f *= 1.1;
+  if (inp.lightSensitivity === "low") f *= 0.9;
+  else if (inp.lightSensitivity === "high") f *= 1.1;
 
   return Math.max(0.6, Math.min(1.1, f));
 }
 
 // ─── Learned per-direction adaptation efficiency ───────────────────────────────
 
-export interface DirectionalEfficiency { advance: number; delay: number; }
-export const DEFAULT_EFFICIENCY: DirectionalEfficiency = { advance: 1, delay: 1 };
+export interface DirectionalEfficiency {
+  advance: number;
+  delay: number;
+}
+export const DEFAULT_EFFICIENCY: DirectionalEfficiency = {
+  advance: 1,
+  delay: 1,
+};
 
 /**
  * Nudge the learned efficiency for one direction from a real observation.
@@ -121,20 +131,25 @@ export const DEFAULT_EFFICIENCY: DirectionalEfficiency = { advance: 1, delay: 1 
  */
 export function updateDirectionalEfficiency(
   current: DirectionalEfficiency,
-  direction: 'advance' | 'delay',
+  direction: "advance" | "delay",
   observedHoursPerDay: number,
   expectedHoursPerDay: number,
   alpha = 0.3,
 ): DirectionalEfficiency {
   if (expectedHoursPerDay <= 0 || observedHoursPerDay < 0) return current;
   const ratio = observedHoursPerDay / expectedHoursPerDay;
-  const prev = direction === 'advance' ? current.advance : current.delay;
+  const prev = direction === "advance" ? current.advance : current.delay;
   const next = Math.max(0.5, Math.min(1.5, prev * (1 - alpha) + ratio * alpha));
-  return direction === 'advance' ? { ...current, advance: next } : { ...current, delay: next };
+  return direction === "advance"
+    ? { ...current, advance: next }
+    : { ...current, delay: next };
 }
 
-export function estimateCircadianPhase(inp: CircadianInputs): CircadianEstimate {
-  const useMeasured = !!inp.measuredSleep && inp.measuredSleep.nights >= MIN_NIGHTS;
+export function estimateCircadianPhase(
+  inp: CircadianInputs,
+): CircadianEstimate {
+  const useMeasured =
+    !!inp.measuredSleep && inp.measuredSleep.nights >= MIN_NIGHTS;
   const sleep = useMeasured
     ? { start: inp.measuredSleep!.start, end: inp.measuredSleep!.end }
     : inp.settingsSleep;
@@ -155,11 +170,14 @@ export function estimateCircadianPhase(inp: CircadianInputs): CircadianEstimate 
   const signals: string[] = [];
   if (inp.hrNadirLocal && inWindow(toMin(inp.hrNadirLocal), nightStart, wake)) {
     candidates.push({ time: inp.hrNadirLocal, weight: 1.0 });
-    signals.push('heart rate');
+    signals.push("heart rate");
   }
-  if (inp.glucoseNadirLocal && inWindow(toMin(inp.glucoseNadirLocal), nightStart, wake)) {
+  if (
+    inp.glucoseNadirLocal &&
+    inWindow(toMin(inp.glucoseNadirLocal), nightStart, wake)
+  ) {
     candidates.push({ time: inp.glucoseNadirLocal, weight: 0.6 });
-    signals.push('glucose');
+    signals.push("glucose");
   }
 
   const cbtMin = weightedCircMean(candidates);
@@ -168,25 +186,25 @@ export function estimateCircadianPhase(inp: CircadianInputs): CircadianEstimate 
     return {
       sleep,
       cbtMin,
-      source: 'wearable_bio',
-      confidence: 'high',
-      note: `Personalised to your body clock from your wearable’s sleep + overnight ${signals.join(' & ')}.`,
+      source: "wearable_bio",
+      confidence: "high",
+      note: `Personalised to your body clock from your wearable’s sleep + overnight ${signals.join(" & ")}.`,
     };
   }
   if (useMeasured) {
     return {
       sleep,
       cbtMin,
-      source: 'wearable_sleep',
-      confidence: 'medium',
-      note: 'Personalised from your recent sleep timing.',
+      source: "wearable_sleep",
+      confidence: "medium",
+      note: "Personalised from your recent sleep timing.",
     };
   }
   return {
     sleep,
     cbtMin,
-    source: 'settings',
-    confidence: 'low',
-    note: 'Based on your sleep settings — connect a wearable to tune this to your real body clock.',
+    source: "settings",
+    confidence: "low",
+    note: "Based on your sleep settings — connect a wearable to tune this to your real body clock.",
   };
 }

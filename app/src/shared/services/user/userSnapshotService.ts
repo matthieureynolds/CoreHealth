@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type UserSnapshot = {
   user?: {
@@ -28,7 +28,7 @@ export type UserSnapshot = {
   generatedAt: string;
 };
 
-const SNAPSHOT_KEY = '@user_snapshot';
+const SNAPSHOT_KEY = "@user_snapshot";
 
 export async function buildUserSnapshot(): Promise<UserSnapshot> {
   // Read persisted keys in parallel
@@ -54,31 +54,35 @@ export async function buildUserSnapshot(): Promise<UserSnapshot> {
     tosEffective,
     privacyEffective,
   ] = await Promise.all([
-    AsyncStorage.getItem('profile'),
-    AsyncStorage.getItem('biomarkers'),
-    AsyncStorage.getItem('labResults'),
-    AsyncStorage.getItem('deviceData'),
-    AsyncStorage.getItem('connectedDevices'),
-    AsyncStorage.getItem('healthScore'),
-    AsyncStorage.getItem('@corehealth_settings'),
-    AsyncStorage.getItem('mockUserData'),
-    AsyncStorage.getItem('@notif_med_alerts'),
-    AsyncStorage.getItem('@notif_appt_alerts'),
-    AsyncStorage.getItem('@notif_med_enabled'),
-    AsyncStorage.getItem('@notif_appt_enabled'),
-    AsyncStorage.getItem('@notif_monthly_enabled'),
-    AsyncStorage.getItem('@notif_weekly_enabled'),
-    AsyncStorage.getItem('@notif_sleep_enabled'),
-    AsyncStorage.getItem('@notif_quiet_hours'),
-    AsyncStorage.getItem('@corehealth_last_sync_at'),
-    AsyncStorage.getItem('@legal_tos_last_updated'),
-    AsyncStorage.getItem('@legal_tos_effective_date'),
-    AsyncStorage.getItem('@legal_privacy_effective_date'),
+    AsyncStorage.getItem("profile"),
+    AsyncStorage.getItem("biomarkers"),
+    AsyncStorage.getItem("labResults"),
+    AsyncStorage.getItem("deviceData"),
+    AsyncStorage.getItem("connectedDevices"),
+    AsyncStorage.getItem("healthScore"),
+    AsyncStorage.getItem("@corehealth_settings"),
+    AsyncStorage.getItem("mockUserData"),
+    AsyncStorage.getItem("@notif_med_alerts"),
+    AsyncStorage.getItem("@notif_appt_alerts"),
+    AsyncStorage.getItem("@notif_med_enabled"),
+    AsyncStorage.getItem("@notif_appt_enabled"),
+    AsyncStorage.getItem("@notif_monthly_enabled"),
+    AsyncStorage.getItem("@notif_weekly_enabled"),
+    AsyncStorage.getItem("@notif_sleep_enabled"),
+    AsyncStorage.getItem("@notif_quiet_hours"),
+    AsyncStorage.getItem("@corehealth_last_sync_at"),
+    AsyncStorage.getItem("@legal_tos_last_updated"),
+    AsyncStorage.getItem("@legal_tos_effective_date"),
+    AsyncStorage.getItem("@legal_privacy_effective_date"),
   ]);
 
   const toJson = (s: string | null, fallback: any) => {
     if (!s) return fallback;
-    try { return JSON.parse(s); } catch { return fallback; }
+    try {
+      return JSON.parse(s);
+    } catch {
+      return fallback;
+    }
   };
 
   const snapshot: UserSnapshot = {
@@ -94,16 +98,19 @@ export async function buildUserSnapshot(): Promise<UserSnapshot> {
       medicationAlerts: toJson(medAlertsStr, []) || undefined,
       appointmentAlerts: toJson(apptAlertsStr, []) || undefined,
       toggles: {
-        medication: medToggleStr === '1',
-        appointment: apptToggleStr === '1',
-        monthly: monthToggleStr === '1',
-        weekly: weekToggleStr === '1',
-        sleep: sleepToggleStr === '1',
+        medication: medToggleStr === "1",
+        appointment: apptToggleStr === "1",
+        monthly: monthToggleStr === "1",
+        weekly: weekToggleStr === "1",
+        sleep: sleepToggleStr === "1",
       },
       quietHours: toJson(quietHoursStr, { enabled: false }),
     },
     legal: {
-      tos: { lastUpdated: tosUpdated || undefined, effectiveDate: tosEffective || undefined },
+      tos: {
+        lastUpdated: tosUpdated || undefined,
+        effectiveDate: tosEffective || undefined,
+      },
       privacy: { effectiveDate: privacyEffective || undefined },
     },
     lastSyncAt: lastSyncAt || null,
@@ -123,7 +130,9 @@ export async function refreshUserSnapshot(): Promise<UserSnapshot> {
 export async function loadUserSnapshot(): Promise<UserSnapshot | null> {
   const s = await AsyncStorage.getItem(SNAPSHOT_KEY);
   if (!s) return null;
-  try { return JSON.parse(s) as UserSnapshot; } catch { return null; }
+  try {
+    return JSON.parse(s) as UserSnapshot;
+  } catch {
+    return null;
+  }
 }
-
-

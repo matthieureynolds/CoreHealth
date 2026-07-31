@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 // Google Air Quality API response interfaces
 export interface GoogleAirQualityData {
@@ -86,9 +88,7 @@ export const getGoogleAirQualityData = async (
 ): Promise<GoogleAirQualityData | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn(
-        "Google Maps API key not found, cannot get air quality data",
-      );
+      logger.warn("Google Maps API key not found, cannot get air quality data");
       return null;
     }
 
@@ -110,7 +110,7 @@ export const getGoogleAirQualityData = async (
       languageCode: "en",
     };
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,7 +128,7 @@ export const getGoogleAirQualityData = async (
     const universalIndex = data.indexes?.find((index) => index.code === "uaqi");
 
     if (!universalIndex) {
-      console.warn("No universal AQI data found");
+      logger.warn("No universal AQI data found");
       return null;
     }
 
@@ -153,7 +153,7 @@ export const getGoogleAirQualityData = async (
 
     return airQualityData;
   } catch (error) {
-    console.error("Error fetching Google air quality data:", error);
+    logger.error("Error fetching Google air quality data:", error);
     return null;
   }
 };

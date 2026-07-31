@@ -1,4 +1,6 @@
 import { API_CONFIG } from "../../config/api";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 // Water station types and interfaces
 export interface WaterStation {
@@ -89,7 +91,7 @@ export const findWaterStations = async (
       emergencyOptions,
     };
   } catch (error) {
-    console.error("Error finding water stations:", error);
+    logger.error("Error finding water stations:", error);
     return {
       stations: [],
       searchRadius: radiusMeters,
@@ -111,7 +113,7 @@ const searchPlacesByType = async (
 ): Promise<WaterStation[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found");
+      logger.warn("Google Maps API key not found");
       return [];
     }
 
@@ -122,7 +124,7 @@ const searchPlacesByType = async (
       `&type=${placeType}` +
       `&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Places API error: ${response.status}`);
@@ -140,7 +142,7 @@ const searchPlacesByType = async (
       ) || []
     );
   } catch (error) {
-    console.error(`Error searching for ${placeType}:`, error);
+    logger.error(`Error searching for ${placeType}:`, error);
     return [];
   }
 };

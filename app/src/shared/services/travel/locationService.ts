@@ -1,5 +1,6 @@
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logger } from "../../utils/logger";
 
 export interface LocationConfig {
   accuracy?: Location.Accuracy;
@@ -38,7 +39,7 @@ export class LocationService {
       await this.checkPermissionStatus();
       await this.loadSettings();
     } catch (error) {
-      console.error("Error initializing location service:", error);
+      logger.error("Error initializing location service:", error);
     }
   }
 
@@ -51,7 +52,7 @@ export class LocationService {
       this.permissionStatus = status;
       return status;
     } catch (error) {
-      console.error("Error checking location permission status:", error);
+      logger.error("Error checking location permission status:", error);
       return Location.PermissionStatus.DENIED;
     }
   }
@@ -75,7 +76,7 @@ export class LocationService {
 
       return status;
     } catch (error) {
-      console.error(
+      logger.error(
         "❌ LocationService: Error requesting location permission:",
         error,
       );
@@ -127,7 +128,7 @@ export class LocationService {
       this.currentLocation = locationData;
       return locationData;
     } catch (error) {
-      console.error("Error getting current location:", error);
+      logger.error("Error getting current location:", error);
       return null;
     }
   }
@@ -165,7 +166,7 @@ export class LocationService {
 
       return true;
     } catch (error) {
-      console.error("Error starting location updates:", error);
+      logger.error("Error starting location updates:", error);
       return false;
     }
   }
@@ -247,7 +248,7 @@ export class LocationService {
       });
       return results;
     } catch (error) {
-      console.error("Error getting nearby places:", error);
+      logger.error("Error getting nearby places:", error);
       return [];
     }
   }
@@ -260,7 +261,7 @@ export class LocationService {
       const status = await this.requestPermission();
       return status === Location.PermissionStatus.GRANTED;
     } catch (error) {
-      console.error("Error enabling location:", error);
+      logger.error("Error enabling location:", error);
       return false;
     }
   }
@@ -289,7 +290,7 @@ export class LocationService {
         this.isEnabled = false;
       }
     } catch (error) {
-      console.error("Error loading location settings:", error);
+      logger.error("Error loading location settings:", error);
     }
   }
 
@@ -300,7 +301,7 @@ export class LocationService {
     try {
       return await Location.hasServicesEnabledAsync();
     } catch (error) {
-      console.error("Error checking if location services are enabled:", error);
+      logger.error("Error checking if location services are enabled:", error);
       return false;
     }
   }
@@ -358,7 +359,7 @@ export class LocationService {
       this.permissionStatus = null;
       await AsyncStorage.removeItem("locationAccess");
     } catch (error) {
-      console.error("Error resetting location service:", error);
+      logger.error("Error resetting location service:", error);
     }
   }
 }

@@ -1,5 +1,7 @@
 import { API_CONFIG } from "../../config/api";
 import { LocationData } from "../../types";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 // Geocoding API response interfaces
 export interface GeocodingResponse {
@@ -42,14 +44,14 @@ export const geocodeAddress = async (
 ): Promise<LocationData | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot geocode address");
+      logger.warn("Google Maps API key not found, cannot geocode address");
       return null;
     }
 
     const encodedAddress = encodeURIComponent(address);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.GEOCODING_ENDPOINT}?address=${encodedAddress}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Geocoding API error: ${response.status}`);
@@ -58,7 +60,7 @@ export const geocodeAddress = async (
     const data: GeocodingResponse = await response.json();
 
     if (data.status !== "OK" || !data.results || data.results.length === 0) {
-      console.warn("No geocoding results found for:", address);
+      logger.warn("No geocoding results found for:", address);
       return null;
     }
 
@@ -104,7 +106,7 @@ export const geocodeAddress = async (
 
     return locationData;
   } catch (error) {
-    console.error("Error geocoding address:", error);
+    logger.error("Error geocoding address:", error);
     return null;
   }
 };
@@ -118,13 +120,13 @@ export const reverseGeocode = async (
 ): Promise<LocationData | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot reverse geocode");
+      logger.warn("Google Maps API key not found, cannot reverse geocode");
       return null;
     }
 
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.GEOCODING_ENDPOINT}?latlng=${latitude},${longitude}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Reverse geocoding API error: ${response.status}`);
@@ -133,7 +135,7 @@ export const reverseGeocode = async (
     const data: ReverseGeocodingResponse = await response.json();
 
     if (data.status !== "OK" || !data.results || data.results.length === 0) {
-      console.warn(
+      logger.warn(
         "No reverse geocoding results found for coordinates:",
         latitude,
         longitude,
@@ -181,7 +183,7 @@ export const reverseGeocode = async (
 
     return locationData;
   } catch (error) {
-    console.error("Error reverse geocoding coordinates:", error);
+    logger.error("Error reverse geocoding coordinates:", error);
     return null;
   }
 };
@@ -195,14 +197,14 @@ export const getTimezoneForLocation = async (
 ): Promise<string | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot get timezone");
+      logger.warn("Google Maps API key not found, cannot get timezone");
       return null;
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.TIMEZONE_ENDPOINT}?location=${latitude},${longitude}&timestamp=${timestamp}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Timezone API error: ${response.status}`);
@@ -211,7 +213,7 @@ export const getTimezoneForLocation = async (
     const data = await response.json();
 
     if (data.status !== "OK") {
-      console.warn(
+      logger.warn(
         "No timezone data found for coordinates:",
         latitude,
         longitude,
@@ -221,7 +223,7 @@ export const getTimezoneForLocation = async (
 
     return data.timeZoneId;
   } catch (error) {
-    console.error("Error getting timezone:", error);
+    logger.error("Error getting timezone:", error);
     return null;
   }
 };
@@ -237,13 +239,13 @@ export const searchNearbyPlaces = async (
 ): Promise<any[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found, cannot search places");
+      logger.warn("Google Maps API key not found, cannot search places");
       return [];
     }
 
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.PLACES_ENDPOINT}?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Places API error: ${response.status}`);
@@ -252,13 +254,13 @@ export const searchNearbyPlaces = async (
     const data = await response.json();
 
     if (data.status !== "OK") {
-      console.warn("No places found near coordinates:", latitude, longitude);
+      logger.warn("No places found near coordinates:", latitude, longitude);
       return [];
     }
 
     return data.results || [];
   } catch (error) {
-    console.error("Error searching nearby places:", error);
+    logger.error("Error searching nearby places:", error);
     return [];
   }
 };

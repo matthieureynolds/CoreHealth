@@ -1,5 +1,7 @@
 import { API_CONFIG } from "../../config/api";
 import { MedicationPharmacy } from "../../types";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 export const processOpeningHours = (
   openingHours: any,
@@ -223,7 +225,7 @@ export const getDetailedPharmacyInfo = async (
       `&fields=name,formatted_address,geometry,opening_hours,formatted_phone_number,website,rating,user_ratings_total,price_level,photos,types,business_status` +
       `&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    const response = await fetch(detailsUrl);
+    const response = await fetchWithTimeout(detailsUrl);
     if (!response.ok) return null;
 
     const data = await response.json();
@@ -276,7 +278,7 @@ export const getDetailedPharmacyInfo = async (
       languages: determineLanguages(place.name, pharmacyType),
     };
   } catch (error) {
-    console.error("Error getting detailed pharmacy info:", error);
+    logger.error("Error getting detailed pharmacy info:", error);
     return null;
   }
 };
@@ -292,7 +294,7 @@ export const findNearbyPharmacies = async (
 ): Promise<MedicationPharmacy[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn("Google Maps API key not found");
+      logger.warn("Google Maps API key not found");
       return [];
     }
     const searchTypes =
@@ -305,7 +307,7 @@ export const findNearbyPharmacies = async (
       const url =
         `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.PLACES_ENDPOINT}` +
         `?location=${latitude},${longitude}&radius=5000&type=${type}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
       if (!response.ok) continue;
       const data = await response.json();
       if (data.status !== "OK") continue;
@@ -328,7 +330,7 @@ export const findNearbyPharmacies = async (
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
   } catch (error) {
-    console.error("Error finding nearby pharmacies:", error);
+    logger.error("Error finding nearby pharmacies:", error);
     return [];
   }
 };

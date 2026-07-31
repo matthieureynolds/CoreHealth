@@ -1,5 +1,7 @@
 import { API_CONFIG } from "../../config/api";
 import { getCurrentUVIndex, UVIndexData } from "./uvIndexService";
+import { fetchWithTimeout } from "../http";
+import { logger } from "../../utils/logger";
 
 // Weather data interfaces
 export interface WeatherData {
@@ -58,13 +60,13 @@ export const getCurrentWeather = async (
 ): Promise<WeatherData | null> => {
   try {
     if (!API_CONFIG.OPENWEATHER_API_KEY) {
-      console.warn("OpenWeather API key not found, cannot get weather data");
+      logger.warn("OpenWeather API key not found, cannot get weather data");
       return null;
     }
 
     const url = `${API_CONFIG.OPENWEATHER_BASE_URL}${API_CONFIG.WEATHER_ENDPOINT}?lat=${latitude}&lon=${longitude}&appid=${API_CONFIG.OPENWEATHER_API_KEY}&units=metric`;
 
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       throw new Error(`Weather API error: ${response.status}`);
@@ -85,7 +87,7 @@ export const getCurrentWeather = async (
       icon: data.weather[0]?.icon || "01d",
     };
   } catch (error) {
-    console.error("Error fetching weather data:", error);
+    logger.error("Error fetching weather data:", error);
     return null;
   }
 };
@@ -101,7 +103,7 @@ export const getUVIndex = async (
     const uvData = getCurrentUVIndex(latitude, longitude);
     return uvData.uvIndex;
   } catch (error) {
-    console.error("Error getting UV data:", error);
+    logger.error("Error getting UV data:", error);
     return 5; // Default moderate UV
   }
 };
@@ -116,7 +118,7 @@ export const getUVIndexData = async (
   try {
     return getCurrentUVIndex(latitude, longitude);
   } catch (error) {
-    console.error("Error getting UV data:", error);
+    logger.error("Error getting UV data:", error);
     // Return default UV data
     return {
       uvIndex: 5,
@@ -424,7 +426,7 @@ export const generateWeatherHealthAssessment = async (
       uvHeatCombination,
     };
   } catch (error) {
-    console.error("Error generating weather health assessment:", error);
+    logger.error("Error generating weather health assessment:", error);
     return {
       weatherData: null,
       heatIndexData: null,

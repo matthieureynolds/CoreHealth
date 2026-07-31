@@ -8,6 +8,7 @@ import {
 } from "../../types";
 import { MEDICATION_DATABASE, COUNTRY_CODES } from "./medicationData";
 import { findNearbyPharmacies as fetchNearbyPharmacies } from "./pharmacyHelpers";
+import { logger } from "../../utils/logger";
 
 /**
  * Get medication availability for a specific medication in a country
@@ -23,7 +24,7 @@ export const getMedicationAvailability = async (
     const medication = MEDICATION_DATABASE[medicationId];
 
     if (!medication) {
-      console.warn(`Medication ${medicationName} not found in database`);
+      logger.warn(`Medication ${medicationName} not found in database`);
       return null;
     }
 
@@ -70,7 +71,7 @@ export const getMedicationAvailability = async (
       alternatives,
     };
   } catch (error) {
-    console.error("Error getting medication availability:", error);
+    logger.error("Error getting medication availability:", error);
     return null;
   }
 };
@@ -94,7 +95,7 @@ export const getMultipleMedicationsAvailability = async (
       (result) => result !== null,
     ) as MedicationAvailability[];
   } catch (error) {
-    console.error("Error getting multiple medications availability:", error);
+    logger.error("Error getting multiple medications availability:", error);
     return [];
   }
 };
