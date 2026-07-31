@@ -1,15 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 
 export function useTypewriter(cities: string[]) {
   const [typedCityIndex, setTypedCityIndex] = useState(0);
-  const [typedCityText, setTypedCityText] = useState('');
+  const [typedCityText, setTypedCityText] = useState("");
   const typingTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     if (cities.length === 0) return;
-    const fullText = cities[typedCityIndex] || 'Tokyo, Japan';
+    const fullText = cities[typedCityIndex] || "Tokyo, Japan";
     let charIndex = 0;
-    setTypedCityText('');
+    setTypedCityText("");
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     const typeNext = () => {
       charIndex += 1;
@@ -23,7 +23,9 @@ export function useTypewriter(cities: string[]) {
       }
     };
     typingTimeoutRef.current = setTimeout(typeNext, 300);
-    return () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); };
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
   }, [typedCityIndex, cities.length]);
 
   return typedCityText;

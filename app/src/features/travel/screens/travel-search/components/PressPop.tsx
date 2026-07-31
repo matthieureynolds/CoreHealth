@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
   Animated,
   Easing,
@@ -6,7 +6,7 @@ import {
   TouchableOpacityProps,
   StyleProp,
   ViewStyle,
-} from 'react-native';
+} from "react-native";
 
 interface PressPopProps extends TouchableOpacityProps {
   /** Style applied to the touchable (the card). */
@@ -19,7 +19,12 @@ interface PressPopProps extends TouchableOpacityProps {
  * bounce — every time it's pressed, mirroring the iOS lock-screen keypad feel.
  * Fires on press-in, so it pops on every tap (even rapid repeats).
  */
-const PressPop: React.FC<PressPopProps> = ({ style, children, onPressIn, ...rest }) => {
+const PressPop: React.FC<PressPopProps> = ({
+  style,
+  children,
+  onPressIn,
+  ...rest
+}) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const pulse = () => {

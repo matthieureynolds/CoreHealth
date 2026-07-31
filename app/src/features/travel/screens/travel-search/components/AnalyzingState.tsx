@@ -1,16 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, Animated, Easing, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Cosmetic "reasoning" steps. They tick over on a timer to convey the system
 // working through each check — building trust that real analysis is happening.
 const STEPS = [
-  'Air quality & pollutants',
-  'Water & food safety',
-  'UV, pollen & altitude',
-  'Outbreak surveillance',
-  'Hospitals & vaccinations',
+  "Air quality & pollutants",
+  "Water & food safety",
+  "UV, pollen & altitude",
+  "Outbreak surveillance",
+  "Hospitals & vaccinations",
 ];
 
 const STEP_MS = 620;
@@ -61,7 +61,10 @@ const AnalyzingState: React.FC<AnalyzingStateProps> = ({ location }) => {
     return () => loop.stop();
   }, [sweep]);
 
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
   const sweepX = sweep.interpolate({
     inputRange: [0, 1],
     outputRange: [-SWEEP_WIDTH, trackWidth || 1],
@@ -70,7 +73,7 @@ const AnalyzingState: React.FC<AnalyzingStateProps> = ({ location }) => {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>
-        Analysing {location ? location.split(',')[0] : 'destination'}
+        Analysing {location ? location.split(",")[0] : "destination"}
         <Text style={styles.ellipsis}>…</Text>
       </Text>
 
@@ -109,11 +112,17 @@ const AnalyzingState: React.FC<AnalyzingStateProps> = ({ location }) => {
         style={styles.track}
         onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
       >
-        <Animated.View style={[styles.sweepWrap, { transform: [{ translateX: sweepX }] }]}>
+        <Animated.View
+          style={[styles.sweepWrap, { transform: [{ translateX: sweepX }] }]}
+        >
           <LinearGradient
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            colors={['rgba(58,171,240,0)', 'rgba(58,171,240,0.9)', 'rgba(58,171,240,0)']}
+            colors={[
+              "rgba(58,171,240,0)",
+              "rgba(58,171,240,0.9)",
+              "rgba(58,171,240,0)",
+            ]}
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>
@@ -126,53 +135,53 @@ const SWEEP_WIDTH = 120;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 16,
     paddingVertical: 22,
     paddingHorizontal: 20,
     marginTop: 8,
   },
   title: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 18,
   },
   ellipsis: {
-    color: '#3AABF0',
+    color: "#3AABF0",
   },
   steps: {
     marginBottom: 18,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 7,
   },
   iconWrap: {
     width: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 15,
     marginLeft: 10,
   },
   rowTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   rowTextDone: {
-    color: '#C7C7CC',
+    color: "#C7C7CC",
   },
   track: {
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#2C2C2E',
-    overflow: 'hidden',
+    backgroundColor: "#2C2C2E",
+    overflow: "hidden",
   },
   sweepWrap: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     bottom: 0,
     width: SWEEP_WIDTH,

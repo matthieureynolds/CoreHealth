@@ -1,30 +1,30 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Keyboard, StatusBar, Animated, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { styles } from './TravelScreen.styles';
-import PagerView from 'react-native-pager-view';
-import { useHealthData } from '../../../../shared/context/HealthDataContext';
-import { useReduceMotion } from '../../../../shared/utils/reduceMotion';
-import TravelHeader from './components/TravelHeader';
-import TravelTabBar from './components/TravelTabBar';
-import SearchTab from './components/SearchTab';
-import TripPlanningTab from './components/TripPlanningTab';
-import AddTripModal from './components/AddTripModal';
-import EditTripModal from './components/EditTripModal';
-import EmergencyModal from './components/EmergencyModal';
-import { createTravelHandlers } from './hooks/useTravelHandlers';
-import { useTravelState, popularCities } from './hooks/useTravelState';
-import { useStaggerReveal } from './hooks/useStaggerReveal';
-import { useTypewriter } from './hooks/useTypewriter';
+import React, { useEffect, useRef, useCallback } from "react";
+import { View, Keyboard, StatusBar, Animated, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { styles } from "./TravelScreen.styles";
+import PagerView from "react-native-pager-view";
+import { useHealthData } from "../../../../shared/context/HealthDataContext";
+import { useReduceMotion } from "../../../../shared/utils/reduceMotion";
+import TravelHeader from "./components/TravelHeader";
+import TravelTabBar from "./components/TravelTabBar";
+import SearchTab from "./components/SearchTab";
+import TripPlanningTab from "./components/TripPlanningTab";
+import AddTripModal from "./components/AddTripModal";
+import EditTripModal from "./components/EditTripModal";
+import EmergencyModal from "./components/EmergencyModal";
+import { createTravelHandlers } from "./hooks/useTravelHandlers";
+import { useTravelState, popularCities } from "./hooks/useTravelState";
+import { useStaggerReveal } from "./hooks/useStaggerReveal";
+import { useStableCallbacks } from "./hooks/useStableCallbacks";
 
 const TravelScreen: React.FC = () => {
   const reduceMotion = useReduceMotion();
-  const { travelHealth, getCurrentLocation, updateTravelHealthData } = useHealthData();
+  const { travelHealth, getCurrentLocation, updateTravelHealthData } =
+    useHealthData();
 
   const fadeOpacity = useRef(new Animated.Value(0)).current;
 
   const s = useTravelState();
-  const typedCityText = useTypewriter(popularCities.slice(0, 8));
   useStaggerReveal({
     selectedLocation: s.selectedLocation,
     isLoading: s.isLoading,
@@ -41,18 +41,204 @@ const TravelScreen: React.FC = () => {
     }
   }, [travelHealth]);
 
-  const h = createTravelHandlers({
-    s,
-    travelHealth,
-    updateTravelHealthData,
-    getCurrentLocation,
-  });
+  // Rebuilt every render so it always closes over current state, then handed to
+  // children through a stable façade so their React.memo actually holds.
+  const h = useStableCallbacks(
+    createTravelHandlers({
+      s,
+      travelHealth,
+      updateTravelHealthData,
+      getCurrentLocation,
+    }),
+  );
 
-  const handleChildScroll = (offsetY: number) => {
-    // Show gradient only when scrolled past 10px
-    const target = offsetY > 10 ? 1 : 0;
-    fadeOpacity.setValue(target);
-  };
+  // Latest-state ref: lets the JSX callbacks below be created once while still
+  // reading current values when they fire.
+  const sRef = useRef(s);
+  sRef.current = s;
+
+  // These three only close over values that are stable for the life of the
+  // screen (state setters, useRef handles, Animated.Values), so they can be
+  // created once. That in turn lets the memoised children below actually skip
+  // re-rendering while the user types in the search field.
+  const handleChildScroll = useCallback(
+    (offsetY: number) => {
+      // Show gradient only when scrolled past 10px
+      const target = offsetY > 10 ? 1 : 0;
+      fadeOpacity.setValue(target);
+    },
+    [fadeOpacity],
+  );
+
+  const { setActiveTab, pagerRef, tripModalTranslateY, setShowAddTripModal } =
+    s;
+
+  const handleTabPress = useCallback(
+    (tab: "health" | "trips", pageIndex: number) => {
+      setActiveTab(tab);
+      try {
+        pagerRef.current?.setPage?.(pageIndex);
+      } catch {
+        /* pager navigation failure is non-fatal */
+      }
+    },
+    [setActiveTab, pagerRef],
+  );
+
+  const handleOpenAddTrip = useCallback(() => {
+    tripModalTranslateY.setValue(1000);
+    Animated.spring(tripModalTranslateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+    setShowAddTripModal(true);
+  }, [tripModalTranslateY, setShowAddTripModal]);
+
+  // Search-field callbacks. Created once and reading through sRef, so SearchTab's
+  // props stay referentially stable between renders.
+  const handleInputChange = useCallback((text: string) => {
+    const st = sRef.current;
+    st.setInputText(text);
+    st.setSearchLocation(text);
+    st.setSelectedLocation("");
+    st.setShowInlineSuggestions(!!text.trim());
+  }, []);
+
+  const handleDismissSuggestions = useCallback(() => {
+    sRef.current.setShowInlineSuggestions(false);
+  }, []);
+
+  /** Commit a typed value as the chosen location and kick off the lookup. */
+  const commitSearch = useCallback((value: string) => {
+    const st = sRef.current;
+    st.setShowInlineSuggestions(false);
+    st.setCitySearchResults([]);
+    st.setFilteredCities([]);
+    st.setSelectedLocation(value);
+    st.setSearchLocation(value);
+    st.setInputText(value);
+    h.handleLocationSelect(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleInputEndEditing = useCallback(() => {
+    const st = sRef.current;
+    const trimmed = st.inputText.trim();
+    if (!trimmed || trimmed === st.selectedLocation) return;
+    commitSearch(trimmed);
+  }, [commitSearch]);
+
+  const handleInputSubmit = useCallback(() => {
+    const trimmed = sRef.current.inputText.trim();
+    if (!trimmed) return;
+    commitSearch(trimmed);
+    Keyboard.dismiss();
+  }, [commitSearch]);
+
+  const handleClearSearch = useCallback(() => {
+    const st = sRef.current;
+    st.setInputText("");
+    st.setSearchLocation("");
+    st.setFilteredCities(popularCities.slice(0, 8));
+    st.setShowInlineSuggestions(true);
+  }, []);
+
+  const handleFocusSearch = useCallback(() => {
+    // Always surface the popular cities on focus. (Previously gated on an empty
+    // input, so after a city was selected its name stayed in the input and the
+    // popular list never came back — leaving only "Use current location".)
+    // Typing still narrows the list live.
+    const st = sRef.current;
+    if (!st.inputText.trim() || st.inputText.trim() === st.selectedLocation) {
+      st.setFilteredCities(popularCities.slice(0, 8));
+    }
+    st.setShowInlineSuggestions(true);
+  }, []);
+
+  const handleShowAddTripModal = useCallback(() => {
+    sRef.current.setShowAddTripModal(true);
+  }, []);
+
+  const handleCloseEmergency = useCallback(() => {
+    sRef.current.setShowEmergencyModal(false);
+  }, []);
+
+  const handlePageSelected = useCallback(
+    (e: { nativeEvent: { position: number } }) => {
+      sRef.current.setActiveTab(
+        e.nativeEvent.position === 0 ? "health" : "trips",
+      );
+    },
+    [],
+  );
+
+  // ── Add-trip modal callbacks ──────────────────────────────────────────────
+  const handleFlightCarrierChange = useCallback((v: string) => {
+    sRef.current.setFlightCarrier(v);
+    sRef.current.setFlightNotFound(false);
+  }, []);
+
+  const handleFlightNumberChange = useCallback((v: string) => {
+    sRef.current.setFlightNumber(v);
+    sRef.current.setFlightNotFound(false);
+  }, []);
+
+  const handleShowManualEntry = useCallback(() => {
+    sRef.current.setShowManualEntry(true);
+  }, []);
+
+  const handleHideManualEntry = useCallback(() => {
+    sRef.current.setShowManualEntry(false);
+  }, []);
+
+  const handleSetDepartureLocation = useCallback((v: string) => {
+    sRef.current.setNewTripDepartureLocation(v);
+    sRef.current.setDepartureSuggestions([]);
+  }, []);
+
+  const handleSetDestination = useCallback((v: string) => {
+    sRef.current.setNewTripDestination(v);
+    sRef.current.setTripSuggestions([]);
+  }, []);
+
+  const handleShowDatePicker = useCallback(
+    (type: "departure" | "return" | "departureTime" | "returnTime") => {
+      const st = sRef.current;
+      let initial: Date;
+      if (type === "departure") initial = st.newTripDepartureDate || new Date();
+      else if (type === "return") initial = st.newTripReturnDate || new Date();
+      else if (type === "departureTime")
+        initial = st.newTripDepartureTime || new Date();
+      else initial = st.newTripReturnTime || new Date();
+      st.setTempDatePickerValue(initial);
+      st.setShowDatePicker(type);
+    },
+    [],
+  );
+
+  // ── Edit-trip modal callbacks ─────────────────────────────────────────────
+  const handleCloseEditTrip = useCallback(() => {
+    sRef.current.setShowEditTripModal(false);
+  }, []);
+
+  const handleDeleteEditingTrip = useCallback(() => {
+    const st = sRef.current;
+    if (st.editingTrip) h.handleDeleteTrip(st.editingTrip.id);
+    st.setShowEditTripModal(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSetEditDepartureLocation = useCallback((v: string) => {
+    sRef.current.setEditTripDepartureLocation(v);
+    sRef.current.setEditTripDepartureSuggestions([]);
+  }, []);
+
+  const handleSetEditDestination = useCallback((v: string) => {
+    sRef.current.setEditTripDestination(v);
+    sRef.current.setEditTripSuggestions([]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -62,26 +248,17 @@ const TravelScreen: React.FC = () => {
 
       <TravelTabBar
         activeTab={s.activeTab}
-        onTabPress={(tab, pageIndex) => {
-          s.setActiveTab(tab);
-          try { s.pagerRef.current?.setPage?.(pageIndex); } catch { /* pager navigation failure is non-fatal */ }
-        }}
-        onAddTrip={() => {
-          s.tripModalTranslateY.setValue(1000);
-          Animated.spring(s.tripModalTranslateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 65,
-            friction: 11,
-          }).start();
-          s.setShowAddTripModal(true);
-        }}
+        onTabPress={handleTabPress}
+        onAddTrip={handleOpenAddTrip}
       />
 
       <View style={{ flex: 1 }}>
-        <Animated.View style={[fadeStyles.topFade, { opacity: fadeOpacity }]} pointerEvents="none">
+        <Animated.View
+          style={[fadeStyles.topFade, { opacity: fadeOpacity }]}
+          pointerEvents="none"
+        >
           <LinearGradient
-            colors={['#000000', 'rgba(0,0,0,0)']}
+            colors={["#000000", "rgba(0,0,0,0)"]}
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>
@@ -89,85 +266,57 @@ const TravelScreen: React.FC = () => {
           style={styles.pager}
           initialPage={0}
           ref={s.pagerRef}
-          onPageSelected={(e) => {
-            s.setActiveTab(e.nativeEvent.position === 0 ? 'health' : 'trips');
-          }}
+          onPageSelected={handlePageSelected}
         >
-        <View key="search">
-          <SearchTab
-            inputText={s.inputText}
-            searchLocation={s.searchLocation}
-            selectedLocation={s.selectedLocation}
-            showInlineSuggestions={s.showInlineSuggestions}
-            isLoading={s.isLoading}
-            isRefreshing={s.isRefreshing}
-            isGettingLocation={s.isGettingLocation}
-            isSearchingCities={s.isSearchingCities}
-            filteredCities={s.filteredCities}
-            citySearchResults={s.citySearchResults}
-            typedCityText={typedCityText}
-            popularCities={popularCities}
-            travelHealth={travelHealth}
-            apiErrors={s.apiErrors}
-            resultsOpacity={s.resultsOpacity}
-            resultsTranslateY={s.resultsTranslateY}
-            getRowAnim={s.getRowAnim}
-            onInputChange={(text) => {
-              s.setInputText(text); s.setSearchLocation(text);
-              s.setSelectedLocation(''); s.setShowInlineSuggestions(!!text.trim());
-            }}
-            onLocationSelect={h.handleLocationSelect}
-            onGetCurrentLocation={h.handleGetCurrentLocationForSearch}
-            onRefresh={h.handleRefresh}
-            onEmergencyContactPress={h.handleEmergencyContactPress}
-            onDismissSuggestions={() => s.setShowInlineSuggestions(false)}
-            onInputEndEditing={() => {
-              const trimmed = s.inputText.trim();
-              if (!trimmed || trimmed === s.selectedLocation) return;
-              s.setShowInlineSuggestions(false); s.setCitySearchResults([]); s.setFilteredCities([]);
-              s.setSelectedLocation(trimmed); s.setSearchLocation(trimmed); s.setInputText(trimmed);
-              h.handleLocationSelect(trimmed);
-            }}
-            onInputSubmit={() => {
-              if (s.inputText.trim()) {
-                const submitted = s.inputText.trim();
-                s.setShowInlineSuggestions(false); s.setCitySearchResults([]); s.setFilteredCities([]);
-                s.setSelectedLocation(submitted); s.setSearchLocation(submitted); s.setInputText(submitted);
-                h.handleLocationSelect(submitted); Keyboard.dismiss();
-              }
-            }}
-            onClearSearch={() => {
-              s.setInputText(''); s.setSearchLocation('');
-              s.setFilteredCities(popularCities.slice(0, 8)); s.setShowInlineSuggestions(true);
-            }}
-            onFocusSearch={() => {
-              // Always surface the popular cities on focus. (Previously gated on
-              // an empty input, so after a city was selected its name stayed in
-              // the input and the popular list never came back — leaving only
-              // "Use current location".) Typing still narrows the list live.
-              if (!s.inputText.trim() || s.inputText.trim() === s.selectedLocation) {
-                s.setFilteredCities(popularCities.slice(0, 8));
-              }
-              s.setShowInlineSuggestions(true);
-            }}
-            onScrollOffset={handleChildScroll}
-          />
-        </View>
+          <View key="search">
+            <SearchTab
+              inputText={s.inputText}
+              searchLocation={s.searchLocation}
+              selectedLocation={s.selectedLocation}
+              showInlineSuggestions={s.showInlineSuggestions}
+              isLoading={s.isLoading}
+              isRefreshing={s.isRefreshing}
+              isGettingLocation={s.isGettingLocation}
+              isSearchingCities={s.isSearchingCities}
+              filteredCities={s.filteredCities}
+              citySearchResults={s.citySearchResults}
+              popularCities={popularCities}
+              travelHealth={travelHealth}
+              apiErrors={s.apiErrors}
+              resultsOpacity={s.resultsOpacity}
+              resultsTranslateY={s.resultsTranslateY}
+              getRowAnim={s.getRowAnim}
+              onInputChange={handleInputChange}
+              onLocationSelect={h.handleLocationSelect}
+              onGetCurrentLocation={h.handleGetCurrentLocationForSearch}
+              onRefresh={h.handleRefresh}
+              onEmergencyContactPress={h.handleEmergencyContactPress}
+              onDismissSuggestions={handleDismissSuggestions}
+              onInputEndEditing={handleInputEndEditing}
+              onInputSubmit={handleInputSubmit}
+              onClearSearch={handleClearSearch}
+              onFocusSearch={handleFocusSearch}
+              onScrollOffset={handleChildScroll}
+            />
+          </View>
 
-        <View key="trips">
-          <TripPlanningTab
-            trips={s.trips}
-            tripModalTranslateY={s.tripModalTranslateY}
-            onOpenAddTrip={() => s.setShowAddTripModal(true)}
-            onEditTrip={(trip) => h.handleModifyTripDates(trip)}
-            onDeleteTrip={(tripId) => h.handleDeleteTrip(tripId)}
-            onScrollOffset={handleChildScroll}
-          />
-        </View>
-      </PagerView>
+          <View key="trips">
+            <TripPlanningTab
+              trips={s.trips}
+              tripModalTranslateY={s.tripModalTranslateY}
+              onOpenAddTrip={handleShowAddTripModal}
+              onEditTrip={h.handleModifyTripDates}
+              onDeleteTrip={h.handleDeleteTrip}
+              onScrollOffset={handleChildScroll}
+            />
+          </View>
+        </PagerView>
       </View>
 
-      <EmergencyModal visible={s.showEmergencyModal} onClose={() => s.setShowEmergencyModal(false)} />
+      <EmergencyModal
+        visible={s.showEmergencyModal}
+        onClose={handleCloseEmergency}
+      />
 
       <AddTripModal
         visible={s.showAddTripModal}
@@ -194,30 +343,22 @@ const TravelScreen: React.FC = () => {
         departureSuggestions={s.departureSuggestions}
         isGettingLocation={s.isGettingLocation}
         onClose={h.handleCloseAddTrip}
-        onFlightCarrierChange={(v: string) => { s.setFlightCarrier(v); s.setFlightNotFound(false); }}
-        onFlightNumberChange={(v: string) => { s.setFlightNumber(v); s.setFlightNotFound(false); }}
+        onFlightCarrierChange={handleFlightCarrierChange}
+        onFlightNumberChange={handleFlightNumberChange}
         onSelectFlightSuggestion={h.handleSelectFlightSuggestion}
         onFlightLookup={h.handleFlightLookup}
         onFlightDetailsExpand={s.setFlightDetailsExpanded}
         onAddAnotherFlight={h.handleAddAnotherFlight}
         onConfirmFlightTrip={h.handleConfirmFlightTrip}
         onEditSegment={h.handleEditSegment}
-        onShowManualEntry={() => s.setShowManualEntry(true)}
-        onHideManualEntry={() => s.setShowManualEntry(false)}
+        onShowManualEntry={handleShowManualEntry}
+        onHideManualEntry={handleHideManualEntry}
         onAddTrip={h.handleAddTrip}
         onDepartureLocationChange={s.setNewTripDepartureLocation}
         onDestinationChange={s.setNewTripDestination}
-        onSetDepartureLocation={(v) => { s.setNewTripDepartureLocation(v); s.setDepartureSuggestions([]); }}
-        onSetDestination={(v) => { s.setNewTripDestination(v); s.setTripSuggestions([]); }}
-        onShowDatePicker={(type) => {
-          let initial: Date;
-          if (type === 'departure') initial = s.newTripDepartureDate || new Date();
-          else if (type === 'return') initial = s.newTripReturnDate || new Date();
-          else if (type === 'departureTime') initial = s.newTripDepartureTime || new Date();
-          else initial = s.newTripReturnTime || new Date();
-          s.setTempDatePickerValue(initial);
-          s.setShowDatePicker(type);
-        }}
+        onSetDepartureLocation={handleSetDepartureLocation}
+        onSetDestination={handleSetDestination}
+        onShowDatePicker={handleShowDatePicker}
         onDateChange={h.handleDateChange}
         onDateConfirm={h.handleDateConfirm}
         onDateCancel={h.handleDateCancel}
@@ -237,14 +378,14 @@ const TravelScreen: React.FC = () => {
         editTripSuggestions={s.editTripSuggestions}
         editTripDepartureSuggestions={s.editTripDepartureSuggestions}
         isGettingLocation={s.isGettingLocation}
-        onClose={() => s.setShowEditTripModal(false)}
-        onDelete={() => { if (s.editingTrip) h.handleDeleteTrip(s.editingTrip.id); s.setShowEditTripModal(false); }}
+        onClose={handleCloseEditTrip}
+        onDelete={handleDeleteEditingTrip}
         onSave={h.handleSaveEditTrip}
         onDepartureLocationChange={s.setEditTripDepartureLocation}
         onDestinationChange={s.setEditTripDestination}
         onNotesChange={s.setEditTripNotes}
-        onSetDepartureLocation={(v) => { s.setEditTripDepartureLocation(v); s.setEditTripDepartureSuggestions([]); }}
-        onSetDestination={(v) => { s.setEditTripDestination(v); s.setEditTripSuggestions([]); }}
+        onSetDepartureLocation={handleSetEditDepartureLocation}
+        onSetDestination={handleSetEditDestination}
         onShowEditDatePicker={s.setShowEditDatePicker}
         onEditDateChange={h.handleEditDateChange}
         onEditDateConfirm={h.handleEditDateConfirm}
@@ -257,7 +398,7 @@ const TravelScreen: React.FC = () => {
 
 const fadeStyles = StyleSheet.create({
   topFade: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,

@@ -1,27 +1,37 @@
-import { useEffect } from 'react';
-import { Animated, Easing } from 'react-native';
+import { useEffect } from "react";
+import { Animated, Easing } from "react-native";
 
 // Order in which result sections cascade in. Must match the animKeys the
 // section components read via getRowAnim, or a section would stay hidden.
 const REVEAL_KEYS = [
-  'summary',
-  'aq', 'water', 'uv', 'food', 'pollen', 'altitude', 'outbreaks',
-  'hospitals', 'vaccinations',
+  "summary",
+  "aq",
+  "water",
+  "uv",
+  "food",
+  "pollen",
+  "altitude",
+  "outbreaks",
+  "hospitals",
+  "vaccinations",
 ];
 
 // Tuned for an elegant, one-card-at-a-time reveal: a clear gap between each card
 // so they arrive in sequence top-to-bottom, with a longer, softer glide up.
-const STAGGER_MS = 140;  // gap between each section starting
-const FADE_MS = 520;     // opacity duration per section
-const SLIDE_MS = 560;    // translate duration per section
-const SLIDE_FROM = 22;   // px each card glides up from as it fades in
+const STAGGER_MS = 140; // gap between each section starting
+const FADE_MS = 520; // opacity duration per section
+const SLIDE_MS = 560; // translate duration per section
+const SLIDE_FROM = 22; // px each card glides up from as it fades in
 
 interface UseStaggerRevealParams {
   selectedLocation: string;
   isLoading: boolean;
   reduceMotion: boolean;
   resultsOpacity: Animated.Value;
-  getRowAnim: (key: string) => { opacity: Animated.Value; translate: Animated.Value };
+  getRowAnim: (key: string) => {
+    opacity: Animated.Value;
+    translate: Animated.Value;
+  };
 }
 
 /**

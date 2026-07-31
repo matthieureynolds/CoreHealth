@@ -1,19 +1,19 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 /** Screen shell, header, tabs, scroll, trip rows, add-trip CTA */
 export const travelShellStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 60, // Increased for iPhone 16 Dynamic Island
     paddingBottom: 2,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   headerContent: {
     flex: 1,
@@ -21,16 +21,16 @@ export const travelShellStyles = StyleSheet.create({
 
   headerTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
-    fontWeight: '400',
+    color: "#8E8E93",
+    fontWeight: "400",
     lineHeight: 20,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
 
   // Tab styles now live inside TravelTabBar component (Glass Island design).
@@ -56,323 +56,65 @@ export const travelShellStyles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
   // Detailed modal styles to match dashboard
-  modalContainerDetailed: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
-    width: '100%',
-    maxHeight: '90%',
-    maxWidth: 420,
-    flex: 1,
-  },
-  modalHeaderDetailed: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
-  },
-  modalIconCircleDetailed: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  modalTitleDetailed: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  modalStatusDetailed: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-  modalSectionDetailed: {
-    padding: 20,
-    paddingTop: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
-  },
-  sectionTitleDetailed: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  sectionContentDetailed: {
-    fontSize: 15,
-    color: '#EBEBF5',
-    lineHeight: 22,
-  },
-  rangeIndicatorContainerDetailed: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  currentScoreContainerDetailed: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  currentScoreTextDetailed: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  impactItemDetailed: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  impactTextDetailed: {
-    fontSize: 14,
-    color: '#EBEBF5',
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 20,
-  },
-  recommendationItemDetailed: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  recommendationTextDetailed: {
-    fontSize: 14,
-    color: '#EBEBF5',
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 20,
-  },
-  riskItemDetailed: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  riskTextDetailed: {
-    fontSize: 14,
-    color: '#EBEBF5',
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 20,
-  },
+
   description: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     lineHeight: 24,
   },
-  locationCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 0,
-    borderColor: '#3A3A3C',
-  },
-  locationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginLeft: 8,
-  },
-  locationSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
+
   metricsContainer: {
     marginTop: 20,
   },
   metricCard: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 0,
-    borderColor: '#3A3A3C',
-    width: '48%', // Two columns
+    borderColor: "#3A3A3C",
+    width: "48%", // Two columns
   },
-  metricHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  metricTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginLeft: 8,
-  },
+
   metricValue: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
-  metricDescription: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
+
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 40,
   },
   emptyStateTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginTop: 24,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
   tripsContainer: {
     marginTop: 16,
   },
-  tripRowWrapper: {
-    marginBottom: 12,
-  },
-  tripRowCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  tripRowTextWrap: {
-    flex: 1,
-  },
-  tripRowTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  tripRowSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  tripRowChevron: {
-    marginLeft: 8,
-  },
-  tripRowChevronDown: {
-    transform: [{ rotate: '90deg' }],
-  },
-  tripDetailBlock: {
-    marginTop: 12,
-    paddingLeft: 0,
-  },
-  tripAddonToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    alignSelf: 'center',
-    backgroundColor: '#2C2C2E',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-    borderWidth: 0,
-  },
-  tripAddonToggleText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  tripAddonsContainer: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 0,
-  },
-  tripTabsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-    justifyContent: 'center',
-  },
-  tripTab: {
-    color: '#8E8E93',
-    fontWeight: '600',
-    fontSize: 13,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  tripTabActive: {
-    color: '#FFFFFF',
-    backgroundColor: '#3AABF020',
-  },
-  tripChecklistBox: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 0,
-  },
-  tripChecklistRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  tripChecklistLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  tripChecklistText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tripCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    borderWidth: 0,
-    borderColor: '#3A3A3C',
-    marginBottom: 20,
-  },
-  tripCardLarge: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 18,
-    borderWidth: 0,
-    marginBottom: 24,
-    padding: 4,
-  },
-  tripDestinationText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
 
   addTripButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#3AABF0',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3AABF0",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -381,11 +123,8 @@ export const travelShellStyles = StyleSheet.create({
   },
   addTripButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginLeft: 8,
-  },
-  addTripButtonTop: {
-    marginTop: 0,
   },
 });

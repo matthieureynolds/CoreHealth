@@ -1,16 +1,27 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Swipeable, RectButton } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import { CompositeNavigationProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList, TravelStackParamList, SerializedTrip } from '../../../../../shared/types';
-import { styles } from '../TravelScreen.styles';
-import PressPop from './PressPop';
+import React from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Swipeable, RectButton } from "react-native-gesture-handler";
+import { useNavigation } from "@react-navigation/native";
+import { CompositeNavigationProp } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import {
+  RootStackParamList,
+  TravelStackParamList,
+  SerializedTrip,
+} from "../../../../../shared/types";
+import { styles } from "../TravelScreen.styles";
+import PressPop from "./PressPop";
 
 type Nav = CompositeNavigationProp<
-  StackNavigationProp<TravelStackParamList, 'TravelList'>,
+  StackNavigationProp<TravelStackParamList, "TravelList">,
   StackNavigationProp<RootStackParamList>
 >;
 
@@ -22,7 +33,12 @@ interface Trip {
   returnDate?: Date;
   timezone: string;
   originTimezone?: string;
-  layovers?: Array<{ city?: string; tz: string; arr_local: string; dep_local: string }>;
+  layovers?: Array<{
+    city?: string;
+    tz: string;
+    arr_local: string;
+    dep_local: string;
+  }>;
   notes?: string;
   jetLagData?: any;
   isSequential?: boolean;
@@ -35,12 +51,12 @@ interface Trip {
     departureTime: string;
     arrivalTime: string;
     outboundPlan: {
-      direction: 'outbound';
+      direction: "outbound";
       timezoneAdjustment: string;
       circadianPlan: Array<{ day: number; action: string; time: string }>;
     };
     returnPlan?: {
-      direction: 'return';
+      direction: "return";
       timezoneAdjustment: string;
       circadianPlan: Array<{ day: number; action: string; time: string }>;
     };
@@ -63,30 +79,62 @@ function serializeTrip(t: Trip): SerializedTrip {
 }
 
 function getCityCode(location: string): string {
-  const city = location.split(',')[0].trim();
+  const city = location.split(",")[0].trim();
   // Common city → code mappings
   const codes: Record<string, string> = {
-    london: 'LDN', paris: 'PAR', madrid: 'MAD', tokyo: 'TYO',
-    'new york': 'NYC', 'los angeles': 'LAX', dubai: 'DXB',
-    singapore: 'SIN', sydney: 'SYD', rome: 'ROM', berlin: 'BER',
-    amsterdam: 'AMS', bangkok: 'BKK', barcelona: 'BCN', lisbon: 'LIS',
-    milan: 'MIL', munich: 'MUC', vienna: 'VIE', zurich: 'ZRH',
-    istanbul: 'IST', cairo: 'CAI', nairobi: 'NBO', toronto: 'YTO',
-    'san francisco': 'SFO', chicago: 'CHI', miami: 'MIA', seattle: 'SEA',
-    boston: 'BOS', denver: 'DEN', honolulu: 'HNL', 'hong kong': 'HKG',
-    seoul: 'SEL', beijing: 'PEK', shanghai: 'SHA', mumbai: 'BOM',
-    delhi: 'DEL', 'cape town': 'CPT', rio: 'RIO', 'buenos aires': 'BUE',
-    mexico: 'MEX', lagos: 'LOS', accra: 'ACC', marrakech: 'RAK',
+    london: "LDN",
+    paris: "PAR",
+    madrid: "MAD",
+    tokyo: "TYO",
+    "new york": "NYC",
+    "los angeles": "LAX",
+    dubai: "DXB",
+    singapore: "SIN",
+    sydney: "SYD",
+    rome: "ROM",
+    berlin: "BER",
+    amsterdam: "AMS",
+    bangkok: "BKK",
+    barcelona: "BCN",
+    lisbon: "LIS",
+    milan: "MIL",
+    munich: "MUC",
+    vienna: "VIE",
+    zurich: "ZRH",
+    istanbul: "IST",
+    cairo: "CAI",
+    nairobi: "NBO",
+    toronto: "YTO",
+    "san francisco": "SFO",
+    chicago: "CHI",
+    miami: "MIA",
+    seattle: "SEA",
+    boston: "BOS",
+    denver: "DEN",
+    honolulu: "HNL",
+    "hong kong": "HKG",
+    seoul: "SEL",
+    beijing: "PEK",
+    shanghai: "SHA",
+    mumbai: "BOM",
+    delhi: "DEL",
+    "cape town": "CPT",
+    rio: "RIO",
+    "buenos aires": "BUE",
+    mexico: "MEX",
+    lagos: "LOS",
+    accra: "ACC",
+    marrakech: "RAK",
   };
   return codes[city.toLowerCase()] || city.slice(0, 3).toUpperCase();
 }
 
 function getCityName(location: string): string {
-  return location.split(',')[0].trim();
+  return location.split(",")[0].trim();
 }
 
 function formatMonth(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short' });
+  return date.toLocaleDateString("en-US", { month: "short" });
 }
 
 function formatDay(date: Date): string {
@@ -94,7 +142,7 @@ function formatDay(date: Date): string {
 }
 
 function formatDateShort(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function getDaysUntil(date: Date): number {
@@ -114,134 +162,191 @@ interface TripPlanningTabProps {
   onScrollOffset?: (offsetY: number) => void;
 }
 
-const TripPlanningTab: React.FC<TripPlanningTabProps> = ({
-  trips,
-  tripModalTranslateY,
-  onOpenAddTrip,
-  onEditTrip,
-  onDeleteTrip,
-  onScrollOffset,
-}) => {
-  const navigation = useNavigation<Nav>();
+// Memoised: this tab is mounted inside the pager at all times, so without it
+// every keystroke in the search tab re-rendered the whole trip list.
+const TripPlanningTab: React.FC<TripPlanningTabProps> = React.memo(
+  ({
+    trips,
+    tripModalTranslateY,
+    onOpenAddTrip,
+    onEditTrip,
+    onDeleteTrip,
+    onScrollOffset,
+  }) => {
+    const navigation = useNavigation<Nav>();
 
-  const handleOpenAddTrip = () => {
-    tripModalTranslateY.setValue(1000);
-    Animated.spring(tripModalTranslateY, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 11,
-    }).start();
-    onOpenAddTrip();
-  };
+    const handleOpenAddTrip = () => {
+      tripModalTranslateY.setValue(1000);
+      Animated.spring(tripModalTranslateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start();
+      onOpenAddTrip();
+    };
 
-  // Sort trips by departure date (soonest first)
-  const sortedTrips = [...trips].sort(
-    (a, b) => a.departureDate.getTime() - b.departureDate.getTime()
-  );
+    // Sort trips by departure date (soonest first)
+    const sortedTrips = [...trips].sort(
+      (a, b) => a.departureDate.getTime() - b.departureDate.getTime(),
+    );
 
-  return (
-    <ScrollView
-      style={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-      scrollEventThrottle={16}
-      onScroll={(e) => onScrollOffset?.(e.nativeEvent.contentOffset.y)}
-    >
-      <View style={[styles.content, styles.contentTrips]}>
-        {sortedTrips.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="airplane" size={48} color="#8E8E93" />
-            <Text style={styles.emptyStateTitle}>No trips planned</Text>
-            <Text style={styles.emptyStateText}>
-              Add your first trip to get personalized health recommendations
-            </Text>
-            <TouchableOpacity style={styles.addTripButton} onPress={handleOpenAddTrip}>
-              <Ionicons name="add" size={24} color="#FFFFFF" />
-              <Text style={styles.addTripButtonText}>Add a Trip</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.tripsContainer}>
-            {sortedTrips.map((trip) => {
-              const daysUntil = getDaysUntil(trip.departureDate);
-              const daysLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? '1 day' : daysUntil < 0 ? 'Past' : `${daysUntil} days`;
+    return (
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(e) => onScrollOffset?.(e.nativeEvent.contentOffset.y)}
+      >
+        <View style={[styles.content, styles.contentTrips]}>
+          {sortedTrips.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="airplane" size={48} color="#8E8E93" />
+              <Text style={styles.emptyStateTitle}>No trips planned</Text>
+              <Text style={styles.emptyStateText}>
+                Add your first trip to get personalized health recommendations
+              </Text>
+              <TouchableOpacity
+                style={styles.addTripButton}
+                onPress={handleOpenAddTrip}
+              >
+                <Ionicons name="add" size={24} color="#FFFFFF" />
+                <Text style={styles.addTripButtonText}>Add a Trip</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.tripsContainer}>
+              {sortedTrips.map((trip) => {
+                const daysUntil = getDaysUntil(trip.departureDate);
+                const daysLabel =
+                  daysUntil === 0
+                    ? "Today"
+                    : daysUntil === 1
+                      ? "1 day"
+                      : daysUntil < 0
+                        ? "Past"
+                        : `${daysUntil} days`;
 
-              return (
-                <Swipeable
-                  key={trip.id}
-                  friction={2}
-                  rightThreshold={40}
-                  containerStyle={bp.swipeContainer}
-                  renderRightActions={() => (
-                    <View style={bp.swipeActions}>
-                      <RectButton style={[bp.swipeAction, bp.editAction]} onPress={() => onEditTrip(trip)}>
-                        <Ionicons name="pencil" size={20} color="#fff" />
-                        <Text style={bp.swipeActionText}>Edit</Text>
-                      </RectButton>
-                      <RectButton style={[bp.swipeAction, bp.removeAction]} onPress={() => onDeleteTrip(trip.id)}>
-                        <Ionicons name="trash-outline" size={20} color="#fff" />
-                        <Text style={bp.swipeActionText}>Remove</Text>
-                      </RectButton>
-                    </View>
-                  )}
-                >
-                <PressPop
-                  style={bp.card}
-                  onPress={() => navigation.navigate('TripDetail', { trip: serializeTrip(trip) })}
-                  activeOpacity={1}
-                >
-                  {/* Left date strip */}
-                  <View style={bp.dateStrip}>
-                    <Text style={bp.dateMonth}>{formatMonth(trip.departureDate)}</Text>
-                    <Text style={bp.dateDay}>{formatDay(trip.departureDate)}</Text>
-                    <Text style={bp.dateYear}>{trip.departureDate.getFullYear()}</Text>
-                  </View>
-
-                  {/* Right content */}
-                  <View style={bp.body}>
-                    {/* Route section */}
-                    <View style={bp.routeSection}>
-                      <View style={bp.cityBlock}>
-                        <Text style={bp.cityCode}>{getCityCode(trip.departureLocation)}</Text>
-                        <Text style={bp.citySub}>{getCityName(trip.departureLocation)}</Text>
+                return (
+                  <Swipeable
+                    key={trip.id}
+                    friction={2}
+                    rightThreshold={40}
+                    containerStyle={bp.swipeContainer}
+                    renderRightActions={() => (
+                      <View style={bp.swipeActions}>
+                        <RectButton
+                          style={[bp.swipeAction, bp.editAction]}
+                          onPress={() => onEditTrip(trip)}
+                        >
+                          <Ionicons name="pencil" size={20} color="#fff" />
+                          <Text style={bp.swipeActionText}>Edit</Text>
+                        </RectButton>
+                        <RectButton
+                          style={[bp.swipeAction, bp.removeAction]}
+                          onPress={() => onDeleteTrip(trip.id)}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={20}
+                            color="#fff"
+                          />
+                          <Text style={bp.swipeActionText}>Remove</Text>
+                        </RectButton>
                       </View>
-
-                      <View style={bp.routeLineWrap}>
-                        <View style={bp.routeDotLeft} />
-                        <View style={bp.routeLine} />
-                        <View style={bp.routeDotRight} />
-                      </View>
-
-                      <View style={bp.cityBlockRight}>
-                        <Text style={bp.cityCode}>{getCityCode(trip.destination)}</Text>
-                        <Text style={bp.citySub}>{getCityName(trip.destination)}</Text>
-                      </View>
-                    </View>
-
-                    {/* Footer */}
-                    <View style={bp.footer}>
-                      <Text style={bp.footerDates}>
-                        <Text style={bp.footerDateBold}>{formatDateShort(trip.departureDate)}</Text>
-                        {'  →  '}
-                        <Text style={bp.footerDateBold}>
-                          {trip.returnDate ? formatDateShort(trip.returnDate) : '—'}
+                    )}
+                  >
+                    <PressPop
+                      style={bp.card}
+                      onPress={() =>
+                        navigation.navigate("TripDetail", {
+                          trip: serializeTrip(trip),
+                        })
+                      }
+                      activeOpacity={1}
+                    >
+                      {/* Left date strip */}
+                      <View style={bp.dateStrip}>
+                        <Text style={bp.dateMonth}>
+                          {formatMonth(trip.departureDate)}
                         </Text>
-                      </Text>
-                      <View style={[bp.badge, daysUntil < 0 && bp.badgePast]}>
-                        <Text style={[bp.badgeText, daysUntil < 0 && bp.badgeTextPast]}>{daysLabel}</Text>
+                        <Text style={bp.dateDay}>
+                          {formatDay(trip.departureDate)}
+                        </Text>
+                        <Text style={bp.dateYear}>
+                          {trip.departureDate.getFullYear()}
+                        </Text>
                       </View>
-                    </View>
-                  </View>
-                </PressPop>
-                </Swipeable>
-              );
-            })}
-          </View>
-        )}
-      </View>
-    </ScrollView>
-  );
-};
+
+                      {/* Right content */}
+                      <View style={bp.body}>
+                        {/* Route section */}
+                        <View style={bp.routeSection}>
+                          <View style={bp.cityBlock}>
+                            <Text style={bp.cityCode}>
+                              {getCityCode(trip.departureLocation)}
+                            </Text>
+                            <Text style={bp.citySub}>
+                              {getCityName(trip.departureLocation)}
+                            </Text>
+                          </View>
+
+                          <View style={bp.routeLineWrap}>
+                            <View style={bp.routeDotLeft} />
+                            <View style={bp.routeLine} />
+                            <View style={bp.routeDotRight} />
+                          </View>
+
+                          <View style={bp.cityBlockRight}>
+                            <Text style={bp.cityCode}>
+                              {getCityCode(trip.destination)}
+                            </Text>
+                            <Text style={bp.citySub}>
+                              {getCityName(trip.destination)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Footer */}
+                        <View style={bp.footer}>
+                          <Text style={bp.footerDates}>
+                            <Text style={bp.footerDateBold}>
+                              {formatDateShort(trip.departureDate)}
+                            </Text>
+                            {"  →  "}
+                            <Text style={bp.footerDateBold}>
+                              {trip.returnDate
+                                ? formatDateShort(trip.returnDate)
+                                : "—"}
+                            </Text>
+                          </Text>
+                          <View
+                            style={[bp.badge, daysUntil < 0 && bp.badgePast]}
+                          >
+                            <Text
+                              style={[
+                                bp.badgeText,
+                                daysUntil < 0 && bp.badgeTextPast,
+                              ]}
+                            >
+                              {daysLabel}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </PressPop>
+                  </Swipeable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    );
+  },
+);
+
+TripPlanningTab.displayName = "TripPlanningTab";
 
 const bp = StyleSheet.create({
   swipeContainer: {
@@ -249,52 +354,57 @@ const bp = StyleSheet.create({
     borderRadius: 16,
   },
   card: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 16,
-    overflow: 'hidden',
-    flexDirection: 'row',
+    overflow: "hidden",
+    flexDirection: "row",
   },
   swipeActions: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    flexDirection: "row",
+    alignItems: "stretch",
     gap: 8,
     paddingLeft: 8,
   },
   swipeAction: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     width: 80,
     borderRadius: 16,
   },
-  editAction: { backgroundColor: '#FF9500' },
-  removeAction: { backgroundColor: '#FF3B30' },
-  swipeActionText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', marginTop: 2 },
+  editAction: { backgroundColor: "#FF9500" },
+  removeAction: { backgroundColor: "#FF3B30" },
+  swipeActionText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 2,
+  },
   // Date strip
   dateStrip: {
     width: 68,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     borderRightWidth: 1,
-    borderRightColor: '#2C2C2E',
-    borderStyle: 'dashed',
+    borderRightColor: "#2C2C2E",
+    borderStyle: "dashed",
   },
   dateMonth: {
     fontSize: 11,
-    color: '#007AFF',
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    color: "#007AFF",
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   dateDay: {
     fontSize: 26,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: "800",
+    color: "#FFFFFF",
     lineHeight: 30,
   },
   dateYear: {
     fontSize: 10,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 2,
   },
   // Body
@@ -303,8 +413,8 @@ const bp = StyleSheet.create({
   },
   // Route section
   routeSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 18,
     paddingTop: 16,
     paddingBottom: 14,
@@ -312,79 +422,79 @@ const bp = StyleSheet.create({
   },
   cityBlock: {},
   cityBlockRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   cityCode: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: "800",
+    color: "#FFFFFF",
     letterSpacing: 1,
   },
   citySub: {
     fontSize: 10,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 1,
   },
   // Route line with dots
   routeLineWrap: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 6,
   },
   routeDotLeft: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   routeLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
   },
   routeDotRight: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   // Footer
   footer: {
-    backgroundColor: '#161618',
+    backgroundColor: "#161618",
     paddingVertical: 10,
     paddingHorizontal: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
-    borderStyle: 'dashed',
+    borderTopColor: "#2C2C2E",
+    borderStyle: "dashed",
   },
   footerDates: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   footerDateBold: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   badge: {
-    backgroundColor: 'rgba(0,122,255,0.12)',
+    backgroundColor: "rgba(0,122,255,0.12)",
     paddingVertical: 4,
     paddingHorizontal: 12,
     borderRadius: 10,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#007AFF',
+    fontWeight: "600",
+    color: "#007AFF",
   },
   badgePast: {
-    backgroundColor: 'rgba(142,142,147,0.12)',
+    backgroundColor: "rgba(142,142,147,0.12)",
   },
   badgeTextPast: {
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
 });
 

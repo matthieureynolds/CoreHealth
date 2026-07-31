@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { styles } from '../TravelScreen.styles';
-import { FlightOption } from '../../../../../shared/types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { styles } from "../TravelScreen.styles";
+import { FlightOption } from "../../../../../shared/types";
 
 interface FlightDetailsCardProps {
   flightLookupResult: FlightOption | null;
@@ -37,34 +37,60 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
           <View style={styles.flightConnectorLine} />
           <View style={styles.flightDetailsRow}>
             <View style={styles.flightDetailsCellCity}>
-              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-              <Text style={styles.flightCityText} numberOfLines={1}>{flightLookupResult.origin_city}</Text>
+              <Ionicons
+                name="airplane"
+                size={18}
+                color="#059669"
+                style={{ transform: [{ rotate: "90deg" }] }}
+              />
+              <Text style={styles.flightCityText} numberOfLines={1}>
+                {flightLookupResult.origin_city}
+              </Text>
             </View>
             <View style={styles.flightDetailsCellDate}>
               <Text style={styles.flightDate}>
-                {new Date(flightLookupResult.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(flightLookupResult.dep_local).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric" },
+                )}
               </Text>
             </View>
             <View style={styles.flightDetailsCellTime}>
               <Text style={styles.flightTime}>
-                {new Date(flightLookupResult.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                {new Date(flightLookupResult.dep_local).toLocaleTimeString(
+                  "en-US",
+                  { hour: "2-digit", minute: "2-digit", hour12: false },
+                )}
               </Text>
             </View>
             <View style={styles.flightDetailsCellArrow} />
           </View>
           <View style={styles.flightDetailsRow}>
             <View style={styles.flightDetailsCellCity}>
-              <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-              <Text style={styles.flightCityText} numberOfLines={1}>{flightLookupResult.dest_city}</Text>
+              <Ionicons
+                name="airplane"
+                size={18}
+                color="#059669"
+                style={{ transform: [{ rotate: "90deg" }] }}
+              />
+              <Text style={styles.flightCityText} numberOfLines={1}>
+                {flightLookupResult.dest_city}
+              </Text>
             </View>
             <View style={styles.flightDetailsCellDate}>
               <Text style={styles.flightDate}>
-                {new Date(flightLookupResult.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(flightLookupResult.arr_local).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric" },
+                )}
               </Text>
             </View>
             <View style={styles.flightDetailsCellTime}>
               <Text style={styles.flightTime}>
-                {new Date(flightLookupResult.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                {new Date(flightLookupResult.arr_local).toLocaleTimeString(
+                  "en-US",
+                  { hour: "2-digit", minute: "2-digit", hour12: false },
+                )}
               </Text>
             </View>
             <View style={styles.flightDetailsCellArrow} />
@@ -85,7 +111,10 @@ interface FlightSegmentCardsProps {
   onEditSegment?: (index: number) => void;
 }
 
-export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({ flightSegments, onEditSegment }) => {
+export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({
+  flightSegments,
+  onEditSegment,
+}) => {
   if (flightSegments.length === 0) return null;
 
   return (
@@ -98,40 +127,70 @@ export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({ flightSe
           disabled={!onEditSegment}
           onPress={() => onEditSegment?.(idx)}
         >
-          <Text style={styles.flightNumberText}>{seg.carrier} {seg.number}</Text>
+          <Text style={styles.flightNumberText}>
+            {seg.carrier} {seg.number}
+          </Text>
           <View style={styles.flightDetailsTable}>
             <View style={styles.flightDetailsRowsWrapper}>
               <View style={styles.flightConnectorLine} />
               <View style={styles.flightDetailsRow}>
                 <View style={styles.flightDetailsCellCity}>
-                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-                  <Text style={styles.flightCityText} numberOfLines={1}>{seg.origin_city}</Text>
+                  <Ionicons
+                    name="airplane"
+                    size={18}
+                    color="#059669"
+                    style={{ transform: [{ rotate: "90deg" }] }}
+                  />
+                  <Text style={styles.flightCityText} numberOfLines={1}>
+                    {seg.origin_city}
+                  </Text>
                 </View>
                 <View style={styles.flightDetailsCellDate}>
                   <Text style={styles.flightDate}>
-                    {new Date(seg.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(seg.dep_local).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellTime}>
                   <Text style={styles.flightTime}>
-                    {new Date(seg.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    {new Date(seg.dep_local).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellArrow} />
               </View>
               <View style={styles.flightDetailsRow}>
                 <View style={styles.flightDetailsCellCity}>
-                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-                  <Text style={styles.flightCityText} numberOfLines={1}>{seg.dest_city}</Text>
+                  <Ionicons
+                    name="airplane"
+                    size={18}
+                    color="#059669"
+                    style={{ transform: [{ rotate: "90deg" }] }}
+                  />
+                  <Text style={styles.flightCityText} numberOfLines={1}>
+                    {seg.dest_city}
+                  </Text>
                 </View>
                 <View style={styles.flightDetailsCellDate}>
                   <Text style={styles.flightDate}>
-                    {new Date(seg.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(seg.arr_local).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellTime}>
                   <Text style={styles.flightTime}>
-                    {new Date(seg.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    {new Date(seg.arr_local).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellArrow} />
@@ -149,7 +208,10 @@ interface FlightSuggestionsListProps {
   onSelect: (flight: FlightOption) => void;
 }
 
-export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({ suggestions, onSelect }) => {
+export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
+  suggestions,
+  onSelect,
+}) => {
   if (suggestions.length === 0) return null;
 
   return (
@@ -163,40 +225,70 @@ export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({ su
           activeOpacity={0.7}
           onPress={() => onSelect(f)}
         >
-          <Text style={styles.flightNumberText}>{f.carrier} {f.number}</Text>
+          <Text style={styles.flightNumberText}>
+            {f.carrier} {f.number}
+          </Text>
           <View style={styles.flightDetailsTable}>
             <View style={styles.flightDetailsRowsWrapper}>
               <View style={styles.flightConnectorLine} />
               <View style={styles.flightDetailsRow}>
                 <View style={styles.flightDetailsCellCity}>
-                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-                  <Text style={styles.flightCityText} numberOfLines={1}>{f.origin_city}</Text>
+                  <Ionicons
+                    name="airplane"
+                    size={18}
+                    color="#059669"
+                    style={{ transform: [{ rotate: "90deg" }] }}
+                  />
+                  <Text style={styles.flightCityText} numberOfLines={1}>
+                    {f.origin_city}
+                  </Text>
                 </View>
                 <View style={styles.flightDetailsCellDate}>
                   <Text style={styles.flightDate}>
-                    {new Date(f.dep_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(f.dep_local).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellTime}>
                   <Text style={styles.flightTime}>
-                    {new Date(f.dep_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    {new Date(f.dep_local).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellArrow} />
               </View>
               <View style={styles.flightDetailsRow}>
                 <View style={styles.flightDetailsCellCity}>
-                  <Ionicons name="airplane" size={18} color="#059669" style={{ transform: [{ rotate: '90deg' }] }} />
-                  <Text style={styles.flightCityText} numberOfLines={1}>{f.dest_city}</Text>
+                  <Ionicons
+                    name="airplane"
+                    size={18}
+                    color="#059669"
+                    style={{ transform: [{ rotate: "90deg" }] }}
+                  />
+                  <Text style={styles.flightCityText} numberOfLines={1}>
+                    {f.dest_city}
+                  </Text>
                 </View>
                 <View style={styles.flightDetailsCellDate}>
                   <Text style={styles.flightDate}>
-                    {new Date(f.arr_local).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(f.arr_local).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellTime}>
                   <Text style={styles.flightTime}>
-                    {new Date(f.arr_local).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    {new Date(f.arr_local).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.flightDetailsCellArrow} />
@@ -253,7 +345,10 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
 }) => {
   return (
     <>
-      <FlightSegmentCards flightSegments={flightSegments} onEditSegment={onEditSegment} />
+      <FlightSegmentCards
+        flightSegments={flightSegments}
+        onEditSegment={onEditSegment}
+      />
 
       {!flightDetailsExpanded && (
         <>
@@ -319,11 +414,17 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
       {((flightDetailsExpanded && flightLookupResult) ||
         (flightSegments.length > 0 && !flightLookupResult)) && (
         <View style={styles.flightActionsContainer}>
-          <TouchableOpacity style={styles.addAnotherFlightButton} onPress={onAddAnotherFlight}>
+          <TouchableOpacity
+            style={styles.addAnotherFlightButton}
+            onPress={onAddAnotherFlight}
+          >
             <Ionicons name="add" size={18} color="#059669" />
             <Text style={styles.addAnotherFlightText}>Add another flight</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.continueButton} onPress={onConfirmFlightTrip}>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={onConfirmFlightTrip}
+          >
             <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -336,23 +437,41 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
         </View>
       )}
 
-      {flightNotFound && !isLookingUpFlight && flightSuggestions.length === 0 && (
-        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-          <Ionicons name="airplane-outline" size={32} color="#8E8E93" />
-          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600', marginTop: 10 }}>
-            No flight found
-          </Text>
-          <Text style={{ color: '#8E8E93', fontSize: 14, marginTop: 4, textAlign: 'center' }}>
-            Try a different flight number or enter details manually
-          </Text>
-        </View>
-      )}
+      {flightNotFound &&
+        !isLookingUpFlight &&
+        flightSuggestions.length === 0 && (
+          <View style={{ alignItems: "center", paddingVertical: 20 }}>
+            <Ionicons name="airplane-outline" size={32} color="#8E8E93" />
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 16,
+                fontWeight: "600",
+                marginTop: 10,
+              }}
+            >
+              No flight found
+            </Text>
+            <Text
+              style={{
+                color: "#8E8E93",
+                fontSize: 14,
+                marginTop: 4,
+                textAlign: "center",
+              }}
+            >
+              Try a different flight number or enter details manually
+            </Text>
+          </View>
+        )}
 
       <TouchableOpacity
         style={[styles.manualEntryButton, { marginTop: 16 }]}
         onPress={onShowManualEntry}
       >
-        <Text style={styles.manualEntryButtonText}>Enter details manually instead</Text>
+        <Text style={styles.manualEntryButtonText}>
+          Enter details manually instead
+        </Text>
       </TouchableOpacity>
     </>
   );
