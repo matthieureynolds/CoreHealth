@@ -1,9 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { JetLagPlanningEvent } from '../../../../shared/types/jetlag';
-import JetLagPlanningCard from '../jet-lag-planning/JetLagPlanningCard';
-import EmptyState from '../../../../shared/components/feedback/EmptyState';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { JetLagPlanningEvent } from "../../../../shared/types/jetlag";
+import JetLagPlanningCard from "../jet-lag-planning/JetLagPlanningCard";
+import EmptyState from "../../../../shared/components/feedback/EmptyState";
 
 interface Facility {
   id: string;
@@ -31,10 +38,22 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
   sectionTitleStyle,
 }) => {
   const handleFacilityPress = (facility: Facility) => {
-    Alert.alert('Open Maps', `Navigate to ${facility.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Apple Maps', onPress: () => Linking.openURL(`http://maps.apple.com/?daddr=${encodeURIComponent(facility.name)}`) },
-      { text: 'Google Maps', onPress: () => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(facility.name)}`) },
+    Alert.alert("Open Maps", `Navigate to ${facility.name}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Apple Maps",
+        onPress: () =>
+          Linking.openURL(
+            `http://maps.apple.com/?daddr=${encodeURIComponent(facility.name)}`,
+          ),
+      },
+      {
+        text: "Google Maps",
+        onPress: () =>
+          Linking.openURL(
+            `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(facility.name)}`,
+          ),
+      },
     ]);
   };
 
@@ -45,7 +64,7 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
         <Text style={sectionTitleStyle}>Nearby Medical Facilities</Text>
       </View>
 
-      {closestFacilities.map(facility => (
+      {closestFacilities.map((facility) => (
         <TouchableOpacity
           key={facility.id}
           style={styles.facilityCard}
@@ -53,14 +72,22 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
         >
           <View style={styles.facilityIconContainer}>
             <Ionicons
-              name={facility.type === 'Pharmacy' ? 'medkit' : facility.type === 'Hospital' ? 'business' : 'help-circle'}
+              name={
+                facility.type === "Pharmacy"
+                  ? "medkit"
+                  : facility.type === "Hospital"
+                    ? "business"
+                    : "help-circle"
+              }
               size={20}
               color="#30D158"
             />
           </View>
           <View style={styles.facilityInfo}>
             <Text style={styles.facilityName}>{facility.name}</Text>
-            <Text style={styles.facilityDetails}>{facility.type} • {facility.distance}</Text>
+            <Text style={styles.facilityDetails}>
+              {facility.type} • {facility.distance}
+            </Text>
           </View>
           <View style={styles.travelTimeContainer}>
             <Ionicons name="car" size={14} color="#8E8E93" />
@@ -102,9 +129,9 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   facilityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -113,40 +140,40 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#30D15820',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#30D15820",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   facilityInfo: {
     flex: 1,
   },
   facilityName: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 15,
   },
   facilityDetails: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
   travelTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   travelTime: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginLeft: 4,
   },
   lessTab: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 6,
     marginTop: 5.5,
   },
   lessTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
     fontSize: 13,
   },
 });

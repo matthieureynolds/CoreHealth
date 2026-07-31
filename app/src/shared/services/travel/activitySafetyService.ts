@@ -1,10 +1,11 @@
-import { ActivitySafetyData, WeatherData, ExtremeHeatWarning } from '../../types';
-import { GoogleAirQualityData } from './googleAirQualityService';
+import {
+  ActivitySafetyData,
+  WeatherData,
+  ExtremeHeatWarning,
+} from "../../types";
+import { GoogleAirQualityData } from "./googleAirQualityService";
 
 // Activity safety thresholds
-const SAFE_TEMPERATURE_MAX = 30; // Celsius
-const CAUTION_TEMPERATURE_MAX = 35; // Celsius
-const SAFE_AQI_MAX = 50;
 const MODERATE_AQI_MAX = 100;
 const UNHEALTHY_AQI_MAX = 150;
 
@@ -15,36 +16,43 @@ export const generateActivitySafetyData = (
   weatherData: WeatherData,
   airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
-  uvIndex: number = 5
+  uvIndex: number = 5,
 ): ActivitySafetyData => {
-  
   // Assess individual factors
   const weatherSafety = assessWeatherSafety(weatherData, uvIndex);
   const airQualitySafety = assessAirQualitySafety(airQualityData);
   const heatSafety = assessHeatSafety(heatWarning);
 
   // Combine assessments
-  const combinedRisk = calculateCombinedActivityRisk(weatherSafety, airQualitySafety, heatSafety);
+  const combinedRisk = calculateCombinedActivityRisk(
+    weatherSafety,
+    airQualitySafety,
+    heatSafety,
+  );
   const outdoorSafety = determineOverallSafety(combinedRisk);
-  
+
   // Generate recommendations and warnings
   const recommendations = generateActivityRecommendations(
     weatherData,
     airQualityData,
     heatWarning,
     combinedRisk,
-    outdoorSafety
+    outdoorSafety,
   );
-  
+
   const warnings = generateActivityWarnings(
     weatherData,
     airQualityData,
     heatWarning,
-    combinedRisk
+    combinedRisk,
   );
 
   // Determine best times for outdoor activities
-  const bestTimes = determineBestActivityTimes(weatherData, heatWarning, uvIndex);
+  const bestTimes = determineBestActivityTimes(
+    weatherData,
+    heatWarning,
+    uvIndex,
+  );
 
   return {
     outdoorSafety,
@@ -62,7 +70,7 @@ export const generateActivitySafetyData = (
  */
 const assessWeatherSafety = (
   weatherData: WeatherData,
-  uvIndex: number
+  uvIndex: number,
 ): { risk: number; description: string } => {
   let riskScore = 0;
   let factors: string[] = [];
@@ -70,60 +78,61 @@ const assessWeatherSafety = (
   // Temperature assessment
   if (weatherData.temperature > 40) {
     riskScore += 4;
-    factors.push('extreme heat');
+    factors.push("extreme heat");
   } else if (weatherData.temperature > 35) {
     riskScore += 3;
-    factors.push('very hot');
+    factors.push("very hot");
   } else if (weatherData.temperature > 30) {
     riskScore += 2;
-    factors.push('hot weather');
+    factors.push("hot weather");
   } else if (weatherData.temperature < 0) {
     riskScore += 2;
-    factors.push('freezing conditions');
+    factors.push("freezing conditions");
   }
 
   // Humidity assessment
   if (weatherData.humidity > 85) {
     riskScore += 2;
-    factors.push('very high humidity');
+    factors.push("very high humidity");
   } else if (weatherData.humidity < 20) {
     riskScore += 1;
-    factors.push('very dry air');
+    factors.push("very dry air");
   }
 
   // Wind assessment
   if (weatherData.windSpeed > 20) {
     riskScore += 2;
-    factors.push('strong winds');
+    factors.push("strong winds");
   } else if (weatherData.windSpeed > 15) {
     riskScore += 1;
-    factors.push('moderate winds');
+    factors.push("moderate winds");
   }
 
   // UV assessment
   if (uvIndex >= 11) {
     riskScore += 3;
-    factors.push('extreme UV');
+    factors.push("extreme UV");
   } else if (uvIndex >= 8) {
     riskScore += 2;
-    factors.push('very high UV');
+    factors.push("very high UV");
   } else if (uvIndex >= 6) {
     riskScore += 1;
-    factors.push('high UV');
+    factors.push("high UV");
   }
 
   // Visibility assessment
   if (weatherData.visibility < 1000) {
     riskScore += 3;
-    factors.push('poor visibility');
+    factors.push("poor visibility");
   } else if (weatherData.visibility < 5000) {
     riskScore += 1;
-    factors.push('reduced visibility');
+    factors.push("reduced visibility");
   }
 
-  const description = factors.length > 0 
-    ? `Weather concerns: ${factors.join(', ')}` 
-    : 'Weather conditions are favorable';
+  const description =
+    factors.length > 0
+      ? `Weather concerns: ${factors.join(", ")}`
+      : "Weather conditions are favorable";
 
   return { risk: riskScore, description };
 };
@@ -132,68 +141,52 @@ const assessWeatherSafety = (
  * Assess air quality safety for activities
  */
 const assessAirQualitySafety = (
-  airQualityData: GoogleAirQualityData | null
+  airQualityData: GoogleAirQualityData | null,
 ): { risk: number; description: string } => {
   if (!airQualityData) {
-    return { risk: 0, description: 'Air quality data unavailable' };
+    return { risk: 0, description: "Air quality data unavailable" };
   }
 
   const aqi = airQualityData.universalAqi;
-  
+
   if (aqi <= 50) {
-    return { risk: 0, description: 'Good air quality' };
+    return { risk: 0, description: "Good air quality" };
   } else if (aqi <= 100) {
-    return { risk: 1, description: 'Moderate air quality' };
+    return { risk: 1, description: "Moderate air quality" };
   } else if (aqi <= 150) {
-    return { risk: 2, description: 'Unhealthy for sensitive groups' };
+    return { risk: 2, description: "Unhealthy for sensitive groups" };
   } else if (aqi <= 200) {
-    return { risk: 3, description: 'Unhealthy air quality' };
+    return { risk: 3, description: "Unhealthy air quality" };
   } else {
-    return { risk: 4, description: 'Very unhealthy air quality' };
+    return { risk: 4, description: "Very unhealthy air quality" };
   }
-};
-
-/**
- * Get detailed air quality breakdown
- */
-const getAirQualityBreakdown = (airQualityData: GoogleAirQualityData): string => {
-  if (!airQualityData.pollutants || airQualityData.pollutants.length === 0) {
-    return `AQI: ${airQualityData.universalAqi}`;
-  }
-
-  const pollutantDetails = airQualityData.pollutants
-    .filter(p => ['pm2_5', 'pm10', 'no2', 'o3'].includes(p.code))
-    .map(p => `${p.displayName}: ${p.concentration.value}${p.concentration.units}`)
-    .join(', ');
-
-  return `AQI: ${airQualityData.universalAqi}` + (pollutantDetails ? `, ${pollutantDetails}` : '');
 };
 
 /**
  * Assess heat safety for outdoor activities
  */
 const assessHeatSafety = (
-  heatWarning: ExtremeHeatWarning | null
+  heatWarning: ExtremeHeatWarning | null,
 ): { risk: number; description: string } => {
   if (!heatWarning || !heatWarning.isActive) {
-    return { risk: 0, description: 'No heat warnings' };
+    return { risk: 0, description: "No heat warnings" };
   }
 
   let riskScore = 0;
-  let description = '';
+  let description = "";
 
   switch (heatWarning.severity) {
-    case 'extreme':
+    case "extreme":
       riskScore = 5;
-      description = 'Extreme heat warning - dangerous conditions';
+      description = "Extreme heat warning - dangerous conditions";
       break;
-    case 'high':
+    case "high":
       riskScore = 3;
-      description = 'High heat warning - exercise caution';
+      description = "High heat warning - exercise caution";
       break;
-    case 'moderate':
+    case "moderate":
       riskScore = 2;
-      description = 'Moderate heat warning - take precautions';
+      description = "Moderate heat warning - take precautions";
       break;
   }
 
@@ -206,30 +199,31 @@ const assessHeatSafety = (
 const calculateCombinedActivityRisk = (
   weatherSafety: { risk: number },
   airQualitySafety: { risk: number },
-  heatSafety: { risk: number }
-): 'low' | 'moderate' | 'high' | 'severe' => {
-  const totalRisk = weatherSafety.risk + airQualitySafety.risk + heatSafety.risk;
+  heatSafety: { risk: number },
+): "low" | "moderate" | "high" | "severe" => {
+  const totalRisk =
+    weatherSafety.risk + airQualitySafety.risk + heatSafety.risk;
 
-  if (totalRisk >= 10) return 'severe';
-  if (totalRisk >= 7) return 'high';
-  if (totalRisk >= 4) return 'moderate';
-  return 'low';
+  if (totalRisk >= 10) return "severe";
+  if (totalRisk >= 7) return "high";
+  if (totalRisk >= 4) return "moderate";
+  return "low";
 };
 
 /**
  * Determine overall outdoor safety level
  */
 const determineOverallSafety = (
-  combinedRisk: 'low' | 'moderate' | 'high' | 'severe'
-): 'safe' | 'caution' | 'avoid' => {
+  combinedRisk: "low" | "moderate" | "high" | "severe",
+): "safe" | "caution" | "avoid" => {
   switch (combinedRisk) {
-    case 'low':
-      return 'safe';
-    case 'moderate':
-      return 'caution';
-    case 'high':
-    case 'severe':
-      return 'avoid';
+    case "low":
+      return "safe";
+    case "moderate":
+      return "caution";
+    case "high":
+    case "severe":
+      return "avoid";
   }
 };
 
@@ -240,48 +234,48 @@ const generateActivityRecommendations = (
   weatherData: WeatherData,
   airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
-  combinedRisk: 'low' | 'moderate' | 'high' | 'severe',
-  outdoorSafety: 'safe' | 'caution' | 'avoid'
+  combinedRisk: "low" | "moderate" | "high" | "severe",
+  outdoorSafety: "safe" | "caution" | "avoid",
 ): string[] => {
   const recommendations: string[] = [];
 
   // General recommendations based on safety level
   switch (outdoorSafety) {
-    case 'safe':
-      recommendations.push('Outdoor activities are generally safe');
-      recommendations.push('Stay hydrated and apply sunscreen');
+    case "safe":
+      recommendations.push("Outdoor activities are generally safe");
+      recommendations.push("Stay hydrated and apply sunscreen");
       break;
-    case 'caution':
-      recommendations.push('Exercise caution during outdoor activities');
-      recommendations.push('Take frequent breaks and stay hydrated');
-      recommendations.push('Monitor your body for signs of distress');
+    case "caution":
+      recommendations.push("Exercise caution during outdoor activities");
+      recommendations.push("Take frequent breaks and stay hydrated");
+      recommendations.push("Monitor your body for signs of distress");
       break;
-    case 'avoid':
-      recommendations.push('Avoid prolonged outdoor activities');
-      recommendations.push('Consider indoor alternatives');
-      recommendations.push('If outdoors is necessary, limit exposure time');
+    case "avoid":
+      recommendations.push("Avoid prolonged outdoor activities");
+      recommendations.push("Consider indoor alternatives");
+      recommendations.push("If outdoors is necessary, limit exposure time");
       break;
   }
 
   // Weather-specific recommendations
   if (weatherData.temperature > 35) {
-    recommendations.push('Seek air-conditioned environments');
-    recommendations.push('Wear lightweight, light-colored clothing');
+    recommendations.push("Seek air-conditioned environments");
+    recommendations.push("Wear lightweight, light-colored clothing");
   } else if (weatherData.temperature > 30) {
-    recommendations.push('Schedule activities for cooler parts of the day');
-    recommendations.push('Wear breathable clothing and a hat');
+    recommendations.push("Schedule activities for cooler parts of the day");
+    recommendations.push("Wear breathable clothing and a hat");
   }
 
   if (weatherData.humidity > 80) {
-    recommendations.push('Allow extra time for cooling down');
-    recommendations.push('Be aware that sweating may be less effective');
+    recommendations.push("Allow extra time for cooling down");
+    recommendations.push("Be aware that sweating may be less effective");
   }
 
   // Air quality recommendations
   if (airQualityData && airQualityData.universalAqi > MODERATE_AQI_MAX) {
-    recommendations.push('Wear an N95 mask if outdoors');
-    recommendations.push('Avoid strenuous outdoor exercise');
-    recommendations.push('Keep windows closed and use air purifiers indoors');
+    recommendations.push("Wear an N95 mask if outdoors");
+    recommendations.push("Avoid strenuous outdoor exercise");
+    recommendations.push("Keep windows closed and use air purifiers indoors");
   }
 
   // Heat warning recommendations
@@ -290,15 +284,15 @@ const generateActivityRecommendations = (
   }
 
   // Activity-specific guidance
-  if (combinedRisk === 'low') {
-    recommendations.push('Running, cycling, and sports are appropriate');
-    recommendations.push('Consider extending outdoor workout duration');
-  } else if (combinedRisk === 'moderate') {
-    recommendations.push('Light to moderate exercise is acceptable');
-    recommendations.push('Reduce intensity and duration of workouts');
+  if (combinedRisk === "low") {
+    recommendations.push("Running, cycling, and sports are appropriate");
+    recommendations.push("Consider extending outdoor workout duration");
+  } else if (combinedRisk === "moderate") {
+    recommendations.push("Light to moderate exercise is acceptable");
+    recommendations.push("Reduce intensity and duration of workouts");
   } else {
-    recommendations.push('Stick to gentle activities like walking');
-    recommendations.push('Consider yoga or stretching indoors');
+    recommendations.push("Stick to gentle activities like walking");
+    recommendations.push("Consider yoga or stretching indoors");
   }
 
   return recommendations;
@@ -311,33 +305,35 @@ const generateActivityWarnings = (
   weatherData: WeatherData,
   airQualityData: GoogleAirQualityData | null,
   heatWarning: ExtremeHeatWarning | null,
-  combinedRisk: 'low' | 'moderate' | 'high' | 'severe'
+  combinedRisk: "low" | "moderate" | "high" | "severe",
 ): string[] => {
   const warnings: string[] = [];
 
   // Risk-based warnings
-  if (combinedRisk === 'severe') {
-    warnings.push('DANGER: Severe health risk for outdoor activities');
-  } else if (combinedRisk === 'high') {
-    warnings.push('HIGH RISK: Outdoor exercise not recommended');
-  } else if (combinedRisk === 'moderate') {
-    warnings.push('CAUTION: Monitor your health during outdoor activities');
+  if (combinedRisk === "severe") {
+    warnings.push("DANGER: Severe health risk for outdoor activities");
+  } else if (combinedRisk === "high") {
+    warnings.push("HIGH RISK: Outdoor exercise not recommended");
+  } else if (combinedRisk === "moderate") {
+    warnings.push("CAUTION: Monitor your health during outdoor activities");
   }
 
   // Weather warnings
   if (weatherData.temperature > 40) {
-    warnings.push('Extreme heat - heat stroke risk');
+    warnings.push("Extreme heat - heat stroke risk");
   } else if (weatherData.temperature > 35) {
-    warnings.push('Very hot conditions - heat exhaustion possible');
+    warnings.push("Very hot conditions - heat exhaustion possible");
   }
 
   // Air quality warnings
   if (airQualityData) {
     const aqi = airQualityData.universalAqi;
     if (aqi > 200) {
-      warnings.push('Very unhealthy air quality - respiratory distress possible');
+      warnings.push(
+        "Very unhealthy air quality - respiratory distress possible",
+      );
     } else if (aqi > UNHEALTHY_AQI_MAX) {
-      warnings.push('Unhealthy air quality - breathing difficulties may occur');
+      warnings.push("Unhealthy air quality - breathing difficulties may occur");
     }
   }
 
@@ -355,41 +351,41 @@ const generateActivityWarnings = (
 const determineBestActivityTimes = (
   weatherData: WeatherData,
   heatWarning: ExtremeHeatWarning | null,
-  uvIndex: number
+  uvIndex: number,
 ): string[] => {
   const bestTimes: string[] = [];
 
   // If extreme heat, very limited safe times
-  if (heatWarning?.severity === 'extreme') {
-    bestTimes.push('Early morning (before 7 AM) if absolutely necessary');
-    bestTimes.push('Late evening (after 8 PM) with caution');
+  if (heatWarning?.severity === "extreme") {
+    bestTimes.push("Early morning (before 7 AM) if absolutely necessary");
+    bestTimes.push("Late evening (after 8 PM) with caution");
     return bestTimes;
   }
 
   // If hot weather
   if (weatherData.temperature > 30) {
-    bestTimes.push('Early morning (6-8 AM)');
-    bestTimes.push('Late evening (after 7 PM)');
+    bestTimes.push("Early morning (6-8 AM)");
+    bestTimes.push("Late evening (after 7 PM)");
     if (weatherData.temperature < 35) {
-      bestTimes.push('Early evening (6-7 PM) with precautions');
+      bestTimes.push("Early evening (6-7 PM) with precautions");
     }
   } else {
     // Moderate temperatures
-    bestTimes.push('Morning (7-10 AM)');
-    bestTimes.push('Late afternoon (4-6 PM)');
-    bestTimes.push('Early evening (6-8 PM)');
+    bestTimes.push("Morning (7-10 AM)");
+    bestTimes.push("Late afternoon (4-6 PM)");
+    bestTimes.push("Early evening (6-8 PM)");
   }
 
   // UV considerations
   if (uvIndex >= 8) {
-    bestTimes.push('Avoid midday sun (10 AM - 4 PM)');
+    bestTimes.push("Avoid midday sun (10 AM - 4 PM)");
   } else if (uvIndex >= 6) {
-    bestTimes.push('Limit midday exposure (11 AM - 3 PM)');
+    bestTimes.push("Limit midday exposure (11 AM - 3 PM)");
   }
 
   // If no restrictions
   if (weatherData.temperature <= 25 && uvIndex < 6) {
-    bestTimes.push('Most daylight hours are suitable');
+    bestTimes.push("Most daylight hours are suitable");
   }
 
   return bestTimes;
@@ -399,17 +395,17 @@ const determineBestActivityTimes = (
  * Get activity safety color for UI
  */
 export const getActivitySafetyColor = (
-  outdoorSafety: 'safe' | 'caution' | 'avoid'
+  outdoorSafety: "safe" | "caution" | "avoid",
 ): string => {
   switch (outdoorSafety) {
-    case 'safe':
-      return '#30D158'; // Green
-    case 'caution':
-      return '#FF9500'; // Orange
-    case 'avoid':
-      return '#FF3B30'; // Red
+    case "safe":
+      return "#30D158"; // Green
+    case "caution":
+      return "#FF9500"; // Orange
+    case "avoid":
+      return "#FF3B30"; // Red
     default:
-      return '#666';
+      return "#666";
   }
 };
 
@@ -417,55 +413,61 @@ export const getActivitySafetyColor = (
  * Get activity recommendations for specific sports
  */
 export const getActivitySpecificRecommendations = (
-  activityType: 'running' | 'cycling' | 'hiking' | 'sports' | 'walking',
-  safetyData: ActivitySafetyData
+  activityType: "running" | "cycling" | "hiking" | "sports" | "walking",
+  safetyData: ActivitySafetyData,
 ): string[] => {
   const baseRecommendations = [...safetyData.recommendations];
-  
+
   switch (activityType) {
-    case 'running':
-      if (safetyData.outdoorSafety === 'avoid') {
-        baseRecommendations.push('Consider treadmill running indoors');
+    case "running":
+      if (safetyData.outdoorSafety === "avoid") {
+        baseRecommendations.push("Consider treadmill running indoors");
       } else {
-        baseRecommendations.push('Run at a conversational pace');
-        baseRecommendations.push('Carry water for runs longer than 30 minutes');
+        baseRecommendations.push("Run at a conversational pace");
+        baseRecommendations.push("Carry water for runs longer than 30 minutes");
       }
       break;
-      
-    case 'cycling':
-      if (safetyData.outdoorSafety === 'avoid') {
-        baseRecommendations.push('Use indoor bike trainer or stationary bike');
+
+    case "cycling":
+      if (safetyData.outdoorSafety === "avoid") {
+        baseRecommendations.push("Use indoor bike trainer or stationary bike");
       } else {
-        baseRecommendations.push('Wear a helmet and protective gear');
-        baseRecommendations.push('Be extra cautious of visibility in poor air quality');
+        baseRecommendations.push("Wear a helmet and protective gear");
+        baseRecommendations.push(
+          "Be extra cautious of visibility in poor air quality",
+        );
       }
       break;
-      
-    case 'hiking':
-      if (safetyData.outdoorSafety === 'avoid') {
-        baseRecommendations.push('Postpone hiking plans');
+
+    case "hiking":
+      if (safetyData.outdoorSafety === "avoid") {
+        baseRecommendations.push("Postpone hiking plans");
       } else {
-        baseRecommendations.push('Inform someone of your hiking plans');
-        baseRecommendations.push('Carry extra water and emergency supplies');
+        baseRecommendations.push("Inform someone of your hiking plans");
+        baseRecommendations.push("Carry extra water and emergency supplies");
       }
       break;
-      
-    case 'sports':
-      if (safetyData.outdoorSafety === 'avoid') {
-        baseRecommendations.push('Move sports activities indoors if possible');
+
+    case "sports":
+      if (safetyData.outdoorSafety === "avoid") {
+        baseRecommendations.push("Move sports activities indoors if possible");
       } else {
-        baseRecommendations.push('Take frequent water breaks');
-        baseRecommendations.push('Watch teammates for signs of heat exhaustion');
+        baseRecommendations.push("Take frequent water breaks");
+        baseRecommendations.push(
+          "Watch teammates for signs of heat exhaustion",
+        );
       }
       break;
-      
-    case 'walking':
-      baseRecommendations.push('Walking is generally the safest outdoor activity');
-      if (safetyData.outdoorSafety === 'avoid') {
-        baseRecommendations.push('Limit walks to essential trips only');
+
+    case "walking":
+      baseRecommendations.push(
+        "Walking is generally the safest outdoor activity",
+      );
+      if (safetyData.outdoorSafety === "avoid") {
+        baseRecommendations.push("Limit walks to essential trips only");
       }
       break;
   }
-  
+
   return baseRecommendations;
-}; 
+};

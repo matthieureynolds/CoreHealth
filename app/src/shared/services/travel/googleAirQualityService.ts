@@ -1,4 +1,4 @@
-import { API_CONFIG } from '../../config/api';
+import { API_CONFIG } from "../../config/api";
 
 // Google Air Quality API response interfaces
 export interface GoogleAirQualityData {
@@ -82,16 +82,18 @@ export interface GoogleAirQualityResponse {
  */
 export const getGoogleAirQualityData = async (
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<GoogleAirQualityData | null> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn('Google Maps API key not found, cannot get air quality data');
+      console.warn(
+        "Google Maps API key not found, cannot get air quality data",
+      );
       return null;
     }
 
     const url = `${API_CONFIG.GOOGLE_AIR_QUALITY_BASE_URL}${API_CONFIG.GOOGLE_AIR_QUALITY_ENDPOINT}?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
-    
+
     const requestBody = {
       universalAqi: true,
       location: {
@@ -103,15 +105,15 @@ export const getGoogleAirQualityData = async (
         "DOMINANT_POLLUTANT",
         "POLLUTANT_CONCENTRATION",
         "LOCAL_AQI",
-        "POLLUTANT_ADDITIONAL_INFO"
+        "POLLUTANT_ADDITIONAL_INFO",
       ],
-      languageCode: "en"
+      languageCode: "en",
     };
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
     });
@@ -121,37 +123,37 @@ export const getGoogleAirQualityData = async (
     }
 
     const data: GoogleAirQualityResponse = await response.json();
-    
+
     // Find the universal AQI index
-    const universalIndex = data.indexes?.find(index => index.code === 'uaqi');
-    
+    const universalIndex = data.indexes?.find((index) => index.code === "uaqi");
+
     if (!universalIndex) {
-      console.warn('No universal AQI data found');
+      console.warn("No universal AQI data found");
       return null;
     }
 
     // Get the dominant pollutant
-    const dominantPollutant = data.pollutants?.[0]?.code || 'unknown';
-    
+    const dominantPollutant = data.pollutants?.[0]?.code || "unknown";
+
     const airQualityData: GoogleAirQualityData = {
       universalAqi: universalIndex.aqi,
       dominantPollutant: dominantPollutant,
       indexes: data.indexes || [],
       pollutants: data.pollutants || [],
       healthRecommendations: data.healthRecommendations || {
-        generalPopulation: 'Air quality data unavailable',
-        elderly: 'Air quality data unavailable',
-        lungDiseasePopulation: 'Air quality data unavailable',
-        heartDiseasePopulation: 'Air quality data unavailable',
-        athletes: 'Air quality data unavailable',
-        pregnantWomen: 'Air quality data unavailable',
-        children: 'Air quality data unavailable',
+        generalPopulation: "Air quality data unavailable",
+        elderly: "Air quality data unavailable",
+        lungDiseasePopulation: "Air quality data unavailable",
+        heartDiseasePopulation: "Air quality data unavailable",
+        athletes: "Air quality data unavailable",
+        pregnantWomen: "Air quality data unavailable",
+        children: "Air quality data unavailable",
       },
     };
 
     return airQualityData;
   } catch (error) {
-    console.error('Error fetching Google air quality data:', error);
+    console.error("Error fetching Google air quality data:", error);
     return null;
   }
 };
@@ -160,12 +162,12 @@ export const getGoogleAirQualityData = async (
  * Get air quality status from Google AQI
  */
 export const getGoogleAirQualityStatus = (aqi: number): string => {
-  if (aqi <= 50) return 'Good';
-  if (aqi <= 100) return 'Moderate';
-  if (aqi <= 150) return 'Unhealthy for Sensitive Groups';
-  if (aqi <= 200) return 'Unhealthy';
-  if (aqi <= 300) return 'Very Unhealthy';
-  return 'Hazardous';
+  if (aqi <= 50) return "Good";
+  if (aqi <= 100) return "Moderate";
+  if (aqi <= 150) return "Unhealthy for Sensitive Groups";
+  if (aqi <= 200) return "Unhealthy";
+  if (aqi <= 300) return "Very Unhealthy";
+  return "Hazardous";
 };
 
 /**
@@ -173,43 +175,51 @@ export const getGoogleAirQualityStatus = (aqi: number): string => {
  */
 export const getGoogleAirQualityRecommendation = (
   aqi: number,
-  healthRecommendations?: GoogleAirQualityData['healthRecommendations']
+  healthRecommendations?: GoogleAirQualityData["healthRecommendations"],
 ): string => {
   // Use Google's specific health recommendations if available
   if (healthRecommendations?.generalPopulation) {
     return healthRecommendations.generalPopulation;
   }
-  
+
   // Fallback to generic recommendations
-  if (aqi <= 50) return 'Air quality is good. Enjoy outdoor activities!';
-  if (aqi <= 100) return 'Air quality is moderate. Sensitive individuals should consider reducing outdoor activities.';
-  if (aqi <= 150) return 'Unhealthy for sensitive groups. Limit prolonged outdoor exertion.';
-  if (aqi <= 200) return 'Unhealthy air quality. Everyone should avoid prolonged outdoor exertion.';
-  if (aqi <= 300) return 'Very unhealthy air quality. Avoid outdoor activities.';
-  return 'Hazardous air quality. Stay indoors and avoid all outdoor activities.';
+  if (aqi <= 50) return "Air quality is good. Enjoy outdoor activities!";
+  if (aqi <= 100)
+    return "Air quality is moderate. Sensitive individuals should consider reducing outdoor activities.";
+  if (aqi <= 150)
+    return "Unhealthy for sensitive groups. Limit prolonged outdoor exertion.";
+  if (aqi <= 200)
+    return "Unhealthy air quality. Everyone should avoid prolonged outdoor exertion.";
+  if (aqi <= 300)
+    return "Very unhealthy air quality. Avoid outdoor activities.";
+  return "Hazardous air quality. Stay indoors and avoid all outdoor activities.";
 };
 
 /**
  * Map Google AQI to risk level
  */
-export const mapGoogleAqiToRiskLevel = (aqi: number): 'low' | 'moderate' | 'high' | 'severe' => {
-  if (aqi <= 50) return 'low';
-  if (aqi <= 100) return 'low';
-  if (aqi <= 150) return 'moderate';
-  if (aqi <= 200) return 'high';
-  return 'severe';
+export const mapGoogleAqiToRiskLevel = (
+  aqi: number,
+): "low" | "moderate" | "high" | "severe" => {
+  if (aqi <= 50) return "low";
+  if (aqi <= 100) return "low";
+  if (aqi <= 150) return "moderate";
+  if (aqi <= 200) return "high";
+  return "severe";
 };
 
 /**
  * Get detailed pollutant information
  */
-export const getPollutantDetails = (pollutants: GoogleAirQualityData['pollutants']): string => {
+export const getPollutantDetails = (
+  pollutants: GoogleAirQualityData["pollutants"],
+): string => {
   if (!pollutants || pollutants.length === 0) {
-    return 'No detailed pollutant data available';
+    return "No detailed pollutant data available";
   }
 
   const mainPollutant = pollutants[0];
   const concentration = mainPollutant.concentration;
-  
+
   return `${mainPollutant.displayName}: ${concentration.value} ${concentration.units}`;
-}; 
+};

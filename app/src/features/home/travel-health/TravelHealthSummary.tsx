@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { TravelHealth } from '../../../shared/types/travel';
-import { JetLagPlanningEvent } from '../../../shared/types/jetlag';
-import { useSettings } from '../../../shared/context/SettingsContext';
-import { metersToDisplay } from '../../../shared/utils/units';
-import EnvironmentalMetricCard, { EnvironmentalMetric } from './components/EnvironmentalMetricCard';
-import MetricDetailModal from './components/MetricDetailModal';
-import JetLagBanner from './components/JetLagBanner';
-import NearbyFacilitiesSection from './components/NearbyFacilitiesSection';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { TravelHealth } from "../../../shared/types/travel";
+import { JetLagPlanningEvent } from "../../../shared/types/jetlag";
+import { useSettings } from "../../../shared/context/SettingsContext";
+import { metersToDisplay } from "../../../shared/utils/units";
+import EnvironmentalMetricCard, {
+  EnvironmentalMetric,
+} from "./components/EnvironmentalMetricCard";
+import MetricDetailModal from "./components/MetricDetailModal";
+import JetLagBanner from "./components/JetLagBanner";
+import NearbyFacilitiesSection from "./components/NearbyFacilitiesSection";
 
 interface TravelHealthSummaryProps {
   currentLocation?: string;
@@ -24,27 +26,40 @@ interface TravelHealthSummaryProps {
 
 const getStatusColor = (status: string): string => {
   switch (status) {
-    case 'excellent': return '#30D158';
-    case 'good': return '#32D74B';
-    case 'moderate': return '#FF9F0A';
-    case 'poor': return '#FF6B35';
-    case 'hazardous': return '#FF3B30';
-    default: return '#8E8E93';
+    case "excellent":
+      return "#30D158";
+    case "good":
+      return "#32D74B";
+    case "moderate":
+      return "#FF9F0A";
+    case "poor":
+      return "#FF6B35";
+    case "hazardous":
+      return "#FF3B30";
+    default:
+      return "#8E8E93";
   }
 };
 
-const getStatusFromRiskLevel = (riskLevel: string): EnvironmentalMetric['status'] => {
+const getStatusFromRiskLevel = (
+  riskLevel: string,
+): EnvironmentalMetric["status"] => {
   switch (riskLevel) {
-    case 'low': return 'excellent';
-    case 'moderate': return 'good';
-    case 'high': return 'moderate';
-    case 'severe': return 'poor';
-    default: return 'moderate';
+    case "low":
+      return "excellent";
+    case "moderate":
+      return "good";
+    case "high":
+      return "moderate";
+    case "severe":
+      return "poor";
+    default:
+      return "moderate";
   }
 };
 
 const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
-  currentLocation = 'New York, NY',
+  currentLocation = "New York, NY",
   jetLagHours = 0,
   jetLagPlanningEvents = [],
   onJetLagEventPress,
@@ -56,14 +71,22 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 }) => {
   const { settings } = useSettings();
   const [showMore, setShowMore] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<EnvironmentalMetric | null>(null);
+  const [selectedMetric, setSelectedMetric] =
+    useState<EnvironmentalMetric | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const units: 'metric' | 'imperial' = settings?.general?.units === 'imperial' ? 'imperial' : 'metric';
+  const units: "metric" | "imperial" =
+    settings?.general?.units === "imperial" ? "imperial" : "metric";
 
   const formatFacilityDistance = (raw: unknown): string => {
-    const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? parseFloat(raw) : NaN;
-    if (!Number.isFinite(n) || n < 0) return units === 'imperial' ? '— mi' : '— km';
+    const n =
+      typeof raw === "number"
+        ? raw
+        : typeof raw === "string"
+          ? parseFloat(raw)
+          : NaN;
+    if (!Number.isFinite(n) || n < 0)
+      return units === "imperial" ? "— mi" : "— km";
     const meters = n >= 100 ? n : n * 1000;
     return metersToDisplay(meters, units);
   };
@@ -71,9 +94,30 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
   const environmentalMetrics: EnvironmentalMetric[] = React.useMemo(() => {
     if (!travelHealth) {
       return [
-        { id: 'air_quality', label: 'Air Quality', value: 'Loading...', status: 'moderate', icon: 'cloud-outline', score: 0 },
-        { id: 'pollen', label: 'Pollen', value: 'Loading...', status: 'moderate', icon: 'flower-outline', score: 0 },
-        { id: 'water_quality', label: 'Water Quality', value: 'Loading...', status: 'moderate', icon: 'water-outline', score: 0 },
+        {
+          id: "air_quality",
+          label: "Air Quality",
+          value: "Loading...",
+          status: "moderate",
+          icon: "cloud-outline",
+          score: 0,
+        },
+        {
+          id: "pollen",
+          label: "Pollen",
+          value: "Loading...",
+          status: "moderate",
+          icon: "flower-outline",
+          score: 0,
+        },
+        {
+          id: "water_quality",
+          label: "Water Quality",
+          value: "Loading...",
+          status: "moderate",
+          icon: "water-outline",
+          score: 0,
+        },
       ];
     }
 
@@ -81,34 +125,49 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
     if (travelHealth.airQuality) {
       metrics.push({
-        id: 'air_quality',
-        label: 'Air Quality',
-        value: travelHealth.airQuality.status || 'Unknown',
-        status: getStatusFromRiskLevel(travelHealth.airQuality.riskLevel || 'moderate'),
-        icon: 'cloud-outline',
-        score: typeof travelHealth.airQuality.value === 'number' ? travelHealth.airQuality.value : 0,
+        id: "air_quality",
+        label: "Air Quality",
+        value: travelHealth.airQuality.status || "Unknown",
+        status: getStatusFromRiskLevel(
+          travelHealth.airQuality.riskLevel || "moderate",
+        ),
+        icon: "cloud-outline",
+        score:
+          typeof travelHealth.airQuality.value === "number"
+            ? travelHealth.airQuality.value
+            : 0,
       });
     }
 
     if (travelHealth.pollenLevels) {
       metrics.push({
-        id: 'pollen',
-        label: 'Pollen',
-        value: travelHealth.pollenLevels.status || 'Unknown',
-        status: getStatusFromRiskLevel(travelHealth.pollenLevels.riskLevel || 'moderate'),
-        icon: 'flower-outline',
-        score: typeof travelHealth.pollenLevels.value === 'number' ? travelHealth.pollenLevels.value : 0,
+        id: "pollen",
+        label: "Pollen",
+        value: travelHealth.pollenLevels.status || "Unknown",
+        status: getStatusFromRiskLevel(
+          travelHealth.pollenLevels.riskLevel || "moderate",
+        ),
+        icon: "flower-outline",
+        score:
+          typeof travelHealth.pollenLevels.value === "number"
+            ? travelHealth.pollenLevels.value
+            : 0,
       });
     }
 
     if (travelHealth.waterSafety) {
       metrics.push({
-        id: 'water_quality',
-        label: 'Water Quality',
-        value: travelHealth.waterSafety.status || 'Unknown',
-        status: getStatusFromRiskLevel(travelHealth.waterSafety.riskLevel || 'moderate'),
-        icon: 'water-outline',
-        score: typeof travelHealth.waterSafety.value === 'number' ? travelHealth.waterSafety.value : 0,
+        id: "water_quality",
+        label: "Water Quality",
+        value: travelHealth.waterSafety.status || "Unknown",
+        status: getStatusFromRiskLevel(
+          travelHealth.waterSafety.riskLevel || "moderate",
+        ),
+        icon: "water-outline",
+        score:
+          typeof travelHealth.waterSafety.value === "number"
+            ? travelHealth.waterSafety.value
+            : 0,
       });
     }
 
@@ -117,24 +176,40 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
   const closestFacilities = [
     ...(nearestHospital && nearestHospitalData
-      ? [{ id: 'hospital1', name: nearestHospital, type: 'Hospital', distance: formatFacilityDistance(nearestHospitalData.distance), travelTime: '8 mins' }]
+      ? [
+          {
+            id: "hospital1",
+            name: nearestHospital,
+            type: "Hospital",
+            distance: formatFacilityDistance(nearestHospitalData.distance),
+            travelTime: "8 mins",
+          },
+        ]
       : []),
     ...(nearestPharmacy && nearestPharmacyData
-      ? [{ id: 'pharmacy1', name: nearestPharmacy, type: 'Pharmacy', distance: formatFacilityDistance(nearestPharmacyData.distance), travelTime: '6 mins' }]
+      ? [
+          {
+            id: "pharmacy1",
+            name: nearestPharmacy,
+            type: "Pharmacy",
+            distance: formatFacilityDistance(nearestPharmacyData.distance),
+            travelTime: "6 mins",
+          },
+        ]
       : []),
   ];
 
   return (
-    <View
-      style={[styles.container, !showMore && styles.containerCollapsed]}
-    >
+    <View style={[styles.container, !showMore && styles.containerCollapsed]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Ionicons name="location" size={20} color="#3AABF0" />
           <Text style={styles.title}>Travel Health</Text>
         </View>
         <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-          <Text style={styles.moreTabText}>{showMore ? 'Show Less' : 'View All'}</Text>
+          <Text style={styles.moreTabText}>
+            {showMore ? "Show Less" : "View All"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -144,12 +219,15 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
       </View>
 
       <View style={styles.metricsContainer}>
-        {environmentalMetrics.map(metric => (
+        {environmentalMetrics.map((metric) => (
           <EnvironmentalMetricCard
             key={metric.id}
             metric={metric}
             getStatusColor={getStatusColor}
-            onPress={m => { setSelectedMetric(m); setModalVisible(true); }}
+            onPress={(m) => {
+              setSelectedMetric(m);
+              setModalVisible(true);
+            }}
           />
         ))}
       </View>
@@ -158,7 +236,10 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
       <View style={styles.moreTabContainer}>
         {!showMore && (
-          <TouchableOpacity onPress={() => setShowMore(true)} style={styles.moreTab}>
+          <TouchableOpacity
+            onPress={() => setShowMore(true)}
+            style={styles.moreTab}
+          >
             <Text style={styles.moreTabText}>+ More</Text>
           </TouchableOpacity>
         )}
@@ -185,7 +266,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 20,
     paddingBottom: 0,
@@ -194,22 +275,22 @@ const styles = StyleSheet.create({
   },
   containerCollapsed: {
     height: 425,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginLeft: 8,
   },
   locationContainer: {
@@ -217,13 +298,13 @@ const styles = StyleSheet.create({
   },
   currentLocation: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   locationSubtitle: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   metricsContainer: {
     marginBottom: 12,
@@ -233,19 +314,19 @@ const styles = StyleSheet.create({
     marginBottom: 34,
   },
   moreTab: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 8,
     marginTop: 0,
   },
   moreTabText: {
-    color: '#3AABF0',
-    fontWeight: '600',
+    color: "#3AABF0",
+    fontWeight: "600",
     fontSize: 14,
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
 });

@@ -26,22 +26,10 @@ export const travelShellStyles = StyleSheet.create({
     color: palette.textPrimary,
     marginBottom: 4,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: palette.textSecondary,
-    fontWeight: "400",
-    lineHeight: 20,
-    flexWrap: "wrap",
-  },
 
   // Tab styles now live inside TravelTabBar component (Glass Island design).
   // These are kept as empty stubs so any leftover references don't crash.
-  tabContainer: {},
-  tabScrollContainer: {},
-  tab: {},
-  activeTab: {},
-  tabText: {},
-  activeTabText: {},
+
   scrollContainer: {
     flex: 1,
   },
@@ -63,30 +51,8 @@ export const travelShellStyles = StyleSheet.create({
   },
   // Detailed modal styles to match dashboard
 
-  description: {
-    fontSize: 16,
-    color: palette.textSecondary,
-    lineHeight: 24,
-  },
-
   metricsContainer: {
     marginTop: 20,
-  },
-  metricCard: {
-    backgroundColor: palette.surfaceElevated,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 0,
-    borderColor: palette.border,
-    width: "48%", // Two columns
-  },
-
-  metricValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: palette.textPrimary,
-    marginBottom: 4,
   },
 
   emptyState: {

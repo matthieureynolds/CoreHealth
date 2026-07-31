@@ -36,23 +36,6 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginLeft: 0,
   },
 
-  tipText: {
-    fontSize: 14,
-    color: palette.textPrimary,
-    marginLeft: 12,
-    flex: 1,
-  },
-
-  progressText: {
-    fontSize: 14,
-    color: palette.textSecondary,
-    marginLeft: 8,
-  },
-
-  countryName: {
-    fontSize: 18,
-    color: palette.textSecondary,
-  },
   summaryCard: {
     backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
@@ -156,48 +139,6 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  medicationCard: {
-    backgroundColor: palette.surfaceElevated,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 0,
-    borderColor: palette.border,
-  },
-
-  medicationHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  emergencySection: {
-    marginBottom: 20,
-  },
-
-  emergencyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  emergencyTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: palette.textPrimary,
-    marginLeft: 8,
-  },
-
-  emergencyNumber: {
-    fontSize: 14,
-    color: palette.textPrimary,
-    fontWeight: "600",
-  },
-
-  jetLagHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-
   datePickerOverlay: {
     position: "absolute",
     top: 0,
@@ -259,20 +200,6 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     color: palette.textPrimary,
   },
 
-  cancelButton: {
-    backgroundColor: palette.textSecondary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginTop: 12,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: palette.textPrimary,
-    textAlign: "center",
-  },
-
   emergencyModal: {
     backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
@@ -328,15 +255,6 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     fontWeight: "bold",
     color: palette.textPrimary,
     flexShrink: 1,
-  },
-
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: palette.link,
-    marginRight: 4,
   },
 
   metricRightCol: {

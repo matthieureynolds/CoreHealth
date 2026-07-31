@@ -1,5 +1,5 @@
-import * as Location from 'expo-location';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface LocationConfig {
   accuracy?: Location.Accuracy;
@@ -38,7 +38,7 @@ export class LocationService {
       await this.checkPermissionStatus();
       await this.loadSettings();
     } catch (error) {
-      console.error('Error initializing location service:', error);
+      console.error("Error initializing location service:", error);
     }
   }
 
@@ -51,7 +51,7 @@ export class LocationService {
       this.permissionStatus = status;
       return status;
     } catch (error) {
-      console.error('Error checking location permission status:', error);
+      console.error("Error checking location permission status:", error);
       return Location.PermissionStatus.DENIED;
     }
   }
@@ -61,22 +61,24 @@ export class LocationService {
    */
   public async requestPermission(): Promise<Location.PermissionStatus> {
     try {
-      
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       this.permissionStatus = status;
-      
+
       if (status === Location.PermissionStatus.GRANTED) {
         this.isEnabled = true;
-        await AsyncStorage.setItem('locationAccess', 'true');
+        await AsyncStorage.setItem("locationAccess", "true");
       } else {
         this.isEnabled = false;
-        await AsyncStorage.setItem('locationAccess', 'false');
+        await AsyncStorage.setItem("locationAccess", "false");
       }
-      
+
       return status;
     } catch (error) {
-      console.error('❌ LocationService: Error requesting location permission:', error);
+      console.error(
+        "❌ LocationService: Error requesting location permission:",
+        error,
+      );
       return Location.PermissionStatus.DENIED;
     }
   }
@@ -85,7 +87,10 @@ export class LocationService {
    * Check if location access is enabled
    */
   public isLocationEnabled(): boolean {
-    return this.isEnabled && this.permissionStatus === Location.PermissionStatus.GRANTED;
+    return (
+      this.isEnabled &&
+      this.permissionStatus === Location.PermissionStatus.GRANTED
+    );
   }
 
   /**
@@ -98,9 +103,11 @@ export class LocationService {
   /**
    * Get current location (single request)
    */
-  public async getCurrentLocation(config?: LocationConfig): Promise<LocationData | null> {
+  public async getCurrentLocation(
+    config?: LocationConfig,
+  ): Promise<LocationData | null> {
     if (!this.isLocationEnabled()) {
-      throw new Error('Location access is not enabled');
+      throw new Error("Location access is not enabled");
     }
 
     try {
@@ -120,7 +127,7 @@ export class LocationService {
       this.currentLocation = locationData;
       return locationData;
     } catch (error) {
-      console.error('Error getting current location:', error);
+      console.error("Error getting current location:", error);
       return null;
     }
   }
@@ -130,7 +137,7 @@ export class LocationService {
    */
   public async startLocationUpdates(config?: LocationConfig): Promise<boolean> {
     if (!this.isLocationEnabled()) {
-      throw new Error('Location access is not enabled');
+      throw new Error("Location access is not enabled");
     }
 
     if (this.locationSubscription) {
@@ -153,12 +160,12 @@ export class LocationService {
             timestamp: location.timestamp,
           };
           this.currentLocation = locationData;
-        }
+        },
       );
 
       return true;
     } catch (error) {
-      console.error('Error starting location updates:', error);
+      console.error("Error starting location updates:", error);
       return false;
     }
   }
@@ -187,7 +194,7 @@ export class LocationService {
     lat1: number,
     lon1: number,
     lat2: number,
-    lon2: number
+    lon2: number,
   ): number {
     const R = 6371e3; // Earth's radius in meters
     const φ1 = (lat1 * Math.PI) / 180;
@@ -211,18 +218,26 @@ export class LocationService {
     centerLon: number,
     targetLat: number,
     targetLon: number,
-    radiusMeters: number
+    radiusMeters: number,
   ): boolean {
-    const distance = this.calculateDistance(centerLat, centerLon, targetLat, targetLon);
+    const distance = this.calculateDistance(
+      centerLat,
+      centerLon,
+      targetLat,
+      targetLon,
+    );
     return distance <= radiusMeters;
   }
 
   /**
    * Get nearby places using reverse geocoding
    */
-  public async getNearbyPlaces(latitude: number, longitude: number): Promise<any[]> {
+  public async getNearbyPlaces(
+    latitude: number,
+    longitude: number,
+  ): Promise<any[]> {
     if (!this.isLocationEnabled()) {
-      throw new Error('Location access is not enabled');
+      throw new Error("Location access is not enabled");
     }
 
     try {
@@ -232,7 +247,7 @@ export class LocationService {
       });
       return results;
     } catch (error) {
-      console.error('Error getting nearby places:', error);
+      console.error("Error getting nearby places:", error);
       return [];
     }
   }
@@ -245,7 +260,7 @@ export class LocationService {
       const status = await this.requestPermission();
       return status === Location.PermissionStatus.GRANTED;
     } catch (error) {
-      console.error('Error enabling location:', error);
+      console.error("Error enabling location:", error);
       return false;
     }
   }
@@ -256,7 +271,7 @@ export class LocationService {
   public async disableLocation(): Promise<void> {
     this.isEnabled = false;
     this.stopLocationUpdates();
-    await AsyncStorage.setItem('locationAccess', 'false');
+    await AsyncStorage.setItem("locationAccess", "false");
   }
 
   /**
@@ -264,14 +279,17 @@ export class LocationService {
    */
   private async loadSettings(): Promise<void> {
     try {
-      const stored = await AsyncStorage.getItem('locationAccess');
-      if (stored === 'true' && this.permissionStatus === Location.PermissionStatus.GRANTED) {
+      const stored = await AsyncStorage.getItem("locationAccess");
+      if (
+        stored === "true" &&
+        this.permissionStatus === Location.PermissionStatus.GRANTED
+      ) {
         this.isEnabled = true;
       } else {
         this.isEnabled = false;
       }
     } catch (error) {
-      console.error('Error loading location settings:', error);
+      console.error("Error loading location settings:", error);
     }
   }
 
@@ -282,7 +300,7 @@ export class LocationService {
     try {
       return await Location.hasServicesEnabledAsync();
     } catch (error) {
-      console.error('Error checking if location services are enabled:', error);
+      console.error("Error checking if location services are enabled:", error);
       return false;
     }
   }
@@ -290,37 +308,41 @@ export class LocationService {
   /**
    * Get location accuracy options for display
    */
-  public getAccuracyOptions(): Array<{ value: Location.Accuracy; label: string; description: string }> {
+  public getAccuracyOptions(): Array<{
+    value: Location.Accuracy;
+    label: string;
+    description: string;
+  }> {
     return [
       {
         value: Location.Accuracy.Lowest,
-        label: 'Lowest',
-        description: '±5km accuracy, best battery life',
+        label: "Lowest",
+        description: "±5km accuracy, best battery life",
       },
       {
         value: Location.Accuracy.Low,
-        label: 'Low',
-        description: '±1km accuracy, good battery life',
+        label: "Low",
+        description: "±1km accuracy, good battery life",
       },
       {
         value: Location.Accuracy.Balanced,
-        label: 'Balanced',
-        description: '±100m accuracy, balanced performance',
+        label: "Balanced",
+        description: "±100m accuracy, balanced performance",
       },
       {
         value: Location.Accuracy.High,
-        label: 'High',
-        description: '±10m accuracy, higher battery usage',
+        label: "High",
+        description: "±10m accuracy, higher battery usage",
       },
       {
         value: Location.Accuracy.Highest,
-        label: 'Highest',
-        description: '±3m accuracy, highest battery usage',
+        label: "Highest",
+        description: "±3m accuracy, highest battery usage",
       },
       {
         value: Location.Accuracy.BestForNavigation,
-        label: 'Navigation',
-        description: 'Best for navigation, highest battery usage',
+        label: "Navigation",
+        description: "Best for navigation, highest battery usage",
       },
     ];
   }
@@ -334,11 +356,11 @@ export class LocationService {
       this.currentLocation = null;
       this.isEnabled = false;
       this.permissionStatus = null;
-      await AsyncStorage.removeItem('locationAccess');
+      await AsyncStorage.removeItem("locationAccess");
     } catch (error) {
-      console.error('Error resetting location service:', error);
+      console.error("Error resetting location service:", error);
     }
   }
 }
 
-export default LocationService.getInstance(); 
+export default LocationService.getInstance();

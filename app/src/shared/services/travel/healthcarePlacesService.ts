@@ -1,15 +1,15 @@
-import { API_CONFIG } from '../../config/api';
-export { getClosestMedicalFacilities } from './healthcarePlacesServiceEnhanced';
-export type { ClosestMedicalFacilities } from './healthcarePlacesServiceEnhanced';
+import { API_CONFIG } from "../../config/api";
+export { getClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
+export type { ClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 
 // Healthcare facility types for Google Places API
 export const HEALTHCARE_TYPES = {
-  HOSPITAL: 'hospital',
-  PHARMACY: 'pharmacy',
-  DOCTOR: 'doctor',
-  DENTIST: 'dentist',
-  PHYSIOTHERAPIST: 'physiotherapist',
-  VETERINARY_CARE: 'veterinary_care',
+  HOSPITAL: "hospital",
+  PHARMACY: "pharmacy",
+  DOCTOR: "doctor",
+  DENTIST: "dentist",
+  PHYSIOTHERAPIST: "physiotherapist",
+  VETERINARY_CARE: "veterinary_care",
 } as const;
 
 // Healthcare facility interfaces
@@ -96,21 +96,22 @@ export interface GooglePlacesResponse {
 export const searchNearbyHealthcareFacilities = async (
   latitude: number,
   longitude: number,
-  type: keyof typeof HEALTHCARE_TYPES = 'HOSPITAL',
-  radius: number = 5000
+  type: keyof typeof HEALTHCARE_TYPES = "HOSPITAL",
+  radius: number = 5000,
 ): Promise<HealthcareFacility[]> => {
   try {
     if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      console.warn('🚨 Google Maps API key not found, cannot search healthcare facilities');
+      console.warn(
+        "🚨 Google Maps API key not found, cannot search healthcare facilities",
+      );
       return [];
     }
 
     const searchType = HEALTHCARE_TYPES[type];
     const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${searchType}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
 
-    
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       console.error(`🚨 Places API HTTP error: ${response.status}`);
       throw new Error(`Places API error: ${response.status}`);
@@ -118,25 +119,26 @@ export const searchNearbyHealthcareFacilities = async (
 
     const data: GooglePlacesResponse = await response.json();
 
-    if (data.status !== 'OK') {
+    if (data.status !== "OK") {
       console.warn(`🚨 Google Places API error for ${type}:`, data.status);
       return [];
     }
 
     // Convert Google Places results to our HealthcareFacility format
-    const facilities: HealthcareFacility[] = data.results.map(place => {
+    const facilities: HealthcareFacility[] = data.results.map((place) => {
       // Calculate distance
       const distance = calculateDistance(
         latitude,
         longitude,
         place.geometry.location.lat,
-        place.geometry.location.lng
+        place.geometry.location.lng,
       );
 
       // Determine if it's an emergency facility
-      const emergencyServices = place.types.includes('hospital') || 
-                              place.name.toLowerCase().includes('emergency') ||
-                              place.name.toLowerCase().includes('urgent care');
+      const emergencyServices =
+        place.types.includes("hospital") ||
+        place.name.toLowerCase().includes("emergency") ||
+        place.name.toLowerCase().includes("urgent care");
 
       return {
         id: place.place_id,
@@ -150,15 +152,18 @@ export const searchNearbyHealthcareFacilities = async (
         rating: place.rating,
         userRatingsTotal: place.user_ratings_total,
         priceLevel: place.price_level,
-        openingHours: place.opening_hours ? {
-          openNow: place.opening_hours.open_now,
-          periods: place.opening_hours.periods,
-          weekdayText: place.opening_hours.weekday_text,
-        } : undefined,
+        openingHours: place.opening_hours
+          ? {
+              openNow: place.opening_hours.open_now,
+              periods: place.opening_hours.periods,
+              weekdayText: place.opening_hours.weekday_text,
+            }
+          : undefined,
         phoneNumber: place.formatted_phone_number,
         website: place.website,
-        photos: place.photos?.map(photo => 
-          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`
+        photos: place.photos?.map(
+          (photo) =>
+            `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`,
         ),
         distance: Math.round(distance),
         emergencyServices,
@@ -168,7 +173,7 @@ export const searchNearbyHealthcareFacilities = async (
     // Sort by distance
     return facilities.sort((a, b) => (a.distance || 0) - (b.distance || 0));
   } catch (error) {
-    console.error('Error searching healthcare facilities:', error);
+    console.error("Error searching healthcare facilities:", error);
     return [];
   }
 };
@@ -179,7 +184,7 @@ export const searchNearbyHealthcareFacilities = async (
 export const getAllHealthcareFacilities = async (
   latitude: number,
   longitude: number,
-  radius: number = 5000
+  radius: number = 5000,
 ): Promise<{
   hospitals: HealthcareFacility[];
   pharmacies: HealthcareFacility[];
@@ -189,10 +194,10 @@ export const getAllHealthcareFacilities = async (
 }> => {
   try {
     const [hospitals, pharmacies, clinics, dentists] = await Promise.all([
-      searchNearbyHealthcareFacilities(latitude, longitude, 'HOSPITAL', radius),
-      searchNearbyHealthcareFacilities(latitude, longitude, 'PHARMACY', radius),
-      searchNearbyHealthcareFacilities(latitude, longitude, 'DOCTOR', radius),
-      searchNearbyHealthcareFacilities(latitude, longitude, 'DENTIST', radius),
+      searchNearbyHealthcareFacilities(latitude, longitude, "HOSPITAL", radius),
+      searchNearbyHealthcareFacilities(latitude, longitude, "PHARMACY", radius),
+      searchNearbyHealthcareFacilities(latitude, longitude, "DOCTOR", radius),
+      searchNearbyHealthcareFacilities(latitude, longitude, "DENTIST", radius),
     ]);
 
     return {
@@ -200,10 +205,11 @@ export const getAllHealthcareFacilities = async (
       pharmacies,
       clinics,
       dentists,
-      total: hospitals.length + pharmacies.length + clinics.length + dentists.length,
+      total:
+        hospitals.length + pharmacies.length + clinics.length + dentists.length,
     };
   } catch (error) {
-    console.error('Error getting all healthcare facilities:', error);
+    console.error("Error getting all healthcare facilities:", error);
     return {
       hospitals: [],
       pharmacies: [],
@@ -217,91 +223,93 @@ export const getAllHealthcareFacilities = async (
 /**
  * Get emergency contacts for a country
  */
-export const getEmergencyContacts = (countryCode: string): EmergencyContacts => {
+export const getEmergencyContacts = (
+  countryCode: string,
+): EmergencyContacts => {
   const emergencyDatabase: Record<string, EmergencyContacts> = {
     US: {
-      countryCode: 'US',
-      country: 'United States',
-      emergency: '911',
-      police: '911',
-      fire: '911',
-      ambulance: '911',
-      poisonControl: '1-800-222-1222',
-      mentalHealth: '988',
-      nonEmergencyMedical: '311',
-      touristHotline: '1-800-255-3050',
+      countryCode: "US",
+      country: "United States",
+      emergency: "911",
+      police: "911",
+      fire: "911",
+      ambulance: "911",
+      poisonControl: "1-800-222-1222",
+      mentalHealth: "988",
+      nonEmergencyMedical: "311",
+      touristHotline: "1-800-255-3050",
     },
     FR: {
-      countryCode: 'FR',
-      country: 'France',
-      emergency: '112',
-      police: '17',
-      fire: '18',
-      ambulance: '15',
-      poisonControl: '01 40 05 48 48',
-      touristHotline: '3975',
+      countryCode: "FR",
+      country: "France",
+      emergency: "112",
+      police: "17",
+      fire: "18",
+      ambulance: "15",
+      poisonControl: "01 40 05 48 48",
+      touristHotline: "3975",
     },
     UK: {
-      countryCode: 'UK',
-      country: 'United Kingdom',
-      emergency: '999',
-      police: '999',
-      fire: '999',
-      ambulance: '999',
-      nonEmergencyMedical: '111',
-      touristHotline: '0300 123 9999',
+      countryCode: "UK",
+      country: "United Kingdom",
+      emergency: "999",
+      police: "999",
+      fire: "999",
+      ambulance: "999",
+      nonEmergencyMedical: "111",
+      touristHotline: "0300 123 9999",
     },
     JP: {
-      countryCode: 'JP',
-      country: 'Japan',
-      emergency: '110',
-      police: '110',
-      fire: '119',
-      ambulance: '119',
-      touristHotline: '050-3816-2787',
+      countryCode: "JP",
+      country: "Japan",
+      emergency: "110",
+      police: "110",
+      fire: "119",
+      ambulance: "119",
+      touristHotline: "050-3816-2787",
     },
     AU: {
-      countryCode: 'AU',
-      country: 'Australia',
-      emergency: '000',
-      police: '000',
-      fire: '000',
-      ambulance: '000',
-      poisonControl: '13 11 26',
-      mentalHealth: '13 11 14',
-      touristHotline: '1800 634 542',
+      countryCode: "AU",
+      country: "Australia",
+      emergency: "000",
+      police: "000",
+      fire: "000",
+      ambulance: "000",
+      poisonControl: "13 11 26",
+      mentalHealth: "13 11 14",
+      touristHotline: "1800 634 542",
     },
     CA: {
-      countryCode: 'CA',
-      country: 'Canada',
-      emergency: '911',
-      police: '911',
-      fire: '911',
-      ambulance: '911',
-      poisonControl: '1-844-764-7669',
-      mentalHealth: '1-833-456-4566',
+      countryCode: "CA",
+      country: "Canada",
+      emergency: "911",
+      police: "911",
+      fire: "911",
+      ambulance: "911",
+      poisonControl: "1-844-764-7669",
+      mentalHealth: "1-833-456-4566",
     },
     DE: {
-      countryCode: 'DE',
-      country: 'Germany',
-      emergency: '112',
-      police: '110',
-      fire: '112',
-      ambulance: '112',
-      poisonControl: '030 19240',
-      touristHotline: '030 25 00 25',
+      countryCode: "DE",
+      country: "Germany",
+      emergency: "112",
+      police: "110",
+      fire: "112",
+      ambulance: "112",
+      poisonControl: "030 19240",
+      touristHotline: "030 25 00 25",
     },
   };
 
   // Default international emergency contacts
   const defaultContacts: EmergencyContacts = {
-    countryCode: 'INTL',
-    country: 'International',
-    emergency: '112',
-    police: '112',
-    fire: '112',
-    ambulance: '112',
-    touristHotline: 'Contact local embassy',
+    countryCode: "INTL",
+    country: "International",
+    emergency: "112",
+    police: "112",
+    fire: "112",
+    ambulance: "112",
+    touristHotline: "Contact local embassy",
   };
 
   return emergencyDatabase[countryCode.toUpperCase()] || defaultContacts;
@@ -310,17 +318,22 @@ export const getEmergencyContacts = (countryCode: string): EmergencyContacts => 
 /**
  * Calculate distance between two coordinates (Haversine formula)
  */
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371e3; // Earth's radius in meters
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c;
 }
@@ -328,17 +341,19 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 /**
  * Get facility type icon
  */
-export const getFacilityIcon = (type: keyof typeof HEALTHCARE_TYPES): string => {
+export const getFacilityIcon = (
+  type: keyof typeof HEALTHCARE_TYPES,
+): string => {
   const iconMap = {
-    HOSPITAL: 'medical',
-    PHARMACY: 'fitness',
-    DOCTOR: 'person',
-    DENTIST: 'happy',
-    PHYSIOTHERAPIST: 'body',
-    VETERINARY_CARE: 'paw',
+    HOSPITAL: "medical",
+    PHARMACY: "fitness",
+    DOCTOR: "person",
+    DENTIST: "happy",
+    PHYSIOTHERAPIST: "body",
+    VETERINARY_CARE: "paw",
   };
 
-  return iconMap[type] || 'medical';
+  return iconMap[type] || "medical";
 };
 
 /**
@@ -349,4 +364,4 @@ export const formatDistance = (distance: number): string => {
     return `${distance}m`;
   }
   return `${(distance / 1000).toFixed(1)}km`;
-}; 
+};

@@ -313,12 +313,6 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     fontSize: 16,
     color: palette.textPrimary,
   },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginTop: 20,
-  },
 
   modalButtonPrimaryText: {
     fontSize: 16,
@@ -370,66 +364,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
 
-  locationSubtitle: {
-    fontSize: 14,
-    color: palette.textSecondary,
-    marginTop: 4,
-  },
-
-  riskText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: palette.success,
-    marginLeft: 8,
-  },
-
-  facilityCard: {
-    backgroundColor: palette.surfaceElevated,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 0,
-    borderColor: palette.border,
-  },
-
-  facilityInfo: {
-    fontSize: 14,
-    color: palette.textSecondary,
-    marginBottom: 4,
-  },
-  facilityDetails: {
-    fontSize: 13,
-    color: palette.textSecondary,
-    marginLeft: 16,
-  },
   vaccinationSection: {
     marginBottom: 20,
-  },
-  vaccinationCard: {
-    backgroundColor: palette.surfaceElevated,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 0,
-    borderColor: palette.border,
-  },
-  vaccinationHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  chip: {
-    backgroundColor: palette.surfaceElevated,
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderWidth: 0,
-    borderColor: palette.border,
-  },
-
-  chipText: {
-    color: palette.textSecondary,
-    fontSize: 12,
-    fontWeight: "600",
   },
 });
