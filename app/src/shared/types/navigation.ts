@@ -85,25 +85,6 @@ export type SerializedTrip = {
 export type TravelStackParamList = {
   TravelList: undefined;
 
-  HealthMetrics: undefined;
-  AirQuality: undefined;
-  WaterSafety: undefined;
-  UVIndex: undefined;
-  FoodSafety: undefined;
-  PollenMetric: undefined;
-  Altitude: undefined;
-  DiseaseOutbreak: undefined;
-
-  NearbyHospitals: undefined;
-  /**
-   * Distinct from ProfileStackParamList's `Vaccinations`, which is a different
-   * screen. Sharing the name meant navigate('Vaccinations') typechecked against
-   * either list and could land on the wrong one.
-   */
-  TravelVaccinations: undefined;
-  TravelMedications: undefined;
-
-  AddNewTrip: undefined;
   TripDetail: { trip: SerializedTrip };
 };
 

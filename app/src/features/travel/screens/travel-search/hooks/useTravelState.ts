@@ -9,6 +9,7 @@ import {
   CitySearchResult,
 } from "@shared/services/travel/citySearchService";
 import { useCitySuggestions } from "./useCitySuggestions";
+import { deserializeStoredTrips } from "./tripStorage";
 import { Trip } from "./useTravelHandlers";
 import { MOCK_TRIPS } from "@features/travel/mockTrips";
 import { searchMockFlights } from "@features/travel/mockFlights";
@@ -63,14 +64,14 @@ export function useTravelState() {
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setTrips(
-                parsed.map((t: any) => ({
-                  ...t,
-                  departureDate: new Date(t.departureDate),
-                  returnDate: t.returnDate ? new Date(t.returnDate) : undefined,
-                })),
+            const { trips: restored, dropped } = deserializeStoredTrips(parsed);
+            if (dropped > 0) {
+              logger.warn(
+                `planned_trips: dropped ${dropped} trip(s) with unparseable dates`,
               );
+            }
+            if (restored.length > 0) {
+              setTrips(restored);
               loaded = true;
             }
           } catch (err) {
