@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { ProfileTabParamList } from "@shared/types";
-import { colors } from "@shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 type Nav = StackNavigationProp<ProfileTabParamList, "CountryLeaderboard">;
 
@@ -260,7 +260,7 @@ const CountryLeaderboardScreen: React.FC = () => {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={palette.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>World Rankings</Text>
@@ -452,7 +452,7 @@ export default CountryLeaderboardScreen;
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, backgroundColor: palette.bg },
 
   // Header
   header: {
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   headerCenter: { flex: 1, alignItems: "center" },
   headerTitle: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 18,
     fontWeight: "700",
     fontFamily: SF_FONT,
@@ -476,19 +476,19 @@ const styles = StyleSheet.create({
     fontFamily: SF_FONT,
   },
   joinBtn: {
-    backgroundColor: colors.cta,
+    backgroundColor: palette.cta,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
   },
   joinBtnText: {
-    color: colors.ctaText,
+    color: palette.ctaText,
     fontSize: 12,
     fontWeight: "700",
     fontFamily: SF_FONT,
   },
-  joinedBtn: { backgroundColor: colors.surfaceMuted },
-  joinedBtnText: { color: colors.textSecondary },
+  joinedBtn: { backgroundColor: palette.surfaceMuted },
+  joinedBtnText: { color: palette.textSecondary },
 
   // Category selector
   catScroll: { marginBottom: 4 },
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   catEmoji: { fontSize: 14 },
   catLabel: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 13,
     fontWeight: "600",
     fontFamily: SF_FONT,
@@ -554,14 +554,14 @@ const styles = StyleSheet.create({
   podiumMedal: { fontSize: 22, marginBottom: 2 },
   podiumFlag: { fontSize: 28, marginBottom: 4 },
   podiumName: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 11,
     fontWeight: "600",
     textAlign: "center",
     fontFamily: SF_FONT,
     marginBottom: 3,
   },
-  podiumNameFirst: { color: colors.textPrimary, fontSize: 12 },
+  podiumNameFirst: { color: palette.textPrimary, fontSize: 12 },
   podiumScore: {
     fontSize: 16,
     fontWeight: "800",
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   // List
   listSection: { paddingHorizontal: 20 },
   listHeader: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.8,
@@ -600,14 +600,14 @@ const styles = StyleSheet.create({
     borderBottomColor: "#2C2C2E",
   },
   rankNum: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     width: 36,
     fontSize: 13,
     fontFamily: SF_FONT,
   },
   rankFlag: { width: 26, textAlign: "center", fontSize: 18 },
   rankName: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 14,
     fontWeight: "600",
     flex: 1,

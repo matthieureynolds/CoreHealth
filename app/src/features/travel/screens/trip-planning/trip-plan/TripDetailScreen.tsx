@@ -1460,7 +1460,7 @@ const s = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: palette.successAlt,
+    backgroundColor: palette.success,
     alignItems: "center",
     justifyContent: "center",
   },

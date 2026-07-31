@@ -425,27 +425,6 @@ export const searchMedications = (query: string): MedicationInfo[] => {
 };
 
 /**
- * Get availability status color for UI
- */
-export const getAvailabilityColor = (
-  availability: CountryMedicationStatus["availability"],
-): string => {
-  switch (availability) {
-    case "available":
-      return "#30D158"; // Green
-    case "prescription_required":
-      return "#FF9500"; // Orange
-    case "restricted":
-      return "#FF5722"; // Red-orange
-    case "banned":
-      return "#FF3B30"; // Red
-    case "unknown":
-    default:
-      return "#666666"; // Gray
-  }
-};
-
-/**
  * Format medication availability status for display
  */
 export const formatAvailabilityStatus = (

@@ -13,7 +13,7 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "@shared/types";
-import { colors } from "@shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 type Route = RouteProp<RootStackParamList, "ScoreDetail">;
 type Nav = StackNavigationProp<RootStackParamList, "ScoreDetail">;
@@ -69,7 +69,7 @@ const ScoreDetailScreen: React.FC = () => {
           style={styles.headerButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={palette.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title} Score</Text>
         <View style={styles.headerRightSpacer} />
@@ -80,7 +80,7 @@ const ScoreDetailScreen: React.FC = () => {
           onPress={() => setDayOffset((prev) => prev - 1)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+          <Ionicons name="chevron-back" size={18} color={palette.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.dayLabel}>{dayLabel}</Text>
         {dayOffset < 0 ? (
@@ -92,7 +92,7 @@ const ScoreDetailScreen: React.FC = () => {
             <Ionicons
               name="chevron-forward"
               size={18}
-              color={colors.textPrimary}
+              color={palette.textPrimary}
             />
           </TouchableOpacity>
         ) : (
@@ -170,21 +170,21 @@ const ScoreDetailScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1, backgroundColor: palette.bg },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingTop: 56,
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: colors.bg,
+    backgroundColor: palette.bg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
+    borderBottomColor: palette.divider,
   },
   headerButton: { padding: 8, marginRight: 6 },
   headerRightSpacer: { width: 32 },
   headerTitle: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 18,
     fontWeight: "700",
     flex: 1,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     height: 26,
   },
   dayLabel: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 12,
     fontWeight: "600",
     fontFamily: SF_FONT,
@@ -215,11 +215,11 @@ const styles = StyleSheet.create({
   heroCard: {
     marginHorizontal: 20,
     marginTop: 16,
-    backgroundColor: colors.card,
+    backgroundColor: palette.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: palette.divider,
   },
   scoreRingWrap: {
     width: 150,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 6,
-    borderColor: colors.cta,
+    borderColor: palette.cta,
   },
   scoreRingContent: {
     width: 150,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: palette.surfaceMuted,
   },
   scoreValue: {
     fontSize: 48,
@@ -252,28 +252,28 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     marginTop: 4,
     fontFamily: SF_FONT,
   },
   heroSubtitle: {
     marginTop: 12,
     textAlign: "center",
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 12,
     fontFamily: SF_FONT,
   },
   card: {
     marginHorizontal: 20,
     marginTop: 12,
-    backgroundColor: colors.card,
+    backgroundColor: palette.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: palette.divider,
   },
   sectionTitle: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 16,
     fontWeight: "600",
     fontFamily: SF_FONT,
@@ -284,17 +284,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
+    borderBottomColor: palette.divider,
   },
   metricText: { flex: 1, marginRight: 10 },
   metricLabel: {
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     fontSize: 14,
     fontWeight: "600",
     fontFamily: SF_FONT,
   },
   metricRange: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 11,
     marginTop: 2,
     fontFamily: SF_FONT,
@@ -313,9 +313,9 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   barCol: { flex: 1, alignItems: "center", justifyContent: "flex-end" },
-  barFill: { width: 14, borderRadius: 6, backgroundColor: colors.cta },
+  barFill: { width: 14, borderRadius: 6, backgroundColor: palette.cta },
   barLabel: {
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     fontSize: 10,
     marginTop: 6,
     fontFamily: SF_FONT,

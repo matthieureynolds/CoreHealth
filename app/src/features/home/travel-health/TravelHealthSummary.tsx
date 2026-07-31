@@ -11,6 +11,7 @@ import EnvironmentalMetricCard, {
 import MetricDetailModal from "./components/MetricDetailModal";
 import JetLagBanner from "./components/JetLagBanner";
 import NearbyFacilitiesSection from "./components/NearbyFacilitiesSection";
+import { palette } from "@shared/theme/colors";
 
 interface TravelHealthSummaryProps {
   currentLocation?: string;
@@ -27,17 +28,17 @@ interface TravelHealthSummaryProps {
 const getStatusColor = (status: string): string => {
   switch (status) {
     case "excellent":
-      return "#30D158";
+      return palette.success;
     case "good":
-      return "#32D74B";
+      return palette.success;
     case "moderate":
-      return "#FF9F0A";
+      return palette.warningAlt;
     case "poor":
-      return "#FF6B35";
+      return palette.alert;
     case "hazardous":
-      return "#FF3B30";
+      return palette.danger;
     default:
-      return "#8E8E93";
+      return palette.textSecondary;
   }
 };
 
@@ -203,7 +204,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
     <View style={[styles.container, !showMore && styles.containerCollapsed]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="location" size={20} color="#3AABF0" />
+          <Ionicons name="location" size={20} color={palette.link} />
           <Text style={styles.title}>Travel Health</Text>
         </View>
         <TouchableOpacity onPress={() => setShowMore(!showMore)}>
@@ -266,7 +267,7 @@ const TravelHealthSummary: React.FC<TravelHealthSummaryProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 20,
     padding: 20,
     paddingBottom: 0,
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 8,
   },
   locationContainer: {
@@ -299,12 +300,12 @@ const styles = StyleSheet.create({
   currentLocation: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 2,
   },
   locationSubtitle: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
   metricsContainer: {
     marginBottom: 12,
@@ -319,14 +320,14 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   moreTabText: {
-    color: "#3AABF0",
+    color: palette.link,
     fontWeight: "600",
     fontSize: 14,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 12,
   },
 });

@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Svg, { Rect, Polygon, Text as SvgText, G } from "react-native-svg";
 import { getMetricDetails } from "../travelHealthMetricDetails";
 import { EnvironmentalMetric } from "./EnvironmentalMetricCard";
+import { palette } from "@shared/theme/colors";
 
 interface Props {
   visible: boolean;
@@ -22,11 +23,20 @@ interface Props {
 const RANGE_DATA = {
   air_quality: {
     segments: [
-      { label: "Good", color: "#30D158", range: "0-50" },
-      { label: "Moderate", color: "#FF9F0A", range: "51-100", isBold: true },
-      { label: "Unhealthy for Sensitive", color: "#FF6B35", range: "101-150" },
-      { label: "Unhealthy", color: "#FF3B30", range: "151-200" },
-      { label: "Hazardous", color: "#8B0000", range: "201+" },
+      { label: "Good", color: palette.success, range: "0-50" },
+      {
+        label: "Moderate",
+        color: palette.warningAlt,
+        range: "51-100",
+        isBold: true,
+      },
+      {
+        label: "Unhealthy for Sensitive",
+        color: palette.alert,
+        range: "101-150",
+      },
+      { label: "Unhealthy", color: palette.danger, range: "151-200" },
+      { label: "Hazardous", color: palette.dangerDeep, range: "201+" },
     ],
     currentValue: 75,
     currentLabel: "Moderate",
@@ -34,11 +44,11 @@ const RANGE_DATA = {
   },
   pollen: {
     segments: [
-      { label: "Very Low", color: "#30D158", range: "0-4" },
-      { label: "Low", color: "#32D74B", range: "5-9" },
-      { label: "Moderate", color: "#FF9F0A", range: "10-49" },
-      { label: "High", color: "#FF6B35", range: "50-149" },
-      { label: "Very High", color: "#FF3B30", range: "150+" },
+      { label: "Very Low", color: palette.success, range: "0-4" },
+      { label: "Low", color: palette.success, range: "5-9" },
+      { label: "Moderate", color: palette.warningAlt, range: "10-49" },
+      { label: "High", color: palette.alert, range: "50-149" },
+      { label: "Very High", color: palette.danger, range: "150+" },
     ],
     currentValue: 25,
     currentLabel: "Moderate",
@@ -46,11 +56,16 @@ const RANGE_DATA = {
   },
   water_quality: {
     segments: [
-      { label: "Poor", color: "#FF3B30", range: "0-44" },
-      { label: "Marginal", color: "#FF6B35", range: "45-64" },
-      { label: "Good", color: "#FF9F0A", range: "65-79", isBold: true },
-      { label: "Very Good", color: "#32D74B", range: "80-94" },
-      { label: "Excellent", color: "#30D158", range: "95-100" },
+      { label: "Poor", color: palette.danger, range: "0-44" },
+      { label: "Marginal", color: palette.alert, range: "45-64" },
+      {
+        label: "Good",
+        color: palette.warningAlt,
+        range: "65-79",
+        isBold: true,
+      },
+      { label: "Very Good", color: palette.success, range: "80-94" },
+      { label: "Excellent", color: palette.success, range: "95-100" },
     ],
     currentValue: 87,
     currentLabel: "Very Good",
@@ -108,8 +123,8 @@ const RangeIndicator: React.FC<{ metric: EnvironmentalMetric }> = ({
           })}
           <Polygon
             points={`${Math.min(Math.max(pointerPosition, 10), barWidth - 10)},0 ${Math.min(Math.max(pointerPosition - 6, 4), barWidth - 16)},15 ${Math.min(Math.max(pointerPosition + 6, 16), barWidth - 4)},15`}
-            fill="#FFFFFF"
-            stroke="#FFFFFF"
+            fill={palette.textPrimary}
+            stroke={palette.textPrimary}
             strokeWidth="1"
           />
           {rangeData.segments.map((segment, index) => {
@@ -125,7 +140,7 @@ const RangeIndicator: React.FC<{ metric: EnvironmentalMetric }> = ({
                   x={centerX}
                   y={32}
                   fontSize="10"
-                  fill="#FFFFFF"
+                  fill={palette.textPrimary}
                   fontWeight={(segment as any).isBold ? "bold" : "600"}
                   textAnchor="middle"
                 >
@@ -135,7 +150,7 @@ const RangeIndicator: React.FC<{ metric: EnvironmentalMetric }> = ({
                   x={centerX}
                   y={42}
                   fontSize="10"
-                  fill="#8E8E93"
+                  fill={palette.textSecondary}
                   textAnchor="middle"
                 >
                   {segment.range}
@@ -195,7 +210,7 @@ const MetricDetailModal: React.FC<Props> = ({
               </Text>
             </View>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color="#8E8E93" />
+              <Ionicons name="close" size={24} color={palette.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -237,7 +252,11 @@ const MetricDetailModal: React.FC<Props> = ({
               {details.recommendations.map(
                 (recommendation: string, index: number) => (
                   <View key={index} style={styles.recommendationItem}>
-                    <Ionicons name="arrow-forward" size={16} color="#3AABF0" />
+                    <Ionicons
+                      name="arrow-forward"
+                      size={16}
+                      color={palette.link}
+                    />
                     <Text style={styles.recommendationText}>
                       {recommendation}
                     </Text>
@@ -250,7 +269,7 @@ const MetricDetailModal: React.FC<Props> = ({
               <Text style={styles.sectionTitle}>Risk Factors</Text>
               {details.riskFactors?.map((risk: string, index: number) => (
                 <View key={index} style={styles.riskItem}>
-                  <Ionicons name="warning" size={16} color="#FF9500" />
+                  <Ionicons name="warning" size={16} color={palette.warning} />
                   <Text style={styles.riskText}>{risk}</Text>
                 </View>
               ))}
@@ -271,7 +290,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 20,
     width: "100%",
     maxHeight: "90%",
@@ -287,7 +306,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2E",
+    borderBottomColor: palette.surfaceElevated,
   },
   modalIconContainer: {
     width: 56,
@@ -303,7 +322,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
   modalStatus: {
@@ -317,12 +336,12 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2E",
+    borderBottomColor: palette.surfaceElevated,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 12,
   },
   sectionContent: {
@@ -377,7 +396,7 @@ const styles = StyleSheet.create({
   },
   currentScoreText: {
     fontSize: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 4,

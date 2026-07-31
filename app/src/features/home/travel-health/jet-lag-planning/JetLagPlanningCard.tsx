@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSettings } from "@shared/context/SettingsContext";
 import { formatShortDateBySetting } from "@shared/utils/dateFormat";
 import { JetLagPlanningEvent } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 interface JetLagPlanningCardProps {
   event: JetLagPlanningEvent;
@@ -58,7 +59,7 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
     return evt.timeZoneDifference > 0 ? "Eastward" : "Westward";
   };
 
-  const statusColor = "#FF9500";
+  const statusColor = palette.warning;
 
   const renderContent = (evt: JetLagPlanningEvent, onEdit?: () => void) => (
     <View>
@@ -88,7 +89,11 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
       {/* Time difference and preparation info */}
       <View style={styles.infoRow}>
         <View style={styles.infoItem}>
-          <Ionicons name="time-outline" size={16} color="#8E8E93" />
+          <Ionicons
+            name="time-outline"
+            size={16}
+            color={palette.textSecondary}
+          />
           <Text style={styles.infoLabel}>Time Difference</Text>
           <Text style={styles.infoValue}>
             {evt.timeZoneDifference > 0 ? "+" : ""}
@@ -100,12 +105,20 @@ const JetLagPlanningCard: React.FC<JetLagPlanningCardProps> = ({
           onPress={onEdit}
           activeOpacity={0.7}
         >
-          <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={palette.textSecondary}
+          />
           <Text style={styles.infoLabel}>Departure</Text>
           <Text style={styles.infoValue}>{formatDate(evt.departureDate)}</Text>
         </TouchableOpacity>
         <View style={styles.infoItem}>
-          <Ionicons name="bed-outline" size={16} color="#8E8E93" />
+          <Ionicons
+            name="bed-outline"
+            size={16}
+            color={palette.textSecondary}
+          />
           <Text style={styles.infoLabel}>Days to Adjust</Text>
           <Text style={styles.infoValue}>{evt.daysToAdjust}</Text>
         </View>
@@ -214,12 +227,12 @@ const styles = StyleSheet.create({
   destination: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 2,
   },
   status: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     textTransform: "uppercase",
     fontWeight: "600",
   },
@@ -242,14 +255,14 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 11,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 4,
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
   schedulePreview: {
     backgroundColor: "transparent",
@@ -260,7 +273,7 @@ const styles = StyleSheet.create({
   scheduleTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 8,
     textAlign: "center",
   },
@@ -278,20 +291,20 @@ const styles = StyleSheet.create({
   },
   scheduleDay: {
     fontSize: 13,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "left",
     marginRight: 8,
     width: 56,
   },
   scheduleTime: {
     fontSize: 13,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
     flex: 1,
   },
   scheduleTimeOverlay: {
     fontSize: 13,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     position: "absolute",
     left: 0,
     right: 0,
@@ -299,7 +312,7 @@ const styles = StyleSheet.create({
   },
   scheduleAdjustment: {
     fontSize: 13,
-    color: "#34C759",
+    color: palette.success,
     fontWeight: "600",
   },
   scheduleMoreContainer: {
@@ -308,7 +321,7 @@ const styles = StyleSheet.create({
   },
   scheduleMore: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontStyle: "italic",
   },
   preparationInfo: {
@@ -319,7 +332,7 @@ const styles = StyleSheet.create({
   },
   preparationText: {
     fontSize: 12,
-    color: "#FF9500",
+    color: palette.warning,
     marginLeft: 6,
     flex: 1,
   },

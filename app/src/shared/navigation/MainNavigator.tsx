@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { MainTabParamList } from "../types";
-import { colors } from "../theme/colors";
+import { palette } from "../theme/colors";
 import { LiquidGlass } from "../components/ui/LiquidGlass";
 
 import DashboardScreen from "../../features/home/screens/DashboardScreen";
@@ -46,17 +46,17 @@ const MainNavigator: React.FC = () => {
             <Ionicons
               name={iconName}
               size={focused ? 32 : 24}
-              color={focused ? colors.tabActive : colors.tabInactive}
+              color={focused ? palette.tabActive : palette.tabInactive}
             />
           );
         },
-        tabBarActiveTintColor: colors.tabActive,
-        tabBarInactiveTintColor: colors.tabInactive,
+        tabBarActiveTintColor: palette.tabActive,
+        tabBarInactiveTintColor: palette.tabInactive,
         tabBarShowLabel: false,
         headerStyle: {
-          backgroundColor: colors.bg,
+          backgroundColor: palette.bg,
         },
-        headerTintColor: colors.textPrimary,
+        headerTintColor: palette.textPrimary,
         headerTitleStyle: {
           fontWeight: "bold",
         },

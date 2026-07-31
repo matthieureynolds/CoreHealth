@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { JetLagPlanningEvent } from "@shared/types/jetlag";
 import JetLagPlanningCard from "../jet-lag-planning/JetLagPlanningCard";
 import EmptyState from "@shared/components/feedback/EmptyState";
+import { palette } from "@shared/theme/colors";
 
 interface Facility {
   id: string;
@@ -80,7 +81,7 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
                     : "help-circle"
               }
               size={20}
-              color="#30D158"
+              color={palette.success}
             />
           </View>
           <View style={styles.facilityInfo}>
@@ -90,7 +91,7 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
             </Text>
           </View>
           <View style={styles.travelTimeContainer}>
-            <Ionicons name="car" size={14} color="#8E8E93" />
+            <Ionicons name="car" size={14} color={palette.textSecondary} />
             <Text style={styles.travelTime}>{facility.travelTime}</Text>
           </View>
         </TouchableOpacity>
@@ -114,8 +115,8 @@ const NearbyFacilitiesSection: React.FC<Props> = ({
             subtitle="Add your travel plans to get personalized jet lag preparation schedules"
             buttonText="Add Trip"
             onButtonPress={onTravelPress}
-            iconColor="#8E8E93"
-            buttonColor="#3AABF0"
+            iconColor={palette.textSecondary}
+            buttonColor={palette.link}
           />
         )}
       </View>
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   facilityCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -149,12 +150,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   facilityName: {
-    color: "#fff",
+    color: palette.textPrimary,
     fontWeight: "600",
     fontSize: 15,
   },
   facilityDetails: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 12,
   },
   travelTimeContainer: {
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
   },
   travelTime: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginLeft: 4,
   },
   lessTab: {
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     marginTop: 5.5,
   },
   lessTabText: {
-    color: "#3AABF0",
+    color: palette.link,
     fontWeight: "600",
     fontSize: 13,
   },

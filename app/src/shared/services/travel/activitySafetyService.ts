@@ -392,24 +392,6 @@ const determineBestActivityTimes = (
 };
 
 /**
- * Get activity safety color for UI
- */
-export const getActivitySafetyColor = (
-  outdoorSafety: "safe" | "caution" | "avoid",
-): string => {
-  switch (outdoorSafety) {
-    case "safe":
-      return "#30D158"; // Green
-    case "caution":
-      return "#FF9500"; // Orange
-    case "avoid":
-      return "#FF3B30"; // Red
-    default:
-      return "#666";
-  }
-};
-
-/**
  * Get activity recommendations for specific sports
  */
 export const getActivitySpecificRecommendations = (

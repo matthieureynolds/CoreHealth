@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthStackParamList } from "../types";
 import { useOnboarding } from "../hooks/useOnboarding";
-import { colors } from "../theme/colors";
+import { palette } from "../theme/colors";
 
 import LoginScreen from "../../features/auth/screens/LoginScreen";
 import RegisterScreen from "../../features/auth/screens/RegisterScreen";
@@ -32,7 +32,7 @@ const AuthNavigator: React.FC = () => {
       initialRouteName={hasSeenOnboarding ? "Login" : "Onboarding"}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.authCard },
+        cardStyle: { backgroundColor: palette.authCard },
       }}
     >
       {!hasSeenOnboarding ? (

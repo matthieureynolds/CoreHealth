@@ -8,7 +8,6 @@ export interface UVIndexData {
   category: string;
   description: string;
   recommendation: string;
-  color: string;
   timestamp: string;
 }
 
@@ -24,82 +23,66 @@ export interface UVIndexRequest {
 const UV_CATEGORIES = {
   0: {
     category: "Low",
-    color: "#00FF00",
     description: "Minimal sun protection required",
   },
   1: {
     category: "Low",
-    color: "#00FF00",
     description: "Minimal sun protection required",
   },
   2: {
     category: "Low",
-    color: "#00FF00",
     description: "Minimal sun protection required",
   },
   3: {
     category: "Moderate",
-    color: "#FFFF00",
     description: "Some sun protection required",
   },
   4: {
     category: "Moderate",
-    color: "#FFFF00",
     description: "Some sun protection required",
   },
   5: {
     category: "Moderate",
-    color: "#FFFF00",
     description: "Some sun protection required",
   },
   6: {
     category: "High",
-    color: "#FF8000",
     description: "Sun protection essential",
   },
   7: {
     category: "High",
-    color: "#FF8000",
     description: "Sun protection essential",
   },
   8: {
     category: "Very High",
-    color: "#FF0000",
     description: "Extra sun protection required",
   },
   9: {
     category: "Very High",
-    color: "#FF0000",
     description: "Extra sun protection required",
   },
   10: {
     category: "Very High",
-    color: "#FF0000",
     description: "Extra sun protection required",
   },
   11: {
     category: "Extreme",
-    color: "#800080",
     description: "Avoid sun exposure",
   },
   12: {
     category: "Extreme",
-    color: "#800080",
     description: "Avoid sun exposure",
   },
   13: {
     category: "Extreme",
-    color: "#800080",
     description: "Avoid sun exposure",
   },
   14: {
     category: "Extreme",
-    color: "#800080",
     description: "Avoid sun exposure",
   },
   15: {
     category: "Extreme",
-    color: "#800080",
     description: "Avoid sun exposure",
   },
 };
@@ -235,7 +218,6 @@ export function getUVIndexData(request: UVIndexRequest): UVIndexData {
     category: categoryData.category,
     description: categoryData.description,
     recommendation,
-    color: categoryData.color,
     timestamp: date.toISOString(),
   };
 }

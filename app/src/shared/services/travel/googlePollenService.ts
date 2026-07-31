@@ -1,6 +1,8 @@
 import { API_CONFIG } from "../../config/api";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 
 // Google Pollen API response interfaces
 export interface GooglePollenData {
@@ -67,6 +69,40 @@ export interface GooglePollenData {
     }>;
   }>;
 }
+
+/** Runtime shape of the Google Pollen response; read fields required, rest lenient. */
+const PollenResponseSchema = z.object({
+  regionCode: z.string().optional(),
+  pollen: z
+    .object({
+      tree: z
+        .object({
+          indexValue: z.number().optional(),
+          indexDescription: z.string().optional(),
+          category: z.string().optional(),
+          color: z.record(z.string(), z.number()).optional(),
+        })
+        .optional(),
+      grass: z
+        .object({
+          indexValue: z.number().optional(),
+          indexDescription: z.string().optional(),
+          category: z.string().optional(),
+          color: z.record(z.string(), z.number()).optional(),
+        })
+        .optional(),
+      weed: z
+        .object({
+          indexValue: z.number().optional(),
+          indexDescription: z.string().optional(),
+          category: z.string().optional(),
+          color: z.record(z.string(), z.number()).optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  dailyInfo: z.array(z.unknown()).optional(),
+});
 
 export interface GooglePollenResponse {
   regionCode: string;
@@ -169,7 +205,10 @@ export const getGooglePollenData = async (
       throw new Error(`Google Pollen API error: ${response.status}`);
     }
 
-    const data: GooglePollenResponse = await response.json();
+    const raw = await response.json();
+    const parsed = parseOrNull(PollenResponseSchema, raw, "googlePollen");
+    if (!parsed) return null;
+    const data = parsed as unknown as GooglePollenResponse;
 
     return {
       regionCode: data.regionCode,

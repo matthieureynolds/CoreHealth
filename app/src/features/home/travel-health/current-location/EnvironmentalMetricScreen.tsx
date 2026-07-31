@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 if (
   Platform.OS === "android" &&
@@ -31,11 +32,11 @@ type Nav = StackNavigationProp<RootStackParamList, "EnvironmentalMetric">;
 // ─────────────────── status helpers ───────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  excellent: "#30D158",
-  good: "#32D74B",
-  moderate: "#FF9F0A",
-  poor: "#FF6B35",
-  hazardous: "#FF3B30",
+  excellent: palette.success,
+  good: palette.success,
+  moderate: palette.warningAlt,
+  poor: palette.alert,
+  hazardous: palette.danger,
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -64,11 +65,11 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "The Air Quality Index (AQI) measures concentrations of pollutants including particulate matter (PM2.5, PM10), ozone, nitrogen dioxide, and sulfur dioxide. Values range from 0 to 300+.",
     segments: [
-      { label: "Good", color: "#30D158" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "Unhealthy\nSensitive", color: "#FF6B35" },
-      { label: "Unhealthy", color: "#FF3B30" },
-      { label: "Hazardous", color: "#8B0000" },
+      { label: "Good", color: palette.success },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "Unhealthy\nSensitive", color: palette.alert },
+      { label: "Unhealthy", color: palette.danger },
+      { label: "Hazardous", color: palette.dangerDeep },
     ],
     divisor: 300,
     homeScore: 35,
@@ -156,11 +157,11 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "Pollen count measures the concentration of pollen grains per cubic metre of air. Includes tree, grass, and weed pollen — each can trigger different allergic reactions.",
     segments: [
-      { label: "Very Low", color: "#30D158" },
-      { label: "Low", color: "#32D74B" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "High", color: "#FF6B35" },
-      { label: "Very High", color: "#FF3B30" },
+      { label: "Very Low", color: palette.success },
+      { label: "Low", color: palette.success },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "High", color: palette.alert },
+      { label: "Very High", color: palette.danger },
     ],
     divisor: 200,
     homeScore: 15,
@@ -247,11 +248,11 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "Water quality measures the safety of local water sources, testing for bacteria, chemical contaminants, heavy metals, and mineral content. Standards vary by country.",
     segments: [
-      { label: "Poor", color: "#FF3B30" },
-      { label: "Marginal", color: "#FF6B35" },
-      { label: "Good", color: "#FF9F0A" },
-      { label: "Very Good", color: "#32D74B" },
-      { label: "Excellent", color: "#30D158" },
+      { label: "Poor", color: palette.danger },
+      { label: "Marginal", color: palette.alert },
+      { label: "Good", color: palette.warningAlt },
+      { label: "Very Good", color: palette.success },
+      { label: "Excellent", color: palette.success },
     ],
     divisor: 100,
     homeScore: 85,
@@ -337,11 +338,11 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "The UV Index measures the strength of ultraviolet radiation from the sun that can cause sunburn and skin damage. Scale runs from 0 (minimal) to 11+ (extreme).",
     segments: [
-      { label: "Low", color: "#30D158" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "High", color: "#FF6B35" },
-      { label: "Very High", color: "#FF3B30" },
-      { label: "Extreme", color: "#8B0000" },
+      { label: "Low", color: palette.success },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "High", color: palette.alert },
+      { label: "Very High", color: palette.danger },
+      { label: "Extreme", color: palette.dangerDeep },
     ],
     divisor: 100,
     homeScore: 15,
@@ -422,9 +423,9 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "Food safety risk reflects local hygiene standards, food preparation practices, and contamination risk. Based on WHO data and traveller health reports.",
     segments: [
-      { label: "Poor", color: "#FF3B30" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "Good", color: "#30D158" },
+      { label: "Poor", color: palette.danger },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "Good", color: palette.success },
     ],
     divisor: 100,
     homeScore: 80,
@@ -495,10 +496,10 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "Altitude affects oxygen availability. Above 2,500m your body needs time to acclimatise. Rapid ascent increases the risk of acute mountain sickness (AMS).",
     segments: [
-      { label: "Low", color: "#30D158" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "High", color: "#FF6B35" },
-      { label: "Extreme", color: "#FF3B30" },
+      { label: "Low", color: palette.success },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "High", color: palette.alert },
+      { label: "Extreme", color: palette.danger },
     ],
     divisor: 100,
     homeScore: 10,
@@ -568,11 +569,11 @@ const METRIC_CONFIGS: Record<string, MetricConfig> = {
     whatItMeasures:
       "Outbreak risk summarises notable infectious disease activity from WHO, CDC, and local health authorities. Covers diseases like dengue, cholera, flu, and respiratory infections.",
     segments: [
-      { label: "None", color: "#30D158" },
-      { label: "Low", color: "#32D74B" },
-      { label: "Moderate", color: "#FF9F0A" },
-      { label: "High", color: "#FF6B35" },
-      { label: "Severe", color: "#FF3B30" },
+      { label: "None", color: palette.success },
+      { label: "Low", color: palette.success },
+      { label: "Moderate", color: palette.warningAlt },
+      { label: "High", color: palette.alert },
+      { label: "Severe", color: palette.danger },
     ],
     divisor: 100,
     homeScore: 5,
@@ -659,10 +660,11 @@ const deriveStatus = (
   position: number,
 ): string => {
   const color = getSegmentColor(segments, position);
-  if (color === "#30D158" || color === "#32D74B") return "good";
-  if (color === "#FF9F0A") return "moderate";
-  if (color === "#FF6B35") return "poor";
-  if (color === "#FF3B30" || color === "#8B0000") return "hazardous";
+  if (color === palette.success || color === palette.success) return "good";
+  if (color === palette.warningAlt) return "moderate";
+  if (color === palette.alert) return "poor";
+  if (color === palette.danger || color === palette.dangerDeep)
+    return "hazardous";
   return "moderate";
 };
 
@@ -713,7 +715,7 @@ const RangeBar: React.FC<{
             width: 18,
             height: 18,
             borderRadius: 9,
-            backgroundColor: "#FFFFFF",
+            backgroundColor: palette.textPrimary,
             borderWidth: 3,
             borderColor: dotColor,
             marginLeft: -9,
@@ -798,7 +800,11 @@ const EnvironmentalMetricScreen: React.FC = () => {
   const diff =
     (comparisonRanks[actualStatus] || 3) - (comparisonRanks[homeStatus] || 3);
   const comparisonColor =
-    diff > 0 ? "#30D158" : diff < 0 ? "#FF9F0A" : "#8E8E93";
+    diff > 0
+      ? palette.success
+      : diff < 0
+        ? palette.warningAlt
+        : palette.textSecondary;
 
   const toggleInfo = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -806,7 +812,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={{ flex: 1, backgroundColor: palette.bg }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -814,7 +820,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
       >
         {/* Gradient hero */}
         <LinearGradient
-          colors={["#000000", "#000000"]}
+          colors={[palette.bg, palette.bg]}
           locations={[0, 1]}
           style={{ paddingTop: 50, paddingBottom: 16 }}
         >
@@ -833,7 +839,11 @@ const EnvironmentalMetricScreen: React.FC = () => {
               style={{ padding: 6 }}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
+              <Ionicons
+                name="chevron-back"
+                size={22}
+                color={palette.textPrimary}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={toggleInfo}
@@ -845,7 +855,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
                   showInfo ? "information-circle" : "information-circle-outline"
                 }
                 size={22}
-                color={showInfo ? "#007AFF" : "rgba(255,255,255,0.4)"}
+                color={showInfo ? palette.accent : "rgba(255,255,255,0.4)"}
               />
             </TouchableOpacity>
           </View>
@@ -867,7 +877,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
             </View>
             <Text
               style={{
-                color: "#FFFFFF",
+                color: palette.textPrimary,
                 fontSize: 24,
                 fontWeight: "700",
                 marginBottom: 6,
@@ -887,7 +897,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
         <View style={{ paddingHorizontal: 24, marginTop: 22 }}>
           <Text
             style={{
-              color: "#FFFFFF",
+              color: palette.textPrimary,
               fontSize: 16,
               fontWeight: "600",
               marginBottom: 16,
@@ -907,7 +917,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
         <View
           style={{
             height: StyleSheet.hairlineWidth,
-            backgroundColor: "#2C2C2E",
+            backgroundColor: palette.surfaceElevated,
             marginHorizontal: 24,
             marginTop: 24,
           }}
@@ -917,7 +927,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
         <View style={{ paddingHorizontal: 24, marginTop: 22 }}>
           <Text
             style={{
-              color: "#FFFFFF",
+              color: palette.textPrimary,
               fontSize: 16,
               fontWeight: "600",
               marginBottom: 10,
@@ -934,7 +944,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
         <View
           style={{
             height: StyleSheet.hairlineWidth,
-            backgroundColor: "#2C2C2E",
+            backgroundColor: palette.surfaceElevated,
             marginHorizontal: 24,
             marginTop: 24,
           }}
@@ -944,7 +954,7 @@ const EnvironmentalMetricScreen: React.FC = () => {
         <View style={{ paddingHorizontal: 24, marginTop: 22 }}>
           <Text
             style={{
-              color: "#FFFFFF",
+              color: palette.textPrimary,
               fontSize: 16,
               fontWeight: "600",
               marginBottom: 14,
@@ -991,14 +1001,14 @@ const EnvironmentalMetricScreen: React.FC = () => {
           <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
             <View
               style={{
-                backgroundColor: "#1C1C1E",
+                backgroundColor: palette.surface,
                 borderRadius: 14,
                 padding: 18,
               }}
             >
               <Text
                 style={{
-                  color: "#FFFFFF",
+                  color: palette.textPrimary,
                   fontSize: 15,
                   fontWeight: "600",
                   marginBottom: 8,

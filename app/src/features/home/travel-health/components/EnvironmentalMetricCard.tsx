@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@shared/types";
+import { palette } from "@shared/theme/colors";
 
 export interface EnvironmentalMetric {
   id: string;
@@ -79,7 +80,7 @@ const EnvironmentalMetricCard: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   metricCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     marginBottom: 8,
     padding: 16,
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   metricLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
   metricValue: {
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   },
   metricScoreLabel: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 2,
   },
 });

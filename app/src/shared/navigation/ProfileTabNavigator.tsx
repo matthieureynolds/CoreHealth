@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { ProfileTabParamList } from "../types";
-import { colors } from "../theme/colors";
+import { palette } from "../theme/colors";
 
 import { CoreProfileScreens } from "./profile-groups/CoreProfileScreens";
 import { MedicalScreens } from "./profile-groups/MedicalScreens";
@@ -18,14 +18,14 @@ const ProfileTabNavigator: React.FC = () => {
       screenOptions={{
         headerShown: false,
         headerStyle: {
-          backgroundColor: colors.bg,
+          backgroundColor: palette.bg,
           elevation: 0,
           shadowOpacity: 0,
         },
-        headerTintColor: colors.textPrimary,
+        headerTintColor: palette.textPrimary,
         headerTitleStyle: {
           fontWeight: "bold",
-          color: colors.textPrimary,
+          color: palette.textPrimary,
         },
         headerTitleAlign: "center",
         headerBackTitle: "",
@@ -33,7 +33,7 @@ const ProfileTabNavigator: React.FC = () => {
           <Ionicons
             name="chevron-back"
             size={24}
-            color={colors.textPrimary}
+            color={palette.textPrimary}
             style={{ marginLeft: 8 }}
           />
         ),

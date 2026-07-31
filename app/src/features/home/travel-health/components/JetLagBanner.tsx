@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { palette } from "@shared/theme/colors";
 
 interface Props {
   jetLagHours: number;
@@ -10,17 +11,21 @@ const getJetLagStatus = (
   jetLagHours: number,
 ): { text: string; color: string; icon: keyof typeof Ionicons.glyphMap } => {
   if (jetLagHours === 0) {
-    return { text: "No Jet Lag", color: "#30D158", icon: "checkmark-circle" };
+    return {
+      text: "No Jet Lag",
+      color: palette.success,
+      icon: "checkmark-circle",
+    };
   } else if (jetLagHours <= 3) {
     return {
       text: `Mild Jet Lag (+${jetLagHours}h)`,
-      color: "#FF9F0A",
+      color: palette.warningAlt,
       icon: "time-outline",
     };
   } else {
     return {
       text: `Moderate Jet Lag (+${jetLagHours}h)`,
-      color: "#FF6B35",
+      color: palette.alert,
       icon: "warning-outline",
     };
   }
@@ -49,7 +54,7 @@ const JetLagBanner: React.FC<Props> = ({ jetLagHours }) => {
 
 const styles = StyleSheet.create({
   jetLagContainer: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,

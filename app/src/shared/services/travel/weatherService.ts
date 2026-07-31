@@ -125,7 +125,6 @@ export const getUVIndexData = async (
       category: "Moderate",
       description: "Some sun protection required",
       recommendation: "Wear sunscreen and protective clothing",
-      color: "#FFFF00",
       timestamp: new Date().toISOString(),
     };
   }

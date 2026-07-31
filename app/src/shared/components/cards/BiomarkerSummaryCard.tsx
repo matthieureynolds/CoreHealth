@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import RadialSegments from "../ui/RadialSegments";
-import { colors } from "../../theme/colors";
+import { palette } from "../../theme/colors";
 import { buildSegments } from "../../utils/segments";
 import type { BiomarkerSummaryProps } from "../../types/biomarkers";
 
@@ -24,13 +24,13 @@ export default function BiomarkerSummaryCard({
       buildSegments(
         total,
         [
-          { key: "optimal", value: buckets.optimal, color: colors.optimal },
+          { key: "optimal", value: buckets.optimal, color: palette.optimal },
           {
             key: "sufficient",
             value: buckets.sufficient,
-            color: colors.sufficient,
+            color: palette.sufficient,
           },
-          { key: "out", value: buckets.out, color: colors.out },
+          { key: "out", value: buckets.out, color: palette.out },
         ],
         segmentCount ?? total,
       ),
@@ -92,14 +92,14 @@ export default function BiomarkerSummaryCard({
         </View>
 
         <View style={styles.legend}>
-          {legendItem("Optimal", buckets.optimal, colors.optimal, "optimal")}
+          {legendItem("Optimal", buckets.optimal, palette.optimal, "optimal")}
           {legendItem(
             "Sufficient",
             buckets.sufficient,
-            colors.sufficient,
+            palette.sufficient,
             "sufficient",
           )}
-          {legendItem("Out of Range", buckets.out, colors.out, "out")}
+          {legendItem("Out of Range", buckets.out, palette.out, "out")}
 
           {onUpload && (
             <Pressable
@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 16,
-    backgroundColor: colors.card,
-    borderColor: colors.divider,
+    backgroundColor: palette.card,
+    borderColor: palette.divider,
     borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18, // match Recent Lab Results
     fontWeight: "600",
-    color: colors.textPrimary,
+    color: palette.textPrimary,
     marginBottom: 16,
   },
   content: {
@@ -159,11 +159,11 @@ const styles = StyleSheet.create({
   centerNumber: {
     fontSize: 36,
     fontWeight: "bold",
-    color: colors.textPrimary,
+    color: palette.textPrimary,
   },
   centerLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: palette.textSecondary,
     marginTop: 4,
     letterSpacing: 1,
   },
@@ -196,20 +196,20 @@ const styles = StyleSheet.create({
   legendValue: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: palette.textPrimary,
   },
   uploadButton: {
     marginTop: 16,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: colors.cta,
+    backgroundColor: palette.cta,
     alignItems: "center",
     justifyContent: "center",
   },
   uploadButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.ctaText,
+    color: palette.ctaText,
   },
 });

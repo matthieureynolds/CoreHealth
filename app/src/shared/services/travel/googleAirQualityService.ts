@@ -1,6 +1,8 @@
 import { API_CONFIG } from "../../config/api";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 
 // Google Air Quality API response interfaces
 export interface GoogleAirQualityData {
@@ -41,6 +43,47 @@ export interface GoogleAirQualityData {
     children: string;
   };
 }
+
+/**
+ * Runtime shape of the Google Air Quality response. Fields the code reads are
+ * required; the rest are lenient so a provider adding data cannot break us.
+ */
+const AirQualityResponseSchema = z.object({
+  indexes: z
+    .array(
+      z.object({
+        code: z.string(),
+        displayName: z.string().optional(),
+        aqi: z.number(),
+        aqiDisplay: z.string().optional(),
+        color: z
+          .object({
+            red: z.number().optional(),
+            green: z.number().optional(),
+            blue: z.number().optional(),
+          })
+          .optional(),
+        category: z.string().optional(),
+      }),
+    )
+    .optional(),
+  pollutants: z
+    .array(
+      z.object({
+        code: z.string(),
+        displayName: z.string().optional(),
+        fullName: z.string().optional(),
+        concentration: z
+          .object({ value: z.number(), units: z.string() })
+          .optional(),
+        additionalInfo: z
+          .object({ sources: z.string(), effects: z.string() })
+          .optional(),
+      }),
+    )
+    .optional(),
+  healthRecommendations: z.record(z.string(), z.string()).optional(),
+});
 
 export interface GoogleAirQualityResponse {
   indexes: Array<{
@@ -122,7 +165,14 @@ export const getGoogleAirQualityData = async (
       throw new Error(`Google Air Quality API error: ${response.status}`);
     }
 
-    const data: GoogleAirQualityResponse = await response.json();
+    const raw = await response.json();
+    const parsed = parseOrNull(
+      AirQualityResponseSchema,
+      raw,
+      "googleAirQuality",
+    );
+    if (!parsed) return null;
+    const data = parsed as unknown as GoogleAirQualityResponse;
 
     // Find the universal AQI index
     const universalIndex = data.indexes?.find((index) => index.code === "uaqi");

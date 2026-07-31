@@ -1,7 +1,7 @@
 export function getStatusColor(status: string): string {
   switch (status) {
     case "good":
-      return palette.successVivid;
+      return palette.success;
     case "moderate":
       return palette.warningAlt;
     case "poor":
@@ -67,7 +67,7 @@ export function getScoreColor(
   switch ((status || "").toLowerCase()) {
     case "excellent":
     case "good":
-      return palette.successAlt;
+      return palette.success;
     case "moderate":
       return palette.warningAlt;
     case "poor":

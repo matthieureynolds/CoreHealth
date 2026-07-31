@@ -2,6 +2,8 @@ import { API_CONFIG } from "../../config/api";
 import { getTimezoneInfo } from "./timezoneService";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 
 export interface CitySearchResult {
   name: string;
@@ -15,6 +17,34 @@ export interface CitySearchResult {
   timezone?: string;
   timezoneOffset?: string;
 }
+
+/** Google Places autocomplete + details response shapes. */
+const CitySearchResponseSchema = z.object({
+  predictions: z
+    .array(
+      z.object({
+        description: z.string(),
+        place_id: z.string(),
+        structured_formatting: z
+          .object({
+            main_text: z.string().optional(),
+            secondary_text: z.string().optional(),
+          })
+          .optional(),
+        terms: z
+          .array(z.object({ offset: z.number().optional(), value: z.string() }))
+          .optional(),
+        types: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
+  status: z.string().optional(),
+});
+
+const PlaceDetailsResponseSchema = z.object({
+  result: z.record(z.string(), z.unknown()).optional(),
+  status: z.string().optional(),
+});
 
 export interface CitySearchResponse {
   predictions: Array<{
@@ -80,7 +110,14 @@ export const searchCities = async (
       throw new Error(`Location search API error: ${response.status}`);
     }
 
-    const data: CitySearchResponse = await response.json();
+    const rawCity = await response.json();
+    const parsedCity = parseOrNull(
+      CitySearchResponseSchema,
+      rawCity,
+      "citySearch",
+    );
+    if (!parsedCity) return [];
+    const data = parsedCity as unknown as CitySearchResponse;
 
     if (
       data.status !== "OK" ||
@@ -144,7 +181,14 @@ const getPlaceDetails = async (
       throw new Error(`Place details API error: ${response.status}`);
     }
 
-    const data: PlaceDetailsResponse = await response.json();
+    const rawDetails = await response.json();
+    const parsedDetails = parseOrNull(
+      PlaceDetailsResponseSchema,
+      rawDetails,
+      "placeDetails",
+    );
+    if (!parsedDetails) return null;
+    const data = parsedDetails as unknown as PlaceDetailsResponse;
 
     if (data.status !== "OK" || !data.result) {
       return null;
@@ -218,7 +262,14 @@ export const searchAllLocations = async (
       throw new Error(`Location search API error: ${response.status}`);
     }
 
-    const data: CitySearchResponse = await response.json();
+    const rawCity = await response.json();
+    const parsedCity = parseOrNull(
+      CitySearchResponseSchema,
+      rawCity,
+      "citySearch",
+    );
+    if (!parsedCity) return [];
+    const data = parsedCity as unknown as CitySearchResponse;
 
     if (
       data.status !== "OK" ||
@@ -290,7 +341,14 @@ export const searchMajorCities = async (
       throw new Error(`City search API error: ${response.status}`);
     }
 
-    const data: CitySearchResponse = await response.json();
+    const rawCity = await response.json();
+    const parsedCity = parseOrNull(
+      CitySearchResponseSchema,
+      rawCity,
+      "citySearch",
+    );
+    if (!parsedCity) return [];
+    const data = parsedCity as unknown as CitySearchResponse;
 
     if (
       data.status !== "OK" ||

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, ScrollView, StyleSheet, Alert } from "react-native";
 import BiomarkerSummaryCard from "@shared/components/cards/BiomarkerSummaryCard";
-import { colors } from "@shared/theme/colors";
+import { palette } from "@shared/theme/colors";
 
 export default function BiomarkerDashboard() {
   const handleUpload = () => {
@@ -33,7 +33,7 @@ export default function BiomarkerDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: palette.bg,
   },
   contentContainer: {
     padding: 16,
