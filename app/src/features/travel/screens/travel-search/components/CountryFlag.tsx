@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Image, Text, StyleSheet, View } from "react-native";
 import { getCountryCode } from "../travelMetricHelpers";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface CountryFlagProps {
   country: string;
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
   flag: {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(255,255,255,0.15)",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
   },
 });
 

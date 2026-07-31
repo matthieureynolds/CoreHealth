@@ -1,4 +1,5 @@
 import type { Ionicons } from "@expo/vector-icons";
+import { palette } from "../../../../../shared/theme/colors";
 
 /** One band on a metric's reference scale (AQI bands, UV levels, altitude zones…). */
 export interface MetricScaleBand {
@@ -34,17 +35,17 @@ export interface MetricScreenConfig {
 export const AIR_QUALITY_CONFIG: MetricScreenConfig = {
   headerTitle: "Air Quality",
   icon: "cloud-outline",
-  accent: "#3AABF0",
+  accent: palette.link,
   heroTitle: "Air Quality Index (AQI)",
   heroDesc:
     "Measures concentrations of pollutants including particulate matter (PM2.5 / PM10), ozone, nitrogen dioxide, and sulfur dioxide.",
   scaleTitle: "AQI SCALE",
   scale: [
-    { label: "Good", range: "0–50", color: "#30D158" },
-    { label: "Moderate", range: "51–100", color: "#FF9500" },
-    { label: "Unhealthy (Sensitive)", range: "101–150", color: "#FF6B35" },
-    { label: "Unhealthy", range: "151–200", color: "#FF3B30" },
-    { label: "Hazardous", range: "201+", color: "#8B0000" },
+    { label: "Good", range: "0–50", color: palette.successAlt },
+    { label: "Moderate", range: "51–100", color: palette.warning },
+    { label: "Unhealthy (Sensitive)", range: "101–150", color: palette.alert },
+    { label: "Unhealthy", range: "151–200", color: palette.danger },
+    { label: "Hazardous", range: "201+", color: palette.dangerDeep },
   ],
   impacts: [
     "Respiratory irritation with elevated pollutants",
@@ -75,11 +76,11 @@ export const POLLEN_CONFIG: MetricScreenConfig = {
     "Measures the concentration of pollen grains (tree, grass, weed) per cubic metre of air. High counts trigger allergic reactions in sensitive individuals.",
   scaleTitle: "POLLEN SCALE (grains/m³)",
   scale: [
-    { label: "Very Low", range: "0–4", color: "#30D158" },
-    { label: "Low", range: "5–9", color: "#32D74B" },
-    { label: "Moderate", range: "10–49", color: "#FF9500" },
-    { label: "High", range: "50–149", color: "#FF6B35" },
-    { label: "Very High", range: "150+", color: "#FF3B30" },
+    { label: "Very Low", range: "0–4", color: palette.successAlt },
+    { label: "Low", range: "5–9", color: palette.successVivid },
+    { label: "Moderate", range: "10–49", color: palette.warning },
+    { label: "High", range: "50–149", color: palette.alert },
+    { label: "Very High", range: "150+", color: palette.danger },
   ],
   impacts: [
     "Hay fever symptoms: sneezing, runny nose, itchy eyes",
@@ -104,7 +105,7 @@ export const POLLEN_CONFIG: MetricScreenConfig = {
 export const UV_INDEX_CONFIG: MetricScreenConfig = {
   headerTitle: "UV Index",
   icon: "sunny-outline",
-  accent: "#FF9500",
+  accent: palette.warning,
   heroTitle: "UV Index",
   heroDesc:
     "The UV Index measures the strength of ultraviolet radiation reaching the Earth's surface and predicts sunburn risk for the average person.",
@@ -113,31 +114,31 @@ export const UV_INDEX_CONFIG: MetricScreenConfig = {
     {
       label: "Low",
       range: "0–2",
-      color: "#30D158",
+      color: palette.successAlt,
       note: "Minimal protection needed",
     },
     {
       label: "Moderate",
       range: "3–5",
-      color: "#FF9500",
+      color: palette.warning,
       note: "Some protection recommended",
     },
     {
       label: "High",
       range: "6–7",
-      color: "#FF6B35",
+      color: palette.alert,
       note: "Protection essential",
     },
     {
       label: "Very High",
       range: "8–10",
-      color: "#FF3B30",
+      color: palette.danger,
       note: "Extra protection required",
     },
     {
       label: "Extreme",
       range: "11+",
-      color: "#8B0000",
+      color: palette.dangerDeep,
       note: "Stay out of direct sun",
     },
   ],
@@ -164,7 +165,7 @@ export const UV_INDEX_CONFIG: MetricScreenConfig = {
 export const ALTITUDE_CONFIG: MetricScreenConfig = {
   headerTitle: "Altitude",
   icon: "trending-up-outline",
-  accent: "#FF6B35",
+  accent: palette.alert,
   heroTitle: "Altitude Risk",
   heroDesc:
     "Assesses the physiological impact of your destination's elevation on oxygen availability, exercise tolerance, and acclimatization needs.",
@@ -173,31 +174,31 @@ export const ALTITUDE_CONFIG: MetricScreenConfig = {
     {
       label: "Low",
       range: "< 1,500m",
-      color: "#30D158",
+      color: palette.successAlt,
       note: "Minimal physiological impact",
     },
     {
       label: "Moderate",
       range: "1,500–2,500m",
-      color: "#FF9500",
+      color: palette.warning,
       note: "May affect sleep and exercise",
     },
     {
       label: "High",
       range: "2,500–3,500m",
-      color: "#FF6B35",
+      color: palette.alert,
       note: "AMS risk — gradual ascent needed",
     },
     {
       label: "Very High",
       range: "3,500–5,500m",
-      color: "#FF3B30",
+      color: palette.danger,
       note: "Acclimatization essential",
     },
     {
       label: "Extreme",
       range: "> 5,500m",
-      color: "#8B0000",
+      color: palette.dangerDeep,
       note: "Expert preparation required",
     },
   ],
@@ -225,7 +226,7 @@ export const ALTITUDE_CONFIG: MetricScreenConfig = {
 export const WATER_SAFETY_CONFIG: MetricScreenConfig = {
   headerTitle: "Water Safety",
   icon: "water-outline",
-  accent: "#3AABF0",
+  accent: palette.link,
   heroTitle: "Water Quality",
   heroDesc:
     "Measures the safety of local water sources, including bacterial contamination, chemical pollutants, and mineral content.",
@@ -233,13 +234,29 @@ export const WATER_SAFETY_CONFIG: MetricScreenConfig = {
   scale: [
     {
       label: "Excellent",
-      color: "#30D158",
+      color: palette.successAlt,
       note: "95–100 — No treatment needed",
     },
-    { label: "Very Good", color: "#32D74B", note: "80–94 — Safe to drink" },
-    { label: "Good", color: "#FF9500", note: "65–79 — Consider filtration" },
-    { label: "Marginal", color: "#FF6B35", note: "45–64 — Use filtered water" },
-    { label: "Poor", color: "#FF3B30", note: "0–44 — Do not drink tap water" },
+    {
+      label: "Very Good",
+      color: palette.successVivid,
+      note: "80–94 — Safe to drink",
+    },
+    {
+      label: "Good",
+      color: palette.warning,
+      note: "65–79 — Consider filtration",
+    },
+    {
+      label: "Marginal",
+      color: palette.alert,
+      note: "45–64 — Use filtered water",
+    },
+    {
+      label: "Poor",
+      color: palette.danger,
+      note: "0–44 — Do not drink tap water",
+    },
   ],
   impacts: [
     "Gastrointestinal illness from bacterial or chemical contamination",
@@ -264,7 +281,7 @@ export const WATER_SAFETY_CONFIG: MetricScreenConfig = {
 export const FOOD_SAFETY_CONFIG: MetricScreenConfig = {
   headerTitle: "Food Safety",
   icon: "restaurant-outline",
-  accent: "#34C759",
+  accent: palette.success,
   heroTitle: "Food Safety",
   heroDesc:
     "Assesses local food hygiene standards, preparation practices, contamination risk and overall foodborne illness risk for travellers.",
@@ -272,17 +289,17 @@ export const FOOD_SAFETY_CONFIG: MetricScreenConfig = {
   scale: [
     {
       label: "Good (70–100)",
-      color: "#30D158",
+      color: palette.successAlt,
       note: "Low risk — standard precautions apply",
     },
     {
       label: "Moderate (40–69)",
-      color: "#FF9500",
+      color: palette.warning,
       note: "Be selective; prefer cooked food",
     },
     {
       label: "Poor (0–39)",
-      color: "#FF3B30",
+      color: palette.danger,
       note: "High risk — strict food safety required",
     },
   ],
@@ -310,7 +327,7 @@ export const FOOD_SAFETY_CONFIG: MetricScreenConfig = {
 export const DISEASE_OUTBREAK_CONFIG: MetricScreenConfig = {
   headerTitle: "Disease Outbreaks",
   icon: "medkit-outline",
-  accent: "#FF3B30",
+  accent: palette.danger,
   heroTitle: "Disease Outbreaks",
   heroDesc:
     "Summarises notable infectious disease activity at your current or planned travel destination, based on public health surveillance data.",
@@ -318,27 +335,27 @@ export const DISEASE_OUTBREAK_CONFIG: MetricScreenConfig = {
   scale: [
     {
       label: "None (0–19)",
-      color: "#30D158",
+      color: palette.successAlt,
       note: "No significant outbreaks — routine precautions",
     },
     {
       label: "Low (20–39)",
-      color: "#32D74B",
+      color: palette.successVivid,
       note: "Minor activity — standard hygiene",
     },
     {
       label: "Moderate (40–59)",
-      color: "#FF9500",
+      color: palette.warning,
       note: "Localised outbreaks — heightened awareness",
     },
     {
       label: "High (60–79)",
-      color: "#FF6B35",
+      color: palette.alert,
       note: "Widespread activity — avoid if possible",
     },
     {
       label: "Severe (80–100)",
-      color: "#FF3B30",
+      color: palette.danger,
       note: "Consider postponing non-essential travel",
     },
   ],

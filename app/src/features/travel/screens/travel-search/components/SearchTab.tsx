@@ -36,6 +36,7 @@ import NearbyHospitalsSection from "./NearbyHospitalsSection";
 import VaccinationsMedicationsSection from "./VaccinationsMedicationsSection";
 import TreadmillCard from "./TreadmillCard";
 import AnalyzingState from "./AnalyzingState";
+import { palette } from "../../../../../shared/theme/colors";
 
 if (
   Platform.OS === "android" &&
@@ -231,7 +232,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor="#FFFFFF"
+            tintColor={palette.textPrimary}
           />
         }
       >
@@ -333,7 +334,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
                     <Ionicons
                       name="cloud-offline-outline"
                       size={14}
-                      color="#8E8E93"
+                      color={palette.textSecondary}
                     />
                     <Text style={bannerStyles.text}>
                       Couldn't load{" "}
@@ -365,7 +366,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
                       <Ionicons
                         name="checkmark-circle"
                         size={24}
-                        color="#34C759"
+                        color={palette.success}
                       />
                       <Text style={styles.summaryTitle}>Health Summary</Text>
                     </View>
@@ -399,7 +400,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
             // faintly through the translucent glass — the pill wrapper's
             // zIndex (1002) keeps the dropdown painted above it.
             <View style={styles.emptyState}>
-              <Ionicons name="search" size={48} color="#8E8E93" />
+              <Ionicons name="search" size={48} color={palette.textSecondary} />
               <Text style={styles.emptyStateTitle}>Search a destination</Text>
               <Text style={[styles.emptyStateText, { fontSize: 17 }]}>
                 for comprehensive health insights
@@ -443,13 +444,13 @@ const bannerStyles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 12,
     borderRadius: 10,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#2C2C2E",
+    borderColor: palette.surfaceElevated,
   },
   text: {
     flex: 1,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 13,
   },
 });

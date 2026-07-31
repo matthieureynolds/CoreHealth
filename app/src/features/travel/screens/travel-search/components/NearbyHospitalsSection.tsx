@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../TravelScreen.styles";
 import TreadmillCard from "./TreadmillCard";
 import PressPop from "./PressPop";
+import { palette } from "../../../../../shared/theme/colors";
 
 const openMapsAlert = (destination: string) => {
   Alert.alert("Open Maps", `Navigate to ${destination}?`, [
@@ -60,7 +61,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
           onPress={() => openMapsAlert("Central Hospital")}
         >
           <View style={styles.hospitalHeader}>
-            <Ionicons name="medical" size={20} color="#FF3B30" />
+            <Ionicons name="medical" size={20} color={palette.danger} />
             <Text style={styles.hospitalTitle}>Central Hospital</Text>
             {selectedLocation === "Current Location" && (
               <Text style={styles.hospitalDistance}>2.1km</Text>
@@ -78,7 +79,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
           onPress={() => openMapsAlert("City Medical Center")}
         >
           <View style={styles.hospitalHeader}>
-            <Ionicons name="medical" size={20} color="#FF3B30" />
+            <Ionicons name="medical" size={20} color={palette.danger} />
             <Text style={styles.hospitalTitle}>City Medical Center</Text>
             {selectedLocation === "Current Location" && (
               <Text style={styles.hospitalDistance}>3.8km</Text>
@@ -96,7 +97,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
           onPress={() => openMapsAlert("Emergency Clinic")}
         >
           <View style={styles.hospitalHeader}>
-            <Ionicons name="medical" size={20} color="#FF3B30" />
+            <Ionicons name="medical" size={20} color={palette.danger} />
             <Text style={styles.hospitalTitle}>Emergency Clinic</Text>
             {selectedLocation === "Current Location" && (
               <Text style={styles.hospitalDistance}>4.2km</Text>
@@ -111,7 +112,7 @@ const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({
       <TreadmillCard scrollY={scrollY} scrollContentRef={scrollContentRef}>
         <PressPop style={styles.hospitalCard} onPress={onEmergencyContactPress}>
           <View style={styles.hospitalHeader}>
-            <Ionicons name="call" size={20} color="#FF3B30" />
+            <Ionicons name="call" size={20} color={palette.danger} />
             <Text style={styles.hospitalTitle}>Emergency Contact</Text>
             <Text style={styles.hospitalDistance}>112</Text>
           </View>

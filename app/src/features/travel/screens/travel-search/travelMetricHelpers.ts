@@ -1,15 +1,15 @@
 export function getStatusColor(status: string): string {
   switch (status) {
     case "good":
-      return "#32D74B";
+      return palette.successVivid;
     case "moderate":
-      return "#FF9F0A";
+      return palette.warningAlt;
     case "poor":
-      return "#FF6B35";
+      return palette.alert;
     case "hazardous":
-      return "#FF3B30";
+      return palette.danger;
     default:
-      return "#8E8E93";
+      return palette.textSecondary;
   }
 }
 
@@ -55,7 +55,7 @@ export function getMetricFixedIconColor(
     case "water_safety":
       return "#4DD0E1";
     default:
-      return "#8E8E93";
+      return palette.textSecondary;
   }
 }
 
@@ -67,15 +67,15 @@ export function getScoreColor(
   switch ((status || "").toLowerCase()) {
     case "excellent":
     case "good":
-      return "#30D158";
+      return palette.successAlt;
     case "moderate":
-      return "#FF9F0A";
+      return palette.warningAlt;
     case "poor":
-      return "#FF6B35";
+      return palette.alert;
     case "hazardous":
-      return "#FF3B30";
+      return palette.danger;
     default:
-      return "#8E8E93";
+      return palette.textSecondary;
   }
 }
 
@@ -588,6 +588,7 @@ export function getMetricDetails(
 // Derived from the canonical popular cities list in citySearchService.ts
 // to avoid maintaining two separate city lists.
 import { getPopularCities } from "../../../../shared/services/travel/citySearchService";
+import { palette } from "../../../../shared/theme/colors";
 
 const _buildCityCountryMap = (): Record<string, string> => {
   const map: Record<string, string> = { "Current Location": "Your Location" };

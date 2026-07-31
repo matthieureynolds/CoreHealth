@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { palette } from "../../../../../shared/theme/colors";
 
 /**
  * Shared styles for travel health metric info screens
@@ -6,11 +7,11 @@ import { StyleSheet } from "react-native";
  * Each screen imports this and adds only its accent-specific heroCard / heroIcon overrides.
  */
 export const metricScreenStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     justifyContent: "space-between",
@@ -31,7 +32,7 @@ export const metricScreenStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: palette.textPrimary,
     textAlign: "center",
     position: "absolute",
     left: 0,
@@ -42,17 +43,17 @@ export const metricScreenStyles = StyleSheet.create({
   heroTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#fff",
+    color: palette.textPrimary,
     marginBottom: 8,
   },
   heroDesc: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     textAlign: "center",
     lineHeight: 20,
   },
   section: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
@@ -62,7 +63,7 @@ export const metricScreenStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -72,7 +73,7 @@ export const metricScreenStyles = StyleSheet.create({
   rowText: {
     flex: 1,
     fontSize: 14,
-    color: "#E5E5EA",
+    color: palette.textOnLight,
     marginLeft: 10,
     lineHeight: 20,
   },

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { palette } from "../../../../../shared/theme/colors";
 
 const TIPS = [
   {
@@ -71,7 +72,7 @@ const NearbyHospitalsScreen: React.FC = () => {
           style={styles.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">
           Nearby Hospitals
@@ -90,7 +91,7 @@ const NearbyHospitalsScreen: React.FC = () => {
         >
           <View style={styles.mapButtonLeft}>
             <View style={styles.mapIcon}>
-              <Ionicons name="map-outline" size={24} color="#3AABF0" />
+              <Ionicons name="map-outline" size={24} color={palette.link} />
             </View>
             <View>
               <Text style={styles.mapButtonTitle}>Find Nearest Hospital</Text>
@@ -99,7 +100,7 @@ const NearbyHospitalsScreen: React.FC = () => {
               </Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#3AABF0" />
+          <Ionicons name="chevron-forward" size={20} color={palette.link} />
         </TouchableOpacity>
 
         <View style={styles.section}>
@@ -115,7 +116,7 @@ const NearbyHospitalsScreen: React.FC = () => {
               <Ionicons
                 name="call-outline"
                 size={18}
-                color="#FF3B30"
+                color={palette.danger}
                 style={{ marginRight: 14 }}
               />
               <View style={{ flex: 1 }}>
@@ -137,7 +138,7 @@ const NearbyHospitalsScreen: React.FC = () => {
           {TIPS.map((t, i) => (
             <View key={i} style={styles.tipRow}>
               <View style={styles.tipIconCircle}>
-                <Ionicons name={t.icon} size={18} color="#3AABF0" />
+                <Ionicons name={t.icon} size={18} color={palette.link} />
               </View>
               <Text style={styles.tipText}>{t.tip}</Text>
             </View>
@@ -148,7 +149,7 @@ const NearbyHospitalsScreen: React.FC = () => {
           <Ionicons
             name="information-circle-outline"
             size={20}
-            color="#8E8E93"
+            color={palette.textSecondary}
             style={{ marginRight: 12 }}
           />
           <Text style={styles.infoText}>
@@ -162,11 +163,11 @@ const NearbyHospitalsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     justifyContent: "space-between",
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: palette.textPrimary,
     textAlign: "center",
     position: "absolute",
     left: 0,
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   mapButton: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     marginHorizontal: 20,
     marginTop: 20,
@@ -221,12 +222,12 @@ const styles = StyleSheet.create({
   mapButtonTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#fff",
+    color: palette.textPrimary,
     marginBottom: 2,
   },
-  mapButtonSub: { fontSize: 13, color: "#8E8E93" },
+  mapButtonSub: { fontSize: 13, color: palette.textSecondary },
   section: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -245,10 +246,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
-  emergencyRegion: { fontSize: 15, color: "#fff" },
-  emergencyNumber: { fontSize: 16, fontWeight: "700", color: "#FF3B30" },
+  emergencyRegion: { fontSize: 15, color: palette.textPrimary },
+  emergencyNumber: { fontSize: 16, fontWeight: "700", color: palette.danger },
   tipRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 14 },
   tipIconCircle: {
     width: 34,
@@ -262,19 +263,24 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 14,
-    color: "#E5E5EA",
+    color: palette.textOnLight,
     lineHeight: 20,
     paddingTop: 7,
   },
   infoCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     padding: 16,
   },
-  infoText: { flex: 1, fontSize: 13, color: "#8E8E93", lineHeight: 18 },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    color: palette.textSecondary,
+    lineHeight: 18,
+  },
 });
 
 export default NearbyHospitalsScreen;

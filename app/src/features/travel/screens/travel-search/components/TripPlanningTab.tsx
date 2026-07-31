@@ -19,6 +19,7 @@ import {
 } from "../../../../../shared/types";
 import { styles } from "../TravelScreen.styles";
 import PressPop from "./PressPop";
+import { palette } from "../../../../../shared/theme/colors";
 
 type Nav = CompositeNavigationProp<
   StackNavigationProp<TravelStackParamList, "TravelList">,
@@ -201,7 +202,11 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = React.memo(
         <View style={[styles.content, styles.contentTrips]}>
           {sortedTrips.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="airplane" size={48} color="#8E8E93" />
+              <Ionicons
+                name="airplane"
+                size={48}
+                color={palette.textSecondary}
+              />
               <Text style={styles.emptyStateTitle}>No trips planned</Text>
               <Text style={styles.emptyStateText}>
                 Add your first trip to get personalized health recommendations
@@ -210,7 +215,7 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = React.memo(
                 style={styles.addTripButton}
                 onPress={handleOpenAddTrip}
               >
-                <Ionicons name="add" size={24} color="#FFFFFF" />
+                <Ionicons name="add" size={24} color={palette.textPrimary} />
                 <Text style={styles.addTripButtonText}>Add a Trip</Text>
               </TouchableOpacity>
             </View>
@@ -239,7 +244,11 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = React.memo(
                           style={[bp.swipeAction, bp.editAction]}
                           onPress={() => onEditTrip(trip)}
                         >
-                          <Ionicons name="pencil" size={20} color="#fff" />
+                          <Ionicons
+                            name="pencil"
+                            size={20}
+                            color={palette.textPrimary}
+                          />
                           <Text style={bp.swipeActionText}>Edit</Text>
                         </RectButton>
                         <RectButton
@@ -249,7 +258,7 @@ const TripPlanningTab: React.FC<TripPlanningTabProps> = React.memo(
                           <Ionicons
                             name="trash-outline"
                             size={20}
-                            color="#fff"
+                            color={palette.textPrimary}
                           />
                           <Text style={bp.swipeActionText}>Remove</Text>
                         </RectButton>
@@ -354,7 +363,7 @@ const bp = StyleSheet.create({
     borderRadius: 16,
   },
   card: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     overflow: "hidden",
     flexDirection: "row",
@@ -371,10 +380,10 @@ const bp = StyleSheet.create({
     width: 80,
     borderRadius: 16,
   },
-  editAction: { backgroundColor: "#FF9500" },
-  removeAction: { backgroundColor: "#FF3B30" },
+  editAction: { backgroundColor: palette.warning },
+  removeAction: { backgroundColor: palette.danger },
   swipeActionText: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontSize: 12,
     fontWeight: "600",
     marginTop: 2,
@@ -386,12 +395,12 @@ const bp = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 16,
     borderRightWidth: 1,
-    borderRightColor: "#2C2C2E",
+    borderRightColor: palette.surfaceElevated,
     borderStyle: "dashed",
   },
   dateMonth: {
     fontSize: 11,
-    color: "#007AFF",
+    color: palette.accent,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -399,12 +408,12 @@ const bp = StyleSheet.create({
   dateDay: {
     fontSize: 26,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     lineHeight: 30,
   },
   dateYear: {
     fontSize: 10,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 2,
   },
   // Body
@@ -427,12 +436,12 @@ const bp = StyleSheet.create({
   cityCode: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     letterSpacing: 1,
   },
   citySub: {
     fontSize: 10,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 1,
   },
   // Route line with dots
@@ -446,18 +455,18 @@ const bp = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#007AFF",
+    backgroundColor: palette.accent,
   },
   routeLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#3A3A3C",
+    backgroundColor: palette.border,
   },
   routeDotRight: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#007AFF",
+    backgroundColor: palette.accent,
   },
   // Footer
   footer: {
@@ -468,15 +477,15 @@ const bp = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#2C2C2E",
+    borderTopColor: palette.surfaceElevated,
     borderStyle: "dashed",
   },
   footerDates: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
   footerDateBold: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "600",
   },
   badge: {
@@ -488,13 +497,13 @@ const bp = StyleSheet.create({
   badgeText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#007AFF",
+    color: palette.accent,
   },
   badgePast: {
     backgroundColor: "rgba(142,142,147,0.12)",
   },
   badgeTextPast: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
 });
 

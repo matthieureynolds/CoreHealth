@@ -16,7 +16,7 @@ const EmergencyModal: React.FC<EmergencyModalProps> = ({
   const handleCall = () => {
     try {
       Linking.openURL("tel:112");
-    } catch (e) {
+    } catch {
       Alert.alert("Unable to call", "This device cannot place phone calls.");
     }
     onClose();

@@ -16,6 +16,7 @@ import { createTravelHandlers } from "./hooks/useTravelHandlers";
 import { useTravelState, popularCities } from "./hooks/useTravelState";
 import { useStaggerReveal } from "./hooks/useStaggerReveal";
 import { useStableCallbacks } from "./hooks/useStableCallbacks";
+import { palette } from "../../../../shared/theme/colors";
 
 const TravelScreen: React.FC = () => {
   const reduceMotion = useReduceMotion();
@@ -242,7 +243,7 @@ const TravelScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={palette.bg} />
 
       <TravelHeader />
 
@@ -258,7 +259,7 @@ const TravelScreen: React.FC = () => {
           pointerEvents="none"
         >
           <LinearGradient
-            colors={["#000000", "rgba(0,0,0,0)"]}
+            colors={[palette.bg, "rgba(0,0,0,0)"]}
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>

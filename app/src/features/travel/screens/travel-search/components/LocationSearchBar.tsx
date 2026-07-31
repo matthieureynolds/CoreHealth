@@ -17,6 +17,7 @@ import { styles } from "../TravelScreen.styles";
 import { GLASS_AVAILABLE, GLASS_TINT } from "./glass";
 import { useTypewriter } from "../hooks/useTypewriter";
 import { popularCities } from "../hooks/useTravelState";
+import { palette } from "../../../../../shared/theme/colors";
 
 // The animated placeholder ticks every 80ms. Owning it here keeps those renders
 // local to the search bar; it used to live in TravelScreen and re-render the
@@ -163,7 +164,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
             value={inputText}
             onChangeText={onInputChange}
             placeholder={typedCityText ? `Search ${typedCityText}` : "Search"}
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={palette.textSecondary}
             returnKeyType="search"
             onFocus={handleFocus}
             onBlur={handleBlur}
@@ -172,11 +173,11 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
           />
           {searchLocation ? (
             <TouchableOpacity onPress={onClearSearch}>
-              <Ionicons name="close" size={20} color="#FF3B30" />
+              <Ionicons name="close" size={20} color={palette.danger} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={onFocusSearch}>
-              <Ionicons name="search" size={20} color="#8E8E93" />
+              <Ionicons name="search" size={20} color={palette.textSecondary} />
             </TouchableOpacity>
           )}
         </Animated.View>
@@ -238,7 +239,9 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                   <Ionicons
                     name="navigate"
                     size={16}
-                    color={isGettingLocation ? "#8E8E93" : "#3AABF0"}
+                    color={
+                      isGettingLocation ? palette.textSecondary : palette.link
+                    }
                   />
                   <Text style={styles.suggestionText}>
                     {isGettingLocation
@@ -248,7 +251,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                   {isGettingLocation && (
                     <ActivityIndicator
                       size="small"
-                      color="#8E8E93"
+                      color={palette.textSecondary}
                       style={{ marginLeft: 8 }}
                     />
                   )}
@@ -260,7 +263,7 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                 <View>
                   {isSearchingCities && (
                     <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" color="#3AABF0" />
+                      <ActivityIndicator size="small" color={palette.link} />
                       <Text style={styles.loadingText}>
                         Searching cities...
                       </Text>
@@ -286,7 +289,11 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                             Keyboard.dismiss();
                           }}
                         >
-                          <Ionicons name="location" size={16} color="#3AABF0" />
+                          <Ionicons
+                            name="location"
+                            size={16}
+                            color={palette.link}
+                          />
                           <View style={styles.suggestionContent}>
                             <Text style={styles.suggestionText}>
                               {city.name}
@@ -314,7 +321,11 @@ const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                         Keyboard.dismiss();
                       }}
                     >
-                      <Ionicons name="location" size={16} color="#8E8E93" />
+                      <Ionicons
+                        name="location"
+                        size={16}
+                        color={palette.textSecondary}
+                      />
                       <Text style={styles.suggestionText}>{city}</Text>
                     </TouchableOpacity>
                   ))}

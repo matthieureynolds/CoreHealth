@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { FlightLookupService } from "../../../../../shared/services/jetlag-brain/enhancedJetLagService";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface TripFormData {
   title: string;
@@ -124,7 +125,7 @@ const AddNewTripScreen: React.FC = () => {
           style={styles.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">
           Add New Trip
@@ -149,7 +150,7 @@ const AddNewTripScreen: React.FC = () => {
               <Ionicons
                 name={tab === "manual" ? "create-outline" : "airplane-outline"}
                 size={16}
-                color={activeTab === tab ? "#3AABF0" : "#8E8E93"}
+                color={activeTab === tab ? palette.link : palette.textSecondary}
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -191,13 +192,13 @@ const AddNewTripScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={palette.textPrimary} />
               ) : (
                 <>
                   <Ionicons
                     name="search-outline"
                     size={18}
-                    color="#fff"
+                    color={palette.textPrimary}
                     style={{ marginRight: 8 }}
                   />
                   <Text style={styles.lookupBtnText}>Look Up Flight</Text>
@@ -246,7 +247,7 @@ const AddNewTripScreen: React.FC = () => {
                 <Ionicons
                   name="calendar-outline"
                   size={18}
-                  color="#3AABF0"
+                  color={palette.link}
                   style={{ marginRight: 12 }}
                 />
                 <Text style={styles.dateLabel}>Departure</Text>
@@ -261,7 +262,7 @@ const AddNewTripScreen: React.FC = () => {
                 <Ionicons
                   name="calendar-outline"
                   size={18}
-                  color="#34C759"
+                  color={palette.success}
                   style={{ marginRight: 12 }}
                 />
                 <Text style={styles.dateLabel}>Return</Text>
@@ -351,11 +352,11 @@ const AddNewTripScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   header: {
     paddingTop: 72,
     paddingBottom: 12,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     flexDirection: "row",
@@ -370,14 +371,14 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   backButton: { padding: 8, marginBottom: -4 },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#fff" },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: palette.textPrimary },
   saveBtn: { padding: 8, marginBottom: -4 },
-  saveBtnText: { fontSize: 16, fontWeight: "600", color: "#3AABF0" },
+  saveBtnText: { fontSize: 16, fontWeight: "600", color: palette.link },
   tabBar: {
     flexDirection: "row",
     marginHorizontal: 20,
     marginTop: 20,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     padding: 4,
   },
@@ -389,11 +390,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  activeTab: { backgroundColor: "#2C2C2E" },
-  tabText: { fontSize: 14, fontWeight: "500", color: "#8E8E93" },
-  activeTabText: { color: "#3AABF0", fontWeight: "600" },
+  activeTab: { backgroundColor: palette.surfaceElevated },
+  tabText: { fontSize: 14, fontWeight: "500", color: palette.textSecondary },
+  activeTabText: { color: palette.link, fontWeight: "600" },
   section: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginTop: 16,
@@ -403,16 +404,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 14,
   },
-  label: { fontSize: 13, color: "#8E8E93", marginBottom: 6, marginTop: 10 },
+  label: {
+    fontSize: 13,
+    color: palette.textSecondary,
+    marginBottom: 6,
+    marginTop: 10,
+  },
   input: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 10,
     padding: 12,
-    color: "#fff",
+    color: palette.textPrimary,
     fontSize: 15,
     marginBottom: 4,
   },
@@ -420,22 +426,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#3AABF0",
+    backgroundColor: palette.link,
     borderRadius: 12,
     padding: 14,
     marginTop: 16,
   },
   lookupBtnDisabled: { opacity: 0.5 },
-  lookupBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  lookupBtnText: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: "600",
+  },
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
-  dateLabel: { flex: 1, fontSize: 15, color: "#fff" },
-  dateValue: { fontSize: 14, color: "#8E8E93" },
+  dateLabel: { flex: 1, fontSize: 15, color: palette.textPrimary },
+  dateValue: { fontSize: 14, color: palette.textSecondary },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -449,19 +459,19 @@ const styles = StyleSheet.create({
     borderColor: "#555",
     marginRight: 14,
   },
-  radioSelected: { borderColor: "#3AABF0", backgroundColor: "#3AABF0" },
-  optionLabel: { fontSize: 14, color: "#fff" },
+  radioSelected: { borderColor: palette.link, backgroundColor: palette.link },
+  optionLabel: { fontSize: 14, color: palette.textPrimary },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
   toggleLabel: {
     flex: 1,
     fontSize: 15,
-    color: "#fff",
+    color: palette.textPrimary,
     textTransform: "capitalize",
   },
   togglePill: {
@@ -472,12 +482,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 2,
   },
-  togglePillOn: { backgroundColor: "#3AABF0" },
+  togglePillOn: { backgroundColor: palette.link },
   toggleThumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#fff",
+    backgroundColor: palette.textPrimary,
     alignSelf: "flex-start",
   },
   toggleThumbOn: { alignSelf: "flex-end" },

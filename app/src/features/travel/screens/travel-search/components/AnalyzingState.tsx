@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Animated, Easing, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { palette } from "../../../../../shared/theme/colors";
 
 // Cosmetic "reasoning" steps. They tick over on a timer to convey the system
 // working through each check — building trust that real analysis is happening.
@@ -85,13 +86,21 @@ const AnalyzingState: React.FC<AnalyzingStateProps> = ({ location }) => {
             <View key={label} style={styles.row}>
               <View style={styles.iconWrap}>
                 {done ? (
-                  <Ionicons name="checkmark-circle" size={18} color="#34C759" />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={18}
+                    color={palette.success}
+                  />
                 ) : isActive ? (
                   <Animated.View style={{ transform: [{ rotate }] }}>
-                    <Ionicons name="sync" size={17} color="#3AABF0" />
+                    <Ionicons name="sync" size={17} color={palette.link} />
                   </Animated.View>
                 ) : (
-                  <Ionicons name="ellipse-outline" size={16} color="#3A3A3C" />
+                  <Ionicons
+                    name="ellipse-outline"
+                    size={16}
+                    color={palette.border}
+                  />
                 )}
               </View>
               <Text
@@ -135,20 +144,20 @@ const SWEEP_WIDTH = 120;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     paddingVertical: 22,
     paddingHorizontal: 20,
     marginTop: 8,
   },
   title: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontSize: 17,
     fontWeight: "600",
     marginBottom: 18,
   },
   ellipsis: {
-    color: "#3AABF0",
+    color: palette.link,
   },
   steps: {
     marginBottom: 18,
@@ -164,12 +173,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rowText: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 15,
     marginLeft: 10,
   },
   rowTextActive: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
   rowTextDone: {
     color: "#C7C7CC",
@@ -177,7 +186,7 @@ const styles = StyleSheet.create({
   track: {
     height: 3,
     borderRadius: 2,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     overflow: "hidden",
   },
   sweepWrap: {

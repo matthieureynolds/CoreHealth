@@ -1,10 +1,11 @@
 import { StyleSheet } from "react-native";
+import { palette } from "../../../../../shared/theme/colors";
 
 /** Screen shell, header, tabs, scroll, trip rows, add-trip CTA */
 export const travelShellStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: palette.bg,
   },
   header: {
     flexDirection: "row",
@@ -13,7 +14,7 @@ export const travelShellStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60, // Increased for iPhone 16 Dynamic Island
     paddingBottom: 2,
-    backgroundColor: "#000000",
+    backgroundColor: palette.bg,
   },
   headerContent: {
     flex: 1,
@@ -22,12 +23,12 @@ export const travelShellStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontWeight: "400",
     lineHeight: 20,
     flexWrap: "wrap",
@@ -57,14 +58,14 @@ export const travelShellStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 12,
   },
   // Detailed modal styles to match dashboard
 
   description: {
     fontSize: 16,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     lineHeight: 24,
   },
 
@@ -72,19 +73,19 @@ export const travelShellStyles = StyleSheet.create({
     marginTop: 20,
   },
   metricCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
     width: "48%", // Two columns
   },
 
   metricValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
 
@@ -95,13 +96,13 @@ export const travelShellStyles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginTop: 24,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 16,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 8,
     textAlign: "center",
     marginBottom: 16,
@@ -114,7 +115,7 @@ export const travelShellStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#3AABF0",
+    backgroundColor: palette.link,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -124,7 +125,7 @@ export const travelShellStyles = StyleSheet.create({
   addTripButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 8,
   },
 });

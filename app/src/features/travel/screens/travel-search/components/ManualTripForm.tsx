@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../TravelScreen.styles";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface ManualTripFormProps {
   newTripDepartureLocation: string;
@@ -75,7 +76,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
           onFocus={() => setDepartureFocused(true)}
           onBlur={() => setTimeout(() => setDepartureFocused(false), 200)}
           placeholder="Enter departure location"
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={palette.textSecondary}
         />
         {showDepartureSuggestions && (
           <View style={styles.suggestionsContainer}>
@@ -102,7 +103,9 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                 <Ionicons
                   name="navigate"
                   size={16}
-                  color={isGettingLocation ? "#8E8E93" : "#3AABF0"}
+                  color={
+                    isGettingLocation ? palette.textSecondary : palette.link
+                  }
                 />
                 <Text style={styles.suggestionText}>
                   {isGettingLocation
@@ -112,7 +115,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                 {isGettingLocation && (
                   <ActivityIndicator
                     size="small"
-                    color="#8E8E93"
+                    color={palette.textSecondary}
                     style={{ marginLeft: 8 }}
                   />
                 )}
@@ -131,7 +134,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                   Keyboard.dismiss();
                 }}
               >
-                <Ionicons name="location" size={16} color="#3AABF0" />
+                <Ionicons name="location" size={16} color={palette.link} />
                 <Text style={styles.suggestionText}>{city}</Text>
               </TouchableOpacity>
             ))}
@@ -155,7 +158,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
           onFocus={() => setDestinationFocused(true)}
           onBlur={() => setTimeout(() => setDestinationFocused(false), 200)}
           placeholder="Enter destination"
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={palette.textSecondary}
         />
         {showDestinationSuggestions && (
           <View style={styles.suggestionsContainer}>
@@ -172,7 +175,7 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                   Keyboard.dismiss();
                 }}
               >
-                <Ionicons name="location" size={16} color="#3AABF0" />
+                <Ionicons name="location" size={16} color={palette.link} />
                 <Text style={styles.suggestionText}>{city}</Text>
               </TouchableOpacity>
             ))}
@@ -194,7 +197,11 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                 ? newTripDepartureDate.toLocaleDateString()
                 : "Select date"}
             </Text>
-            <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={palette.textSecondary}
+            />
           </TouchableOpacity>
         </View>
         <View style={{ flex: 1 }}>
@@ -210,7 +217,11 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                 ? newTripReturnDate.toLocaleDateString()
                 : "Select date"}
             </Text>
-            <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={palette.textSecondary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -232,7 +243,11 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                   })
                 : "Select time"}
             </Text>
-            <Ionicons name="time-outline" size={16} color="#8E8E93" />
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={palette.textSecondary}
+            />
           </TouchableOpacity>
         </View>
         <View style={{ flex: 1 }}>
@@ -251,7 +266,11 @@ const ManualTripForm: React.FC<ManualTripFormProps> = ({
                   })
                 : "Select time"}
             </Text>
-            <Ionicons name="time-outline" size={16} color="#8E8E93" />
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={palette.textSecondary}
+            />
           </TouchableOpacity>
         </View>
       </View>

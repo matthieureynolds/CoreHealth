@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { palette } from "../../../../../shared/theme/colors";
 
 /** Vaccinations, health summary, metrics, trip cards, jet lag, date pickers, bottom sheet */
 export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
@@ -6,12 +7,12 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   vaccineLeft: {
     flexDirection: "row",
@@ -25,40 +26,40 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   },
   vaccineName: {
     flex: 1,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "600",
     fontSize: 14,
   },
   vaccineBadge: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 12,
     marginLeft: 0,
   },
 
   tipText: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 12,
     flex: 1,
   },
 
   progressText: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginLeft: 8,
   },
 
   countryName: {
     fontSize: 18,
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
   summaryCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   summaryHeader: {
     flexDirection: "row",
@@ -68,12 +69,12 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 8,
   },
   summaryText: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
   metricsSection: {
     marginBottom: 28,
@@ -81,12 +82,12 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   metricRowCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     padding: 16,
     marginBottom: 10,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
 
   metricIconCircle: {
@@ -104,13 +105,13 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   metricName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
   metricValueText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 4,
   },
 
@@ -124,12 +125,12 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     borderWidth: 0,
   },
   hospitalCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     padding: 16,
     marginBottom: 10,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   hospitalHeader: {
     flexDirection: "row",
@@ -139,28 +140,28 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   hospitalTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 8,
   },
   hospitalDistance: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginLeft: 8,
   },
   hospitalInfo: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
   },
   medicationSection: {
     marginBottom: 20,
   },
 
   medicationCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 16,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
 
   medicationHeader: {
@@ -181,13 +182,13 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   emergencyTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 8,
   },
 
   emergencyNumber: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "600",
   },
 
@@ -222,14 +223,14 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     zIndex: 10000,
   },
   datePickerModalContent: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     padding: 24,
     width: "90%",
     maxWidth: 400,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
     zIndex: 10001,
     elevation: 10001,
   },
@@ -245,21 +246,21 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
   },
 
   datePicker: {
     width: "100%",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#3A3A3C",
-    color: "#FFFFFF",
+    borderColor: palette.border,
+    color: palette.textPrimary,
   },
 
   cancelButton: {
-    backgroundColor: "#8E8E93",
+    backgroundColor: palette.textSecondary,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -268,23 +269,23 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
   },
 
   emergencyModal: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     padding: 24,
     width: "80%",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   emergencyModalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 16,
   },
   emergencyModalButtons: {
@@ -294,7 +295,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     marginTop: 12,
   },
   emergencyCallButton: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: palette.danger,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -302,11 +303,11 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   emergencyCallButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
   },
   emergencyCancelButton: {
-    backgroundColor: "#8E8E93",
+    backgroundColor: palette.textSecondary,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -314,7 +315,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   emergencyCancelButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
   },
   resultTitleRow: {
@@ -325,7 +326,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   resultTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     flexShrink: 1,
   },
 
@@ -334,7 +335,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
     height: 16,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: "#3AABF0",
+    borderColor: palette.link,
     marginRight: 4,
   },
 
@@ -345,11 +346,11 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   metricScoreText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
   metricScoreLabelText: {
     fontSize: 12,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 2,
   },
   // Bottom Sheet Styles
@@ -366,14 +367,14 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   },
   bottomSheetContent: {
     flex: 1,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     width: "100%",
     minHeight: "70%",
     maxHeight: "100%",
     paddingBottom: 0,
-    shadowColor: "#000",
+    shadowColor: palette.bg,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -398,7 +399,7 @@ export const travelHealthTripsAndSheetsStyles = StyleSheet.create({
   bottomSheetTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
     flex: 1,
   },

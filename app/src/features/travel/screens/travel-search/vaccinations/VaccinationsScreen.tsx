@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { palette } from "../../../../../shared/theme/colors";
 
 const CHECKED_VAX_KEY = "vaccinations_checked";
 
@@ -77,7 +78,7 @@ const VaccinationsScreen: React.FC = () => {
           style={styles.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">
           Vaccinations
@@ -93,7 +94,7 @@ const VaccinationsScreen: React.FC = () => {
           <Ionicons
             name="shield-checkmark-outline"
             size={36}
-            color="#34C759"
+            color={palette.success}
             style={{ marginBottom: 12 }}
           />
           <Text style={styles.heroTitle}>Travel Vaccination Checklist</Text>
@@ -115,7 +116,11 @@ const VaccinationsScreen: React.FC = () => {
                 style={[styles.checkbox, checkedVax[v] && styles.checkboxDone]}
               >
                 {checkedVax[v] && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={palette.textPrimary}
+                  />
                 )}
               </View>
               <Text
@@ -139,7 +144,11 @@ const VaccinationsScreen: React.FC = () => {
                 style={[styles.checkbox, checkedVax[v] && styles.checkboxDone]}
               >
                 {checkedVax[v] && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={palette.textPrimary}
+                  />
                 )}
               </View>
               <Text
@@ -161,7 +170,7 @@ const VaccinationsScreen: React.FC = () => {
               <Ionicons
                 name="information-circle-outline"
                 size={16}
-                color="#34C759"
+                color={palette.success}
               />
               <Text style={styles.tipText}>{t}</Text>
             </View>
@@ -172,7 +181,7 @@ const VaccinationsScreen: React.FC = () => {
           style={styles.linkBtn}
           onPress={() => Linking.openURL("https://wwwnc.cdc.gov/travel")}
         >
-          <Ionicons name="open-outline" size={18} color="#3AABF0" />
+          <Ionicons name="open-outline" size={18} color={palette.link} />
           <Text style={styles.linkBtnText}>
             CDC Traveler's Vaccination Guide
           </Text>
@@ -183,11 +192,11 @@ const VaccinationsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     justifyContent: "space-between",
@@ -208,7 +217,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: palette.textPrimary,
     textAlign: "center",
     position: "absolute",
     left: 0,
@@ -217,7 +226,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   heroCard: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     margin: 20,
     padding: 24,
@@ -228,18 +237,18 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#fff",
+    color: palette.textPrimary,
     marginBottom: 8,
     textAlign: "center",
   },
   heroDesc: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     textAlign: "center",
     lineHeight: 18,
   },
   section: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
@@ -249,7 +258,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -258,7 +267,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
   checkbox: {
     width: 22,
@@ -270,21 +279,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxDone: { backgroundColor: "#34C759", borderColor: "#34C759" },
-  vaccName: { flex: 1, fontSize: 15, color: "#fff" },
-  vaccNameDone: { color: "#8E8E93", textDecorationLine: "line-through" },
+  checkboxDone: {
+    backgroundColor: palette.success,
+    borderColor: palette.success,
+  },
+  vaccName: { flex: 1, fontSize: 15, color: palette.textPrimary },
+  vaccNameDone: {
+    color: palette.textSecondary,
+    textDecorationLine: "line-through",
+  },
   travelBadge: {
     backgroundColor: "#3AABF020",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
   },
-  travelBadgeText: { fontSize: 11, color: "#3AABF0", fontWeight: "600" },
+  travelBadgeText: { fontSize: 11, color: palette.link, fontWeight: "600" },
   tipRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10 },
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: "#E5E5EA",
+    color: palette.textOnLight,
     marginLeft: 10,
     lineHeight: 18,
   },
@@ -292,7 +307,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     padding: 16,
@@ -301,7 +316,7 @@ const styles = StyleSheet.create({
   },
   linkBtnText: {
     fontSize: 14,
-    color: "#3AABF0",
+    color: palette.link,
     fontWeight: "600",
     marginLeft: 8,
   },

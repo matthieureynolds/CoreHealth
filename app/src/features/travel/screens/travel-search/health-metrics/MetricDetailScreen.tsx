@@ -11,10 +11,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { metricScreenStyles as s } from "./metricScreenStyles";
 import type { MetricScreenConfig } from "./metricScreens.config";
+import { palette } from "../../../../../shared/theme/colors";
 
 /** Icon tints that are the same on every metric screen. */
-const RECOMMENDATION_TINT = "#3AABF0";
-const RISK_TINT = "#FF9500";
+const RECOMMENDATION_TINT = palette.link;
+const RISK_TINT = palette.warning;
 
 /**
  * One reference screen for every travel health metric (air quality, UV, pollen,
@@ -48,7 +49,7 @@ const MetricDetailScreen: React.FC<{ config: MetricScreenConfig }> = ({
           style={s.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={s.headerTitle} pointerEvents="none">
           {headerTitle}
@@ -137,7 +138,7 @@ const MetricDetailScreen: React.FC<{ config: MetricScreenConfig }> = ({
                 style={styles.linkRow}
                 onPress={() => Linking.openURL(res.url)}
               >
-                <Ionicons name="open-outline" size={16} color="#3AABF0" />
+                <Ionicons name="open-outline" size={16} color={palette.link} />
                 <Text style={styles.linkText}>{res.label}</Text>
               </TouchableOpacity>
             ))}
@@ -150,7 +151,7 @@ const MetricDetailScreen: React.FC<{ config: MetricScreenConfig }> = ({
 
 const styles = StyleSheet.create({
   heroCard: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     margin: 20,
     padding: 24,
@@ -165,19 +166,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
   },
-  scaleLabel: { fontSize: 14, color: "#fff" },
-  scaleNote: { fontSize: 12, color: "#8E8E93", marginTop: 1 },
-  scaleRange: { fontSize: 13, color: "#8E8E93" },
+  scaleLabel: { fontSize: 14, color: palette.textPrimary },
+  scaleNote: { fontSize: 12, color: palette.textSecondary, marginTop: 1 },
+  scaleRange: { fontSize: 13, color: palette.textSecondary },
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
   linkText: {
     fontSize: 14,
-    color: "#3AABF0",
+    color: palette.link,
     marginLeft: 10,
     fontWeight: "500",
   },

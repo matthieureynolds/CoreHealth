@@ -17,6 +17,7 @@ import { styles } from "../TravelScreen.styles";
 import FlightLookupStep from "./FlightLookupStep";
 import ManualTripForm from "./ManualTripForm";
 import { FlightOption } from "../../../../../shared/types";
+import { palette } from "../../../../../shared/theme/colors";
 
 /**
  * Isolates the DateTimePicker from parent re-renders.
@@ -58,7 +59,7 @@ const StableDatePicker = React.memo(
             : "default"
         }
         themeVariant="dark"
-        textColor="#FFFFFF"
+        textColor={palette.textPrimary}
         onChange={handleChange}
         {...(frozenMinDate ? { minimumDate: frozenMinDate } : {})}
         style={styles.datePicker}
@@ -251,7 +252,9 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
                   <Ionicons
                     name={showManualEntry ? "chevron-back" : "close"}
                     size={showManualEntry ? 24 : 20}
-                    color={showManualEntry ? "#FFFFFF" : "#FF3B30"}
+                    color={
+                      showManualEntry ? palette.textPrimary : palette.danger
+                    }
                   />
                 </TouchableOpacity>
                 <Text style={styles.bottomSheetTitle}>Add New Trip</Text>
@@ -269,7 +272,9 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
                     <Ionicons
                       name="checkmark"
                       size={24}
-                      color={canSubmit ? "#34C759" : "#8E8E93"}
+                      color={
+                        canSubmit ? palette.success : palette.textSecondary
+                      }
                     />
                   </TouchableOpacity>
                 ) : (
@@ -357,7 +362,7 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
                         <Ionicons
                           name="close-circle"
                           size={28}
-                          color="#FF3B30"
+                          color={palette.danger}
                         />
                       </TouchableOpacity>
                       <Text style={styles.datePickerTitle}>
@@ -382,7 +387,7 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
                         <Ionicons
                           name="checkmark-circle"
                           size={28}
-                          color="#34C759"
+                          color={palette.success}
                         />
                       </TouchableOpacity>
                     </View>

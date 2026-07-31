@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { styles } from "../TravelScreen.styles";
+import { palette } from "../../../../../shared/theme/colors";
 
 const StableEditDatePicker = React.memo(
   ({
@@ -39,7 +40,7 @@ const StableEditDatePicker = React.memo(
         mode="date"
         display="inline"
         themeVariant="dark"
-        textColor="#FFFFFF"
+        textColor={palette.textPrimary}
         onChange={handleChange}
         minimumDate={frozenMinDate}
         style={styles.datePicker}
@@ -116,13 +117,13 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
             style={[styles.modalHeader, { justifyContent: "space-between" }]}
           >
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#FF3B30" />
+              <Ionicons name="close" size={24} color={palette.danger} />
             </TouchableOpacity>
             <Text style={[styles.modalTitle, { textAlign: "center", flex: 1 }]}>
               Edit Trip
             </Text>
             <TouchableOpacity onPress={onDelete}>
-              <Ionicons name="trash" size={22} color="#FF3B30" />
+              <Ionicons name="trash" size={22} color={palette.danger} />
             </TouchableOpacity>
           </View>
 
@@ -137,7 +138,7 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                 value={editTripDepartureLocation}
                 onChangeText={onDepartureLocationChange}
                 placeholder="Enter departure location (e.g., New York, USA)"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={palette.textSecondary}
               />
               {(editTripDepartureLocation.trim() === "" ||
                 editTripDepartureSuggestions.length > 0) && (
@@ -167,7 +168,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                       <Ionicons
                         name="navigate"
                         size={16}
-                        color={isGettingLocation ? "#8E8E93" : "#3AABF0"}
+                        color={
+                          isGettingLocation
+                            ? palette.textSecondary
+                            : palette.link
+                        }
                       />
                       <Text style={styles.suggestionText}>
                         {isGettingLocation
@@ -177,7 +182,7 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                       {isGettingLocation && (
                         <ActivityIndicator
                           size="small"
-                          color="#8E8E93"
+                          color={palette.textSecondary}
                           style={{ marginLeft: 8 }}
                         />
                       )}
@@ -194,7 +199,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                           Keyboard.dismiss();
                         }}
                       >
-                        <Ionicons name="location" size={16} color="#3AABF0" />
+                        <Ionicons
+                          name="location"
+                          size={16}
+                          color={palette.link}
+                        />
                         <Text style={styles.suggestionText}>{city}</Text>
                       </TouchableOpacity>
                     ))}
@@ -209,7 +218,7 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                 value={editTripDestination}
                 onChangeText={onDestinationChange}
                 placeholder="Enter destination (e.g., Tokyo, Japan)"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={palette.textSecondary}
               />
               {editTripSuggestions.length > 0 && (
                 <View style={styles.suggestionsContainer}>
@@ -222,7 +231,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                         Keyboard.dismiss();
                       }}
                     >
-                      <Ionicons name="location" size={16} color="#3AABF0" />
+                      <Ionicons
+                        name="location"
+                        size={16}
+                        color={palette.link}
+                      />
                       <Text style={styles.suggestionText}>{city}</Text>
                     </TouchableOpacity>
                   ))}
@@ -238,7 +251,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
               <Text style={styles.dateButtonText}>
                 {editTripDepartureDate.toLocaleDateString()}
               </Text>
-              <Ionicons name="calendar" size={16} color="#8E8E93" />
+              <Ionicons
+                name="calendar"
+                size={16}
+                color={palette.textSecondary}
+              />
             </TouchableOpacity>
 
             <Text style={styles.inputLabel}>Return Date: (Optional)</Text>
@@ -251,7 +268,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                   ? editTripReturnDate.toLocaleDateString()
                   : "Select date"}
               </Text>
-              <Ionicons name="calendar" size={16} color="#8E8E93" />
+              <Ionicons
+                name="calendar"
+                size={16}
+                color={palette.textSecondary}
+              />
             </TouchableOpacity>
 
             <Text style={styles.inputLabel}>Notes (Optional)</Text>
@@ -263,7 +284,7 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
               value={editTripNotes}
               onChangeText={onNotesChange}
               placeholder="Add any additional notes..."
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={palette.textSecondary}
               multiline
             />
           </ScrollView>
@@ -290,7 +311,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   style={{ padding: 4 }}
                 >
-                  <Ionicons name="close-circle" size={28} color="#FF3B30" />
+                  <Ionicons
+                    name="close-circle"
+                    size={28}
+                    color={palette.danger}
+                  />
                 </TouchableOpacity>
                 <Text style={styles.datePickerTitle}>
                   {showEditDatePicker === "departure"
@@ -302,7 +327,11 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   style={{ padding: 4 }}
                 >
-                  <Ionicons name="checkmark-circle" size={28} color="#34C759" />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={28}
+                    color={palette.success}
+                  />
                 </TouchableOpacity>
               </View>
               <StableEditDatePicker
@@ -332,7 +361,7 @@ const EditTripModal: React.FC<EditTripModalProps> = ({
             mode="date"
             display="default"
             themeVariant="dark"
-            textColor="#FFFFFF"
+            textColor={palette.textPrimary}
             onChange={(event, selectedDate) => {
               if (selectedDate) {
                 onEditDateChange(event, selectedDate);

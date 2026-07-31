@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../TravelScreen.styles";
 import { FlightOption } from "../../../../../shared/types";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface FlightDetailsCardProps {
   flightLookupResult: FlightOption | null;
@@ -40,7 +41,7 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
               <Ionicons
                 name="airplane"
                 size={18}
-                color="#059669"
+                color={palette.successDeep}
                 style={{ transform: [{ rotate: "90deg" }] }}
               />
               <Text style={styles.flightCityText} numberOfLines={1}>
@@ -70,7 +71,7 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
               <Ionicons
                 name="airplane"
                 size={18}
-                color="#059669"
+                color={palette.successDeep}
                 style={{ transform: [{ rotate: "90deg" }] }}
               />
               <Text style={styles.flightCityText} numberOfLines={1}>
@@ -97,7 +98,11 @@ export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
           </View>
           {!flightDetailsExpanded && (
             <View style={styles.flightDetailsChevronWrap}>
-              <Ionicons name="chevron-forward" size={20} color="#059669" />
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.successDeep}
+              />
             </View>
           )}
         </View>
@@ -138,7 +143,7 @@ export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({
                   <Ionicons
                     name="airplane"
                     size={18}
-                    color="#059669"
+                    color={palette.successDeep}
                     style={{ transform: [{ rotate: "90deg" }] }}
                   />
                   <Text style={styles.flightCityText} numberOfLines={1}>
@@ -169,7 +174,7 @@ export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({
                   <Ionicons
                     name="airplane"
                     size={18}
-                    color="#059669"
+                    color={palette.successDeep}
                     style={{ transform: [{ rotate: "90deg" }] }}
                   />
                   <Text style={styles.flightCityText} numberOfLines={1}>
@@ -236,7 +241,7 @@ export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
                   <Ionicons
                     name="airplane"
                     size={18}
-                    color="#059669"
+                    color={palette.successDeep}
                     style={{ transform: [{ rotate: "90deg" }] }}
                   />
                   <Text style={styles.flightCityText} numberOfLines={1}>
@@ -267,7 +272,7 @@ export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
                   <Ionicons
                     name="airplane"
                     size={18}
-                    color="#059669"
+                    color={palette.successDeep}
                     style={{ transform: [{ rotate: "90deg" }] }}
                   />
                   <Text style={styles.flightCityText} numberOfLines={1}>
@@ -294,7 +299,11 @@ export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
                 <View style={styles.flightDetailsCellArrow} />
               </View>
               <View style={styles.flightDetailsChevronWrap}>
-                <Ionicons name="chevron-forward" size={20} color="#059669" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={palette.successDeep}
+                />
               </View>
             </View>
           </View>
@@ -370,7 +379,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
                   value={flightCarrier}
                   onChangeText={onFlightCarrierChange}
                   placeholder="AA"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={palette.textSecondary}
                   autoCapitalize="characters"
                   maxLength={2}
                 />
@@ -381,7 +390,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
                   value={flightNumber}
                   onChangeText={onFlightNumberChange}
                   placeholder="128"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={palette.textSecondary}
                   keyboardType="numeric"
                 />
               </View>
@@ -418,21 +427,25 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
             style={styles.addAnotherFlightButton}
             onPress={onAddAnotherFlight}
           >
-            <Ionicons name="add" size={18} color="#059669" />
+            <Ionicons name="add" size={18} color={palette.successDeep} />
             <Text style={styles.addAnotherFlightText}>Add another flight</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.continueButton}
             onPress={onConfirmFlightTrip}
           >
-            <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={palette.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       )}
 
       {isLookingUpFlight && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#3AABF0" />
+          <ActivityIndicator size="small" color={palette.link} />
           <Text style={styles.loadingText}>Looking up flight...</Text>
         </View>
       )}
@@ -441,10 +454,14 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
         !isLookingUpFlight &&
         flightSuggestions.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 20 }}>
-            <Ionicons name="airplane-outline" size={32} color="#8E8E93" />
+            <Ionicons
+              name="airplane-outline"
+              size={32}
+              color={palette.textSecondary}
+            />
             <Text
               style={{
-                color: "#FFFFFF",
+                color: palette.textPrimary,
                 fontSize: 16,
                 fontWeight: "600",
                 marginTop: 10,
@@ -454,7 +471,7 @@ const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
             </Text>
             <Text
               style={{
-                color: "#8E8E93",
+                color: palette.textSecondary,
                 fontSize: 14,
                 marginTop: 4,
                 textAlign: "center",

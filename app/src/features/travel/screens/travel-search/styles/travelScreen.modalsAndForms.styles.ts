@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { palette } from "../../../../../shared/theme/colors";
 
 /** Metric detail modal, overlays, inputs, flight, search, suggestions, chips */
 export const travelModalsAndFormsStyles = StyleSheet.create({
@@ -24,13 +25,13 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     padding: 24,
     width: "80%",
     maxHeight: "80%",
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   modalScrollContent: {
     width: "100%",
@@ -46,12 +47,12 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
   inputLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 8,
     alignSelf: "flex-start",
   },
@@ -62,23 +63,23 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   textInput: {
     width: "100%",
     height: 50,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     paddingHorizontal: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     borderWidth: 1,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
     marginBottom: 8,
   },
   suggestionsContainer: {
     width: "100%",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     borderWidth: 1,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
     marginTop: 0,
     borderTopWidth: 0,
     maxHeight: 400,
@@ -94,7 +95,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   suggestionItemDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: "#3A3A3C",
+    borderBottomColor: palette.border,
   },
   loadingContainer: {
     flexDirection: "row",
@@ -104,7 +105,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   loadingText: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 14,
     marginLeft: 8,
   },
@@ -113,13 +114,13 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     marginLeft: 8,
   },
   suggestionSubtext: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
   suggestionText: {
     fontSize: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginLeft: 12,
     textAlign: "left",
     flex: 1,
@@ -131,16 +132,16 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   airlineName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
 
   flightDetailsCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 12,
     marginTop: 20,
     borderWidth: 1,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   flightSegmentCard: {
     marginTop: 12,
@@ -148,7 +149,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   flightNumberText: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontWeight: "400",
     marginBottom: 12,
   },
@@ -165,7 +166,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     height: 22,
     marginTop: -11, // center the line on the midpoint between the two planes
     width: 2,
-    backgroundColor: "#059669",
+    backgroundColor: palette.successDeep,
   },
   flightDetailsRow: {
     flexDirection: "row",
@@ -211,7 +212,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
 
   flightCityText: {
     fontSize: 15,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "400",
     flex: 1,
     minWidth: 0,
@@ -219,7 +220,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
 
   flightDate: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontWeight: "400",
     height: 24,
     lineHeight: 24,
@@ -227,7 +228,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   flightTime: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "500",
     height: 24,
     lineHeight: 24,
@@ -245,24 +246,24 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#059669",
+    borderColor: palette.successDeep,
     backgroundColor: "transparent",
     gap: 8,
   },
   addAnotherFlightText: {
     fontSize: 16,
-    color: "#059669",
+    color: palette.successDeep,
     fontWeight: "500",
   },
   continueButton: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#059669",
+    backgroundColor: palette.successDeep,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
-    shadowColor: "#000",
+    shadowColor: palette.bg,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -290,19 +291,19 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   manualEntryButtonText: {
     fontSize: 14,
-    color: "#3AABF0",
+    color: palette.link,
     fontWeight: "500",
     textDecorationLine: "none",
   },
   dateButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     paddingHorizontal: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
     marginBottom: 16,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -310,7 +311,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
   dateButtonText: {
     fontSize: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
   },
   modalButtons: {
     flexDirection: "row",
@@ -322,7 +323,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   modalButtonPrimaryText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     textAlign: "center",
   },
   modalButtonsSingleCentered: {
@@ -334,7 +335,7 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   primaryCenteredButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: "#3AABF0",
+    backgroundColor: palette.link,
     borderRadius: 12,
     minWidth: 160,
     alignItems: "center",
@@ -345,17 +346,17 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   locationSearchButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   locationSearchInput: {
     flex: 1,
     fontSize: 16,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginRight: 8,
   },
 
@@ -371,45 +372,45 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
 
   locationSubtitle: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 4,
   },
 
   riskText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#34C759",
+    color: palette.success,
     marginLeft: 8,
   },
 
   facilityCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
 
   facilityInfo: {
     fontSize: 14,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginBottom: 4,
   },
   facilityDetails: {
     fontSize: 13,
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginLeft: 16,
   },
   vaccinationSection: {
     marginBottom: 20,
   },
   vaccinationCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 16,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
   vaccinationHeader: {
     flexDirection: "row",
@@ -418,16 +419,16 @@ export const travelModalsAndFormsStyles = StyleSheet.create({
   },
 
   chip: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 16,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 0,
-    borderColor: "#3A3A3C",
+    borderColor: palette.border,
   },
 
   chipText: {
-    color: "#8E8E93",
+    color: palette.textSecondary,
     fontSize: 12,
     fontWeight: "600",
   },

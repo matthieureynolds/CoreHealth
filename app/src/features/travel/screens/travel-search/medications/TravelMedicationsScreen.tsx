@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { palette } from "../../../../../shared/theme/colors";
 
 const KIT_ITEMS = [
   {
@@ -51,7 +52,7 @@ const TravelMedicationsScreen: React.FC = () => {
           style={styles.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">
           Travel Medications
@@ -67,7 +68,7 @@ const TravelMedicationsScreen: React.FC = () => {
           <Ionicons
             name="bag-outline"
             size={32}
-            color="#FF9500"
+            color={palette.warning}
             style={{ marginBottom: 12 }}
           />
           <Text style={styles.progressTitle}>Medical Kit Checklist</Text>
@@ -99,7 +100,11 @@ const TravelMedicationsScreen: React.FC = () => {
                 ]}
               >
                 {checked[item.name] && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={palette.textPrimary}
+                  />
                 )}
               </View>
               <View style={{ flex: 1 }}>
@@ -124,7 +129,7 @@ const TravelMedicationsScreen: React.FC = () => {
               <Ionicons
                 name="information-circle-outline"
                 size={16}
-                color="#FF9500"
+                color={palette.warning}
               />
               <Text style={styles.tipText}>{t}</Text>
             </View>
@@ -137,7 +142,7 @@ const TravelMedicationsScreen: React.FC = () => {
             Linking.openURL("https://wwwnc.cdc.gov/travel/page/pack-smart")
           }
         >
-          <Ionicons name="open-outline" size={18} color="#3AABF0" />
+          <Ionicons name="open-outline" size={18} color={palette.link} />
           <Text style={styles.linkBtnText}>CDC — Pack Smart for Travel</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -146,11 +151,11 @@ const TravelMedicationsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     justifyContent: "space-between",
@@ -171,7 +176,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: palette.textPrimary,
     textAlign: "center",
     position: "absolute",
     left: 0,
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   progressCard: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     margin: 20,
     padding: 24,
@@ -191,20 +196,28 @@ const styles = StyleSheet.create({
   progressTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#fff",
+    color: palette.textPrimary,
     marginBottom: 6,
   },
-  progressCount: { fontSize: 14, color: "#8E8E93", marginBottom: 14 },
+  progressCount: {
+    fontSize: 14,
+    color: palette.textSecondary,
+    marginBottom: 14,
+  },
   progressBar: {
     width: "100%",
     height: 6,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 3,
     overflow: "hidden",
   },
-  progressFill: { height: "100%", backgroundColor: "#FF9500", borderRadius: 3 },
+  progressFill: {
+    height: "100%",
+    backgroundColor: palette.warning,
+    borderRadius: 3,
+  },
   section: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     marginBottom: 16,
@@ -214,7 +227,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 12,
   },
@@ -223,7 +236,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
   checkbox: {
     width: 22,
@@ -235,15 +248,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxDone: { backgroundColor: "#34C759", borderColor: "#34C759" },
-  itemName: { fontSize: 14, color: "#fff", marginBottom: 2 },
+  checkboxDone: {
+    backgroundColor: palette.success,
+    borderColor: palette.success,
+  },
+  itemName: { fontSize: 14, color: palette.textPrimary, marginBottom: 2 },
   itemNameDone: { color: "#555", textDecorationLine: "line-through" },
-  itemCategory: { fontSize: 12, color: "#8E8E93" },
+  itemCategory: { fontSize: 12, color: palette.textSecondary },
   tipRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 10 },
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: "#E5E5EA",
+    color: palette.textOnLight,
     marginLeft: 10,
     lineHeight: 18,
   },
@@ -251,7 +267,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginHorizontal: 20,
     padding: 16,
@@ -260,7 +276,7 @@ const styles = StyleSheet.create({
   },
   linkBtnText: {
     fontSize: 14,
-    color: "#3AABF0",
+    color: palette.link,
     fontWeight: "600",
     marginLeft: 8,
   },

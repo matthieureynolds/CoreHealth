@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { TravelStackParamList } from "../../../../../shared/types";
+import { palette } from "../../../../../shared/theme/colors";
 
 type Nav = StackNavigationProp<TravelStackParamList>;
 
@@ -26,28 +27,28 @@ const METRICS: MetricItem[] = [
     title: "Air Quality",
     subtitle: "Pollutants, particulates & AQI score",
     icon: "cloud-outline",
-    iconColor: "#3AABF0",
+    iconColor: palette.link,
     route: "AirQuality",
   },
   {
     title: "Water Safety",
     subtitle: "Drinking water quality & contamination",
     icon: "water-outline",
-    iconColor: "#3AABF0",
+    iconColor: palette.link,
     route: "WaterSafety",
   },
   {
     title: "UV Index",
     subtitle: "Sunburn risk & sun protection guidance",
     icon: "sunny-outline",
-    iconColor: "#FF9500",
+    iconColor: palette.warning,
     route: "UVIndex",
   },
   {
     title: "Food Safety",
     subtitle: "Food hygiene & traveler's risk",
     icon: "restaurant-outline",
-    iconColor: "#34C759",
+    iconColor: palette.success,
     route: "FoodSafety",
   },
   {
@@ -61,14 +62,14 @@ const METRICS: MetricItem[] = [
     title: "Altitude",
     subtitle: "Elevation & acclimatization risk",
     icon: "trending-up-outline",
-    iconColor: "#FF6B35",
+    iconColor: palette.alert,
     route: "Altitude",
   },
   {
     title: "Disease Outbreaks",
     subtitle: "Local infectious disease activity",
     icon: "medkit-outline",
-    iconColor: "#FF3B30",
+    iconColor: palette.danger,
     route: "DiseaseOutbreak",
   },
 ];
@@ -84,7 +85,7 @@ const HealthMetricsScreen: React.FC = () => {
           style={styles.backButton}
           hitSlop={{ top: 16, left: 16, right: 16, bottom: 16 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#3AABF0" />
+          <Ionicons name="arrow-back" size={24} color={palette.link} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} pointerEvents="none">
           Health Metrics
@@ -131,12 +132,12 @@ const HealthMetricsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: palette.bg },
   scrollView: { flex: 1 },
   header: {
     paddingTop: 72,
     paddingBottom: 5,
-    backgroundColor: "#181818",
+    backgroundColor: palette.surfaceDeep,
     borderBottomWidth: 1,
     borderBottomColor: "#222",
     justifyContent: "space-between",
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: palette.textPrimary,
     textAlign: "center",
     position: "absolute",
     left: 0,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   card: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderRadius: 16,
     marginHorizontal: 20,
     marginTop: 20,
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   cardHeader: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginBottom: 16,
     marginHorizontal: 20,
     letterSpacing: 0.5,
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A2A2A",
+    borderBottomColor: palette.surfaceMuted,
   },
   lastRow: { borderBottomWidth: 0 },
   iconCircle: {
@@ -197,8 +198,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 14,
   },
-  rowTitle: { fontSize: 15, fontWeight: "600", color: "#fff", marginBottom: 2 },
-  rowSub: { fontSize: 12, color: "#8E8E93" },
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: palette.textPrimary,
+    marginBottom: 2,
+  },
+  rowSub: { fontSize: 12, color: palette.textSecondary },
 });
 
 export default HealthMetricsScreen;

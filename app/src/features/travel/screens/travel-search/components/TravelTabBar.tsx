@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { LiquidGlass } from "../../../../../shared/components/ui/LiquidGlass";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface TravelTabBarProps {
   activeTab: "health" | "trips";
@@ -88,13 +89,13 @@ const s = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 4,
     paddingHorizontal: 20,
-    backgroundColor: "#000000",
+    backgroundColor: palette.bg,
   },
   island: {
     borderRadius: 22,
     overflow: "hidden",
     // Depth shadow
-    shadowColor: "#000",
+    shadowColor: palette.bg,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -130,7 +131,7 @@ const s = StyleSheet.create({
   activeTab: {
     backgroundColor: "rgba(255,255,255,0.12)",
     borderColor: "rgba(255,255,255,0.14)",
-    shadowColor: "#000",
+    shadowColor: palette.bg,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -159,7 +160,7 @@ const s = StyleSheet.create({
     color: "rgba(255,255,255,0.40)",
   },
   activeTabText: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontWeight: "600",
   },
   addButton: {

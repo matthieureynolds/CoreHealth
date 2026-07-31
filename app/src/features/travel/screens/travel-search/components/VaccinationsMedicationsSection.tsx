@@ -3,6 +3,7 @@ import { View, Text, Animated } from "react-native";
 import { styles } from "../TravelScreen.styles";
 import { GENERAL_MEDS } from "../travelMetricHelpers";
 import TreadmillCard from "./TreadmillCard";
+import { palette } from "../../../../../shared/theme/colors";
 
 interface VaccinationsMedicationsSectionProps {
   getRowAnim: (key: string) => {
@@ -45,7 +46,7 @@ const VaccinationsMedicationsSection: React.FC<
               <Text style={styles.vaccineName}>COVID-19</Text>
             </View>
             <View style={styles.vaccineRight}>
-              <Text style={[styles.vaccineBadge, { color: "#FF3B30" }]}>
+              <Text style={[styles.vaccineBadge, { color: palette.danger }]}>
                 Required
               </Text>
             </View>
@@ -57,7 +58,9 @@ const VaccinationsMedicationsSection: React.FC<
               <Text style={styles.vaccineName}>Hepatitis A</Text>
             </View>
             <View style={styles.vaccineRight}>
-              <Text style={[styles.vaccineBadge, { color: "#FF9F0A" }]}>
+              <Text
+                style={[styles.vaccineBadge, { color: palette.warningAlt }]}
+              >
                 Recommended
               </Text>
             </View>
@@ -69,7 +72,9 @@ const VaccinationsMedicationsSection: React.FC<
               <Text style={styles.vaccineName}>Typhoid</Text>
             </View>
             <View style={styles.vaccineRight}>
-              <Text style={[styles.vaccineBadge, { color: "#FF9F0A" }]}>
+              <Text
+                style={[styles.vaccineBadge, { color: palette.warningAlt }]}
+              >
                 Recommended
               </Text>
             </View>

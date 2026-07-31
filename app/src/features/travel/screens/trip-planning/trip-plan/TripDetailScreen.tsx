@@ -44,6 +44,7 @@ import {
   getOvernightHrNadir,
   getOvernightGlucoseNadir,
 } from "../../../../../shared/services/device/healthKitService";
+import { palette } from "../../../../../shared/theme/colors";
 
 type TripDetailRoute = RouteProp<TravelStackParamList, "TripDetail">;
 type TripDetailNav = StackNavigationProp<TravelStackParamList, "TripDetail">;
@@ -193,55 +194,55 @@ const MARK_TINT: Record<
   seek: {
     bg: "rgba(183,148,32,0.72)",
     border: "rgba(183,148,32,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "sunny",
   },
   avoid: {
     bg: "rgba(85,85,95,0.72)",
     border: "rgba(85,85,95,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "moon",
   },
   coffee: {
     bg: "rgba(168,95,28,0.72)",
     border: "rgba(168,95,28,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "cafe",
   },
   cut: {
     bg: "rgba(168,58,52,0.72)",
     border: "rgba(168,58,52,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "ban",
   },
   mela: {
     bg: "rgba(110,82,168,0.72)",
     border: "rgba(110,82,168,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "medical",
   },
   meal: {
     bg: "rgba(46,140,67,0.72)",
     border: "rgba(46,140,67,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "restaurant",
   },
   commit: {
     bg: "rgba(168,58,84,0.72)",
     border: "rgba(168,58,84,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "calendar",
   },
   flight: {
     bg: "rgba(47,95,168,0.72)",
     border: "rgba(47,95,168,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "airplane",
   },
   sleep: {
     bg: "rgba(59,59,102,0.72)",
     border: "rgba(59,59,102,0.72)",
-    icon: "#FFFFFF",
+    icon: palette.textPrimary,
     glyph: "bed",
   },
 };
@@ -314,9 +315,9 @@ function buildRail(actions: Action[]): { caps: RailCap[]; marks: RailMark[] } {
 }
 
 const VACCINATIONS = [
-  { name: "COVID-19", severity: "Required", color: "#FF3B30" },
-  { name: "Hepatitis A", severity: "Recommended", color: "#FF9F0A" },
-  { name: "Typhoid", severity: "Recommended", color: "#FF9F0A" },
+  { name: "COVID-19", severity: "Required", color: palette.danger },
+  { name: "Hepatitis A", severity: "Recommended", color: palette.warningAlt },
+  { name: "Typhoid", severity: "Recommended", color: palette.warningAlt },
 ];
 
 const MEDICATIONS = [
@@ -678,7 +679,7 @@ const TripDetailScreen: React.FC = () => {
           style={s.backBtn}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={28} color={palette.textPrimary} />
         </TouchableOpacity>
         <View style={s.heroRoute}>
           <Text style={s.heroCode}>{fromCode}</Text>
@@ -787,7 +788,7 @@ const TripDetailScreen: React.FC = () => {
               <Ionicons
                 name="airplane"
                 size={16}
-                color="#3AABF0"
+                color={palette.link}
                 style={{ transform: [{ rotate: "180deg" }] }}
               />
               <Text style={s.returnFlightText}>
@@ -888,7 +889,7 @@ const TripDetailScreen: React.FC = () => {
                           <Ionicons
                             name={headGlyph}
                             size={15}
-                            color="#FFFFFF"
+                            color={palette.textPrimary}
                             style={{
                               position: "absolute",
                               top: (CAP_W - 15) / 2,
@@ -967,7 +968,11 @@ const TripDetailScreen: React.FC = () => {
                           style={[s.commitAction, s.commitActionEdit]}
                           onPress={() => openEditCommit(c)}
                         >
-                          <Ionicons name="pencil" size={20} color="#fff" />
+                          <Ionicons
+                            name="pencil"
+                            size={20}
+                            color={palette.textPrimary}
+                          />
                           <Text style={s.commitActionText}>Edit</Text>
                         </RectButton>
                         <RectButton
@@ -981,7 +986,7 @@ const TripDetailScreen: React.FC = () => {
                           <Ionicons
                             name="trash-outline"
                             size={20}
-                            color="#fff"
+                            color={palette.textPrimary}
                           />
                           <Text style={s.commitActionText}>Remove</Text>
                         </RectButton>
@@ -1069,14 +1074,18 @@ const TripDetailScreen: React.FC = () => {
                 disabled={!canSaveCommit}
                 activeOpacity={0.8}
               >
-                <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                <Ionicons
+                  name="checkmark"
+                  size={20}
+                  color={palette.textPrimary}
+                />
               </TouchableOpacity>
             </View>
 
             <TextInput
               style={s.sheetInput}
               placeholder="e.g. Board meeting"
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={palette.textSecondary}
               value={draftTitle}
               onChangeText={setDraftTitle}
             />
@@ -1163,7 +1172,7 @@ const TripDetailScreen: React.FC = () => {
                     openPicker === "start" ? draftStart : draftEnd,
                   )}
                   themeVariant="dark"
-                  textColor="#FFFFFF"
+                  textColor={palette.textPrimary}
                   minuteInterval={5}
                   style={s.wheel}
                   onChange={(_, date) => {
@@ -1196,7 +1205,7 @@ const TripDetailScreen: React.FC = () => {
                 <TextInput
                   style={s.modalInput}
                   placeholder="12:00"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={palette.textSecondary}
                   value={draftRetDep}
                   onChangeText={setDraftRetDep}
                   keyboardType="numbers-and-punctuation"
@@ -1208,7 +1217,7 @@ const TripDetailScreen: React.FC = () => {
                 <TextInput
                   style={s.modalInput}
                   placeholder="16:00"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={palette.textSecondary}
                   value={draftRetArr}
                   onChangeText={setDraftRetArr}
                   keyboardType="numbers-and-punctuation"
@@ -1250,8 +1259,8 @@ const TripDetailScreen: React.FC = () => {
 };
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
-  scroll: { flex: 1 },
+  container: { flex: 1, backgroundColor: palette.bg },
+
   pager: { flex: 1 },
 
   // Header row
@@ -1276,10 +1285,10 @@ const s = StyleSheet.create({
   heroCode: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     letterSpacing: 2,
   },
-  heroArrow: { fontSize: 20, color: "#3A3A3C" },
+  heroArrow: { fontSize: 20, color: palette.border },
   heroMeta: {
     flexDirection: "row",
     alignItems: "center",
@@ -1288,8 +1297,8 @@ const s = StyleSheet.create({
     marginTop: 2,
     marginBottom: 18,
   },
-  heroDates: { fontSize: 12, color: "#8E8E93", fontWeight: "500" },
-  heroDir: { fontSize: 11, color: "#FF9500", fontWeight: "600" },
+  heroDates: { fontSize: 12, color: palette.textSecondary, fontWeight: "500" },
+  heroDir: { fontSize: 11, color: palette.warning, fontWeight: "600" },
 
   // Section tabs
   sectionTabsRow: {
@@ -1297,7 +1306,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2E",
+    borderBottomColor: palette.surfaceElevated,
   },
   sectionTab: {
     flex: 1,
@@ -1307,41 +1316,15 @@ const s = StyleSheet.create({
     borderBottomColor: "transparent",
     marginBottom: -1,
   },
-  sectionTabActive: { borderBottomColor: "#007AFF" },
-  sectionTabText: { fontSize: 15, fontWeight: "600", color: "#8E8E93" },
-  sectionTabTextActive: { color: "#FFFFFF" },
+  sectionTabActive: { borderBottomColor: palette.accent },
+  sectionTabText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: palette.textSecondary,
+  },
+  sectionTabTextActive: { color: palette.textPrimary },
 
   // "Right now" card
-  nowCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: "#0A2540",
-    borderWidth: 1,
-    borderColor: "#007AFF",
-  },
-  nowCardKicker: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#3AABF0",
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  nowCardTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 2,
-  },
-  nowCardWindow: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#3AABF0",
-    marginBottom: 8,
-  },
-  nowCardExplain: { fontSize: 13, color: "#C7C7CC", lineHeight: 18 },
-  nowCardNext: { fontSize: 12, color: "#8E8E93", marginTop: 8 },
 
   // Outbound / Return leg toggle
   legToggleRow: {
@@ -1354,39 +1337,20 @@ const s = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderWidth: 1,
-    borderColor: "#2C2C2E",
+    borderColor: palette.surfaceElevated,
     alignItems: "center",
   },
-  legToggleActive: { backgroundColor: "#0A2540", borderColor: "#007AFF" },
-  legToggleText: { fontSize: 13, fontWeight: "600", color: "#8E8E93" },
-  legToggleTextActive: { color: "#FFFFFF" },
+  legToggleActive: { backgroundColor: "#0A2540", borderColor: palette.accent },
+  legToggleText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: palette.textSecondary,
+  },
+  legToggleTextActive: { color: palette.textPrimary },
 
   // Strategy summary banner
-  planBanner: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#1C1C1E",
-    borderLeftWidth: 3,
-    borderLeftColor: "#FFD60A",
-  },
-  planBannerLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 4,
-  },
-  planBannerDetail: { fontSize: 13, color: "#8E8E93", lineHeight: 18 },
-  planBannerSourceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  sourceDot: { width: 7, height: 7, borderRadius: 3.5, marginRight: 7 },
-  planBannerSource: { flex: 1, fontSize: 12, color: "#8E8E93", lineHeight: 16 },
 
   // Commitments
   commitSection: { marginTop: 8, marginHorizontal: 20, paddingTop: 16 },
@@ -1396,9 +1360,9 @@ const s = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  commitHeader: { fontSize: 16, fontWeight: "700", color: "#FFFFFF" },
-  commitAdd: { fontSize: 15, fontWeight: "600", color: "#3AABF0" },
-  commitEmpty: { fontSize: 13, color: "#8E8E93", lineHeight: 18 },
+  commitHeader: { fontSize: 16, fontWeight: "700", color: palette.textPrimary },
+  commitAdd: { fontSize: 15, fontWeight: "600", color: palette.link },
+  commitEmpty: { fontSize: 13, color: palette.textSecondary, lineHeight: 18 },
   commitSwipeContainer: { marginBottom: 10, borderRadius: 14 },
   commitCard: {
     flexDirection: "row",
@@ -1432,16 +1396,16 @@ const s = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 14,
   },
-  commitActionEdit: { backgroundColor: "#FF9500" },
-  commitActionDelete: { backgroundColor: "#FF3B30" },
+  commitActionEdit: { backgroundColor: palette.warning },
+  commitActionDelete: { backgroundColor: palette.danger },
   commitActionText: {
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontSize: 12,
     fontWeight: "600",
     marginTop: 2,
   },
-  commitTitle: { fontSize: 15, fontWeight: "600", color: "#FFFFFF" },
-  commitMeta: { fontSize: 12, color: "#8E8E93", marginTop: 2 },
+  commitTitle: { fontSize: 15, fontWeight: "600", color: palette.textPrimary },
+  commitMeta: { fontSize: 12, color: palette.textSecondary, marginTop: 2 },
 
   // Return-flight capture row
   returnFlightRow: {
@@ -1452,12 +1416,12 @@ const s = StyleSheet.create({
     marginBottom: 16,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderWidth: 1,
-    borderColor: "#2C2C2E",
+    borderColor: palette.surfaceElevated,
   },
   returnFlightText: { flex: 1, fontSize: 13, color: "#C7C7CC" },
-  returnFlightEdit: { fontSize: 14, fontWeight: "600", color: "#3AABF0" },
+  returnFlightEdit: { fontSize: 14, fontWeight: "600", color: palette.link },
 
   // Add-commitment modal
   // Add-commitment bottom sheet
@@ -1467,13 +1431,13 @@ const s = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.78)",
   },
   sheet: {
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
     paddingHorizontal: 20,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderColor: "#2C2C2E",
+    borderColor: palette.surfaceElevated,
   },
   grabber: {
     width: 36,
@@ -1492,32 +1456,32 @@ const s = StyleSheet.create({
   sheetTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     letterSpacing: 0.2,
   },
   tickBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#30D158",
+    backgroundColor: palette.successAlt,
     alignItems: "center",
     justifyContent: "center",
   },
-  tickBtnDisabled: { backgroundColor: "#2C2C2E" },
+  tickBtnDisabled: { backgroundColor: palette.surfaceElevated },
   sheetLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     letterSpacing: 0.2,
     marginTop: 18,
     marginBottom: 8,
   },
   sheetInput: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontSize: 15,
     marginTop: 6,
     borderWidth: 1,
@@ -1530,30 +1494,30 @@ const s = StyleSheet.create({
     alignItems: "center",
     minWidth: 64,
   },
-  dayChipIdle: { backgroundColor: "#2C2C2E" },
-  dayChipActive: { backgroundColor: "#007AFF" },
-  dayChipText: { fontSize: 13, fontWeight: "600", color: "#FFFFFF" },
+  dayChipIdle: { backgroundColor: palette.surfaceElevated },
+  dayChipActive: { backgroundColor: palette.accent },
+  dayChipText: { fontSize: 13, fontWeight: "600", color: palette.textPrimary },
   timeRow: { flexDirection: "row", gap: 12 },
   timeCard: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: "transparent",
   },
-  timeCardOpen: { backgroundColor: "#1F1F22", borderColor: "#007AFF" },
+  timeCardOpen: { backgroundColor: "#1F1F22", borderColor: palette.accent },
   timeCardValue: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontVariant: ["tabular-nums"],
   },
-  timeCardValueOpen: { color: "#007AFF" },
-  timeCardHint: { fontSize: 11, color: "#8E8E93", marginTop: 2 },
+  timeCardValueOpen: { color: palette.accent },
+  timeCardHint: { fontSize: 11, color: palette.textSecondary, marginTop: 2 },
   wheelWrap: {
     marginTop: 12,
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 14,
     overflow: "hidden",
     alignItems: "center",
@@ -1567,26 +1531,30 @@ const s = StyleSheet.create({
     justifyContent: "center",
     padding: 24,
   },
-  modalCard: { backgroundColor: "#1C1C1E", borderRadius: 16, padding: 20 },
+  modalCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 16,
+    padding: 20,
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     marginBottom: 14,
   },
   modalLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8E8E93",
+    color: palette.textSecondary,
     marginTop: 12,
     marginBottom: 6,
   },
   modalInput: {
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     fontSize: 15,
   },
   modalTimeRow: { flexDirection: "row", gap: 12 },
@@ -1597,10 +1565,18 @@ const s = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  modalBtnCancel: { backgroundColor: "#2C2C2E" },
-  modalBtnCancelText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
-  modalBtnSave: { backgroundColor: "#007AFF" },
-  modalBtnSaveText: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  modalBtnCancel: { backgroundColor: palette.surfaceElevated },
+  modalBtnCancelText: {
+    color: palette.textPrimary,
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  modalBtnSave: { backgroundColor: palette.accent },
+  modalBtnSaveText: {
+    color: palette.textPrimary,
+    fontWeight: "700",
+    fontSize: 15,
+  },
 
   // Date chips
   chipStrip: { marginBottom: 20 },
@@ -1609,14 +1585,14 @@ const s = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
     alignItems: "center",
     minWidth: 68,
   },
-  chipActive: { backgroundColor: "#007AFF" },
-  chipDay: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
-  chipDayActive: { color: "#FFFFFF" },
-  chipSub: { fontSize: 10, color: "#8E8E93", marginTop: 2 },
+  chipActive: { backgroundColor: palette.accent },
+  chipDay: { fontSize: 12, fontWeight: "600", color: palette.textPrimary },
+  chipDayActive: { color: palette.textPrimary },
+  chipSub: { fontSize: 10, color: palette.textSecondary, marginTop: 2 },
   chipSubActive: { color: "rgba(255,255,255,0.7)" },
 
   // Day header
@@ -1627,26 +1603,14 @@ const s = StyleSheet.create({
     alignItems: "baseline",
     gap: 8,
   },
-  dayHeaderTitle: { fontSize: 16, fontWeight: "700", color: "#FFFFFF" },
-  dayHeaderLoc: { fontSize: 13, color: "#8E8E93" },
+  dayHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: palette.textPrimary,
+  },
+  dayHeaderLoc: { fontSize: 13, color: palette.textSecondary },
 
   // Activity blocks
-  blocks: { paddingHorizontal: 20 },
-  block: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderLeftWidth: 3,
-  },
-  blockEmoji: { fontSize: 22, width: 32, textAlign: "center" },
-  blockInfo: { flex: 1 },
-  blockTitle: { fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
-  blockSub: { fontSize: 12, color: "#8E8E93", marginTop: 1 },
-  blockTime: { fontSize: 13, fontWeight: "600", color: "#8E8E93" },
 
   // Timeshifter-style day rail
   rail: {
@@ -1661,14 +1625,14 @@ const s = StyleSheet.create({
     right: 34,
     height: 0,
     borderTopWidth: 1,
-    borderTopColor: "#1C1C1E",
+    borderTopColor: palette.surface,
   },
   railVLine: {
     position: "absolute",
     top: 0,
     bottom: 0,
     width: 1,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: palette.surface,
   },
   railHourL: {
     position: "absolute",
@@ -1703,20 +1667,12 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  railMarkIcon: { fontSize: 15 },
-  railMarkLabel: {
-    marginLeft: 8,
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    maxWidth: 120,
-  },
 
   // Health sections
   healthSectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: palette.textPrimary,
     paddingHorizontal: 20,
     marginTop: 20,
     marginBottom: 12,
@@ -1726,7 +1682,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    backgroundColor: "#2C2C2E",
+    backgroundColor: palette.surfaceElevated,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
@@ -1741,9 +1697,18 @@ const s = StyleSheet.create({
     width: "50%",
     alignItems: "flex-start",
   },
-  healthRowName: { flex: 1, fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
-  healthRowBadge: { fontSize: 12, fontWeight: "600", color: "#8E8E93" },
-  healthRowNote: { fontSize: 12, color: "#8E8E93" },
+  healthRowName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: palette.textPrimary,
+  },
+  healthRowBadge: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: palette.textSecondary,
+  },
+  healthRowNote: { fontSize: 12, color: palette.textSecondary },
 });
 
 export default TripDetailScreen;
