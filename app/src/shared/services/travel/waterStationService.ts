@@ -497,29 +497,3 @@ export const formatDistance = (meters: number): string => {
     return `${(meters / 1000).toFixed(1)}km`;
   }
 };
-
-/**
- * Get station icon based on type
- */
-export const getStationIcon = (type: WaterStation["type"]): string => {
-  switch (type) {
-    case "water_fountain":
-      return "🚰";
-    case "park":
-      return "🏞️";
-    case "restaurant":
-      return "🍽️";
-    case "cafe":
-      return "☕";
-    case "shopping_center":
-      return "🛒";
-    case "gym":
-      return "🏋️";
-    case "hotel":
-      return "🏨";
-    case "visitor_center":
-      return "ℹ️";
-    default:
-      return "💧";
-  }
-};

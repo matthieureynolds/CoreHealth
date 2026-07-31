@@ -1,5 +1,4 @@
 import {
-  MedicationInfo,
   CountryMedicationStatus,
   MedicationAvailability,
   ImportRegulations,
@@ -389,60 +388,4 @@ const getImportRegulations = (
   }
 
   return regulations;
-};
-
-/**
- * Search medications by name or condition
- */
-export const searchMedications = (query: string): MedicationInfo[] => {
-  const searchTerm = query.toLowerCase();
-  const results: MedicationInfo[] = [];
-
-  Object.values(MEDICATION_DATABASE).forEach((med) => {
-    const matchesName =
-      med.name.toLowerCase().includes(searchTerm) ||
-      med.genericName.toLowerCase().includes(searchTerm) ||
-      med.brandNames.some((brand) => brand.toLowerCase().includes(searchTerm));
-
-    const matchesUse = med.commonUses.some((use) =>
-      use.toLowerCase().includes(searchTerm),
-    );
-
-    if (matchesName || matchesUse) {
-      results.push({
-        id: med.id,
-        name: med.name,
-        genericName: med.genericName,
-        brandNames: med.brandNames,
-        category: med.category,
-        description: med.description,
-        commonUses: med.commonUses,
-      });
-    }
-  });
-
-  return results;
-};
-
-/**
- * Format medication availability status for display
- */
-export const formatAvailabilityStatus = (
-  status: CountryMedicationStatus,
-): string => {
-  switch (status.availability) {
-    case "available":
-      return status.prescriptionRequired
-        ? "Available (Prescription)"
-        : "Available (OTC)";
-    case "prescription_required":
-      return "Prescription Required";
-    case "restricted":
-      return "Restricted Access";
-    case "banned":
-      return "Banned/Prohibited";
-    case "unknown":
-    default:
-      return "Availability Unknown";
-  }
 };

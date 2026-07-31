@@ -223,36 +223,6 @@ export function getUVIndexData(request: UVIndexRequest): UVIndexData {
 }
 
 /**
- * Get UV Index forecast for multiple days
- */
-export function getUVIndexForecast(
-  latitude: number,
-  longitude: number,
-  days: number = 5,
-): UVIndexData[] {
-  const forecast: UVIndexData[] = [];
-  const today = new Date();
-
-  for (let i = 0; i < days; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-
-    // Use noon time for forecast
-    date.setHours(12, 0, 0, 0);
-
-    const uvData = getUVIndexData({
-      latitude,
-      longitude,
-      date: date.toISOString(),
-    });
-
-    forecast.push(uvData);
-  }
-
-  return forecast;
-}
-
-/**
  * Get current UV Index (real-time estimate)
  */
 export function getCurrentUVIndex(
@@ -260,23 +230,4 @@ export function getCurrentUVIndex(
   longitude: number,
 ): UVIndexData {
   return getUVIndexData({ latitude, longitude });
-}
-
-/**
- * Check if UV protection is recommended
- */
-export function isUVProtectionRecommended(uvIndex: number): boolean {
-  return uvIndex >= 3;
-}
-
-/**
- * Get UV protection level recommendation
- */
-export function getUVProtectionLevel(
-  uvIndex: number,
-): "minimal" | "moderate" | "high" | "extreme" {
-  if (uvIndex <= 2) return "minimal";
-  if (uvIndex <= 5) return "moderate";
-  if (uvIndex <= 10) return "high";
-  return "extreme";
 }

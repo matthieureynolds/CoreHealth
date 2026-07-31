@@ -1189,35 +1189,6 @@ export const getTimezoneInfo = async (
 };
 
 /**
- * Get all available timezones from database
- */
-export const getAllTimezones = (): TimezoneInfo[] => {
-  return Object.values(TIMEZONE_DATABASE);
-};
-
-/**
- * Search timezones by country or region
- */
-export const searchTimezones = (query: string): TimezoneInfo[] => {
-  const lowerQuery = query.toLowerCase();
-  return Object.values(TIMEZONE_DATABASE).filter(
-    (tz) =>
-      tz.country?.toLowerCase().includes(lowerQuery) ||
-      tz.region?.toLowerCase().includes(lowerQuery) ||
-      tz.timezoneId.toLowerCase().includes(lowerQuery),
-  );
-};
-
-/**
- * Get timezone by country code
- */
-export const getTimezonesByCountry = (countryCode: string): TimezoneInfo[] => {
-  return Object.values(TIMEZONE_DATABASE).filter(
-    (tz) => tz.country === countryCode.toUpperCase(),
-  );
-};
-
-/**
  * Format offset in minutes to string (e.g., +05:30, -08:00)
  */
 const formatOffsetString = (offsetMinutes: number): string => {
@@ -1248,71 +1219,5 @@ const isDaylightSavingTime = (date: Date, timezoneId: string): boolean => {
     return timeZoneName.includes("DT") || timeZoneName.includes("DST");
   } catch {
     return false;
-  }
-};
-
-/**
- * Calculate time difference between two timezones
- */
-export const calculateTimezoneDifference = (
-  fromTimezone: string,
-  toTimezone: string,
-): number => {
-  const fromTz = getTimezoneFromDatabase(fromTimezone);
-  const toTz = getTimezoneFromDatabase(toTimezone);
-
-  if (!fromTz || !toTz) {
-    return 0;
-  }
-
-  return (toTz.offset - fromTz.offset) / 60; // Return difference in hours
-};
-
-/**
- * Get current time in a specific timezone
- */
-export const getCurrentTimeInTimezone = (
-  timezoneId: string,
-  hour12: boolean = false,
-): {
-  time: string;
-  date: string;
-  timezone: string;
-  offset: string;
-} => {
-  try {
-    const now = new Date();
-    const timezone = getTimezoneFromDatabase(timezoneId);
-
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezoneId,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12,
-    });
-
-    const dateFormatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezoneId,
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    return {
-      time: formatter.format(now),
-      date: dateFormatter.format(now),
-      timezone: timezoneId,
-      offset: timezone?.offsetString || "+00:00",
-    };
-  } catch (error) {
-    logger.error("Error getting current time in timezone:", error);
-    return {
-      time: "00:00:00",
-      date: "Unknown",
-      timezone: timezoneId,
-      offset: "+00:00",
-    };
   }
 };

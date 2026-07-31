@@ -2,8 +2,46 @@ import { API_CONFIG } from "../../config/api";
 import { LocationData } from "../../types";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 
 // Geocoding API response interfaces
+const AddressComponentSchema = z.object({
+  long_name: z.string(),
+  short_name: z.string().optional(),
+  types: z.array(z.string()).optional(),
+});
+
+/** Google Geocoding: only the fields this service reads are required. */
+const GeocodingResponseSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        formatted_address: z.string().optional(),
+        geometry: z
+          .object({ location: z.object({ lat: z.number(), lng: z.number() }) })
+          .optional(),
+        address_components: z.array(AddressComponentSchema).optional(),
+        place_id: z.string().optional(),
+      }),
+    )
+    .optional(),
+  status: z.string().optional(),
+});
+
+const ReverseGeocodingResponseSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        formatted_address: z.string().optional(),
+        address_components: z.array(AddressComponentSchema).optional(),
+        place_id: z.string().optional(),
+      }),
+    )
+    .optional(),
+  status: z.string().optional(),
+});
+
 export interface GeocodingResponse {
   results: Array<{
     formatted_address: string;
@@ -57,7 +95,10 @@ export const geocodeAddress = async (
       throw new Error(`Geocoding API error: ${response.status}`);
     }
 
-    const data: GeocodingResponse = await response.json();
+    const rawGeo = await response.json();
+    const parsedGeo = parseOrNull(GeocodingResponseSchema, rawGeo, "geocoding");
+    if (!parsedGeo) return null;
+    const data = parsedGeo as unknown as GeocodingResponse;
 
     if (data.status !== "OK" || !data.results || data.results.length === 0) {
       logger.warn("No geocoding results found for:", address);
@@ -132,7 +173,14 @@ export const reverseGeocode = async (
       throw new Error(`Reverse geocoding API error: ${response.status}`);
     }
 
-    const data: ReverseGeocodingResponse = await response.json();
+    const rawRev = await response.json();
+    const parsedRev = parseOrNull(
+      ReverseGeocodingResponseSchema,
+      rawRev,
+      "reverseGeocoding",
+    );
+    if (!parsedRev) return null;
+    const data = parsedRev as unknown as ReverseGeocodingResponse;
 
     if (data.status !== "OK" || !data.results || data.results.length === 0) {
       logger.warn(
@@ -225,42 +273,5 @@ export const getTimezoneForLocation = async (
   } catch (error) {
     logger.error("Error getting timezone:", error);
     return null;
-  }
-};
-
-/**
- * Search for places near a location
- */
-export const searchNearbyPlaces = async (
-  latitude: number,
-  longitude: number,
-  type: string = "hospital",
-  radius: number = 5000,
-): Promise<any[]> => {
-  try {
-    if (!API_CONFIG.GOOGLE_MAPS_API_KEY) {
-      logger.warn("Google Maps API key not found, cannot search places");
-      return [];
-    }
-
-    const url = `${API_CONFIG.GOOGLE_MAPS_BASE_URL}${API_CONFIG.PLACES_ENDPOINT}?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_CONFIG.GOOGLE_MAPS_API_KEY}`;
-
-    const response = await fetchWithTimeout(url);
-
-    if (!response.ok) {
-      throw new Error(`Places API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.status !== "OK") {
-      logger.warn("No places found near coordinates:", latitude, longitude);
-      return [];
-    }
-
-    return data.results || [];
-  } catch (error) {
-    logger.error("Error searching nearby places:", error);
-    return [];
   }
 };

@@ -1,6 +1,8 @@
 import { API_CONFIG } from "../../config/api";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 export { getClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 export type { ClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 
@@ -56,6 +58,28 @@ export interface EmergencyContacts {
   nonEmergencyMedical?: string;
   touristHotline?: string;
 }
+
+/** Google Places nearby-search response. */
+const GooglePlacesResponseSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        place_id: z.string(),
+        name: z.string(),
+        formatted_address: z.string().optional(),
+        vicinity: z.string().optional(),
+        geometry: z
+          .object({ location: z.object({ lat: z.number(), lng: z.number() }) })
+          .optional(),
+        rating: z.number().optional(),
+        user_ratings_total: z.number().optional(),
+        types: z.array(z.string()).optional(),
+        opening_hours: z.record(z.string(), z.unknown()).optional(),
+      }),
+    )
+    .optional(),
+  status: z.string().optional(),
+});
 
 export interface GooglePlacesResponse {
   results: Array<{
@@ -119,7 +143,14 @@ export const searchNearbyHealthcareFacilities = async (
       throw new Error(`Places API error: ${response.status}`);
     }
 
-    const data: GooglePlacesResponse = await response.json();
+    const rawPlaces = await response.json();
+    const parsedPlaces = parseOrNull(
+      GooglePlacesResponseSchema,
+      rawPlaces,
+      "healthcarePlaces",
+    );
+    if (!parsedPlaces) return [];
+    const data = parsedPlaces as unknown as GooglePlacesResponse;
 
     if (data.status !== "OK") {
       logger.warn(`🚨 Google Places API error for ${type}:`, data.status);
@@ -339,24 +370,6 @@ function calculateDistance(
 
   return R * c;
 }
-
-/**
- * Get facility type icon
- */
-export const getFacilityIcon = (
-  type: keyof typeof HEALTHCARE_TYPES,
-): string => {
-  const iconMap = {
-    HOSPITAL: "medical",
-    PHARMACY: "fitness",
-    DOCTOR: "person",
-    DENTIST: "happy",
-    PHYSIOTHERAPIST: "body",
-    VETERINARY_CARE: "paw",
-  };
-
-  return iconMap[type] || "medical";
-};
 
 /**
  * Format facility distance
