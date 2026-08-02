@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { JetLagPlanningEvent } from "@shared/types/jetlag";
 import JetLagPlanningCard from "../jet-lag-planning/JetLagPlanningCard";
 import EmptyState from "@shared/components/feedback/EmptyState";
-import { palette } from "@shared/theme/colors";
+import { palette, withAlpha } from "@shared/theme/colors";
 
 interface Facility {
   id: string;
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#30D15820",
+    backgroundColor: withAlpha(palette.success, 0.125),
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,

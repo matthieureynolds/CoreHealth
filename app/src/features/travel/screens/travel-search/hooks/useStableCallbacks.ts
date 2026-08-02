@@ -1,5 +1,12 @@
 import { useMemo, useRef } from "react";
 
+/**
+ * Any callable. `unknown[]` rather than `any[]` would make the constraint
+ * contravariant and reject ordinary typed handlers like `(city: string) => void`,
+ * so this is the one place the looser form is correct — the generic `T` carries
+ * each callback's real signature through to the caller regardless.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFn = (...args: any[]) => any;
 
 /**

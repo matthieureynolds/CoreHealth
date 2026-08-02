@@ -11,7 +11,7 @@ import BodyMapScreen from "../../features/body-map/screens/BodyMapScreen";
 
 import ProfileTabNavigator from "./ProfileTabNavigator";
 import HealthAssistantScreen from "../../features/toto-chat/screens/HealthAssistantScreen";
-import TravelStackNavigator from "../../features/travel/navigation/TravelStackNavigator";
+import { TravelStackNavigator } from "@features/travel";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 

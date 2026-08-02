@@ -293,7 +293,7 @@ const generateWaterQualityRecommendations = (
 const generateWaterQualityWarnings = (
   overallQuality: string,
   safetyLevel: string,
-  parameters: any,
+  parameters: WaterQualityData["parameters"],
 ): string[] => {
   const warnings: string[] = [];
 

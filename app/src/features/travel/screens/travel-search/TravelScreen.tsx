@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
 import { View, Keyboard, StatusBar, Animated, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { styles } from "./TravelScreen.styles";
@@ -40,6 +40,9 @@ const TravelScreen: React.FC = () => {
     } else {
       s.setApiErrors({});
     }
+    // `s` is the state bag: stable setters only, and adding it would re-run
+    // this on every state change rather than only when travelHealth moves.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [travelHealth]);
 
   // Rebuilt every render so it always closes over current state, then handed to
@@ -241,6 +244,71 @@ const TravelScreen: React.FC = () => {
     sRef.current.setEditTripSuggestions([]);
   }, []);
 
+  // Grouped once, memoised on the stable façade so the memoised modal below
+  // does not re-reconcile on every keystroke in the search field.
+  const searchHandlers = useMemo(
+    () => ({
+      onInputChange: handleInputChange,
+      onLocationSelect: h.handleLocationSelect,
+      onGetCurrentLocation: h.handleGetCurrentLocationForSearch,
+      onRefresh: h.handleRefresh,
+      onEmergencyContactPress: h.handleEmergencyContactPress,
+      onDismissSuggestions: handleDismissSuggestions,
+      onInputEndEditing: handleInputEndEditing,
+      onInputSubmit: handleInputSubmit,
+      onClearSearch: handleClearSearch,
+      onFocusSearch: handleFocusSearch,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const addTripHandlers = useMemo(
+    () => ({
+      onFlightCarrierChange: handleFlightCarrierChange,
+      onFlightNumberChange: handleFlightNumberChange,
+      onSelectFlightSuggestion: h.handleSelectFlightSuggestion,
+      onFlightLookup: h.handleFlightLookup,
+      onFlightDetailsExpand: s.setFlightDetailsExpanded,
+      onAddAnotherFlight: h.handleAddAnotherFlight,
+      onConfirmFlightTrip: h.handleConfirmFlightTrip,
+      onShowManualEntry: handleShowManualEntry,
+      onEditSegment: h.handleEditSegment,
+      onHideManualEntry: handleHideManualEntry,
+      onAddTrip: h.handleAddTrip,
+      onDepartureLocationChange: s.setNewTripDepartureLocation,
+      onDestinationChange: s.setNewTripDestination,
+      onSetDepartureLocation: handleSetDepartureLocation,
+      onSetDestination: handleSetDestination,
+      onShowDatePicker: handleShowDatePicker,
+      onDateChange: h.handleDateChange,
+      onDateConfirm: h.handleDateConfirm,
+      onDateCancel: h.handleDateCancel,
+      onGetCurrentLocation: h.handleGetCurrentLocationForTrip,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const editTripHandlers = useMemo(
+    () => ({
+      onDelete: handleDeleteEditingTrip,
+      onSave: h.handleSaveEditTrip,
+      onDepartureLocationChange: s.setEditTripDepartureLocation,
+      onDestinationChange: s.setEditTripDestination,
+      onNotesChange: s.setEditTripNotes,
+      onSetDepartureLocation: handleSetEditDepartureLocation,
+      onSetDestination: handleSetEditDestination,
+      onShowEditDatePicker: s.setShowEditDatePicker,
+      onEditDateChange: h.handleEditDateChange,
+      onEditDateConfirm: h.handleEditDateConfirm,
+      onEditDateCancel: h.handleEditDateCancel,
+      onGetCurrentLocation: h.handleGetCurrentLocationForEdit,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={palette.bg} />
@@ -271,32 +339,26 @@ const TravelScreen: React.FC = () => {
         >
           <View key="search">
             <SearchTab
-              inputText={s.inputText}
-              searchLocation={s.searchLocation}
-              selectedLocation={s.selectedLocation}
-              showInlineSuggestions={s.showInlineSuggestions}
+              search={{
+                inputText: s.inputText,
+                searchLocation: s.searchLocation,
+                selectedLocation: s.selectedLocation,
+                showInlineSuggestions: s.showInlineSuggestions,
+                isSearchingCities: s.isSearchingCities,
+                filteredCities: s.filteredCities,
+                citySearchResults: s.citySearchResults,
+              }}
+              anim={{
+                resultsOpacity: s.resultsOpacity,
+                resultsTranslateY: s.resultsTranslateY,
+                getRowAnim: s.getRowAnim,
+              }}
+              handlers={searchHandlers}
+              travelHealth={travelHealth}
+              apiErrors={s.apiErrors}
               isLoading={s.isLoading}
               isRefreshing={s.isRefreshing}
               isGettingLocation={s.isGettingLocation}
-              isSearchingCities={s.isSearchingCities}
-              filteredCities={s.filteredCities}
-              citySearchResults={s.citySearchResults}
-              popularCities={popularCities}
-              travelHealth={travelHealth}
-              apiErrors={s.apiErrors}
-              resultsOpacity={s.resultsOpacity}
-              resultsTranslateY={s.resultsTranslateY}
-              getRowAnim={s.getRowAnim}
-              onInputChange={handleInputChange}
-              onLocationSelect={h.handleLocationSelect}
-              onGetCurrentLocation={h.handleGetCurrentLocationForSearch}
-              onRefresh={h.handleRefresh}
-              onEmergencyContactPress={h.handleEmergencyContactPress}
-              onDismissSuggestions={handleDismissSuggestions}
-              onInputEndEditing={handleInputEndEditing}
-              onInputSubmit={handleInputSubmit}
-              onClearSearch={handleClearSearch}
-              onFocusSearch={handleFocusSearch}
               onScrollOffset={handleChildScroll}
             />
           </View>
@@ -322,76 +384,54 @@ const TravelScreen: React.FC = () => {
       <AddTripModal
         visible={s.showAddTripModal}
         tripModalTranslateY={s.tripModalTranslateY}
-        flightCarrier={s.flightCarrier}
-        flightNumber={s.flightNumber}
-        detectedAirline={s.detectedAirline}
-        isLookingUpFlight={s.isLookingUpFlight}
-        flightNotFound={s.flightNotFound}
-        flightLookupResult={s.flightLookupResult}
-        flightSuggestions={s.flightSuggestions}
-        flightSegments={s.flightSegments}
-        flightDetailsExpanded={s.flightDetailsExpanded}
         showManualEntry={s.showManualEntry}
-        newTripDepartureLocation={s.newTripDepartureLocation}
-        newTripDestination={s.newTripDestination}
-        newTripDepartureDate={s.newTripDepartureDate}
-        newTripReturnDate={s.newTripReturnDate}
-        newTripDepartureTime={s.newTripDepartureTime}
-        newTripReturnTime={s.newTripReturnTime}
-        showDatePicker={s.showDatePicker}
-        tempDatePickerValue={s.tempDatePickerValue}
-        tripSuggestions={s.tripSuggestions}
-        departureSuggestions={s.departureSuggestions}
         isGettingLocation={s.isGettingLocation}
+        flight={{
+          flightCarrier: s.flightCarrier,
+          flightNumber: s.flightNumber,
+          detectedAirline: s.detectedAirline,
+          isLookingUpFlight: s.isLookingUpFlight,
+          flightNotFound: s.flightNotFound,
+          flightLookupResult: s.flightLookupResult,
+          flightSuggestions: s.flightSuggestions,
+          flightSegments: s.flightSegments,
+          flightDetailsExpanded: s.flightDetailsExpanded,
+        }}
+        form={{
+          newTripDepartureLocation: s.newTripDepartureLocation,
+          newTripDestination: s.newTripDestination,
+          newTripDepartureDate: s.newTripDepartureDate,
+          newTripReturnDate: s.newTripReturnDate,
+          newTripDepartureTime: s.newTripDepartureTime,
+          newTripReturnTime: s.newTripReturnTime,
+          tripSuggestions: s.tripSuggestions,
+          departureSuggestions: s.departureSuggestions,
+        }}
+        pickers={{
+          showDatePicker: s.showDatePicker,
+          tempDatePickerValue: s.tempDatePickerValue,
+        }}
+        handlers={addTripHandlers}
         onClose={h.handleCloseAddTrip}
-        onFlightCarrierChange={handleFlightCarrierChange}
-        onFlightNumberChange={handleFlightNumberChange}
-        onSelectFlightSuggestion={h.handleSelectFlightSuggestion}
-        onFlightLookup={h.handleFlightLookup}
-        onFlightDetailsExpand={s.setFlightDetailsExpanded}
-        onAddAnotherFlight={h.handleAddAnotherFlight}
-        onConfirmFlightTrip={h.handleConfirmFlightTrip}
-        onEditSegment={h.handleEditSegment}
-        onShowManualEntry={handleShowManualEntry}
-        onHideManualEntry={handleHideManualEntry}
-        onAddTrip={h.handleAddTrip}
-        onDepartureLocationChange={s.setNewTripDepartureLocation}
-        onDestinationChange={s.setNewTripDestination}
-        onSetDepartureLocation={handleSetDepartureLocation}
-        onSetDestination={handleSetDestination}
-        onShowDatePicker={handleShowDatePicker}
-        onDateChange={h.handleDateChange}
-        onDateConfirm={h.handleDateConfirm}
-        onDateCancel={h.handleDateCancel}
-        onGetCurrentLocation={h.handleGetCurrentLocationForTrip}
       />
 
       <EditTripModal
         visible={s.showEditTripModal}
         editingTripId={s.editingTrip?.id ?? null}
-        editTripDepartureLocation={s.editTripDepartureLocation}
-        editTripDestination={s.editTripDestination}
-        editTripDepartureDate={s.editTripDepartureDate}
-        editTripReturnDate={s.editTripReturnDate}
-        editTripNotes={s.editTripNotes}
-        showEditDatePicker={s.showEditDatePicker}
-        tempEditDatePickerValue={s.tempEditDatePickerValue}
-        editTripSuggestions={s.editTripSuggestions}
-        editTripDepartureSuggestions={s.editTripDepartureSuggestions}
         isGettingLocation={s.isGettingLocation}
+        form={{
+          editTripDepartureLocation: s.editTripDepartureLocation,
+          editTripDestination: s.editTripDestination,
+          editTripDepartureDate: s.editTripDepartureDate,
+          editTripReturnDate: s.editTripReturnDate,
+          editTripNotes: s.editTripNotes,
+          showEditDatePicker: s.showEditDatePicker,
+          tempEditDatePickerValue: s.tempEditDatePickerValue,
+          editTripSuggestions: s.editTripSuggestions,
+          editTripDepartureSuggestions: s.editTripDepartureSuggestions,
+        }}
+        handlers={editTripHandlers}
         onClose={handleCloseEditTrip}
-        onDelete={handleDeleteEditingTrip}
-        onSave={h.handleSaveEditTrip}
-        onDepartureLocationChange={s.setEditTripDepartureLocation}
-        onDestinationChange={s.setEditTripDestination}
-        onNotesChange={s.setEditTripNotes}
-        onSetDepartureLocation={handleSetEditDepartureLocation}
-        onSetDestination={handleSetEditDestination}
-        onShowEditDatePicker={s.setShowEditDatePicker}
-        onEditDateChange={h.handleEditDateChange}
-        onEditDateConfirm={h.handleEditDateConfirm}
-        onEditDateCancel={h.handleEditDateCancel}
-        onGetCurrentLocation={h.handleGetCurrentLocationForEdit}
       />
     </View>
   );

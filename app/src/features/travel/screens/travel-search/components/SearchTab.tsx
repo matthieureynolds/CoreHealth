@@ -11,6 +11,9 @@ import {
   UIManager,
   StyleSheet,
   Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  LayoutChangeEvent,
 } from "react-native";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -45,26 +48,43 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+/**
+ * Grouped: the flat form took 27 props. `search`, `anim` and `handlers` mirror
+ * useCitySearch and the screen's callback façade, so they pass straight
+ * through instead of being transcribed field by field.
+ */
 interface SearchTabProps {
+  search: SearchFieldState;
+  anim: SearchAnimations;
+  handlers: SearchTabHandlers;
+  travelHealth: TravelHealth | null;
+  apiErrors: TravelApiErrors;
+  isLoading: boolean;
+  isRefreshing: boolean;
+  isGettingLocation: boolean;
+  onScrollOffset?: (offsetY: number) => void;
+}
+
+interface SearchFieldState {
   inputText: string;
   searchLocation: string;
   selectedLocation: string;
   showInlineSuggestions: boolean;
-  isLoading: boolean;
-  isRefreshing: boolean;
-  isGettingLocation: boolean;
   isSearchingCities: boolean;
   filteredCities: string[];
   citySearchResults: CitySearchResult[];
-  popularCities: string[];
-  travelHealth: TravelHealth | null;
-  apiErrors: TravelApiErrors;
+}
+
+interface SearchAnimations {
   resultsOpacity: Animated.Value;
   resultsTranslateY: Animated.Value;
   getRowAnim: (key: string) => {
     opacity: Animated.Value;
     translate: Animated.Value;
   };
+}
+
+interface SearchTabHandlers {
   onInputChange: (text: string) => void;
   onLocationSelect: (city: string) => void;
   onGetCurrentLocation: () => void;
@@ -75,7 +95,6 @@ interface SearchTabProps {
   onInputSubmit: () => void;
   onClearSearch: () => void;
   onFocusSearch: () => void;
-  onScrollOffset?: (offsetY: number) => void;
 }
 
 const SUMMARY_TEXT =
@@ -85,21 +104,24 @@ const SUMMARY_TEXT =
 // only re-renders when its data props genuinely change.
 const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
   const {
+    travelHealth,
+    apiErrors,
+    isLoading,
+    isRefreshing,
+    isGettingLocation,
+    onScrollOffset,
+  } = props;
+  const {
     inputText,
     searchLocation,
     selectedLocation,
     showInlineSuggestions,
-    isLoading,
-    isRefreshing,
-    isGettingLocation,
     isSearchingCities,
     filteredCities,
     citySearchResults,
-    travelHealth,
-    apiErrors,
-    resultsOpacity,
-    resultsTranslateY,
-    getRowAnim,
+  } = props.search;
+  const { resultsOpacity, resultsTranslateY, getRowAnim } = props.anim;
+  const {
     onInputChange,
     onLocationSelect,
     onGetCurrentLocation,
@@ -110,8 +132,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
     onInputSubmit,
     onClearSearch,
     onFocusSearch,
-    onScrollOffset,
-  } = props;
+  } = props.handlers;
 
   // Treadmill effect: track scroll position
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -154,7 +175,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
   // Forward the scroll offset to the parent's top-fade. Once results show, the
   // first `parkOffset` px are "the bar revealing", so the fade is measured from
   // the parked position — it should only appear when scrolling into content.
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
     onScrollOffset?.(hasResults && parkOffset > 0 ? y - parkOffset : y);
   };
@@ -206,7 +227,7 @@ const SearchTab: React.FC<SearchTabProps> = React.memo((props) => {
 
   // Measures the bar's natural (collapsed) height. Ignored while the suggestions
   // dropdown is expanded so we only ever capture the pill height.
-  const measureBar = (e: any) => {
+  const measureBar = (e: LayoutChangeEvent) => {
     if (showInlineSuggestions) return;
     const h = e.nativeEvent.layout.height;
     if (h > 0 && Math.abs(h - barH) > 1) setBarH(h);

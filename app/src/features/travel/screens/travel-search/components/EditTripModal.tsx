@@ -30,7 +30,7 @@ const StableEditDatePicker = React.memo(
     const callbackRef = useRef(onDateSelected);
     callbackRef.current = onDateSelected;
 
-    const handleChange = useCallback((_event: any, selectedDate?: Date) => {
+    const handleChange = useCallback((_event: unknown, selectedDate?: Date) => {
       if (selectedDate) callbackRef.current(selectedDate);
     }, []);
 
@@ -50,10 +50,17 @@ const StableEditDatePicker = React.memo(
   () => true,
 );
 
+/** Grouped for the same reason as AddTripModal — see the note there. */
 interface EditTripModalProps {
   visible: boolean;
   editingTripId: string | null;
+  isGettingLocation: boolean;
+  form: EditTripFormState;
+  handlers: EditTripHandlers;
+  onClose: () => void;
+}
 
+interface EditTripFormState {
   editTripDepartureLocation: string;
   editTripDestination: string;
   editTripDepartureDate: Date;
@@ -63,9 +70,9 @@ interface EditTripModalProps {
   tempEditDatePickerValue: Date | undefined;
   editTripSuggestions: string[];
   editTripDepartureSuggestions: string[];
-  isGettingLocation: boolean;
+}
 
-  onClose: () => void;
+interface EditTripHandlers {
   onDelete: () => void;
   onSave: () => void;
   onDepartureLocationChange: (v: string) => void;
@@ -74,7 +81,7 @@ interface EditTripModalProps {
   onSetDepartureLocation: (v: string) => void;
   onSetDestination: (v: string) => void;
   onShowEditDatePicker: (v: "departure" | "return") => void;
-  onEditDateChange: (event: any, date?: Date) => void;
+  onEditDateChange: (event: unknown, date?: Date) => void;
   onEditDateConfirm: () => void;
   onEditDateCancel: () => void;
   onGetCurrentLocation: () => Promise<void>;
@@ -83,30 +90,36 @@ interface EditTripModalProps {
 const EditTripModal: React.FC<EditTripModalProps> = ({
   visible,
   editingTripId,
-  editTripDepartureLocation,
-  editTripDestination,
-  editTripDepartureDate,
-  editTripReturnDate,
-  editTripNotes,
-  showEditDatePicker,
-  tempEditDatePickerValue,
-  editTripSuggestions,
-  editTripDepartureSuggestions,
   isGettingLocation,
+  form,
+  handlers,
   onClose,
-  onDelete,
-  onSave,
-  onDepartureLocationChange,
-  onDestinationChange,
-  onNotesChange,
-  onSetDepartureLocation,
-  onSetDestination,
-  onShowEditDatePicker,
-  onEditDateChange,
-  onEditDateConfirm,
-  onEditDateCancel,
-  onGetCurrentLocation,
 }) => {
+  const {
+    editTripDepartureLocation,
+    editTripDestination,
+    editTripDepartureDate,
+    editTripReturnDate,
+    editTripNotes,
+    showEditDatePicker,
+    tempEditDatePickerValue,
+    editTripSuggestions,
+    editTripDepartureSuggestions,
+  } = form;
+  const {
+    onDelete,
+    onSave,
+    onDepartureLocationChange,
+    onDestinationChange,
+    onNotesChange,
+    onSetDepartureLocation,
+    onSetDestination,
+    onShowEditDatePicker,
+    onEditDateChange,
+    onEditDateConfirm,
+    onEditDateCancel,
+    onGetCurrentLocation,
+  } = handlers;
   if (!visible || !editingTripId) return null;
 
   return (

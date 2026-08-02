@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 export function useTypewriter(cities: string[]) {
   const [typedCityIndex, setTypedCityIndex] = useState(0);
   const [typedCityText, setTypedCityText] = useState("");
-  const typingTimeoutRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (cities.length === 0) return;
@@ -26,6 +26,9 @@ export function useTypewriter(cities: string[]) {
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
+    // cities.length is the dependency that matters; the array identity changes
+    // every render at the call site, which would restart the animation on each.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typedCityIndex, cities.length]);
 
   return typedCityText;

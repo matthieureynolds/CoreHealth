@@ -43,7 +43,7 @@ const StableDatePicker = React.memo(
     const callbackRef = useRef(onDateSelected);
     callbackRef.current = onDateSelected;
 
-    const handleChange = useCallback((_event: any, selectedDate?: Date) => {
+    const handleChange = useCallback((_event: unknown, selectedDate?: Date) => {
       if (selectedDate) callbackRef.current(selectedDate);
     }, []);
 
@@ -69,11 +69,25 @@ const StableDatePicker = React.memo(
   () => true,
 ); // Never re-render — props are captured in refs
 
+/**
+ * Grouped rather than flat: this took 44 individual props, which meant a
+ * four-file edit to add one field and a call site nobody could read. The bags
+ * mirror the hooks that produce them — useFlightEntry, useAddTripForm,
+ * useDatePickers — so passing them through is a spread, not a transcription.
+ */
 interface AddTripModalProps {
   visible: boolean;
   tripModalTranslateY: Animated.Value;
+  showManualEntry: boolean;
+  isGettingLocation: boolean;
+  flight: FlightState;
+  form: AddTripFormState;
+  pickers: DatePickerState;
+  handlers: AddTripHandlers;
+  onClose: () => void;
+}
 
-  // Flight lookup state
+interface FlightState {
   flightCarrier: string;
   flightNumber: string;
   detectedAirline: string | null;
@@ -83,15 +97,20 @@ interface AddTripModalProps {
   flightSuggestions: FlightOption[];
   flightSegments: FlightOption[];
   flightDetailsExpanded: boolean;
-  showManualEntry: boolean;
+}
 
-  // New trip state
+interface AddTripFormState {
   newTripDepartureLocation: string;
   newTripDestination: string;
   newTripDepartureDate: Date | undefined;
   newTripReturnDate: Date | undefined;
   newTripDepartureTime: Date | undefined;
   newTripReturnTime: Date | undefined;
+  tripSuggestions: string[];
+  departureSuggestions: string[];
+}
+
+interface DatePickerState {
   showDatePicker:
     | "departure"
     | "return"
@@ -99,12 +118,9 @@ interface AddTripModalProps {
     | "returnTime"
     | null;
   tempDatePickerValue: Date | undefined;
-  tripSuggestions: string[];
-  departureSuggestions: string[];
-  isGettingLocation: boolean;
+}
 
-  // Handlers
-  onClose: () => void;
+interface AddTripHandlers {
   onFlightCarrierChange: (v: string) => void;
   onFlightNumberChange: (v: string) => void;
   onSelectFlightSuggestion: (flight: FlightOption) => void;
@@ -123,7 +139,7 @@ interface AddTripModalProps {
   onShowDatePicker: (
     v: "departure" | "return" | "departureTime" | "returnTime",
   ) => void;
-  onDateChange: (event: any, date?: Date) => void;
+  onDateChange: (event: unknown, date?: Date) => void;
   onDateConfirm: () => void;
   onDateCancel: () => void;
   onGetCurrentLocation: () => Promise<void>;
@@ -135,49 +151,41 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
   ({
     visible,
     tripModalTranslateY,
-    flightCarrier,
-    flightNumber,
-    detectedAirline,
-    isLookingUpFlight,
-    flightNotFound,
-    flightLookupResult,
-    flightSuggestions,
-    flightSegments,
-    flightDetailsExpanded,
     showManualEntry,
-    newTripDepartureLocation,
-    newTripDestination,
-    newTripDepartureDate,
-    newTripReturnDate,
-    newTripDepartureTime,
-    newTripReturnTime,
-    showDatePicker,
-    tempDatePickerValue,
-    tripSuggestions,
-    departureSuggestions,
     isGettingLocation,
+    flight,
+    form,
+    pickers,
+    handlers,
     onClose,
-    onFlightCarrierChange,
-    onFlightNumberChange,
-    onSelectFlightSuggestion,
-    onFlightLookup,
-    onFlightDetailsExpand,
-    onAddAnotherFlight,
-    onConfirmFlightTrip,
-    onShowManualEntry,
-    onEditSegment,
-    onHideManualEntry,
-    onAddTrip,
-    onDepartureLocationChange,
-    onDestinationChange,
-    onSetDepartureLocation,
-    onSetDestination,
-    onShowDatePicker,
-    onDateChange,
-    onDateConfirm,
-    onDateCancel,
-    onGetCurrentLocation,
   }) => {
+    // Spread back to locals so the JSX below reads unchanged.
+    const { flightCarrier, flightNumber, isLookingUpFlight } = flight;
+    const {
+      newTripDepartureLocation,
+      newTripDestination,
+      newTripDepartureDate,
+      newTripReturnDate,
+      newTripDepartureTime,
+      newTripReturnTime,
+      tripSuggestions,
+      departureSuggestions,
+    } = form;
+    const { showDatePicker, tempDatePickerValue } = pickers;
+    const {
+      onFlightLookup,
+      onHideManualEntry,
+      onAddTrip,
+      onDepartureLocationChange,
+      onDestinationChange,
+      onSetDepartureLocation,
+      onSetDestination,
+      onShowDatePicker,
+      onDateChange,
+      onDateConfirm,
+      onDateCancel,
+      onGetCurrentLocation,
+    } = handlers;
     const insets = useSafeAreaInsets();
     // Placed after the hook so hook order stays unconditional. Skips building the
     // whole sheet while it is closed — matches EditTripModal/EmergencyModal.
@@ -294,25 +302,7 @@ const AddTripModal: React.FC<AddTripModalProps> = React.memo(
                 keyboardShouldPersistTaps="handled"
               >
                 {!showManualEntry ? (
-                  <FlightLookupStep
-                    flightCarrier={flightCarrier}
-                    flightNumber={flightNumber}
-                    detectedAirline={detectedAirline}
-                    isLookingUpFlight={isLookingUpFlight}
-                    flightNotFound={flightNotFound}
-                    flightLookupResult={flightLookupResult}
-                    flightSuggestions={flightSuggestions}
-                    flightSegments={flightSegments}
-                    flightDetailsExpanded={flightDetailsExpanded}
-                    onFlightCarrierChange={onFlightCarrierChange}
-                    onFlightNumberChange={onFlightNumberChange}
-                    onSelectFlightSuggestion={onSelectFlightSuggestion}
-                    onFlightDetailsExpand={onFlightDetailsExpand}
-                    onAddAnotherFlight={onAddAnotherFlight}
-                    onConfirmFlightTrip={onConfirmFlightTrip}
-                    onShowManualEntry={onShowManualEntry}
-                    onEditSegment={onEditSegment}
-                  />
+                  <FlightLookupStep flight={flight} handlers={handlers} />
                 ) : (
                   <ManualTripForm
                     newTripDepartureLocation={newTripDepartureLocation}

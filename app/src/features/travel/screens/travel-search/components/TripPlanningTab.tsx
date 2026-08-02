@@ -20,6 +20,7 @@ import {
 import { styles } from "../TravelScreen.styles";
 import PressPop from "./PressPop";
 import { palette } from "@shared/theme/colors";
+import { getCityCode, getCityName } from "../../../cityCodes";
 
 type Nav = CompositeNavigationProp<
   StackNavigationProp<TravelStackParamList, "TravelList">,
@@ -41,7 +42,8 @@ interface Trip {
     dep_local: string;
   }>;
   notes?: string;
-  jetLagData?: any;
+  /** Opaque engine output; shape owned by jetlag-brain, never read here. */
+  jetLagData?: unknown;
   isSequential?: boolean;
   previousTripImpact?: number;
   checklist?: {
@@ -77,61 +79,6 @@ function serializeTrip(t: Trip): SerializedTrip {
     notes: t.notes,
     jetLagPlanner: t.jetLagPlanner,
   };
-}
-
-function getCityCode(location: string): string {
-  const city = location.split(",")[0].trim();
-  // Common city → code mappings
-  const codes: Record<string, string> = {
-    london: "LDN",
-    paris: "PAR",
-    madrid: "MAD",
-    tokyo: "TYO",
-    "new york": "NYC",
-    "los angeles": "LAX",
-    dubai: "DXB",
-    singapore: "SIN",
-    sydney: "SYD",
-    rome: "ROM",
-    berlin: "BER",
-    amsterdam: "AMS",
-    bangkok: "BKK",
-    barcelona: "BCN",
-    lisbon: "LIS",
-    milan: "MIL",
-    munich: "MUC",
-    vienna: "VIE",
-    zurich: "ZRH",
-    istanbul: "IST",
-    cairo: "CAI",
-    nairobi: "NBO",
-    toronto: "YTO",
-    "san francisco": "SFO",
-    chicago: "CHI",
-    miami: "MIA",
-    seattle: "SEA",
-    boston: "BOS",
-    denver: "DEN",
-    honolulu: "HNL",
-    "hong kong": "HKG",
-    seoul: "SEL",
-    beijing: "PEK",
-    shanghai: "SHA",
-    mumbai: "BOM",
-    delhi: "DEL",
-    "cape town": "CPT",
-    rio: "RIO",
-    "buenos aires": "BUE",
-    mexico: "MEX",
-    lagos: "LOS",
-    accra: "ACC",
-    marrakech: "RAK",
-  };
-  return codes[city.toLowerCase()] || city.slice(0, 3).toUpperCase();
-}
-
-function getCityName(location: string): string {
-  return location.split(",")[0].trim();
 }
 
 function formatMonth(date: Date): string {
@@ -470,7 +417,7 @@ const bp = StyleSheet.create({
   },
   // Footer
   footer: {
-    backgroundColor: "#161618",
+    backgroundColor: palette.surfaceNear,
     paddingVertical: 10,
     paddingHorizontal: 18,
     flexDirection: "row",

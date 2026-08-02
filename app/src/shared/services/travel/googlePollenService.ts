@@ -104,7 +104,7 @@ const PollenResponseSchema = z.object({
   dailyInfo: z.array(z.unknown()).optional(),
 });
 
-export interface GooglePollenResponse {
+interface GooglePollenResponse {
   regionCode: string;
   pollen: {
     tree: {

@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     color: palette.textPrimary,
   },
   rowTextDone: {
-    color: "#C7C7CC",
+    color: palette.textFaint,
   },
   track: {
     height: 3,

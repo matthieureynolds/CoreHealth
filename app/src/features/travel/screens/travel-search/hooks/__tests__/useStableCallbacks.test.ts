@@ -6,6 +6,9 @@
  * these tests.
  */
 
+// Mirrors the production type; see useStableCallbacks.ts for why `any` is
+// correct here rather than `unknown`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFn = (...args: any[]) => any;
 
 /**

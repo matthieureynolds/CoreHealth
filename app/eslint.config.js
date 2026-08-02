@@ -91,5 +91,79 @@ module.exports = [
       "react/react-in-jsx-scope": "off",
     },
   },
+
+  // ── Travel-domain invariants ──
+  //
+  // Both live in a single block on purpose. `no-restricted-syntax` takes one
+  // array of selectors, and in flat config a later block REPLACES an earlier
+  // one for the same rule rather than merging — two blocks meant whichever
+  // came last silently switched the other off for the overlapping files.
+  {
+    files: [
+      "src/features/travel/**/*.{ts,tsx}",
+      "src/shared/services/travel/**/*.ts",
+    ],
+    rules: {
+      // `any` is a warning app-wide while the rest of the codebase catches up.
+      // Travel is at zero, so here it blocks. The two remaining uses carry an
+      // explicit disable comment explaining why `unknown` would be wrong.
+      "@typescript-eslint/no-explicit-any": "error",
+
+      // File and function size. Blank lines and comments are not counted —
+      // this is about how much code sits in one place, and penalising
+      // explanation would be exactly the wrong incentive.
+      //
+      // 500/400 is where the tree sits after splitting TripDetailScreen into
+      // header / sleep-plan page / health page / two sheets, and lifting the
+      // rail, timezone and metric data into their own modules. The target is
+      // 400/200; the files between 401 and 474 are the next ones to split.
+      "max-lines": [
+        "error",
+        { max: 500, skipBlankLines: true, skipComments: true },
+      ],
+      "max-lines-per-function": [
+        "error",
+        { max: 400, skipBlankLines: true, skipComments: true },
+      ],
+
+      "no-restricted-syntax": [
+        "error",
+        {
+          // Colour: travel went from 765 raw hex values to zero. Keep it there.
+          // Scoped rather than global — the rest of the app still has them.
+          selector: "Literal[value=/^#(?:[0-9a-fA-F]{3,8})$/]",
+          message:
+            "Use a token from @shared/theme/colors (palette / metricTint / withAlpha) instead of a raw hex value.",
+        },
+        {
+          // Network boundary: `const data: SomeResponse = await res.json()` is
+          // a cast the runtime never checks, so a provider changing a field
+          // surfaced far away as an undefined property. Reading .json() is
+          // fine; annotating the result without parsing is not.
+          selector:
+            "VariableDeclarator[id.typeAnnotation] > AwaitExpression > CallExpression[callee.property.name='json']",
+          message:
+            "Do not annotate a .json() result — the runtime never checks it. Parse with parseOrNull(schema, raw, context) from @shared/services/validation.",
+        },
+      ],
+    },
+  },
+
+  // Pure data modules: lookup tables and stylesheets, where "length" measures
+  // how many cities or styles exist, not how much logic is in one place.
+  {
+    files: [
+      "**/timezoneDatabase.ts",
+      "**/metricConfigs.ts",
+      "**/*.styles.ts",
+      "**/medicationData.ts",
+      "**/mockTrips.ts",
+      "**/mockFlights.ts",
+      "**/__tests__/**",
+      "**/__component_tests__/**",
+    ],
+    rules: { "max-lines": "off", "max-lines-per-function": "off" },
+  },
+
   prettierConfig,
 ];

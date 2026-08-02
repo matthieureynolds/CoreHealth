@@ -17,7 +17,7 @@ interface FlightDetailsCardProps {
   onFlightDetailsExpand: (v: boolean) => void;
 }
 
-export const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
+const FlightDetailsCard: React.FC<FlightDetailsCardProps> = ({
   flightLookupResult,
   flightDetailsExpanded,
   onFlightDetailsExpand,
@@ -116,7 +116,7 @@ interface FlightSegmentCardsProps {
   onEditSegment?: (index: number) => void;
 }
 
-export const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({
+const FlightSegmentCards: React.FC<FlightSegmentCardsProps> = ({
   flightSegments,
   onEditSegment,
 }) => {
@@ -213,7 +213,7 @@ interface FlightSuggestionsListProps {
   onSelect: (flight: FlightOption) => void;
 }
 
-export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
+const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
   suggestions,
   onSelect,
 }) => {
@@ -313,7 +313,13 @@ export const FlightSuggestionsList: React.FC<FlightSuggestionsListProps> = ({
   );
 };
 
+/** Takes the same `flight` bag useFlightEntry produces, plus its handlers. */
 interface FlightLookupStepProps {
+  flight: FlightLookupState;
+  handlers: FlightLookupHandlers;
+}
+
+interface FlightLookupState {
   flightCarrier: string;
   flightNumber: string;
   detectedAirline: string | null;
@@ -323,6 +329,9 @@ interface FlightLookupStepProps {
   flightSuggestions: FlightOption[];
   flightSegments: FlightOption[];
   flightDetailsExpanded: boolean;
+}
+
+interface FlightLookupHandlers {
   onFlightCarrierChange: (v: string) => void;
   onFlightNumberChange: (v: string) => void;
   onSelectFlightSuggestion: (flight: FlightOption) => void;
@@ -334,24 +343,30 @@ interface FlightLookupStepProps {
 }
 
 const FlightLookupStep: React.FC<FlightLookupStepProps> = ({
-  flightCarrier,
-  flightNumber,
-  detectedAirline,
-  isLookingUpFlight,
-  flightNotFound,
-  flightLookupResult,
-  flightSuggestions,
-  flightSegments,
-  flightDetailsExpanded,
-  onFlightCarrierChange,
-  onFlightNumberChange,
-  onSelectFlightSuggestion,
-  onFlightDetailsExpand,
-  onAddAnotherFlight,
-  onConfirmFlightTrip,
-  onShowManualEntry,
-  onEditSegment,
+  flight,
+  handlers,
 }) => {
+  const {
+    flightCarrier,
+    flightNumber,
+    detectedAirline,
+    isLookingUpFlight,
+    flightNotFound,
+    flightLookupResult,
+    flightSuggestions,
+    flightSegments,
+    flightDetailsExpanded,
+  } = flight;
+  const {
+    onFlightCarrierChange,
+    onFlightNumberChange,
+    onSelectFlightSuggestion,
+    onFlightDetailsExpand,
+    onAddAnotherFlight,
+    onConfirmFlightTrip,
+    onShowManualEntry,
+    onEditSegment,
+  } = handlers;
   return (
     <>
       <FlightSegmentCards

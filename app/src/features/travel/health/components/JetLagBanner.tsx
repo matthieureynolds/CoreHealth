@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { palette } from "@shared/theme/colors";
+import { palette, withAlpha } from "@shared/theme/colors";
 
 interface Props {
   jetLagHours: number;
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#FF9F0A20",
+    borderColor: withAlpha(palette.warningAlt, 0.125),
   },
   jetLagHeader: {
     flexDirection: "row",
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   jetLagAdvice: {
     fontSize: 12,
-    color: "#EBEBF5",
+    color: palette.textQuiet,
     lineHeight: 16,
   },
 });

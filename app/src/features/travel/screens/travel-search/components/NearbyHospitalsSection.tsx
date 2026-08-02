@@ -34,7 +34,7 @@ interface NearbyHospitalsSectionProps {
   };
   onEmergencyContactPress: () => void;
   scrollY: Animated.Value;
-  scrollContentRef: React.RefObject<any>;
+  scrollContentRef: React.RefObject<View | null>;
 }
 
 const NearbyHospitalsSection: React.FC<NearbyHospitalsSectionProps> = ({

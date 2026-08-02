@@ -11,7 +11,7 @@ export interface UVIndexData {
   timestamp: string;
 }
 
-export interface UVIndexRequest {
+interface UVIndexRequest {
   latitude: number;
   longitude: number;
   date?: string; // Optional date, defaults to current date
@@ -205,7 +205,7 @@ function calculateUVIndex(
 /**
  * Get UV Index data for a specific location and time
  */
-export function getUVIndexData(request: UVIndexRequest): UVIndexData {
+function getUVIndexData(request: UVIndexRequest): UVIndexData {
   const date = request.date ? new Date(request.date) : new Date();
   const uvIndex = calculateUVIndex(request.latitude, request.longitude, date);
 

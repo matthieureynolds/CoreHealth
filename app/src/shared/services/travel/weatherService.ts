@@ -1,7 +1,25 @@
 import { API_CONFIG } from "../../config/api";
-import { getCurrentUVIndex, UVIndexData } from "./uvIndexService";
+import { getCurrentUVIndex } from "./uvIndexService";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
+
+/** OpenWeather /weather. Only the fields actually read are required. */
+const OpenWeatherResponseSchema = z.object({
+  main: z.object({
+    temp: z.number(),
+    feels_like: z.number(),
+    humidity: z.number(),
+    pressure: z.number(),
+  }),
+  wind: z.object({ speed: z.number(), deg: z.number() }).partial().optional(),
+  clouds: z.object({ all: z.number() }).partial().optional(),
+  visibility: z.number().optional(),
+  weather: z
+    .array(z.object({ description: z.string(), icon: z.string() }).partial())
+    .optional(),
+});
 
 // Weather data interfaces
 export interface WeatherData {
@@ -42,7 +60,7 @@ export interface ExtremeHeatWarning {
   timeOfDay: "morning" | "midday" | "afternoon" | "evening";
 }
 
-export interface UVHeatCombination {
+interface UVHeatCombination {
   combinedRisk: "low" | "moderate" | "high" | "severe";
   uvIndex: number;
   temperature: number;
@@ -54,7 +72,7 @@ export interface UVHeatCombination {
 /**
  * Get current weather data from OpenWeatherMap
  */
-export const getCurrentWeather = async (
+const getCurrentWeather = async (
   latitude: number,
   longitude: number,
 ): Promise<WeatherData | null> => {
@@ -72,19 +90,23 @@ export const getCurrentWeather = async (
       throw new Error(`Weather API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const raw = await response.json();
+    const data = parseOrNull(OpenWeatherResponseSchema, raw, "openWeather");
+    // `data.weather[0]` below is an unguarded index: without this check a
+    // response missing the array throws rather than degrading to null.
+    if (!data) return null;
 
     return {
       temperature: Math.round(data.main.temp),
       feelsLike: Math.round(data.main.feels_like),
       humidity: data.main.humidity,
       pressure: data.main.pressure,
-      windSpeed: data.wind?.speed || 0,
-      windDirection: data.wind?.deg || 0,
-      visibility: data.visibility || 10000,
-      cloudCover: data.clouds?.all || 0,
-      description: data.weather[0]?.description || "Clear",
-      icon: data.weather[0]?.icon || "01d",
+      windSpeed: data.wind?.speed ?? 0,
+      windDirection: data.wind?.deg ?? 0,
+      visibility: data.visibility ?? 10000,
+      cloudCover: data.clouds?.all ?? 0,
+      description: data.weather?.[0]?.description || "Clear",
+      icon: data.weather?.[0]?.icon || "01d",
     };
   } catch (error) {
     logger.error("Error fetching weather data:", error);
@@ -95,7 +117,7 @@ export const getCurrentWeather = async (
 /**
  * Get UV Index using static data service
  */
-export const getUVIndex = async (
+const getUVIndex = async (
   latitude: number,
   longitude: number,
 ): Promise<number> => {
@@ -109,32 +131,10 @@ export const getUVIndex = async (
 };
 
 /**
- * Get detailed UV Index data using static service
- */
-export const getUVIndexData = async (
-  latitude: number,
-  longitude: number,
-): Promise<UVIndexData> => {
-  try {
-    return getCurrentUVIndex(latitude, longitude);
-  } catch (error) {
-    logger.error("Error getting UV data:", error);
-    // Return default UV data
-    return {
-      uvIndex: 5,
-      category: "Moderate",
-      description: "Some sun protection required",
-      recommendation: "Wear sunscreen and protective clothing",
-      timestamp: new Date().toISOString(),
-    };
-  }
-};
-
-/**
  * Calculate heat index using the National Weather Service formula
  * Returns heat index in Celsius
  */
-export const calculateHeatIndex = (
+const calculateHeatIndex = (
   temperatureCelsius: number,
   humidityPercent: number,
 ): HeatIndexData => {
@@ -224,7 +224,7 @@ export const calculateHeatIndex = (
 /**
  * Generate extreme heat warning
  */
-export const generateExtremeHeatWarning = (
+const generateExtremeHeatWarning = (
   weatherData: WeatherData,
   uvIndex: number,
   timeOfDay: "morning" | "midday" | "afternoon" | "evening" = "midday",
@@ -288,7 +288,7 @@ export const generateExtremeHeatWarning = (
 /**
  * Calculate combined UV and heat risk
  */
-export const calculateUVHeatCombination = (
+const calculateUVHeatCombination = (
   uvIndex: number,
   temperature: number,
   heatIndex: number,
@@ -362,11 +362,7 @@ export const calculateUVHeatCombination = (
 /**
  * Get time of day based on current hour
  */
-export const getTimeOfDay = ():
-  | "morning"
-  | "midday"
-  | "afternoon"
-  | "evening" => {
+const getTimeOfDay = (): "morning" | "midday" | "afternoon" | "evening" => {
   const hour = new Date().getHours();
 
   if (hour >= 6 && hour < 10) return "morning";

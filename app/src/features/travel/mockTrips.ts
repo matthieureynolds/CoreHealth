@@ -1,4 +1,4 @@
-import type { Trip } from "./screens/travel-search/hooks/useTravelHandlers";
+import type { Trip } from "./screens/travel-search/hooks/trip";
 
 // Mock trips for testing the travel UI with realistic, real-world flights.
 // Seeded into AsyncStorage on first load when no trips exist (see useTravelState).

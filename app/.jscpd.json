@@ -1,0 +1,15 @@
+{
+  "path": ["src/features/travel", "src/shared/services/travel"],
+  "ignore": [
+    "**/__tests__/**",
+    "**/__component_tests__/**",
+    "**/mockFlights.ts",
+    "**/mockTrips.ts",
+    "**/*.styles.ts"
+  ],
+  "format": ["typescript", "tsx"],
+  "minTokens": 50,
+  "threshold": 3.2,
+  "reporters": ["consoleFull"],
+  "gitignore": true
+}

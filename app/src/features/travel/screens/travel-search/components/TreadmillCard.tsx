@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import { Animated, ViewStyle, LayoutChangeEvent } from "react-native";
+import { Animated, View, ViewStyle, LayoutChangeEvent } from "react-native";
 
 /**
  * Treadmill / stair-stepper effect.
@@ -11,12 +11,20 @@ import { Animated, ViewStyle, LayoutChangeEvent } from "react-native";
  * to reliably compute offset regardless of Animated.View ancestors.
  */
 
+/**
+ * `transformOrigin` is a valid RN style but is missing from ViewStyle in this
+ * RN version, so it is declared once here rather than cast at the use site.
+ */
+const TRANSFORM_ORIGIN_TOP = {
+  transformOrigin: "center top",
+} as unknown as ViewStyle;
+
 const FOLD_START_OFFSET = 0; // start folding when card reaches this Y in scroll viewport
 const FOLD_DISTANCE = 90; // px to go from fully visible → fully folded
 
 interface TreadmillCardProps {
   scrollY: Animated.Value;
-  scrollContentRef: React.RefObject<any>;
+  scrollContentRef: React.RefObject<View | null>;
   children: React.ReactNode;
   style?: ViewStyle | ViewStyle[];
 }
@@ -27,7 +35,7 @@ const TreadmillCard: React.FC<TreadmillCardProps> = ({
   children,
   style,
 }) => {
-  const cardRef = useRef<any>(null);
+  const cardRef = useRef<View>(null);
   const [cardOffsetY, setCardOffsetY] = useState<number | null>(null);
   // Keep a JS-side mirror of the current scroll value for measurement
   const scrollYValue = useRef(0);
@@ -43,18 +51,20 @@ const TreadmillCard: React.FC<TreadmillCardProps> = ({
     (_e: LayoutChangeEvent) => {
       // Use measureInWindow on both views — works reliably through Animated.View ancestors
       requestAnimationFrame(() => {
-        if (!cardRef.current || !scrollContentRef.current) return;
-        cardRef.current.measureInWindow((_cx: number, cardWindowY: number) => {
+        // Captured before the async measure callbacks: the guard above cannot
+        // narrow `.current` inside them, and either ref may be torn down while
+        // the measurement is in flight.
+        const card = cardRef.current;
+        const content = scrollContentRef.current;
+        if (!card || !content) return;
+        card.measureInWindow((_cx: number, cardWindowY: number) => {
           if (cardWindowY === undefined) return;
-          scrollContentRef.current.measureInWindow(
-            (_sx: number, contentWindowY: number) => {
-              if (contentWindowY === undefined) return;
-              // Card's Y in scroll content = window-relative difference + current scroll offset
-              const offset =
-                cardWindowY - contentWindowY + scrollYValue.current;
-              setCardOffsetY(offset);
-            },
-          );
+          content.measureInWindow((_sx: number, contentWindowY: number) => {
+            if (contentWindowY === undefined) return;
+            // Card's Y in scroll content = window-relative difference + current scroll offset
+            const offset = cardWindowY - contentWindowY + scrollYValue.current;
+            setCardOffsetY(offset);
+          });
         });
       });
     },
@@ -62,7 +72,7 @@ const TreadmillCard: React.FC<TreadmillCardProps> = ({
   );
 
   // Build animated style only once we know the card's position
-  let animatedStyle: any = {};
+  let animatedStyle: Animated.WithAnimatedObject<ViewStyle> = {};
   if (cardOffsetY !== null) {
     // Card enters fold zone when: scrollY > cardOffsetY - FOLD_START_OFFSET
     // Card is fully folded when:  scrollY > cardOffsetY - FOLD_START_OFFSET + FOLD_DISTANCE
@@ -99,7 +109,7 @@ const TreadmillCard: React.FC<TreadmillCardProps> = ({
     <Animated.View
       ref={cardRef}
       onLayout={handleLayout}
-      style={[{ transformOrigin: "center top" } as any, style, animatedStyle]}
+      style={[TRANSFORM_ORIGIN_TOP, style, animatedStyle]}
     >
       {children}
     </Animated.View>

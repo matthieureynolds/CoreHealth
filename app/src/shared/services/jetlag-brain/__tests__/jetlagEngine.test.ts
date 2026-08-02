@@ -111,6 +111,7 @@ describe("plan generation", () => {
         returnDate: addDays(DEP, 14),
         commitments: [
           {
+            id: "c1",
             title: "Board meeting",
             date_local: arrivalDate,
             start_local: "06:00",

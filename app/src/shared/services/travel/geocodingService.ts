@@ -42,7 +42,7 @@ const ReverseGeocodingResponseSchema = z.object({
   status: z.string().optional(),
 });
 
-export interface GeocodingResponse {
+interface GeocodingResponse {
   results: Array<{
     formatted_address: string;
     geometry: {
@@ -61,7 +61,7 @@ export interface GeocodingResponse {
   status: string;
 }
 
-export interface ReverseGeocodingResponse {
+interface ReverseGeocodingResponse {
   results: Array<{
     formatted_address: string;
     address_components: Array<{
@@ -239,7 +239,7 @@ export const reverseGeocode = async (
 /**
  * Get timezone for a location
  */
-export const getTimezoneForLocation = async (
+const getTimezoneForLocation = async (
   latitude: number,
   longitude: number,
 ): Promise<string | null> => {

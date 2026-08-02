@@ -1,9 +1,16 @@
 import { API_CONFIG } from "../../config/api";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { distanceInMetres as calculateDistance } from "./geo";
+import { parseOrNull } from "../validation";
+import {
+  GooglePlacesNearbySchema,
+  type GooglePlace,
+  type GooglePlaceOpeningHours,
+} from "./googlePlaces";
 
 // Water station types and interfaces
-export interface WaterStation {
+interface WaterStation {
   placeId: string;
   name: string;
   type:
@@ -130,14 +137,16 @@ const searchPlacesByType = async (
       throw new Error(`Places API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const raw = await response.json();
+    const data = parseOrNull(GooglePlacesNearbySchema, raw, "waterStations");
+    if (!data) return [];
 
     if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
       throw new Error(`Places API status: ${data.status}`);
     }
 
     return (
-      data.results?.map((place: any) =>
+      data.results?.map((place) =>
         convertToWaterStation(place, placeType, latitude, longitude),
       ) || []
     );
@@ -151,7 +160,7 @@ const searchPlacesByType = async (
  * Convert Google Places result to WaterStation
  */
 const convertToWaterStation = (
-  place: any,
+  place: GooglePlace,
   searchType: string,
   userLat: number,
   userLng: number,
@@ -182,29 +191,6 @@ const convertToWaterStation = (
 };
 
 /**
- * Calculate distance between two points in meters
- */
-const calculateDistance = (
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number,
-): number => {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-};
-
-/**
  * Determine station type from search type and place types
  */
 const determineStationType = (
@@ -229,7 +215,7 @@ const determineStationType = (
  */
 const determineWaterAccess = (
   stationType: WaterStation["type"],
-  _place: any,
+  _place: GooglePlace,
 ): {
   hasAccess: boolean;
   accessType: WaterStation["accessType"];
@@ -276,7 +262,9 @@ const determineWaterAccess = (
 /**
  * Determine if place is currently open
  */
-const determineIfOpen = (openingHours: any): boolean | undefined => {
+const determineIfOpen = (
+  openingHours: GooglePlaceOpeningHours,
+): boolean | undefined => {
   if (!openingHours) return undefined;
   return openingHours.open_now;
 };
@@ -286,7 +274,7 @@ const determineIfOpen = (openingHours: any): boolean | undefined => {
  */
 const generateStationNotes = (
   stationType: WaterStation["type"],
-  place: any,
+  place: GooglePlace,
 ): string | undefined => {
   const notes: string[] = [];
 
@@ -485,15 +473,4 @@ const generateEmergencyWaterOptions = (
   }
 
   return options.slice(2);
-};
-
-/**
- * Get formatted distance string
- */
-export const formatDistance = (meters: number): string => {
-  if (meters < 1000) {
-    return `${meters}m`;
-  } else {
-    return `${(meters / 1000).toFixed(1)}km`;
-  }
 };

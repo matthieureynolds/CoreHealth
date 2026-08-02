@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["index.ts", "App.tsx", "src/**/__tests__/**/*.test.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "paths": {
+    "@/*": ["src/*"],
+    "@features/*": ["src/features/*"],
+    "@shared/*": ["src/shared/*"],
+    "@navigation/*": ["src/shared/navigation/*"]
+  },
+  "ignoreDependencies": [
+    "@expo/metro-runtime",
+    "expo-dev-client",
+    "babel-plugin-module-resolver",
+    "babel-plugin-transform-remove-console",
+    "eslint-config-prettier",
+    "eslint-plugin-prettier",
+    "jscpd",
+    "knip"
+  ],
+  "ignoreBinaries": ["expo", "eas"]
+}

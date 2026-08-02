@@ -122,3 +122,111 @@ describe("fetchJson", () => {
     await expect(fetchJson("https://x.test")).rejects.toThrow(/503/);
   });
 });
+
+describe("retry", () => {
+  it("retries once by default after a network failure", async () => {
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      if (calls === 1) throw new TypeError("Network request failed");
+      return { ok: true, status: 200, json: async () => ({}) };
+    });
+    const res = await fetchWithTimeout("https://x.test");
+    expect(res.status).toBe(200);
+    expect(calls).toBe(2);
+  });
+
+  it("retries a 500 and returns the eventual success", async () => {
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      return calls === 1
+        ? { ok: false, status: 500, json: async () => ({}) }
+        : { ok: true, status: 200, json: async () => ({}) };
+    });
+    const res = await fetchWithTimeout("https://x.test");
+    expect(res.ok).toBe(true);
+    expect(calls).toBe(2);
+  });
+
+  it("retries 429 and 408", async () => {
+    for (const status of [429, 408]) {
+      let calls = 0;
+      mockFetch(async () => {
+        calls++;
+        return calls === 1
+          ? { ok: false, status, json: async () => ({}) }
+          : { ok: true, status: 200, json: async () => ({}) };
+      });
+      await fetchWithTimeout("https://x.test");
+      expect(calls).toBe(2);
+    }
+  });
+
+  it("does NOT retry a 4xx — the server already answered", async () => {
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      return { ok: false, status: 404, json: async () => ({}) };
+    });
+    const res = await fetchWithTimeout("https://x.test");
+    expect(res.status).toBe(404);
+    expect(calls).toBe(1);
+  });
+
+  it("does NOT retry a caller-initiated abort", async () => {
+    const controller = new AbortController();
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      controller.abort();
+      const e = new Error("Aborted");
+      e.name = "AbortError";
+      throw e;
+    });
+    await expect(
+      fetchWithTimeout("https://x.test", { signal: controller.signal }),
+    ).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
+
+  it("honours retries: 0", async () => {
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      throw new TypeError("Network request failed");
+    });
+    await expect(
+      fetchWithTimeout("https://x.test", { retries: 0 }),
+    ).rejects.toThrow(/Network request failed/);
+    expect(calls).toBe(1);
+  });
+
+  it("gives up after the configured number of attempts", async () => {
+    let calls = 0;
+    mockFetch(async () => {
+      calls++;
+      throw new TypeError("Network request failed");
+    });
+    await expect(
+      fetchWithTimeout("https://x.test", { retries: 2 }),
+    ).rejects.toThrow();
+    expect(calls).toBe(3); // initial + 2 retries
+  });
+
+  it("surfaces TimeoutError after exhausting retries", async () => {
+    mockFetch(
+      (_url, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            const e = new Error("Aborted");
+            e.name = "AbortError";
+            reject(e);
+          });
+        }),
+    );
+    await expect(
+      fetchWithTimeout("https://x.test", { timeoutMs: 10, retries: 1 }),
+    ).rejects.toBeInstanceOf(TimeoutError);
+  });
+});

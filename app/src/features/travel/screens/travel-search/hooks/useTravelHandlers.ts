@@ -2,12 +2,12 @@ import { Alert, Keyboard, Linking, Platform } from "react-native";
 import { LocationData, TravelHealth } from "@shared/types";
 import { createTripHandlers } from "./useTripHandlers";
 
-export type { Trip } from "./useTripHandlers";
-
 // The health data is near-instant (mostly mock), so the "analyzing" screen would
 // flash by. Hold the loading state for at least this long so it reads as the AI
 // genuinely working through the destination.
-const MIN_LOAD_MS = 7000;
+// Collapses to zero under Jest: the hold is a UX choice, and making every test
+// that touches a location lookup wait seven seconds tests nothing.
+const MIN_LOAD_MS = process.env.JEST_WORKER_ID ? 0 : 7000;
 const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -21,7 +21,7 @@ export interface TravelHandlersParams {
   // External dependencies
   travelHealth: TravelHealth | null;
   updateTravelHealthData: (locationData: LocationData) => Promise<void>;
-  getCurrentLocation: () => Promise<any>;
+  getCurrentLocation: () => Promise<LocationData | null>;
 }
 
 export function createTravelHandlers(params: TravelHandlersParams) {
@@ -255,31 +255,36 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     }
   };
 
-  const handleGetCurrentLocationForTrip = async () => {
+  /**
+   * Resolve the device location into a departure field. The add-trip and
+   * edit-trip forms differ only in which pair of setters they write to.
+   */
+  const fillDepartureFromCurrentLocation = async (
+    setLocation: (v: string) => void,
+    clearSuggestions: (v: string[]) => void,
+  ) => {
     const location = await getCurrentLocation();
-    if (location) {
-      const name =
-        location.country && location.country !== "Unknown"
-          ? `${location.name}, ${location.country}`
-          : location.name;
-      s.setNewTripDepartureLocation(name);
-      s.setDepartureSuggestions([]);
-      Keyboard.dismiss();
-    }
+    if (!location) return;
+    const name =
+      location.country && location.country !== "Unknown"
+        ? `${location.name}, ${location.country}`
+        : location.name;
+    setLocation(name);
+    clearSuggestions([]);
+    Keyboard.dismiss();
   };
 
-  const handleGetCurrentLocationForEdit = async () => {
-    const location = await getCurrentLocation();
-    if (location) {
-      const name =
-        location.country && location.country !== "Unknown"
-          ? `${location.name}, ${location.country}`
-          : location.name;
-      s.setEditTripDepartureLocation(name);
-      setEditTripDepartureSuggestions([]);
-      Keyboard.dismiss();
-    }
-  };
+  const handleGetCurrentLocationForTrip = () =>
+    fillDepartureFromCurrentLocation(
+      s.setNewTripDepartureLocation,
+      s.setDepartureSuggestions,
+    );
+
+  const handleGetCurrentLocationForEdit = () =>
+    fillDepartureFromCurrentLocation(
+      s.setEditTripDepartureLocation,
+      setEditTripDepartureSuggestions,
+    );
 
   const handleDateConfirm = () => {
     const picked = pendingDateRef.current;
@@ -301,7 +306,7 @@ export function createTravelHandlers(params: TravelHandlersParams) {
     setShowDatePicker(null);
   };
 
-  const handleEditDateChange = (_event: any, selectedDate?: Date) => {
+  const handleEditDateChange = (_event: unknown, selectedDate?: Date) => {
     if (selectedDate) setTempEditDatePickerValue(new Date(selectedDate));
   };
 

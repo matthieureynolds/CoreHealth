@@ -4,6 +4,7 @@ import {
   SleepScheduleAdjustment,
   LightExposureSchedule,
   JetLagPlanningEvent,
+  Commitment,
   Trip as EnhancedTrip,
 } from "../../types";
 
@@ -485,12 +486,7 @@ export interface TripForPlan {
     dep_local: string;
   }>;
   /** Fixed events the traveller must be alert for. */
-  commitments?: Array<{
-    title: string;
-    date_local: string;
-    start_local: string;
-    end_local: string;
-  }>;
+  commitments?: Commitment[];
   jetLagPlanner?: {
     departureTime: string;
     arrivalTime: string;

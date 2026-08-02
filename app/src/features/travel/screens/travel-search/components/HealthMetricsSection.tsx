@@ -27,7 +27,7 @@ interface HealthMetricsSectionProps {
     translate: Animated.Value;
   };
   scrollY: Animated.Value;
-  scrollContentRef: React.RefObject<any>;
+  scrollContentRef: React.RefObject<View | null>;
 }
 
 const HealthMetricsSection: React.FC<HealthMetricsSectionProps> = ({
@@ -88,7 +88,7 @@ const HealthMetricsSection: React.FC<HealthMetricsSectionProps> = ({
                     ]}
                   >
                     <Ionicons
-                      name={icon as any}
+                      name={icon as keyof typeof Ionicons.glyphMap}
                       size={20}
                       color={getMetricFixedIconColor(metricId, status)}
                     />

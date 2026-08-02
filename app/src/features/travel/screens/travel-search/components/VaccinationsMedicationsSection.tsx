@@ -11,7 +11,7 @@ interface VaccinationsMedicationsSectionProps {
     translate: Animated.Value;
   };
   scrollY: Animated.Value;
-  scrollContentRef: React.RefObject<any>;
+  scrollContentRef: React.RefObject<View | null>;
 }
 
 const VaccinationsMedicationsSection: React.FC<
@@ -108,7 +108,7 @@ const VaccinationsMedicationsSection: React.FC<
                 <Text style={styles.vaccineName}>{m.name}</Text>
               </View>
               <View style={styles.vaccineRight}>
-                <Text style={styles.vaccineBadge}>{(m as any).note}</Text>
+                <Text style={styles.vaccineBadge}>{m.note}</Text>
               </View>
             </View>
           </TreadmillCard>

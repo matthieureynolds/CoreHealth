@@ -32,7 +32,7 @@ import QuickSymptomLogModal from "@shared/components/modals/QuickSymptomLogModal
 import HeroHealthScore from "../score/HeroHealthScore";
 import SupportingRings from "../health-metrics/rings/SupportingRings";
 import LabInsightsCard from "../recent-lab-results/LabInsightsCard";
-import TravelHealthSummary from "../travel-health/TravelHealthSummary";
+import { TravelHealthSummary } from "@features/travel";
 import MedicalTimeline from "../medical-timeline/MedicalTimeline";
 import { DataService } from "@shared/services/data/dataService";
 

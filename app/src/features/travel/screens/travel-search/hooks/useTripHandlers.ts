@@ -1,3 +1,5 @@
+export type { Trip } from "./trip";
+
 import { Alert } from "react-native";
 import { Animated } from "react-native";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -6,6 +8,8 @@ import { FlightLookupService } from "@shared/services/jetlag-brain/enhancedJetLa
 import { getCityTimezone } from "@shared/services/jetlag-brain/jetLagService";
 import { FlightOption } from "@shared/types";
 import { logger } from "@shared/utils/logger";
+import type { Trip } from "./trip";
+import { buildJetLagPlanner, validateTrip } from "./tripRules";
 
 function syncTripToBackend(trip: Trip) {
   fetchAuthSession()
@@ -46,135 +50,6 @@ function syncTripToBackend(trip: Trip) {
     .catch((error) => {
       logger.error("[syncTrip] Failed to get auth session:", error);
     });
-}
-
-export interface Trip {
-  id: string;
-  departureLocation: string;
-  destination: string;
-  departureDate: Date;
-  returnDate?: Date;
-  timezone: string;
-  /** IANA tz of the departure airport (e.g. 'Europe/London'). Set for flight-created trips. */
-  originTimezone?: string;
-  /** Connecting-flight layovers (between segments). */
-  layovers?: Array<{
-    city?: string;
-    tz: string;
-    arr_local: string;
-    dep_local: string;
-  }>;
-  notes?: string;
-  jetLagData?: any;
-  isSequential?: boolean;
-  previousTripImpact?: number;
-  checklist?: {
-    vaccines: Array<{ name: string; completed: boolean }>;
-    medicines: Array<{ name: string; completed: boolean }>;
-  };
-  jetLagPlanner?: {
-    departureTime: string;
-    arrivalTime: string;
-    outboundPlan: {
-      direction: "outbound";
-      timezoneAdjustment: string;
-      circadianPlan: Array<{ day: number; action: string; time: string }>;
-    };
-    returnPlan?: {
-      direction: "return";
-      timezoneAdjustment: string;
-      circadianPlan: Array<{ day: number; action: string; time: string }>;
-    };
-  };
-}
-
-export const buildJetLagPlanner = (returnDate?: Date) => ({
-  departureTime: "09:00",
-  arrivalTime: "15:00",
-  outboundPlan: {
-    direction: "outbound" as const,
-    timezoneAdjustment: "+9",
-    circadianPlan: [
-      {
-        day: -3,
-        action: "Start adjusting sleep schedule",
-        time: "Go to bed 1.5 hours earlier each day",
-      },
-      {
-        day: -2,
-        action: "Continue adjustment",
-        time: "Go to bed 3 hours earlier",
-      },
-      {
-        day: -1,
-        action: "Final adjustment",
-        time: "Go to bed 4.5 hours earlier",
-      },
-      { day: 0, action: "Travel day", time: "Stay awake until local bedtime" },
-      {
-        day: 1,
-        action: "First day at destination",
-        time: "Follow local schedule",
-      },
-      { day: 2, action: "Continue adjustment", time: "Gradual adaptation" },
-      { day: 3, action: "Normal schedule", time: "Regular sleep time" },
-    ],
-  },
-  returnPlan: returnDate
-    ? {
-        direction: "return" as const,
-        timezoneAdjustment: "-9",
-        circadianPlan: [
-          {
-            day: -3,
-            action: "Start adjusting sleep schedule",
-            time: "Go to bed 1.5 hours later each day",
-          },
-          {
-            day: -2,
-            action: "Continue adjustment",
-            time: "Go to bed 3 hours later",
-          },
-          {
-            day: -1,
-            action: "Final adjustment",
-            time: "Go to bed 4.5 hours later",
-          },
-          {
-            day: 0,
-            action: "Return travel day",
-            time: "Stay awake until local bedtime",
-          },
-          {
-            day: 1,
-            action: "First day back home",
-            time: "Follow local schedule",
-          },
-          { day: 2, action: "Continue adjustment", time: "Gradual adaptation" },
-          { day: 3, action: "Normal schedule", time: "Regular sleep time" },
-        ],
-      }
-    : undefined,
-});
-
-/**
- * Shared trip-form validation for both the add and edit flows.
- * Returns a user-facing error message, or null when the trip is valid.
- */
-export function validateTrip(opts: {
-  departureLocation: string;
-  destination: string;
-  departureDate?: Date;
-  returnDate?: Date;
-}): string | null {
-  if (!opts.departureLocation.trim())
-    return "Please enter a departure location";
-  if (!opts.destination.trim()) return "Please enter a destination";
-  if (!opts.departureDate) return "Please select a departure date";
-  if (opts.returnDate && opts.returnDate < opts.departureDate) {
-    return "Return date must be after departure date";
-  }
-  return null;
 }
 
 export interface TripHandlersParams {
@@ -281,6 +156,28 @@ export function createTripHandlers(params: TripHandlersParams) {
     ],
   });
 
+  /**
+   * Clear the manual trip fields. Every path that closes the add-trip modal —
+   * saving manually, confirming a flight, or cancelling — ends with this same
+   * teardown, so it lived in three places and drifted between them.
+   */
+  const resetTripForm = () => {
+    setNewTripDepartureLocation("");
+    setNewTripDestination("");
+    setNewTripDepartureDate(new Date());
+    setNewTripReturnDate(undefined);
+  };
+
+  /** Clear the flight-lookup inputs and any segments collected so far. */
+  const resetFlightEntry = () => {
+    setFlightCarrier("");
+    setFlightNumber("");
+    setDetectedAirline(null);
+    setFlightLookupResult(null);
+    setFlightSegments(() => []);
+    setFlightDetailsExpanded(false);
+  };
+
   const handleFlightLookup = async () => {
     if (!flightCarrier.trim() || !flightNumber.trim()) {
       Alert.alert("Error", "Please enter both carrier and flight number");
@@ -345,10 +242,7 @@ export function createTripHandlers(params: TripHandlersParams) {
     };
     setTrips((prev) => [...prev, newTrip]);
     syncTripToBackend(newTrip);
-    setNewTripDepartureLocation("");
-    setNewTripDestination("");
-    setNewTripDepartureDate(new Date());
-    setNewTripReturnDate(undefined);
+    resetTripForm();
     setShowAddTripModal(false);
     setTripSuggestions([]);
     setDepartureSuggestions([]);
@@ -401,16 +295,8 @@ export function createTripHandlers(params: TripHandlersParams) {
     setTrips((prev) => [...prev, newTrip]);
     syncTripToBackend(newTrip);
     setShowAddTripModal(false);
-    setFlightCarrier("");
-    setFlightNumber("");
-    setDetectedAirline(null);
-    setFlightLookupResult(null);
-    setFlightSegments(() => []);
-    setFlightDetailsExpanded(false);
-    setNewTripDepartureLocation("");
-    setNewTripDestination("");
-    setNewTripDepartureDate(new Date());
-    setNewTripReturnDate(undefined);
+    resetFlightEntry();
+    resetTripForm();
   };
 
   const handleDeleteTrip = (tripId: string) => {
@@ -529,15 +415,9 @@ export function createTripHandlers(params: TripHandlersParams) {
 
   const handleCloseAddTrip = () => {
     setShowAddTripModal(false);
-    setFlightCarrier("");
-    setFlightNumber("");
     setShowManualEntry(false);
-    setFlightLookupResult(null);
-    setFlightSegments(() => []);
-    setNewTripDepartureLocation("");
-    setNewTripDestination("");
-    setNewTripDepartureDate(new Date());
-    setNewTripReturnDate(undefined);
+    resetFlightEntry();
+    resetTripForm();
     tripModalTranslateY.setValue(0);
   };
 

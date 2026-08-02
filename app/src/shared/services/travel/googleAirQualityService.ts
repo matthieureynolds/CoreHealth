@@ -85,7 +85,7 @@ const AirQualityResponseSchema = z.object({
   healthRecommendations: z.record(z.string(), z.string()).optional(),
 });
 
-export interface GoogleAirQualityResponse {
+interface GoogleAirQualityResponse {
   indexes: Array<{
     code: string;
     displayName: string;

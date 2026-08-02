@@ -12,7 +12,7 @@ import { logger } from "../../utils/logger";
 /**
  * Get medication availability for a specific medication in a country
  */
-export const getMedicationAvailability = async (
+const getMedicationAvailability = async (
   medicationName: string,
   country: string,
   latitude?: number,

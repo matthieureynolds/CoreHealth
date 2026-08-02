@@ -1,4 +1,4 @@
-import type { Trip } from "./useTripHandlers";
+import type { Trip } from "./trip";
 
 /**
  * Deserialisation for trips read back out of AsyncStorage.

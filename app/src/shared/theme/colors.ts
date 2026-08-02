@@ -17,23 +17,34 @@ export const palette = {
   surfaceElevated: "#2C2C2E", // inputs, grouped rows
   surfaceMuted: "#2A2A2A",
   surfaceDeep: "#181818",
+  surfaceNear: "#161618", // just above bg — swipe-row backing
+  surfaceSunken: "#1F1F22", // recessed wells inside a card
+  surfaceBlue: "#0A2540", // deep-blue banner ground
   border: "#3A3A3C",
+  borderStrong: "#48484A", // dividers that need to read on a card
   /** Translucent card fill used by the score/biomarker surfaces. */
   card: "rgba(22,24,30,0.75)",
   /** Unfilled portion of a progress ring. */
   ringTrack: "rgba(255,255,255,0.08)",
   divider: "rgba(255,255,255,0.06)",
 
-  // Text
+  // Text. Ordered lightest → dimmest: primary is pure white, quiet sits just
+  // under it for body copy on a card, then secondary / tertiary / muted.
   textPrimary: "#FFFFFF",
+  textQuiet: "#EBEBF5",
   textSecondary: "#8E8E93",
   textTertiary: "#888888",
+  textFaint: "#C7C7CC",
+  textMuted: "#636366",
+  textDim: "#A1A1A6",
   textOnLight: "#E5E5EA",
 
   // Accents
   accent: "#007AFF", // system blue — the documented accent
   link: "#3AABF0", // lighter blue used across travel
   gold: "#FFD60A",
+  pink: "#FF375F", // return-leg / inbound marker
+  cyan: "#7DF9FF", // active tab glow
 
   // Navigation
   tabActive: "#3AABF0",
@@ -59,3 +70,31 @@ export const palette = {
   sufficient: "#2196F3",
   out: "#FF9800",
 } as const;
+
+/**
+ * Resting tint per environmental metric, used when there is no reading yet and
+ * so no status colour to show. Once a status exists, `getStatusColor` wins —
+ * these are identity, not severity.
+ */
+export const metricTint = {
+  air_quality: palette.textDim,
+  uv_index: "#FFC44D",
+  food_safety: "#FFB26B",
+  pollen: "#FFE066",
+  altitude: "#66D0FF",
+  outbreaks: "#FF6B6B",
+  water_safety: "#4DD0E1",
+} as const;
+
+/**
+ * Translucent variant of a solid token, for tinted icon wells and badges.
+ * Call sites previously appended a raw "20" to the hex, which only works for
+ * 6-digit values and hides the intent.
+ */
+export function withAlpha(hex: string, alpha: number): string {
+  const clamped = Math.max(0, Math.min(1, alpha));
+  const suffix = Math.round(clamped * 255)
+    .toString(16)
+    .padStart(2, "0");
+  return `${hex}${suffix}`;
+}

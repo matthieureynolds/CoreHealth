@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Image, Text, StyleSheet, View } from "react-native";
+import {
+  Image,
+  Text,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ImageStyle,
+} from "react-native";
 import { getCountryCode } from "../travelMetricHelpers";
 import { palette } from "@shared/theme/colors";
 
@@ -7,7 +14,7 @@ interface CountryFlagProps {
   country: string;
   /** Rendered flag width in px. Height follows the 4:3 flag ratio. */
   width?: number;
-  style?: any;
+  style?: StyleProp<ImageStyle>;
 }
 
 /**

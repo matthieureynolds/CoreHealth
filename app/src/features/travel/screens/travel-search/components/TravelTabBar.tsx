@@ -148,8 +148,8 @@ const s = StyleSheet.create({
     backgroundColor: "transparent",
   },
   dotActive: {
-    backgroundColor: "#7DF9FF",
-    shadowColor: "#7DF9FF",
+    backgroundColor: palette.cyan,
+    shadowColor: palette.cyan,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 4,

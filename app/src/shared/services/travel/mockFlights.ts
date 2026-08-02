@@ -1,4 +1,4 @@
-import type { FlightOption } from "../../shared/types";
+import type { FlightOption } from "@shared/types";
 
 /**
  * Mock flight database for the Timeshifter-style flight picker.
@@ -197,7 +197,7 @@ function isoFor(dayOffset: number, time: string): string {
   return d.toISOString();
 }
 
-export function toFlightLookupResult(f: MockFlight): FlightOption {
+function toFlightLookupResult(f: MockFlight): FlightOption {
   return {
     carrier: f.carrier,
     number: f.number,

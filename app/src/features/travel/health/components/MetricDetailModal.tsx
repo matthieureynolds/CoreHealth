@@ -20,7 +20,27 @@ interface Props {
   onClose: () => void;
 }
 
-const RANGE_DATA = {
+/**
+ * One band of a metric's scale. `isBold` marks the band the current reading
+ * falls in; it is absent on the others, so it must be optional here or the
+ * inferred union has it on only some members.
+ */
+interface RangeSegment {
+  label: string;
+  color: string;
+  range: string;
+  isBold?: boolean;
+}
+
+interface RangeData {
+  segments: RangeSegment[];
+  /** Reading to place the pointer at, and the scale maximum it sits on. */
+  currentValue: number;
+  scale: number;
+  currentLabel: string;
+}
+
+const RANGE_DATA: Record<string, RangeData> = {
   air_quality: {
     segments: [
       { label: "Good", color: palette.success, range: "0-50" },
@@ -141,7 +161,7 @@ const RangeIndicator: React.FC<{ metric: EnvironmentalMetric }> = ({
                   y={32}
                   fontSize="10"
                   fill={palette.textPrimary}
-                  fontWeight={(segment as any).isBold ? "bold" : "600"}
+                  fontWeight={segment.isBold ? "bold" : "600"}
                   textAnchor="middle"
                 >
                   {segment.label}
@@ -346,7 +366,7 @@ const styles = StyleSheet.create({
   },
   sectionContent: {
     fontSize: 15,
-    color: "#EBEBF5",
+    color: palette.textQuiet,
     lineHeight: 22,
     textAlign: "justify",
   },
@@ -357,7 +377,7 @@ const styles = StyleSheet.create({
   },
   impactText: {
     fontSize: 14,
-    color: "#EBEBF5",
+    color: palette.textQuiet,
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
@@ -369,7 +389,7 @@ const styles = StyleSheet.create({
   },
   recommendationText: {
     fontSize: 14,
-    color: "#EBEBF5",
+    color: palette.textQuiet,
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
@@ -381,7 +401,7 @@ const styles = StyleSheet.create({
   },
   riskText: {
     fontSize: 14,
-    color: "#EBEBF5",
+    color: palette.textQuiet,
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,

@@ -1,5 +1,8 @@
 export function getStatusColor(status: string): string {
   switch (status) {
+    // "excellent" only ever arrived via getScoreColor; kept here so that
+    // delegating to this function does not silently downgrade it to grey.
+    case "excellent":
     case "good":
       return palette.success;
     case "moderate":
@@ -39,50 +42,26 @@ export function getMetricFixedIconColor(
   status?: string,
 ): string {
   if (status) return getStatusColor(status);
-  switch (metricId) {
-    case "air_quality":
-      return "#A1A1A6";
-    case "uv_index":
-      return "#FFC44D";
-    case "food_safety":
-      return "#FFB26B";
-    case "pollen":
-      return "#FFE066";
-    case "altitude":
-      return "#66D0FF";
-    case "outbreaks":
-      return "#FF6B6B";
-    case "water_safety":
-      return "#4DD0E1";
-    default:
-      return palette.textSecondary;
-  }
+  return metricTint[metricId as keyof typeof metricTint] ?? palette.textDim;
 }
 
+/**
+ * Colour for a metric's score. Identical to `getStatusColor` — kept as a named
+ * entry point because call sites read better as "colour this score" — so it
+ * delegates rather than repeating the mapping.
+ */
 export function getScoreColor(
   _metricId: string,
   status: string,
   _score?: number,
 ): string {
-  switch ((status || "").toLowerCase()) {
-    case "excellent":
-    case "good":
-      return palette.success;
-    case "moderate":
-      return palette.warningAlt;
-    case "poor":
-      return palette.alert;
-    case "hazardous":
-      return palette.danger;
-    default:
-      return palette.textSecondary;
-  }
+  return getStatusColor((status || "").toLowerCase());
 }
 
 // Derived from the canonical popular cities list in citySearchService.ts
 // to avoid maintaining two separate city lists.
 import { getPopularCities } from "@shared/services/travel/citySearchService";
-import { palette } from "@shared/theme/colors";
+import { palette, metricTint } from "@shared/theme/colors";
 
 const _buildCityCountryMap = (): Record<string, string> => {
   const map: Record<string, string> = { "Current Location": "Your Location" };
@@ -103,10 +82,13 @@ const getCityCountryMap = () =>
 export function getCountryFromCity(city: string): string {
   const cityCountryMap = getCityCountryMap();
   if (cityCountryMap[city]) return cityCountryMap[city];
+  // Guard the empty string: `key.includes("")` is true for every key, so a
+  // blank input would otherwise partial-match the first entry in the map and
+  // report a confident, wrong country.
+  const needle = city.trim().toLowerCase();
+  if (!needle) return "Unknown";
   const partialMatch = Object.keys(cityCountryMap).find(
-    (k) =>
-      city.toLowerCase().includes(k.toLowerCase()) ||
-      k.toLowerCase().includes(city.toLowerCase()),
+    (k) => needle.includes(k.toLowerCase()) || k.toLowerCase().includes(needle),
   );
   return partialMatch ? cityCountryMap[partialMatch] : "Unknown";
 }

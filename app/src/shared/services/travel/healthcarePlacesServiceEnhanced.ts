@@ -1,22 +1,58 @@
 import { API_CONFIG } from "../../config/api";
 import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
+import { distanceInMetres as calculateDistance } from "./geo";
+import { getStaticHealthcareData } from "./healthcareFallbackData";
+import type { HealthcareFacility } from "./healthcareTypes";
+import { z } from "zod";
+import { parseOrNull } from "../validation";
 
-export interface HealthcareFacility {
-  id: string;
-  name: string;
-  type: "hospital" | "pharmacy" | "clinic" | "dentist";
-  address: string;
-  distance: number; // in meters
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  phone?: string;
-  openingHours?: string[];
-  rating?: number;
-  isEmergency?: boolean;
-}
+/** OpenStreetMap Nominatim search results. */
+const NominatimResponseSchema = z.array(
+  z.object({
+    // display_name / lat / lon carry the whole record: the consumer splits the
+    // name out of display_name and parseFloats the coordinates. Entries missing
+    // any of them were already dropped by a .filter() the compiler could not
+    // see; requiring them here makes that explicit and keeps the map body free
+    // of non-null assertions.
+    display_name: z.string(),
+    lat: z.string(),
+    lon: z.string(),
+    name: z.string().optional(),
+    place_id: z.union([z.string(), z.number()]).optional(),
+    extratags: z
+      .object({
+        name: z.string().optional(),
+        phone: z.string().optional(),
+        contact: z.object({ phone: z.string().optional() }).nullish(),
+      })
+      .nullish(),
+    type: z.string().optional(),
+  }),
+);
+
+/** Google Places nearby-search, as consumed here. */
+const PlacesNearbySchema = z.object({
+  status: z.string(),
+  results: z
+    .array(
+      z.object({
+        // Same reasoning as Nominatim above: place_id, name and geometry are
+        // read unconditionally by the mapper, so they are required here rather
+        // than guarded at every use.
+        place_id: z.string(),
+        name: z.string(),
+        geometry: z.object({
+          location: z.object({ lat: z.number(), lng: z.number() }),
+        }),
+        vicinity: z.string().optional(),
+        rating: z.number().optional(),
+        opening_hours: z.record(z.string(), z.unknown()).nullish(),
+        types: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
+});
 
 export interface ClosestMedicalFacilities {
   nearestHospital: HealthcareFacility | null;
@@ -24,28 +60,6 @@ export interface ClosestMedicalFacilities {
   totalFound: number;
   source: "google" | "openstreetmap" | "static" | "mixed";
 }
-
-/**
- * Calculate distance between two coordinates using Haversine formula
- */
-const calculateDistance = (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number => {
-  const R = 6371000; // Earth's radius in meters
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
 
 /**
  * Search using OpenStreetMap Nominatim API (free, no API key required)
@@ -78,7 +92,9 @@ const searchOSMHealthcare = async (
       throw new Error(`OSM API error: ${response.status}`);
     }
 
-    const data: any[] = await response.json();
+    const raw = await response.json();
+    const data = parseOrNull(NominatimResponseSchema, raw, "nominatimPlaces");
+    if (!data) return [];
 
     const facilities: HealthcareFacility[] = data
       .filter((place) => place.display_name && place.lat && place.lon)
@@ -112,7 +128,7 @@ const searchOSMHealthcare = async (
         }
 
         return {
-          id: place.place_id || `osm_${place.lat}_${place.lon}`,
+          id: String(place.place_id ?? `osm_${place.lat}_${place.lon}`),
           name,
           type,
           address: place.display_name || "Address not available",
@@ -143,281 +159,6 @@ const searchOSMHealthcare = async (
 
 /**
  * Static healthcare data for major cities (emergency fallback)
- */
-const getStaticHealthcareData = (
-  cityName: string,
-  latitude: number,
-  longitude: number,
-): HealthcareFacility[] => {
-  const city = cityName.toLowerCase();
-  const facilities: HealthcareFacility[] = [];
-
-  // Major city healthcare data
-  const staticData: Record<string, { hospitals: any[]; pharmacies: any[] }> = {
-    london: {
-      hospitals: [
-        {
-          name: "Guy's Hospital",
-          lat: 51.5038,
-          lon: -0.0875,
-          phone: "+44 20 7188 7188",
-        },
-        {
-          name: "St Thomas' Hospital",
-          lat: 51.499,
-          lon: -0.1193,
-          phone: "+44 20 7188 7188",
-        },
-        {
-          name: "University College Hospital",
-          lat: 51.5249,
-          lon: -0.1342,
-          phone: "+44 20 3456 7890",
-        },
-      ],
-      pharmacies: [
-        {
-          name: "Boots Pharmacy",
-          lat: 51.5074,
-          lon: -0.1278,
-          phone: "+44 20 7946 0958",
-        },
-        {
-          name: "Lloyds Pharmacy",
-          lat: 51.5154,
-          lon: -0.0922,
-          phone: "+44 20 7242 1010",
-        },
-        {
-          name: "Superdrug Pharmacy",
-          lat: 51.5085,
-          lon: -0.1257,
-          phone: "+44 20 7747 8000",
-        },
-      ],
-    },
-    paris: {
-      hospitals: [
-        {
-          name: "Hôpital de la Pitié-Salpêtrière",
-          lat: 48.8389,
-          lon: 2.3589,
-          phone: "+33 1 42 16 00 00",
-        },
-        {
-          name: "Hôpital Saint-Antoine",
-          lat: 48.8489,
-          lon: 2.3889,
-          phone: "+33 1 49 28 20 00",
-        },
-        {
-          name: "Hôpital Necker",
-          lat: 48.8389,
-          lon: 2.3389,
-          phone: "+33 1 44 49 40 00",
-        },
-      ],
-      pharmacies: [
-        {
-          name: "Pharmacie de la Bastille",
-          lat: 48.8534,
-          lon: 2.3686,
-          phone: "+33 1 43 71 85 85",
-        },
-        {
-          name: "Pharmacie du Marais",
-          lat: 48.8566,
-          lon: 2.3522,
-          phone: "+33 1 42 77 20 00",
-        },
-        {
-          name: "Pharmacie des Halles",
-          lat: 48.862,
-          lon: 2.3469,
-          phone: "+33 1 42 36 85 00",
-        },
-      ],
-    },
-    "new york": {
-      hospitals: [
-        {
-          name: "Bellevue Hospital",
-          lat: 40.7411,
-          lon: -73.9897,
-          phone: "+1 212-562-4141",
-        },
-        {
-          name: "Mount Sinai Hospital",
-          lat: 40.787,
-          lon: -73.9518,
-          phone: "+1 212-241-6500",
-        },
-        {
-          name: "NYU Langone Health",
-          lat: 40.7431,
-          lon: -73.9762,
-          phone: "+1 212-263-7300",
-        },
-      ],
-      pharmacies: [
-        {
-          name: "CVS Pharmacy",
-          lat: 40.7589,
-          lon: -73.9851,
-          phone: "+1 212-247-4218",
-        },
-        {
-          name: "Walgreens Pharmacy",
-          lat: 40.7505,
-          lon: -73.9934,
-          phone: "+1 212-695-9080",
-        },
-        {
-          name: "Duane Reade Pharmacy",
-          lat: 40.7614,
-          lon: -73.9776,
-          phone: "+1 212-247-4218",
-        },
-      ],
-    },
-    haslemere: {
-      hospitals: [
-        {
-          name: "Royal Surrey County Hospital",
-          lat: 51.2351,
-          lon: -0.5847,
-          phone: "+44 1483 571122",
-        },
-        {
-          name: "St Peter's Hospital",
-          lat: 51.3597,
-          lon: -0.4767,
-          phone: "+44 1932 872000",
-        },
-        {
-          name: "Frimley Park Hospital",
-          lat: 51.2976,
-          lon: -0.7359,
-          phone: "+44 1276 604604",
-        },
-      ],
-      pharmacies: [
-        {
-          name: "Boots Pharmacy Haslemere",
-          lat: 51.0888,
-          lon: -0.7123,
-          phone: "+44 1428 642511",
-        },
-        {
-          name: "Lloyds Pharmacy Haslemere",
-          lat: 51.089,
-          lon: -0.7115,
-          phone: "+44 1428 643322",
-        },
-        {
-          name: "Haslemere Pharmacy",
-          lat: 51.0885,
-          lon: -0.712,
-          phone: "+44 1428 642100",
-        },
-      ],
-    },
-    milan: {
-      hospitals: [
-        {
-          name: "Ospedale Maggiore Policlinico",
-          lat: 45.4789,
-          lon: 9.1817,
-          phone: "+39 02 5503 1",
-        },
-        {
-          name: "Istituto Clinico Humanitas",
-          lat: 45.5071,
-          lon: 9.2677,
-          phone: "+39 02 8224 1",
-        },
-        {
-          name: "San Raffaele Hospital",
-          lat: 45.4945,
-          lon: 9.2408,
-          phone: "+39 02 2643 1",
-        },
-      ],
-      pharmacies: [
-        {
-          name: "Farmacia Centrale Milano",
-          lat: 45.4654,
-          lon: 9.1859,
-          phone: "+39 02 8646 1234",
-        },
-        {
-          name: "Farmacia Duomo",
-          lat: 45.4642,
-          lon: 9.19,
-          phone: "+39 02 8646 5678",
-        },
-        {
-          name: "Farmacia Brera",
-          lat: 45.4719,
-          lon: 9.1878,
-          phone: "+39 02 8646 9012",
-        },
-      ],
-    },
-  };
-
-  // Find matching city data
-  for (const [cityKey, data] of Object.entries(staticData)) {
-    if (city.includes(cityKey) || cityKey.includes(city)) {
-      // Add hospitals
-      data.hospitals.forEach((hospital) => {
-        facilities.push({
-          id: `static_hospital_${hospital.name.replace(/\s+/g, "_")}`,
-          name: hospital.name,
-          type: "hospital",
-          address: `${cityName}, UK`,
-          distance: calculateDistance(
-            latitude,
-            longitude,
-            hospital.lat,
-            hospital.lon,
-          ),
-          coordinates: { latitude: hospital.lat, longitude: hospital.lon },
-          phone: hospital.phone,
-          rating: 4.2,
-          isEmergency: true,
-        });
-      });
-
-      // Add pharmacies
-      data.pharmacies.forEach((pharmacy) => {
-        facilities.push({
-          id: `static_pharmacy_${pharmacy.name.replace(/\s+/g, "_")}`,
-          name: pharmacy.name,
-          type: "pharmacy",
-          address: `${cityName}, UK`,
-          distance: calculateDistance(
-            latitude,
-            longitude,
-            pharmacy.lat,
-            pharmacy.lon,
-          ),
-          coordinates: { latitude: pharmacy.lat, longitude: pharmacy.lon },
-          phone: pharmacy.phone,
-          rating: 4.0,
-          isEmergency: false,
-        });
-      });
-
-      break;
-    }
-  }
-
-  return facilities.sort((a, b) => a.distance - b.distance);
-};
-
-/**
- * Get the two closest medical facilities (hospital and pharmacy)
  */
 export const getClosestMedicalFacilities = async (
   latitude: number,
@@ -545,14 +286,16 @@ const searchGooglePlaces = async (
       throw new Error(`Google Places API error: ${response.status}`);
     }
 
-    const data: any = await response.json();
+    const raw = await response.json();
+    const data = parseOrNull(PlacesNearbySchema, raw, "googlePlacesNearby");
+    if (!data) return [];
 
     if (data.status !== "OK") {
       throw new Error(`Google Places API error: ${data.status}`);
     }
 
-    return data.results
-      .map((place: any) => ({
+    return (data.results ?? [])
+      .map((place) => ({
         id: place.place_id,
         name: place.name,
         type,

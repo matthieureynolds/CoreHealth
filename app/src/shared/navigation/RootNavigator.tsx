@@ -12,7 +12,7 @@ import { RootStackParamList } from "../types";
 import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./MainNavigator";
 import LoadingScreen from "../components/feedback/LoadingScreen";
-import EnvironmentalMetricScreen from "../../features/home/travel-health/current-location/EnvironmentalMetricScreen";
+import { EnvironmentalMetricScreen } from "@features/travel";
 import RingDetailScreen from "../../features/home/health-metrics/detail/RingDetailScreen";
 import HealthScoreDetailScreen from "../../features/home/score/HealthScoreDetailScreen";
 import LabResultDetailScreen from "../../features/home/recent-lab-results/LabResultDetailScreen";

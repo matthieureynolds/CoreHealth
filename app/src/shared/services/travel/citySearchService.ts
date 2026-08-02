@@ -46,7 +46,7 @@ const PlaceDetailsResponseSchema = z.object({
   status: z.string().optional(),
 });
 
-export interface CitySearchResponse {
+interface CitySearchResponse {
   predictions: Array<{
     description: string;
     place_id: string;
@@ -63,7 +63,7 @@ export interface CitySearchResponse {
   status: string;
 }
 
-export interface PlaceDetailsResponse {
+interface PlaceDetailsResponse {
   result: {
     formatted_address: string;
     geometry: {

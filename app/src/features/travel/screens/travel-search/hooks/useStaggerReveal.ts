@@ -105,5 +105,9 @@ export function useStaggerReveal({
       seq.stop();
       revealAll();
     };
+    // getRowAnim and resultsOpacity are a useCallback and an Animated.Value —
+    // stable for the life of the screen. Listing them changes nothing but
+    // invites a future edit to make one unstable and re-run the whole stagger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLocation, isLoading, reduceMotion]);
 }

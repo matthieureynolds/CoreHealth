@@ -3,11 +3,11 @@ import { fetchWithTimeout } from "../http";
 import { logger } from "../../utils/logger";
 import { z } from "zod";
 import { parseOrNull } from "../validation";
+import { distanceInMetres as calculateDistance } from "./geo";
 export { getClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
-export type { ClosestMedicalFacilities } from "./healthcarePlacesServiceEnhanced";
 
 // Healthcare facility types for Google Places API
-export const HEALTHCARE_TYPES = {
+const HEALTHCARE_TYPES = {
   HOSPITAL: "hospital",
   PHARMACY: "pharmacy",
   DOCTOR: "doctor",
@@ -81,7 +81,7 @@ const GooglePlacesResponseSchema = z.object({
   status: z.string().optional(),
 });
 
-export interface GooglePlacesResponse {
+interface GooglePlacesResponse {
   results: Array<{
     place_id: string;
     name: string;
@@ -119,7 +119,7 @@ export interface GooglePlacesResponse {
 /**
  * Search for nearby healthcare facilities
  */
-export const searchNearbyHealthcareFacilities = async (
+const searchNearbyHealthcareFacilities = async (
   latitude: number,
   longitude: number,
   type: keyof typeof HEALTHCARE_TYPES = "HOSPITAL",
@@ -346,37 +346,4 @@ export const getEmergencyContacts = (
   };
 
   return emergencyDatabase[countryCode.toUpperCase()] || defaultContacts;
-};
-
-/**
- * Calculate distance between two coordinates (Haversine formula)
- */
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-/**
- * Format facility distance
- */
-export const formatDistance = (distance: number): string => {
-  if (distance < 1000) {
-    return `${distance}m`;
-  }
-  return `${(distance / 1000).toFixed(1)}km`;
 };

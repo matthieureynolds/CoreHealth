@@ -71,7 +71,23 @@ export interface Layover {
   dep_local: string;
 }
 
+/**
+ * A flight's local departure and arrival clock times, 'HH:MM'.
+ * Named because this shape was being re-declared inline in three trip files.
+ */
+export interface FlightTimes {
+  departureTime: string;
+  arrivalTime: string;
+}
+
 export interface Commitment {
+  /**
+   * Stable identity, assigned on creation. Editing and removal match on this;
+   * they used to match on object reference, which broke as soon as the list
+   * round-tripped through storage and made two identical-looking commitments
+   * indistinguishable.
+   */
+  id: string;
   title: string;
   /** Destination-local date 'YYYY-MM-DD'. */
   date_local: string;
